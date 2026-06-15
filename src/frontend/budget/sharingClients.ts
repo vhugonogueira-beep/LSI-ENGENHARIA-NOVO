@@ -1,1 +1,28 @@
-{"data":"aW1wb3J0IHsgU2hhcmluZ0NsaWVudCB9IGZyb20gIi4vdHlwZXMiOwoKZXhwb3J0IGNvbnN0IERFRkFVTFRfU0hBUklOR19DTElFTlRTOiBTaGFyaW5nQ2xpZW50W10gPSBbCiAgeyBpZDogImhpZ2hsaW5lIiwgbm9tZTogIkhpZ2hsaW5lIGRvIEJyYXNpbCIsIHNpZ2xhOiAiSEwiLCBjbnBqOiAiIiwgdGlwbzogIlNoYXJpbmciLCBjb250YXRvOiAiIiwgZW1haWw6ICIiLCB0ZWxlZm9uZTogIiIsIGJkaVBhZHJhbzogMjUsIGx1Y3JvUGFkcmFvOiAxMCwgZGVzY29udG9QYWRyYW86IDAsIGNvcjogIiM4YjVjZjYiLCBhdGl2bzogdHJ1ZSB9LAogIHsgaWQ6ICJhdGMiLCBub21lOiAiQVRDIC8gU0JBIiwgc2lnbGE6ICJBVEMiLCBjbnBqOiAiIiwgdGlwbzogIlNoYXJpbmciLCBjb250YXRvOiAiIiwgZW1haWw6ICIiLCB0ZWxlZm9uZTogIiIsIGJkaVBhZHJhbzogMjUsIGx1Y3JvUGFkcmFvOiAxMCwgZGVzY29udG9QYWRyYW86IDAsIGNvcjogIiNmNTllMGIiLCBhdGl2bzogdHJ1ZSB9LAogIHsgaWQ6ICJpaHMiLCBub21lOiAiSUhTIFRvd2VycyIsIHNpZ2xhOiAiSUhTIiwgY25wajogIiIsIHRpcG86ICJTaGFyaW5nIiwgY29udGF0bzogIiIsIGVtYWlsOiAiIiwgdGVsZWZvbmU6ICIiLCBiZGlQYWRyYW86IDI1LCBsdWNyb1BhZHJhbzogMTAsIGRlc2NvbnRvUGFkcmFvOiAwLCBjb3I6ICIjMTBiOTgxIiwgYXRpdm86IHRydWUgfSwKICB7IGlkOiAid2luaXR5Iiwgbm9tZTogIldpbml0eSBUZWxlY29tIiwgc2lnbGE6ICJXSU4iLCBjbnBqOiAiIiwgdGlwbzogIlNoYXJpbmciLCBjb250YXRvOiAiIiwgZW1haWw6ICIiLCB0ZWxlZm9uZTogIiIsIGJkaVBhZHJhbzogMjUsIGx1Y3JvUGFkcmFvOiAxMCwgZGVzY29udG9QYWRyYW86IDAsIGNvcjogIiM2MzY2ZjEiLCBhdGl2bzogdHJ1ZSB9LAogIHsgaWQ6ICJ2aXZvIiwgbm9tZTogIlZpdm8gLyBUZWxlZsO0bmljYSIsIHNpZ2xhOiAiVklWTyIsIGNucGo6ICIiLCB0aXBvOiAiT3BlcmFkb3JhIiwgY29udGF0bzogIiIsIGVtYWlsOiAiIiwgdGVsZWZvbmU6ICIiLCBiZGlQYWRyYW86IDI1LCBsdWNyb1BhZHJhbzogMTAsIGRlc2NvbnRvUGFkcmFvOiAwLCBjb3I6ICIjN2MzYWVkIiwgYXRpdm86IHRydWUgfSwKICB7IGlkOiAiY2xhcm8iLCBub21lOiAiQ2xhcm8gLyBBbcOpcmljYSBNw7N2aWwiLCBzaWdsYTogIkNMUiIsIGNucGo6ICIiLCB0aXBvOiAiT3BlcmFkb3JhIiwgY29udGF0bzogIiIsIGVtYWlsOiAiIiwgdGVsZWZvbmU6ICIiLCBiZGlQYWRyYW86IDI1LCBsdWNyb1BhZHJhbzogMTAsIGRlc2NvbnRvUGFkcmFvOiAwLCBjb3I6ICIjZWY0NDQ0IiwgYXRpdm86IHRydWUgfSwKICB7IGlkOiAidGltIiwgbm9tZTogIlRJTSBCcmFzaWwiLCBzaWdsYTogIlRJTSIsIGNucGo6ICIiLCB0aXBvOiAiT3BlcmFkb3JhIiwgY29udGF0bzogIiIsIGVtYWlsOiAiIiwgdGVsZWZvbmU6ICIiLCBiZGlQYWRyYW86IDI1LCBsdWNyb1BhZHJhbzogMTAsIGRlc2NvbnRvUGFkcmFvOiAwLCBjb3I6ICIjM2I4MmY2IiwgYXRpdm86IHRydWUgfSwKICB7IGlkOiAib2kiLCBub21lOiAiT2kgUy5BLiIsIHNpZ2xhOiAiT0kiLCBjbnBqOiAiIiwgdGlwbzogIk9wZXJhZG9yYSIsIGNvbnRhdG86ICIiLCBlbWFpbDogIiIsIHRlbGVmb25lOiAiIiwgYmRpUGFkcmFvOiAyNSwgbHVjcm9QYWRyYW86IDEwLCBkZXNjb250b1BhZHJhbzogMCwgY29yOiAiI2Y5NzMxNiIsIGF0aXZvOiB0cnVlIH0sCl07Cgpjb25zdCBMU19LRVkgPSAibHNfc2hhcmluZ0NsaWVudHMiOwoKZXhwb3J0IGZ1bmN0aW9uIGxvYWRTaGFyaW5nQ2xpZW50cygpOiBTaGFyaW5nQ2xpZW50W10gewogIHRyeSB7CiAgICBjb25zdCByYXcgPSBsb2NhbFN0b3JhZ2UuZ2V0SXRlbShMU19LRVkpOwogICAgaWYgKHJhdykgcmV0dXJuIEpTT04ucGFyc2UocmF3KTsKICB9IGNhdGNoIHt9CiAgLy8gU2VlZCBkZWZhdWx0cwogIHNhdmVTaGFyaW5nQ2xpZW50cyhERUZBVUxUX1NIQVJJTkdfQ0xJRU5UUyk7CiAgcmV0dXJuIERFRkFVTFRfU0hBUklOR19DTElFTlRTOwp9CgpleHBvcnQgZnVuY3Rpb24gc2F2ZVNoYXJpbmdDbGllbnRzKGNsaWVudHM6IFNoYXJpbmdDbGllbnRbXSkgewogIGxvY2FsU3RvcmFnZS5zZXRJdGVtKExTX0tFWSwgSlNPTi5zdHJpbmdpZnkoY2xpZW50cykpOwp9Cg=="}
+import { SharingClient } from "./types";
+
+export const DEFAULT_SHARING_CLIENTS: SharingClient[] = [
+  { id: "highline", nome: "Highline do Brasil", sigla: "HL", cnpj: "", tipo: "Sharing", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#8b5cf6", ativo: true },
+  { id: "atc", nome: "ATC / SBA", sigla: "ATC", cnpj: "", tipo: "Sharing", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#f59e0b", ativo: true },
+  { id: "ihs", nome: "IHS Towers", sigla: "IHS", cnpj: "", tipo: "Sharing", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#10b981", ativo: true },
+  { id: "winity", nome: "Winity Telecom", sigla: "WIN", cnpj: "", tipo: "Sharing", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#6366f1", ativo: true },
+  { id: "vivo", nome: "Vivo / Telefônica", sigla: "VIVO", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#7c3aed", ativo: true },
+  { id: "claro", nome: "Claro / América Móvil", sigla: "CLR", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#ef4444", ativo: true },
+  { id: "tim", nome: "TIM Brasil", sigla: "TIM", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#3b82f6", ativo: true },
+  { id: "oi", nome: "Oi S.A.", sigla: "OI", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#f97316", ativo: true },
+];
+
+const LS_KEY = "ls_sharingClients";
+
+export function loadSharingClients(): SharingClient[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  // Seed defaults
+  saveSharingClients(DEFAULT_SHARING_CLIENTS);
+  return DEFAULT_SHARING_CLIENTS;
+}
+
+export function saveSharingClients(clients: SharingClient[]) {
+  localStorage.setItem(LS_KEY, JSON.stringify(clients));
+}

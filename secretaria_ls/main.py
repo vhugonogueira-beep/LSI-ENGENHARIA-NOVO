@@ -1,1 +1,491 @@
-{"data":"IiIiClNlY3JldMOhcmlhIExTIE9mZmljZSDigJQgQmFja2VuZAo9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQpTZXJ2aWRvciBGYXN0QVBJIHBhcmEgZ2VyZW5jaWFtZW50byBkZSBhdGl2aWRhZGVzIGNvbToKICAtIENSVUQgY29tcGxldG8gZGUgdGFyZWZhcwogIC0gUmVhZ2VuZGFtZW50byBhdXRvbcOhdGljbyBkZSB2ZW5jaWRhcwogIC0gRW52aW8gZGUgYWxlcnRhcyB2aWEgV2hhdHNBcHAgKEV2b2x1dGlvbiBBUEkgb3UgVHdpbGlvKQogIC0gUmVsYXTDs3JpbyBkacOhcmlvIGF1dG9tw6F0aWNvIChjcm9uKQogIC0gUGVyc2lzdMOqbmNpYSBlbSBKU09OIGxvY2FsIChzZW0gYmFuY28gZXh0ZXJubykKClJlcXVpc2l0b3M6CiAgICBwaXAgaW5zdGFsbCBmYXN0YXBpIHV2aWNvcm4gYXBzY2hlZHVsZXIgaHR0cHggcHl0aG9uLWRvdGVudgoKVXNvOgogICAgdXZpY29ybiBtYWluOmFwcCAtLXJlbG9hZCAtLXBvcnQgODAwMAoiIiIKCmltcG9ydCBqc29uCmltcG9ydCBvcwppbXBvcnQgdXVpZApmcm9tIGRhdGV0aW1lIGltcG9ydCBkYXRlLCBkYXRldGltZSwgdGltZWRlbHRhCmZyb20gcGF0aGxpYiBpbXBvcnQgUGF0aApmcm9tIHR5cGluZyBpbXBvcnQgTGlzdCwgT3B0aW9uYWwKCmltcG9ydCBodHRweApmcm9tIGFwc2NoZWR1bGVyLnNjaGVkdWxlcnMuYXN5bmNpbyBpbXBvcnQgQXN5bmNJT1NjaGVkdWxlcgpmcm9tIGRvdGVudiBpbXBvcnQgbG9hZF9kb3RlbnYKZnJvbSBmYXN0YXBpIGltcG9ydCBGYXN0QVBJLCBIVFRQRXhjZXB0aW9uCmZyb20gZmFzdGFwaS5taWRkbGV3YXJlLmNvcnMgaW1wb3J0IENPUlNNaWRkbGV3YXJlCmZyb20gZmFzdGFwaS5zdGF0aWNmaWxlcyBpbXBvcnQgU3RhdGljRmlsZXMKZnJvbSBweWRhbnRpYyBpbXBvcnQgQmFzZU1vZGVsCgpsb2FkX2RvdGVudigpCgojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAojIENvbmZpZ3VyYcOnw6NvCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACkRBVEFfRklMRSA9IFBhdGgoInRhc2tzLmpzb24iKQpDT05GSUdfRklMRSA9IFBhdGgoImNvbmZpZy5qc29uIikKCiMgVmFyacOhdmVpcyBkZSBhbWJpZW50ZSAoLmVudikKV0FfUFJPVklERVIgICAgICAgID0gb3MuZ2V0ZW52KCJXQV9QUk9WSURFUiIsICJldm9sdXRpb24iKSAgICMgImV2b2x1dGlvbiIgb3UgInR3aWxpbyIKCiMgRXZvbHV0aW9uIEFQSSAoc2VsZi1ob3N0ZWQgLyBBbnRpZ3Jhdml0eSkKRVZPTFVUSU9OX1VSTCAgICAgID0gb3MuZ2V0ZW52KCJFVk9MVVRJT05fVVJMIiwgImh0dHA6Ly9sb2NhbGhvc3Q6ODA4MCIpCkVWT0xVVElPTl9LRVkgICAgICA9IG9zLmdldGVudigiRVZPTFVUSU9OX0FQSV9LRVkiLCAiIikKRVZPTFVUSU9OX0lOU1RBTkNFID0gb3MuZ2V0ZW52KCJFVk9MVVRJT05fSU5TVEFOQ0UiLCAibHMtb2ZmaWNlIikKCiMgVHdpbGlvIChmYWxsYmFjayAvIGNsb3VkKQpUV0lMSU9fU0lEICAgICAgICAgPSBvcy5nZXRlbnYoIlRXSUxJT19TSUQiLCAiIikKVFdJTElPX1RPS0VOICAgICAgID0gb3MuZ2V0ZW52KCJUV0lMSU9fVE9LRU4iLCAiIikKVFdJTElPX0ZST00gICAgICAgID0gb3MuZ2V0ZW52KCJUV0lMSU9fRlJPTSIsICJ3aGF0c2FwcDorMTQxNTUyMzg4ODYiKQoKIyBOw7ptZXJvIHBhZHLDo28gcGFyYSBhbGVydGFzIChjb20gRERJLCBzZW0gKykKREVGQVVMVF9XQV9OVU1CRVIgID0gb3MuZ2V0ZW52KCJERUZBVUxUX1dBX05VTUJFUiIsICIiKQoKIyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKIyBNb2RlbG9zIFB5ZGFudGljCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmNsYXNzIFRhc2soQmFzZU1vZGVsKToKICAgIGlkOiBPcHRpb25hbFtzdHJdID0gTm9uZQogICAgZGVzYzogc3RyCiAgICBzdGF0dXM6IHN0ciA9ICJwZW5kaW5nIiAgICAgICAgICAjIHBlbmRpbmcgfCBhd2FpdGluZyB8IGRvbmUKICAgIHByaW9yaXR5OiBzdHIgPSAibm9ybWFsIiAgICAgICAgICMgbm9ybWFsIHwgaGlnaCB8IGxvdwogICAgY2xpZW50OiBPcHRpb25hbFtzdHJdID0gIiIKICAgIHR5cGU6IE9wdGlvbmFsW3N0cl0gPSAiIgogICAgZGF0ZTogc3RyICAgICAgICAgICAgICAgICAgICAgICAgIyBZWVlZLU1NLURECiAgICB0aW1lOiBPcHRpb25hbFtzdHJdID0gIiIgICAgICAgICAjIEhIOk1NCiAgICByZXNwOiBPcHRpb25hbFtzdHJdID0gIiIKICAgIGRlYWRsaW5lOiBPcHRpb25hbFtzdHJdID0gIiIgICAgICMgWVlZWS1NTS1ERAogICAgbm90ZTogT3B0aW9uYWxbc3RyXSA9ICIiCiAgICByZXNjaGVkdWxlZDogYm9vbCA9IEZhbHNlCiAgICBjcmVhdGVkX2F0OiBPcHRpb25hbFtzdHJdID0gTm9uZQoKY2xhc3MgVGFza1VwZGF0ZShCYXNlTW9kZWwpOgogICAgZGVzYzogT3B0aW9uYWxbc3RyXSA9IE5vbmUKICAgIHN0YXR1czogT3B0aW9uYWxbc3RyXSA9IE5vbmUKICAgIHByaW9yaXR5OiBPcHRpb25hbFtzdHJdID0gTm9uZQogICAgY2xpZW50OiBPcHRpb25hbFtzdHJdID0gTm9uZQogICAgdHlwZTogT3B0aW9uYWxbc3RyXSA9IE5vbmUKICAgIGRhdGU6IE9wdGlvbmFsW3N0cl0gPSBOb25lCiAgICB0aW1lOiBPcHRpb25hbFtzdHJdID0gTm9uZQogICAgcmVzcDogT3B0aW9uYWxbc3RyXSA9IE5vbmUKICAgIGRlYWRsaW5lOiBPcHRpb25hbFtzdHJdID0gTm9uZQogICAgbm90ZTogT3B0aW9uYWxbc3RyXSA9IE5vbmUKICAgIHJlc2NoZWR1bGVkOiBPcHRpb25hbFtib29sXSA9IE5vbmUKCmNsYXNzIFdBTWVzc2FnZVJlcXVlc3QoQmFzZU1vZGVsKToKICAgIG51bWJlcjogc3RyICAgICAgICAgICAjIGV4OiAiNTUxMTk5OTk5OTk5OSIKICAgIG1lc3NhZ2U6IHN0cgoKY2xhc3MgQ29uZmlnKEJhc2VNb2RlbCk6CiAgICB3YV9udW1iZXI6IE9wdGlvbmFsW3N0cl0gPSAiIgogICAgZGFpbHlfcmVwb3J0X3RpbWU6IE9wdGlvbmFsW3N0cl0gPSAiMDg6MDAiCiAgICBhdXRvX3Jlc2NoZWR1bGU6IE9wdGlvbmFsW2Jvb2xdID0gVHJ1ZQoKIyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKIyBQZXJzaXN0w6puY2lhIEpTT04KIyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKZGVmIGxvYWRfdGFza3MoKSAtPiBMaXN0W2RpY3RdOgogICAgaWYgbm90IERBVEFfRklMRS5leGlzdHMoKToKICAgICAgICByZXR1cm4gW10KICAgIHJldHVybiBqc29uLmxvYWRzKERBVEFfRklMRS5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IikpCgpkZWYgc2F2ZV90YXNrcyh0YXNrczogTGlzdFtkaWN0XSk6CiAgICBEQVRBX0ZJTEUud3JpdGVfdGV4dChqc29uLmR1bXBzKHRhc2tzLCBlbnN1cmVfYXNjaWk9RmFsc2UsIGluZGVudD0yKSwgZW5jb2Rpbmc9InV0Zi04IikKCmRlZiBsb2FkX2NvbmZpZygpIC0+IGRpY3Q6CiAgICBpZiBub3QgQ09ORklHX0ZJTEUuZXhpc3RzKCk6CiAgICAgICAgcmV0dXJuIHsid2FfbnVtYmVyIjogIiIsICJkYWlseV9yZXBvcnRfdGltZSI6ICIwODowMCIsICJhdXRvX3Jlc2NoZWR1bGUiOiBUcnVlfQogICAgcmV0dXJuIGpzb24ubG9hZHMoQ09ORklHX0ZJTEUucmVhZF90ZXh0KGVuY29kaW5nPSJ1dGYtOCIpKQoKZGVmIHNhdmVfY29uZmlnKGNmZzogZGljdCk6CiAgICBDT05GSUdfRklMRS53cml0ZV90ZXh0KGpzb24uZHVtcHMoY2ZnLCBlbnN1cmVfYXNjaWk9RmFsc2UsIGluZGVudD0yKSwgZW5jb2Rpbmc9InV0Zi04IikKCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiMgV2hhdHNBcHAg4oCUIGVudmlvIGRlIG1lbnNhZ2VtCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACmFzeW5jIGRlZiBzZW5kX3doYXRzYXBwKG51bWJlcjogc3RyLCBtZXNzYWdlOiBzdHIpIC0+IGRpY3Q6CiAgICAiIiIKICAgIEVudmlhIG1lbnNhZ2VtIFdoYXRzQXBwIHZpYSBFdm9sdXRpb24gQVBJIG91IFR3aWxpby4KICAgIG51bWJlcjogc29tZW50ZSBkw61naXRvcywgY29tIERESSAoZXg6IDU1MTE5OTk5OTk5OTkpCiAgICAiIiIKICAgIGNsZWFuX251bWJlciA9ICIiLmpvaW4oZmlsdGVyKHN0ci5pc2RpZ2l0LCBudW1iZXIpKQoKICAgIGlmIFdBX1BST1ZJREVSID09ICJldm9sdXRpb24iOgogICAgICAgIHJldHVybiBhd2FpdCBfc2VuZF9ldm9sdXRpb24oY2xlYW5fbnVtYmVyLCBtZXNzYWdlKQogICAgZWxpZiBXQV9QUk9WSURFUiA9PSAidHdpbGlvIjoKICAgICAgICByZXR1cm4gYXdhaXQgX3NlbmRfdHdpbGlvKGNsZWFuX251bWJlciwgbWVzc2FnZSkKICAgIGVsc2U6CiAgICAgICAgcmFpc2UgVmFsdWVFcnJvcihmIldBX1BST1ZJREVSIGludsOhbGlkbzoge1dBX1BST1ZJREVSfSIpCgphc3luYyBkZWYgX3NlbmRfZXZvbHV0aW9uKG51bWJlcjogc3RyLCBtZXNzYWdlOiBzdHIpIC0+IGRpY3Q6CiAgICB1cmwgPSBmIntFVk9MVVRJT05fVVJMfS9tZXNzYWdlL3NlbmRUZXh0L3tFVk9MVVRJT05fSU5TVEFOQ0V9IgogICAgaGVhZGVycyA9IHsiYXBpa2V5IjogRVZPTFVUSU9OX0tFWSwgIkNvbnRlbnQtVHlwZSI6ICJhcHBsaWNhdGlvbi9qc29uIn0KICAgIHBheWxvYWQgPSB7CiAgICAgICAgIm51bWJlciI6IGYie251bWJlcn1Acy53aGF0c2FwcC5uZXQiLAogICAgICAgICJ0ZXh0TWVzc2FnZSI6IHsidGV4dCI6IG1lc3NhZ2V9LAogICAgICAgICJvcHRpb25zIjogeyJkZWxheSI6IDUwMCwgInByZXNlbmNlIjogImNvbXBvc2luZyJ9CiAgICB9CiAgICBhc3luYyB3aXRoIGh0dHB4LkFzeW5jQ2xpZW50KHRpbWVvdXQ9MTUpIGFzIGNsaWVudDoKICAgICAgICByID0gYXdhaXQgY2xpZW50LnBvc3QodXJsLCBqc29uPXBheWxvYWQsIGhlYWRlcnM9aGVhZGVycykKICAgICAgICByLnJhaXNlX2Zvcl9zdGF0dXMoKQogICAgICAgIHJldHVybiByLmpzb24oKQoKYXN5bmMgZGVmIF9zZW5kX3R3aWxpbyhudW1iZXI6IHN0ciwgbWVzc2FnZTogc3RyKSAtPiBkaWN0OgogICAgZnJvbSBiYXNlNjQgaW1wb3J0IGI2NGVuY29kZQogICAgYXV0aCA9IGI2NGVuY29kZShmIntUV0lMSU9fU0lEfTp7VFdJTElPX1RPS0VOfSIuZW5jb2RlKCkpLmRlY29kZSgpCiAgICB1cmwgPSBmImh0dHBzOi8vYXBpLnR3aWxpby5jb20vMjAxMC0wNC0wMS9BY2NvdW50cy97VFdJTElPX1NJRH0vTWVzc2FnZXMuanNvbiIKICAgIGhlYWRlcnMgPSB7IkF1dGhvcml6YXRpb24iOiBmIkJhc2ljIHthdXRofSJ9CiAgICBkYXRhID0gewogICAgICAgICJGcm9tIjogVFdJTElPX0ZST00sCiAgICAgICAgIlRvIjogZiJ3aGF0c2FwcDore251bWJlcn0iLAogICAgICAgICJCb2R5IjogbWVzc2FnZQogICAgfQogICAgYXN5bmMgd2l0aCBodHRweC5Bc3luY0NsaWVudCh0aW1lb3V0PTE1KSBhcyBjbGllbnQ6CiAgICAgICAgciA9IGF3YWl0IGNsaWVudC5wb3N0KHVybCwgZGF0YT1kYXRhLCBoZWFkZXJzPWhlYWRlcnMpCiAgICAgICAgci5yYWlzZV9mb3Jfc3RhdHVzKCkKICAgICAgICByZXR1cm4gci5qc29uKCkKCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiMgTMOzZ2ljYSBkZSBuZWfDs2NpbwojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApkZWYgZ2V0X2VmZmVjdGl2ZV9zdGF0dXModGFzazogZGljdCwgdG9kYXlfc3RyOiBzdHIpIC0+IHN0cjoKICAgIGlmIHRhc2tbInN0YXR1cyJdID09ICJkb25lIjoKICAgICAgICByZXR1cm4gImRvbmUiCiAgICBpZiB0YXNrWyJkYXRlIl0gPCB0b2RheV9zdHI6CiAgICAgICAgcmV0dXJuICJvdmVyZHVlIgogICAgcmV0dXJuIHRhc2tbInN0YXR1cyJdCgpkZWYgYnVpbGRfZGFpbHlfcmVwb3J0KHRhc2tzOiBMaXN0W2RpY3RdLCBsYWJlbDogc3RyID0gIlJlc3VtbyBkbyBkaWEiKSAtPiBzdHI6CiAgICB0b2RheV9zdHIgPSBkYXRlLnRvZGF5KCkuaXNvZm9ybWF0KCkKICAgIG92ZXJkdWUgICA9IFt0IGZvciB0IGluIHRhc2tzIGlmIGdldF9lZmZlY3RpdmVfc3RhdHVzKHQsIHRvZGF5X3N0cikgPT0gIm92ZXJkdWUiXQogICAgcGVuZGluZyAgID0gW3QgZm9yIHQgaW4gdGFza3MgaWYgZ2V0X2VmZmVjdGl2ZV9zdGF0dXModCwgdG9kYXlfc3RyKSA9PSAicGVuZGluZyJdCiAgICBhd2FpdGluZyAgPSBbdCBmb3IgdCBpbiB0YXNrcyBpZiBnZXRfZWZmZWN0aXZlX3N0YXR1cyh0LCB0b2RheV9zdHIpID09ICJhd2FpdGluZyJdCiAgICBkb25lICAgICAgPSBbdCBmb3IgdCBpbiB0YXNrcyBpZiB0WyJzdGF0dXMiXSA9PSAiZG9uZSJdCgogICAgbm93ID0gZGF0ZXRpbWUubm93KCkuc3RyZnRpbWUoIiVkLyVtLyVZICVIOiVNIikKICAgIG1zZyA9IGYiKlNlY3JldMOhcmlhIExTIE9mZmljZSDigJQge2xhYmVsfSpcbiIKICAgIG1zZyArPSBmIvCfk4Uge25vd31cblxuIgoKICAgIGlmIG92ZXJkdWU6CiAgICAgICAgbXNnICs9IGYi8J+UtCAqVmVuY2lkYXMgKHtsZW4ob3ZlcmR1ZSl9KSpcbiIKICAgICAgICBmb3IgdCBpbiBvdmVyZHVlOgogICAgICAgICAgICBtc2cgKz0gZiLigKIge3RbJ2Rlc2MnXX0iCiAgICAgICAgICAgIGlmIHQuZ2V0KCJjbGllbnQiKTogbXNnICs9IGYiIFt7dFsnY2xpZW50J119XSIKICAgICAgICAgICAgbXNnICs9IGYiIF8odmVuY2V1IHt0WydkYXRlJ119KV9cbiIKICAgICAgICBtc2cgKz0gIlxuIgoKICAgIGlmIHBlbmRpbmc6CiAgICAgICAgbXNnICs9IGYi8J+foSAqUGVuZGVudGVzIGhvamUgKHtsZW4ocGVuZGluZyl9KSpcbiIKICAgICAgICBmb3IgdCBpbiBwZW5kaW5nOgogICAgICAgICAgICBtc2cgKz0gZiLigKIge3RbJ2Rlc2MnXX0iCiAgICAgICAgICAgIGlmIHQuZ2V0KCJjbGllbnQiKTogbXNnICs9IGYiIFt7dFsnY2xpZW50J119XSIKICAgICAgICAgICAgaWYgdC5nZXQoInRpbWUiKTogbXNnICs9IGYiIOKPsHt0Wyd0aW1lJ119IgogICAgICAgICAgICBtc2cgKz0gIlxuIgogICAgICAgIG1zZyArPSAiXG4iCgogICAgaWYgYXdhaXRpbmc6CiAgICAgICAgbXNnICs9IGYi8J+UtSAqQWd1YXJkYW5kbyByZXNwb3N0YSAoe2xlbihhd2FpdGluZyl9KSpcbiIKICAgICAgICBmb3IgdCBpbiBhd2FpdGluZzoKICAgICAgICAgICAgbXNnICs9IGYi4oCiIHt0WydkZXNjJ119IgogICAgICAgICAgICBpZiB0LmdldCgicmVzcCIpOiBtc2cgKz0gZiIg4oaSIHt0WydyZXNwJ119IgogICAgICAgICAgICBtc2cgKz0gIlxuIgogICAgICAgIG1zZyArPSAiXG4iCgogICAgaWYgZG9uZToKICAgICAgICBtc2cgKz0gZiLinIUgKkNvbmNsdcOtZGFzICh7bGVuKGRvbmUpfSkqXG4iCiAgICAgICAgZm9yIHQgaW4gZG9uZToKICAgICAgICAgICAgbXNnICs9IGYi4oCiIHt0WydkZXNjJ119XG4iCiAgICAgICAgbXNnICs9ICJcbiIKCiAgICAjIFByYXpvcyBwcsOzeGltb3MgKHByw7N4aW1vcyAzIGRpYXMpCiAgICBkZWFkbGluZXNfc29vbiA9IFtdCiAgICBmb3IgdCBpbiB0YXNrczoKICAgICAgICBpZiB0LmdldCgiZGVhZGxpbmUiKSBhbmQgdFsic3RhdHVzIl0gIT0gImRvbmUiOgogICAgICAgICAgICBkbCA9IGRhdGUuZnJvbWlzb2Zvcm1hdCh0WyJkZWFkbGluZSJdKQogICAgICAgICAgICBkaWZmID0gKGRsIC0gZGF0ZS50b2RheSgpKS5kYXlzCiAgICAgICAgICAgIGlmIDAgPD0gZGlmZiA8PSAzOgogICAgICAgICAgICAgICAgZGVhZGxpbmVzX3Nvb24uYXBwZW5kKCh0LCBkaWZmKSkKCiAgICBpZiBkZWFkbGluZXNfc29vbjoKICAgICAgICBtc2cgKz0gZiLij7MgKlByYXpvcyBwcsOzeGltb3MqXG4iCiAgICAgICAgZm9yIHQsIGRpZmYgaW4gZGVhZGxpbmVzX3Nvb246CiAgICAgICAgICAgIGxhYmVsX2QgPSAiaG9qZSEiIGlmIGRpZmYgPT0gMCBlbHNlIGYiZW0ge2RpZmZ9ZCIKICAgICAgICAgICAgbXNnICs9IGYi4oCiIHt0WydkZXNjJ119IOKAlCB7bGFiZWxfZH1cbiIKICAgICAgICBtc2cgKz0gIlxuIgoKICAgIG1zZyArPSAiX0VudmlhZG8gYXV0b21hdGljYW1lbnRlIHBlbGEgU2VjcmV0w6FyaWEgTFMgT2ZmaWNlXyIKICAgIHJldHVybiBtc2cKCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiMgQXBwIEZhc3RBUEkKIyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKYXBwID0gRmFzdEFQSSgKICAgIHRpdGxlPSJTZWNyZXTDoXJpYSBMUyBPZmZpY2UiLAogICAgZGVzY3JpcHRpb249IkFQSSBkZSBnZXN0w6NvIGRlIGF0aXZpZGFkZXMgY29tIGFsZXJ0YXMgV2hhdHNBcHAiLAogICAgdmVyc2lvbj0iMi4wLjAiCikKCmFwcC5hZGRfbWlkZGxld2FyZSgKICAgIENPUlNNaWRkbGV3YXJlLAogICAgYWxsb3dfb3JpZ2lucz1bIioiXSwKICAgIGFsbG93X21ldGhvZHM9WyIqIl0sCiAgICBhbGxvd19oZWFkZXJzPVsiKiJdLAopCgojIFNlcnZlIG8gZnJvbnRlbmQgZXN0w6F0aWNvIG5hIHJhaXoKaWYgUGF0aCgic3RhdGljIikuZXhpc3RzKCk6CiAgICBhcHAubW91bnQoIi9hcHAiLCBTdGF0aWNGaWxlcyhkaXJlY3Rvcnk9InN0YXRpYyIsIGh0bWw9VHJ1ZSksIG5hbWU9InN0YXRpYyIpCgojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAojIEVuZHBvaW50cyDigJQgVGFyZWZhcwojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApAYXBwLmdldCgiL3Rhc2tzIiwgcmVzcG9uc2VfbW9kZWw9TGlzdFtkaWN0XSkKZGVmIGxpc3RfdGFza3MoZGF0ZV9maWx0ZXI6IE9wdGlvbmFsW3N0cl0gPSBOb25lLCBzdGF0dXM6IE9wdGlvbmFsW3N0cl0gPSBOb25lKToKICAgICIiIkxpc3RhIHRvZGFzIGFzIHRhcmVmYXMuIEZpbHRyYSBwb3IgZGF0ZSAoWVlZWS1NTS1ERCkgZS9vdSBzdGF0dXMuIiIiCiAgICB0YXNrcyA9IGxvYWRfdGFza3MoKQogICAgaWYgZGF0ZV9maWx0ZXI6CiAgICAgICAgdGFza3MgPSBbdCBmb3IgdCBpbiB0YXNrcyBpZiB0WyJkYXRlIl0gPT0gZGF0ZV9maWx0ZXJdCiAgICBpZiBzdGF0dXM6CiAgICAgICAgdG9kYXlfc3RyID0gZGF0ZS50b2RheSgpLmlzb2Zvcm1hdCgpCiAgICAgICAgdGFza3MgPSBbdCBmb3IgdCBpbiB0YXNrcyBpZiBnZXRfZWZmZWN0aXZlX3N0YXR1cyh0LCB0b2RheV9zdHIpID09IHN0YXR1c10KICAgIHJldHVybiB0YXNrcwoKQGFwcC5wb3N0KCIvdGFza3MiLCByZXNwb25zZV9tb2RlbD1kaWN0KQpkZWYgY3JlYXRlX3Rhc2sodGFzazogVGFzayk6CiAgICB0YXNrcyA9IGxvYWRfdGFza3MoKQogICAgdGFza19kaWN0ID0gdGFzay5kaWN0KCkKICAgIHRhc2tfZGljdFsiaWQiXSA9IHN0cih1dWlkLnV1aWQ0KCkpWzo4XQogICAgdGFza19kaWN0WyJjcmVhdGVkX2F0Il0gPSBkYXRldGltZS5ub3coKS5pc29mb3JtYXQoKQogICAgdGFza3MuYXBwZW5kKHRhc2tfZGljdCkKICAgIHNhdmVfdGFza3ModGFza3MpCiAgICByZXR1cm4gdGFza19kaWN0CgpAYXBwLmdldCgiL3Rhc2tzL3t0YXNrX2lkfSIsIHJlc3BvbnNlX21vZGVsPWRpY3QpCmRlZiBnZXRfdGFzayh0YXNrX2lkOiBzdHIpOgogICAgdGFza3MgPSBsb2FkX3Rhc2tzKCkKICAgIGZvciB0IGluIHRhc2tzOgogICAgICAgIGlmIHRbImlkIl0gPT0gdGFza19pZDoKICAgICAgICAgICAgcmV0dXJuIHQKICAgIHJhaXNlIEhUVFBFeGNlcHRpb24oNDA0LCAiVGFyZWZhIG7Do28gZW5jb250cmFkYSIpCgpAYXBwLnBhdGNoKCIvdGFza3Mve3Rhc2tfaWR9IiwgcmVzcG9uc2VfbW9kZWw9ZGljdCkKZGVmIHVwZGF0ZV90YXNrKHRhc2tfaWQ6IHN0ciwgdXBkYXRlOiBUYXNrVXBkYXRlKToKICAgIHRhc2tzID0gbG9hZF90YXNrcygpCiAgICBmb3IgaSwgdCBpbiBlbnVtZXJhdGUodGFza3MpOgogICAgICAgIGlmIHRbImlkIl0gPT0gdGFza19pZDoKICAgICAgICAgICAgZm9yIGssIHYgaW4gdXBkYXRlLmRpY3QoZXhjbHVkZV9ub25lPVRydWUpLml0ZW1zKCk6CiAgICAgICAgICAgICAgICB0YXNrc1tpXVtrXSA9IHYKICAgICAgICAgICAgc2F2ZV90YXNrcyh0YXNrcykKICAgICAgICAgICAgcmV0dXJuIHRhc2tzW2ldCiAgICByYWlzZSBIVFRQRXhjZXB0aW9uKDQwNCwgIlRhcmVmYSBuw6NvIGVuY29udHJhZGEiKQoKQGFwcC5kZWxldGUoIi90YXNrcy97dGFza19pZH0iKQpkZWYgZGVsZXRlX3Rhc2sodGFza19pZDogc3RyKToKICAgIHRhc2tzID0gbG9hZF90YXNrcygpCiAgICBuZXdfdGFza3MgPSBbdCBmb3IgdCBpbiB0YXNrcyBpZiB0WyJpZCJdICE9IHRhc2tfaWRdCiAgICBpZiBsZW4obmV3X3Rhc2tzKSA9PSBsZW4odGFza3MpOgogICAgICAgIHJhaXNlIEhUVFBFeGNlcHRpb24oNDA0LCAiVGFyZWZhIG7Do28gZW5jb250cmFkYSIpCiAgICBzYXZlX3Rhc2tzKG5ld190YXNrcykKICAgIHJldHVybiB7Im9rIjogVHJ1ZSwgImRlbGV0ZWQiOiB0YXNrX2lkfQoKQGFwcC5wb3N0KCIvdGFza3MvcmVzY2hlZHVsZS1vdmVyZHVlIikKZGVmIHJlc2NoZWR1bGVfb3ZlcmR1ZSgpOgogICAgIiIiTW92ZSB0b2RhcyBhcyB0YXJlZmFzIHZlbmNpZGFzIChuw6NvIGNvbmNsdcOtZGFzKSBwYXJhIGhvamUuIiIiCiAgICB0b2RheV9zdHIgPSBkYXRlLnRvZGF5KCkuaXNvZm9ybWF0KCkKICAgIHRhc2tzID0gbG9hZF90YXNrcygpCiAgICBjb3VudCA9IDAKICAgIGZvciB0IGluIHRhc2tzOgogICAgICAgIGlmIHRbInN0YXR1cyJdICE9ICJkb25lIiBhbmQgdFsiZGF0ZSJdIDwgdG9kYXlfc3RyOgogICAgICAgICAgICB0WyJkYXRlIl0gPSB0b2RheV9zdHIKICAgICAgICAgICAgdFsicmVzY2hlZHVsZWQiXSA9IFRydWUKICAgICAgICAgICAgY291bnQgKz0gMQogICAgc2F2ZV90YXNrcyh0YXNrcykKICAgIHJldHVybiB7Im9rIjogVHJ1ZSwgInJlc2NoZWR1bGVkIjogY291bnR9CgojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAojIEVuZHBvaW50cyDigJQgV2hhdHNBcHAKIyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKQGFwcC5wb3N0KCIvd2hhdHNhcHAvc2VuZCIpCmFzeW5jIGRlZiB3aGF0c2FwcF9zZW5kKHJlcTogV0FNZXNzYWdlUmVxdWVzdCk6CiAgICAiIiJFbnZpYSBtZW5zYWdlbSBXaGF0c0FwcCBwYXJhIG7Dum1lcm8gZXNwZWPDrWZpY28uIiIiCiAgICB0cnk6CiAgICAgICAgcmVzdWx0ID0gYXdhaXQgc2VuZF93aGF0c2FwcChyZXEubnVtYmVyLCByZXEubWVzc2FnZSkKICAgICAgICByZXR1cm4geyJvayI6IFRydWUsICJyZXN1bHQiOiByZXN1bHR9CiAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgcmFpc2UgSFRUUEV4Y2VwdGlvbig1MDAsIGYiRXJybyBhbyBlbnZpYXIgV2hhdHNBcHA6IHtzdHIoZSl9IikKCkBhcHAucG9zdCgiL3doYXRzYXBwL2RhaWx5LXN1bW1hcnkiKQphc3luYyBkZWYgd2hhdHNhcHBfZGFpbHlfc3VtbWFyeShkYXRlX2ZpbHRlcjogT3B0aW9uYWxbc3RyXSA9IE5vbmUsIG51bWJlcjogT3B0aW9uYWxbc3RyXSA9IE5vbmUpOgogICAgIiIiCiAgICBHZXJhIGUgZW52aWEgcmVzdW1vIGRpw6FyaW8gZGFzIGF0aXZpZGFkZXMuCiAgICBTZSBudW1iZXIgbsOjbyBpbmZvcm1hZG8sIHVzYSBERUZBVUxUX1dBX05VTUJFUiBkbyAuZW52LgogICAgIiIiCiAgICB0YXJnZXRfZGF0ZSA9IGRhdGVfZmlsdGVyIG9yIGRhdGUudG9kYXkoKS5pc29mb3JtYXQoKQogICAgdGFza3MgPSBsb2FkX3Rhc2tzKCkKICAgIHRvZGF5X3Rhc2tzID0gW3QgZm9yIHQgaW4gdGFza3MgaWYgdFsiZGF0ZSJdID09IHRhcmdldF9kYXRlXQogICAgbXNnID0gYnVpbGRfZGFpbHlfcmVwb3J0KHRvZGF5X3Rhc2tzKQoKICAgIHRhcmdldF9udW1iZXIgPSBudW1iZXIgb3IgREVGQVVMVF9XQV9OVU1CRVIKICAgIGlmIG5vdCB0YXJnZXRfbnVtYmVyOgogICAgICAgIHJldHVybiB7Im9rIjogRmFsc2UsICJtZXNzYWdlIjogbXNnLCAic2VudCI6IEZhbHNlLCAicmVhc29uIjogIk7Dum1lcm8gbsOjbyBjb25maWd1cmFkbyJ9CgogICAgdHJ5OgogICAgICAgIHJlc3VsdCA9IGF3YWl0IHNlbmRfd2hhdHNhcHAodGFyZ2V0X251bWJlciwgbXNnKQogICAgICAgIHJldHVybiB7Im9rIjogVHJ1ZSwgIm1lc3NhZ2UiOiBtc2csICJzZW50IjogVHJ1ZSwgInJlc3VsdCI6IHJlc3VsdH0KICAgIGV4Y2VwdCBFeGNlcHRpb24gYXMgZToKICAgICAgICByZXR1cm4geyJvayI6IEZhbHNlLCAibWVzc2FnZSI6IG1zZywgInNlbnQiOiBGYWxzZSwgImVycm9yIjogc3RyKGUpfQoKQGFwcC5nZXQoIi93aGF0c2FwcC9wcmV2aWV3LXN1bW1hcnkiKQpkZWYgcHJldmlld19zdW1tYXJ5KGRhdGVfZmlsdGVyOiBPcHRpb25hbFtzdHJdID0gTm9uZSk6CiAgICAiIiJQcsOpLXZpc3VhbGl6YSBvIHRleHRvIGRvIHJlc3VtbyBzZW0gZW52aWFyLiIiIgogICAgdGFyZ2V0X2RhdGUgPSBkYXRlX2ZpbHRlciBvciBkYXRlLnRvZGF5KCkuaXNvZm9ybWF0KCkKICAgIHRhc2tzID0gbG9hZF90YXNrcygpCiAgICB0b2RheV90YXNrcyA9IFt0IGZvciB0IGluIHRhc2tzIGlmIHRbImRhdGUiXSA9PSB0YXJnZXRfZGF0ZV0KICAgIHJldHVybiB7Im1lc3NhZ2UiOiBidWlsZF9kYWlseV9yZXBvcnQodG9kYXlfdGFza3MpLCAiZGF0ZSI6IHRhcmdldF9kYXRlLCAidGFza19jb3VudCI6IGxlbih0b2RheV90YXNrcyl9CgojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAojIEVuZHBvaW50cyDigJQgQ29uZmlndXJhw6fDo28KIyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKQGFwcC5nZXQoIi9jb25maWciKQpkZWYgZ2V0X2NvbmZpZygpOgogICAgcmV0dXJuIGxvYWRfY29uZmlnKCkKCkBhcHAucG9zdCgiL2NvbmZpZyIpCmRlZiB1cGRhdGVfY29uZmlnKGNmZzogQ29uZmlnKToKICAgIGN1cnJlbnQgPSBsb2FkX2NvbmZpZygpCiAgICBjdXJyZW50LnVwZGF0ZShjZmcuZGljdChleGNsdWRlX25vbmU9VHJ1ZSkpCiAgICBzYXZlX2NvbmZpZyhjdXJyZW50KQogICAgIyBSZWFnZW5kYSBvIGpvYiBkZSByZWxhdMOzcmlvIGRpw6FyaW8gc2UgaG9yw6FyaW8gbXVkb3UKICAgIGlmIGNmZy5kYWlseV9yZXBvcnRfdGltZToKICAgICAgICBfcmVzY2hlZHVsZV9kYWlseV9qb2IoY2ZnLmRhaWx5X3JlcG9ydF90aW1lKQogICAgcmV0dXJuIGN1cnJlbnQKCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiMgRW5kcG9pbnRzIOKAlCBSZWxhdMOzcmlvIC8gRGFzaGJvYXJkCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACkBhcHAuZ2V0KCIvcmVwb3J0L3N1bW1hcnkiKQpkZWYgcmVwb3J0X3N1bW1hcnkoKToKICAgICIiIlJlc3VtbyBnZXJhbCBkZSB0b2RhcyBhcyBhdGl2aWRhZGVzLiIiIgogICAgdGFza3MgPSBsb2FkX3Rhc2tzKCkKICAgIHRvZGF5X3N0ciA9IGRhdGUudG9kYXkoKS5pc29mb3JtYXQoKQogICAgYnlfY2xpZW50ID0ge30KICAgIGJ5X3R5cGUgPSB7fQoKICAgIGZvciB0IGluIHRhc2tzOgogICAgICAgIGNsID0gdC5nZXQoImNsaWVudCIpIG9yICJTZW0gY2xpZW50ZSIKICAgICAgICB0eSA9IHQuZ2V0KCJ0eXBlIikgb3IgIlNlbSB0aXBvIgogICAgICAgIGJ5X2NsaWVudC5zZXRkZWZhdWx0KGNsLCB7InRvdGFsIjogMCwgImRvbmUiOiAwLCAicGVuZGluZyI6IDAsICJvdmVyZHVlIjogMH0pCiAgICAgICAgYnlfdHlwZS5zZXRkZWZhdWx0KHR5LCAwKQogICAgICAgIGVmZiA9IGdldF9lZmZlY3RpdmVfc3RhdHVzKHQsIHRvZGF5X3N0cikKICAgICAgICBieV9jbGllbnRbY2xdWyJ0b3RhbCJdICs9IDEKICAgICAgICBieV9jbGllbnRbY2xdW2VmZiBpZiBlZmYgaW4gKCJkb25lIiwicGVuZGluZyIsIm92ZXJkdWUiKSBlbHNlICJwZW5kaW5nIl0gKz0gMQogICAgICAgIGJ5X3R5cGVbdHldICs9IDEKCiAgICBvdmVyZHVlX3Rhc2tzID0gW3QgZm9yIHQgaW4gdGFza3MgaWYgZ2V0X2VmZmVjdGl2ZV9zdGF0dXModCwgdG9kYXlfc3RyKSA9PSAib3ZlcmR1ZSJdCiAgICB1cmdlbnRfdGFza3MgID0gW3QgZm9yIHQgaW4gdGFza3MgaWYgdC5nZXQoInByaW9yaXR5IikgPT0gImhpZ2giIGFuZCB0WyJzdGF0dXMiXSAhPSAiZG9uZSJdCgogICAgZGVhZGxpbmVfYWxlcnRzID0gW10KICAgIGZvciB0IGluIHRhc2tzOgogICAgICAgIGlmIHQuZ2V0KCJkZWFkbGluZSIpIGFuZCB0WyJzdGF0dXMiXSAhPSAiZG9uZSI6CiAgICAgICAgICAgIGRpZmYgPSAoZGF0ZS5mcm9taXNvZm9ybWF0KHRbImRlYWRsaW5lIl0pIC0gZGF0ZS50b2RheSgpKS5kYXlzCiAgICAgICAgICAgIGlmIDAgPD0gZGlmZiA8PSAzOgogICAgICAgICAgICAgICAgZGVhZGxpbmVfYWxlcnRzLmFwcGVuZCh7InRhc2siOiB0LCAiZGF5c19sZWZ0IjogZGlmZn0pCgogICAgcmV0dXJuIHsKICAgICAgICAidG90YWwiOiBsZW4odGFza3MpLAogICAgICAgICJkb25lIjogc3VtKDEgZm9yIHQgaW4gdGFza3MgaWYgdFsic3RhdHVzIl0gPT0gImRvbmUiKSwKICAgICAgICAicGVuZGluZyI6IHN1bSgxIGZvciB0IGluIHRhc2tzIGlmIGdldF9lZmZlY3RpdmVfc3RhdHVzKHQsIHRvZGF5X3N0cikgPT0gInBlbmRpbmciKSwKICAgICAgICAiYXdhaXRpbmciOiBzdW0oMSBmb3IgdCBpbiB0YXNrcyBpZiBnZXRfZWZmZWN0aXZlX3N0YXR1cyh0LCB0b2RheV9zdHIpID09ICJhd2FpdGluZyIpLAogICAgICAgICJvdmVyZHVlIjogbGVuKG92ZXJkdWVfdGFza3MpLAogICAgICAgICJ1cmdlbnQiOiBsZW4odXJnZW50X3Rhc2tzKSwKICAgICAgICAiYnlfY2xpZW50IjogYnlfY2xpZW50LAogICAgICAgICJieV90eXBlIjogYnlfdHlwZSwKICAgICAgICAiZGVhZGxpbmVfYWxlcnRzIjogZGVhZGxpbmVfYWxlcnRzLAogICAgICAgICJvdmVyZHVlX3Rhc2tzIjogb3ZlcmR1ZV90YXNrcywKICAgIH0KCiMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACiMgU2NoZWR1bGVyIOKAlCBSZWxhdMOzcmlvIGRpw6FyaW8gYXV0b23DoXRpY28KIyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKc2NoZWR1bGVyID0gQXN5bmNJT1NjaGVkdWxlcigpCgphc3luYyBkZWYgX2F1dG9fZGFpbHlfcmVwb3J0KCk6CiAgICAiIiJKb2IgYWdlbmRhZG86IGVudmlhIHJlc3VtbyBkacOhcmlvIHZpYSBXaGF0c0FwcC4iIiIKICAgIGNmZyA9IGxvYWRfY29uZmlnKCkKICAgIG51bWJlciA9IGNmZy5nZXQoIndhX251bWJlciIpIG9yIERFRkFVTFRfV0FfTlVNQkVSCiAgICBpZiBub3QgbnVtYmVyOgogICAgICAgIHByaW50KCJbU2NoZWR1bGVyXSBOw7ptZXJvIFdBIG7Do28gY29uZmlndXJhZG8sIHB1bGFuZG8gZW52aW8uIikKICAgICAgICByZXR1cm4KICAgIHRhc2tzID0gbG9hZF90YXNrcygpCiAgICB0b2RheV9zdHIgPSBkYXRlLnRvZGF5KCkuaXNvZm9ybWF0KCkKICAgIHRvZGF5X3Rhc2tzID0gW3QgZm9yIHQgaW4gdGFza3MgaWYgdFsiZGF0ZSJdID09IHRvZGF5X3N0cl0KCiAgICAjIEF1dG8tcmVhZ2VuZGFyIHZlbmNpZGFzIHNlIGNvbmZpZ3VyYWRvCiAgICBpZiBjZmcuZ2V0KCJhdXRvX3Jlc2NoZWR1bGUiKToKICAgICAgICBmb3IgdCBpbiB0YXNrczoKICAgICAgICAgICAgaWYgdFsic3RhdHVzIl0gIT0gImRvbmUiIGFuZCB0WyJkYXRlIl0gPCB0b2RheV9zdHI6CiAgICAgICAgICAgICAgICB0WyJkYXRlIl0gPSB0b2RheV9zdHIKICAgICAgICAgICAgICAgIHRbInJlc2NoZWR1bGVkIl0gPSBUcnVlCiAgICAgICAgc2F2ZV90YXNrcyh0YXNrcykKICAgICAgICB0b2RheV90YXNrcyA9IFt0IGZvciB0IGluIGxvYWRfdGFza3MoKSBpZiB0WyJkYXRlIl0gPT0gdG9kYXlfc3RyXQoKICAgIG1zZyA9IGJ1aWxkX2RhaWx5X3JlcG9ydCh0b2RheV90YXNrcywgIkJvbSBkaWEhIFJlc3VtbyBkZSBob2plIikKICAgIHRyeToKICAgICAgICBhd2FpdCBzZW5kX3doYXRzYXBwKG51bWJlciwgbXNnKQogICAgICAgIHByaW50KGYiW1NjaGVkdWxlcl0gUmVzdW1vIGVudmlhZG8gcGFyYSB7bnVtYmVyfSIpCiAgICBleGNlcHQgRXhjZXB0aW9uIGFzIGU6CiAgICAgICAgcHJpbnQoZiJbU2NoZWR1bGVyXSBFcnJvIGFvIGVudmlhcjoge2V9IikKCmRlZiBfcmVzY2hlZHVsZV9kYWlseV9qb2IodGltZV9zdHI6IHN0cik6CiAgICAiIiJSZWFnZW5kYSBvIGpvYiBkZSByZWxhdMOzcmlvIGRpw6FyaW8gcGFyYSBvIG5vdm8gaG9yw6FyaW8uIiIiCiAgICB0cnk6CiAgICAgICAgaG91ciwgbWludXRlID0gbWFwKGludCwgdGltZV9zdHIuc3BsaXQoIjoiKSkKICAgICAgICBzY2hlZHVsZXIucmVzY2hlZHVsZV9qb2IoImRhaWx5X3JlcG9ydCIsIHRyaWdnZXI9ImNyb24iLCBob3VyPWhvdXIsIG1pbnV0ZT1taW51dGUpCiAgICBleGNlcHQgRXhjZXB0aW9uOgogICAgICAgIHBhc3MKCkBhcHAub25fZXZlbnQoInN0YXJ0dXAiKQphc3luYyBkZWYgc3RhcnR1cCgpOgogICAgY2ZnID0gbG9hZF9jb25maWcoKQogICAgdGltZV9zdHIgPSBjZmcuZ2V0KCJkYWlseV9yZXBvcnRfdGltZSIsICIwODowMCIpCiAgICBob3VyLCBtaW51dGUgPSBtYXAoaW50LCB0aW1lX3N0ci5zcGxpdCgiOiIpKQogICAgc2NoZWR1bGVyLmFkZF9qb2IoCiAgICAgICAgX2F1dG9fZGFpbHlfcmVwb3J0LAogICAgICAgIHRyaWdnZXI9ImNyb24iLAogICAgICAgIGhvdXI9aG91ciwKICAgICAgICBtaW51dGU9bWludXRlLAogICAgICAgIGlkPSJkYWlseV9yZXBvcnQiLAogICAgICAgIHJlcGxhY2VfZXhpc3Rpbmc9VHJ1ZQogICAgKQogICAgc2NoZWR1bGVyLnN0YXJ0KCkKICAgIHByaW50KGYiW1NlY3JldMOhcmlhIExTXSBTZXJ2aWRvciBpbmljaWFkby4gUmVsYXTDs3JpbyBkacOhcmlvIGFnZW5kYWRvIHBhcmEge3RpbWVfc3RyfS4iKQoKQGFwcC5vbl9ldmVudCgic2h1dGRvd24iKQphc3luYyBkZWYgc2h1dGRvd24oKToKICAgIHNjaGVkdWxlci5zaHV0ZG93bigpCgojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAojIEhlYWx0aCBjaGVjawojIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgApAYXBwLmdldCgiL2hlYWx0aCIpCmRlZiBoZWFsdGgoKToKICAgIHJldHVybiB7CiAgICAgICAgInN0YXR1cyI6ICJvayIsCiAgICAgICAgInZlcnNpb24iOiAiMi4wLjAiLAogICAgICAgICJwcm92aWRlciI6IFdBX1BST1ZJREVSLAogICAgICAgICJ0YXNrc19zdG9yZWQiOiBsZW4obG9hZF90YXNrcygpKSwKICAgICAgICAidGltZSI6IGRhdGV0aW1lLm5vdygpLmlzb2Zvcm1hdCgpCiAgICB9Cg=="}
+"""
+Secretária LS Office — Backend
+================================
+Servidor FastAPI para gerenciamento de atividades com:
+  - CRUD completo de tarefas
+  - Reagendamento automático de vencidas
+  - Envio de alertas via WhatsApp (Evolution API ou Twilio)
+  - Relatório diário automático (cron)
+  - Persistência em JSON local (sem banco externo)
+
+Requisitos:
+    pip install fastapi uvicorn apscheduler httpx python-dotenv
+
+Uso:
+    uvicorn main:app --reload --port 8000
+"""
+
+import json
+import os
+import uuid
+from datetime import date, datetime, timedelta
+from pathlib import Path
+from typing import List, Optional
+
+import httpx
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
+
+load_dotenv()
+
+# ─────────────────────────────────────────────
+# Configuração
+# ─────────────────────────────────────────────
+DATA_FILE = Path("tasks.json")
+CONFIG_FILE = Path("config.json")
+
+# Variáveis de ambiente (.env)
+WA_PROVIDER        = os.getenv("WA_PROVIDER", "evolution")   # "evolution" ou "twilio"
+
+# Evolution API (self-hosted / Antigravity)
+EVOLUTION_URL      = os.getenv("EVOLUTION_URL", "http://localhost:8080")
+EVOLUTION_KEY      = os.getenv("EVOLUTION_API_KEY", "")
+EVOLUTION_INSTANCE = os.getenv("EVOLUTION_INSTANCE", "ls-office")
+
+# Twilio (fallback / cloud)
+TWILIO_SID         = os.getenv("TWILIO_SID", "")
+TWILIO_TOKEN       = os.getenv("TWILIO_TOKEN", "")
+TWILIO_FROM        = os.getenv("TWILIO_FROM", "whatsapp:+14155238886")
+
+# Número padrão para alertas (com DDI, sem +)
+DEFAULT_WA_NUMBER  = os.getenv("DEFAULT_WA_NUMBER", "")
+
+# ─────────────────────────────────────────────
+# Modelos Pydantic
+# ─────────────────────────────────────────────
+class Task(BaseModel):
+    id: Optional[str] = None
+    desc: str
+    status: str = "pending"          # pending | awaiting | done
+    priority: str = "normal"         # normal | high | low
+    client: Optional[str] = ""
+    type: Optional[str] = ""
+    date: str                        # YYYY-MM-DD
+    time: Optional[str] = ""         # HH:MM
+    resp: Optional[str] = ""
+    deadline: Optional[str] = ""     # YYYY-MM-DD
+    note: Optional[str] = ""
+    rescheduled: bool = False
+    created_at: Optional[str] = None
+
+class TaskUpdate(BaseModel):
+    desc: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    client: Optional[str] = None
+    type: Optional[str] = None
+    date: Optional[str] = None
+    time: Optional[str] = None
+    resp: Optional[str] = None
+    deadline: Optional[str] = None
+    note: Optional[str] = None
+    rescheduled: Optional[bool] = None
+
+class WAMessageRequest(BaseModel):
+    number: str           # ex: "5511999999999"
+    message: str
+
+class Config(BaseModel):
+    wa_number: Optional[str] = ""
+    daily_report_time: Optional[str] = "08:00"
+    auto_reschedule: Optional[bool] = True
+
+# ─────────────────────────────────────────────
+# Persistência JSON
+# ─────────────────────────────────────────────
+def load_tasks() -> List[dict]:
+    if not DATA_FILE.exists():
+        return []
+    return json.loads(DATA_FILE.read_text(encoding="utf-8"))
+
+def save_tasks(tasks: List[dict]):
+    DATA_FILE.write_text(json.dumps(tasks, ensure_ascii=False, indent=2), encoding="utf-8")
+
+def load_config() -> dict:
+    if not CONFIG_FILE.exists():
+        return {"wa_number": "", "daily_report_time": "08:00", "auto_reschedule": True}
+    return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+
+def save_config(cfg: dict):
+    CONFIG_FILE.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+
+# ─────────────────────────────────────────────
+# WhatsApp — envio de mensagem
+# ─────────────────────────────────────────────
+async def send_whatsapp(number: str, message: str) -> dict:
+    """
+    Envia mensagem WhatsApp via Evolution API ou Twilio.
+    number: somente dígitos, com DDI (ex: 5511999999999)
+    """
+    clean_number = "".join(filter(str.isdigit, number))
+
+    if WA_PROVIDER == "evolution":
+        return await _send_evolution(clean_number, message)
+    elif WA_PROVIDER == "twilio":
+        return await _send_twilio(clean_number, message)
+    else:
+        raise ValueError(f"WA_PROVIDER inválido: {WA_PROVIDER}")
+
+async def _send_evolution(number: str, message: str) -> dict:
+    url = f"{EVOLUTION_URL}/message/sendText/{EVOLUTION_INSTANCE}"
+    headers = {"apikey": EVOLUTION_KEY, "Content-Type": "application/json"}
+    payload = {
+        "number": f"{number}@s.whatsapp.net",
+        "textMessage": {"text": message},
+        "options": {"delay": 500, "presence": "composing"}
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.post(url, json=payload, headers=headers)
+        r.raise_for_status()
+        return r.json()
+
+async def _send_twilio(number: str, message: str) -> dict:
+    from base64 import b64encode
+    auth = b64encode(f"{TWILIO_SID}:{TWILIO_TOKEN}".encode()).decode()
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json"
+    headers = {"Authorization": f"Basic {auth}"}
+    data = {
+        "From": TWILIO_FROM,
+        "To": f"whatsapp:+{number}",
+        "Body": message
+    }
+    async with httpx.AsyncClient(timeout=15) as client:
+        r = await client.post(url, data=data, headers=headers)
+        r.raise_for_status()
+        return r.json()
+
+# ─────────────────────────────────────────────
+# Lógica de negócio
+# ─────────────────────────────────────────────
+def get_effective_status(task: dict, today_str: str) -> str:
+    if task["status"] == "done":
+        return "done"
+    if task["date"] < today_str:
+        return "overdue"
+    return task["status"]
+
+def build_daily_report(tasks: List[dict], label: str = "Resumo do dia") -> str:
+    today_str = date.today().isoformat()
+    overdue   = [t for t in tasks if get_effective_status(t, today_str) == "overdue"]
+    pending   = [t for t in tasks if get_effective_status(t, today_str) == "pending"]
+    awaiting  = [t for t in tasks if get_effective_status(t, today_str) == "awaiting"]
+    done      = [t for t in tasks if t["status"] == "done"]
+
+    now = datetime.now().strftime("%d/%m/%Y %H:%M")
+    msg = f"*Secretária LS Office — {label}*\n"
+    msg += f"📅 {now}\n\n"
+
+    if overdue:
+        msg += f"🔴 *Vencidas ({len(overdue)})*\n"
+        for t in overdue:
+            msg += f"• {t['desc']}"
+            if t.get("client"): msg += f" [{t['client']}]"
+            msg += f" _(venceu {t['date']})_\n"
+        msg += "\n"
+
+    if pending:
+        msg += f"🟡 *Pendentes hoje ({len(pending)})*\n"
+        for t in pending:
+            msg += f"• {t['desc']}"
+            if t.get("client"): msg += f" [{t['client']}]"
+            if t.get("time"): msg += f" ⏰{t['time']}"
+            msg += "\n"
+        msg += "\n"
+
+    if awaiting:
+        msg += f"🔵 *Aguardando resposta ({len(awaiting)})*\n"
+        for t in awaiting:
+            msg += f"• {t['desc']}"
+            if t.get("resp"): msg += f" → {t['resp']}"
+            msg += "\n"
+        msg += "\n"
+
+    if done:
+        msg += f"✅ *Concluídas ({len(done)})*\n"
+        for t in done:
+            msg += f"• {t['desc']}\n"
+        msg += "\n"
+
+    # Prazos próximos (próximos 3 dias)
+    deadlines_soon = []
+    for t in tasks:
+        if t.get("deadline") and t["status"] != "done":
+            dl = date.fromisoformat(t["deadline"])
+            diff = (dl - date.today()).days
+            if 0 <= diff <= 3:
+                deadlines_soon.append((t, diff))
+
+    if deadlines_soon:
+        msg += f"⏳ *Prazos próximos*\n"
+        for t, diff in deadlines_soon:
+            label_d = "hoje!" if diff == 0 else f"em {diff}d"
+            msg += f"• {t['desc']} — {label_d}\n"
+        msg += "\n"
+
+    msg += "_Enviado automaticamente pela Secretária LS Office_"
+    return msg
+
+# ─────────────────────────────────────────────
+# App FastAPI
+# ─────────────────────────────────────────────
+app = FastAPI(
+    title="Secretária LS Office",
+    description="API de gestão de atividades com alertas WhatsApp",
+    version="2.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve o frontend estático na raiz
+if Path("static").exists():
+    app.mount("/app", StaticFiles(directory="static", html=True), name="static")
+
+# ─────────────────────────────────────────────
+# Endpoints — Tarefas
+# ─────────────────────────────────────────────
+@app.get("/tasks", response_model=List[dict])
+def list_tasks(date_filter: Optional[str] = None, status: Optional[str] = None):
+    """Lista todas as tarefas. Filtra por date (YYYY-MM-DD) e/ou status."""
+    tasks = load_tasks()
+    if date_filter:
+        tasks = [t for t in tasks if t["date"] == date_filter]
+    if status:
+        today_str = date.today().isoformat()
+        tasks = [t for t in tasks if get_effective_status(t, today_str) == status]
+    return tasks
+
+@app.post("/tasks", response_model=dict)
+def create_task(task: Task):
+    tasks = load_tasks()
+    task_dict = task.dict()
+    task_dict["id"] = str(uuid.uuid4())[:8]
+    task_dict["created_at"] = datetime.now().isoformat()
+    tasks.append(task_dict)
+    save_tasks(tasks)
+    return task_dict
+
+@app.get("/tasks/{task_id}", response_model=dict)
+def get_task(task_id: str):
+    tasks = load_tasks()
+    for t in tasks:
+        if t["id"] == task_id:
+            return t
+    raise HTTPException(404, "Tarefa não encontrada")
+
+@app.patch("/tasks/{task_id}", response_model=dict)
+def update_task(task_id: str, update: TaskUpdate):
+    tasks = load_tasks()
+    for i, t in enumerate(tasks):
+        if t["id"] == task_id:
+            for k, v in update.dict(exclude_none=True).items():
+                tasks[i][k] = v
+            save_tasks(tasks)
+            return tasks[i]
+    raise HTTPException(404, "Tarefa não encontrada")
+
+@app.delete("/tasks/{task_id}")
+def delete_task(task_id: str):
+    tasks = load_tasks()
+    new_tasks = [t for t in tasks if t["id"] != task_id]
+    if len(new_tasks) == len(tasks):
+        raise HTTPException(404, "Tarefa não encontrada")
+    save_tasks(new_tasks)
+    return {"ok": True, "deleted": task_id}
+
+@app.post("/tasks/reschedule-overdue")
+def reschedule_overdue():
+    """Move todas as tarefas vencidas (não concluídas) para hoje."""
+    today_str = date.today().isoformat()
+    tasks = load_tasks()
+    count = 0
+    for t in tasks:
+        if t["status"] != "done" and t["date"] < today_str:
+            t["date"] = today_str
+            t["rescheduled"] = True
+            count += 1
+    save_tasks(tasks)
+    return {"ok": True, "rescheduled": count}
+
+# ─────────────────────────────────────────────
+# Endpoints — WhatsApp
+# ─────────────────────────────────────────────
+@app.post("/whatsapp/send")
+async def whatsapp_send(req: WAMessageRequest):
+    """Envia mensagem WhatsApp para número específico."""
+    try:
+        result = await send_whatsapp(req.number, req.message)
+        return {"ok": True, "result": result}
+    except Exception as e:
+        raise HTTPException(500, f"Erro ao enviar WhatsApp: {str(e)}")
+
+@app.post("/whatsapp/daily-summary")
+async def whatsapp_daily_summary(date_filter: Optional[str] = None, number: Optional[str] = None):
+    """
+    Gera e envia resumo diário das atividades.
+    Se number não informado, usa DEFAULT_WA_NUMBER do .env.
+    """
+    target_date = date_filter or date.today().isoformat()
+    tasks = load_tasks()
+    today_tasks = [t for t in tasks if t["date"] == target_date]
+    msg = build_daily_report(today_tasks)
+
+    target_number = number or DEFAULT_WA_NUMBER
+    if not target_number:
+        return {"ok": False, "message": msg, "sent": False, "reason": "Número não configurado"}
+
+    try:
+        result = await send_whatsapp(target_number, msg)
+        return {"ok": True, "message": msg, "sent": True, "result": result}
+    except Exception as e:
+        return {"ok": False, "message": msg, "sent": False, "error": str(e)}
+
+@app.get("/whatsapp/preview-summary")
+def preview_summary(date_filter: Optional[str] = None):
+    """Pré-visualiza o texto do resumo sem enviar."""
+    target_date = date_filter or date.today().isoformat()
+    tasks = load_tasks()
+    today_tasks = [t for t in tasks if t["date"] == target_date]
+    return {"message": build_daily_report(today_tasks), "date": target_date, "task_count": len(today_tasks)}
+
+# ─────────────────────────────────────────────
+# Endpoints — Configuração
+# ─────────────────────────────────────────────
+@app.get("/config")
+def get_config():
+    return load_config()
+
+@app.post("/config")
+def update_config(cfg: Config):
+    current = load_config()
+    current.update(cfg.dict(exclude_none=True))
+    save_config(current)
+    # Reagenda o job de relatório diário se horário mudou
+    if cfg.daily_report_time:
+        _reschedule_daily_job(cfg.daily_report_time)
+    return current
+
+# ─────────────────────────────────────────────
+# Endpoints — Relatório / Dashboard
+# ─────────────────────────────────────────────
+@app.get("/report/summary")
+def report_summary():
+    """Resumo geral de todas as atividades."""
+    tasks = load_tasks()
+    today_str = date.today().isoformat()
+    by_client = {}
+    by_type = {}
+
+    for t in tasks:
+        cl = t.get("client") or "Sem cliente"
+        ty = t.get("type") or "Sem tipo"
+        by_client.setdefault(cl, {"total": 0, "done": 0, "pending": 0, "overdue": 0})
+        by_type.setdefault(ty, 0)
+        eff = get_effective_status(t, today_str)
+        by_client[cl]["total"] += 1
+        by_client[cl][eff if eff in ("done","pending","overdue") else "pending"] += 1
+        by_type[ty] += 1
+
+    overdue_tasks = [t for t in tasks if get_effective_status(t, today_str) == "overdue"]
+    urgent_tasks  = [t for t in tasks if t.get("priority") == "high" and t["status"] != "done"]
+
+    deadline_alerts = []
+    for t in tasks:
+        if t.get("deadline") and t["status"] != "done":
+            diff = (date.fromisoformat(t["deadline"]) - date.today()).days
+            if 0 <= diff <= 3:
+                deadline_alerts.append({"task": t, "days_left": diff})
+
+    return {
+        "total": len(tasks),
+        "done": sum(1 for t in tasks if t["status"] == "done"),
+        "pending": sum(1 for t in tasks if get_effective_status(t, today_str) == "pending"),
+        "awaiting": sum(1 for t in tasks if get_effective_status(t, today_str) == "awaiting"),
+        "overdue": len(overdue_tasks),
+        "urgent": len(urgent_tasks),
+        "by_client": by_client,
+        "by_type": by_type,
+        "deadline_alerts": deadline_alerts,
+        "overdue_tasks": overdue_tasks,
+    }
+
+# ─────────────────────────────────────────────
+# Scheduler — Relatório diário automático
+# ─────────────────────────────────────────────
+scheduler = AsyncIOScheduler()
+
+async def _auto_daily_report():
+    """Job agendado: envia resumo diário via WhatsApp."""
+    cfg = load_config()
+    number = cfg.get("wa_number") or DEFAULT_WA_NUMBER
+    if not number:
+        print("[Scheduler] Número WA não configurado, pulando envio.")
+        return
+    tasks = load_tasks()
+    today_str = date.today().isoformat()
+    today_tasks = [t for t in tasks if t["date"] == today_str]
+
+    # Auto-reagendar vencidas se configurado
+    if cfg.get("auto_reschedule"):
+        for t in tasks:
+            if t["status"] != "done" and t["date"] < today_str:
+                t["date"] = today_str
+                t["rescheduled"] = True
+        save_tasks(tasks)
+        today_tasks = [t for t in load_tasks() if t["date"] == today_str]
+
+    msg = build_daily_report(today_tasks, "Bom dia! Resumo de hoje")
+    try:
+        await send_whatsapp(number, msg)
+        print(f"[Scheduler] Resumo enviado para {number}")
+    except Exception as e:
+        print(f"[Scheduler] Erro ao enviar: {e}")
+
+def _reschedule_daily_job(time_str: str):
+    """Reagenda o job de relatório diário para o novo horário."""
+    try:
+        hour, minute = map(int, time_str.split(":"))
+        scheduler.reschedule_job("daily_report", trigger="cron", hour=hour, minute=minute)
+    except Exception:
+        pass
+
+@app.on_event("startup")
+async def startup():
+    cfg = load_config()
+    time_str = cfg.get("daily_report_time", "08:00")
+    hour, minute = map(int, time_str.split(":"))
+    scheduler.add_job(
+        _auto_daily_report,
+        trigger="cron",
+        hour=hour,
+        minute=minute,
+        id="daily_report",
+        replace_existing=True
+    )
+    scheduler.start()
+    print(f"[Secretária LS] Servidor iniciado. Relatório diário agendado para {time_str}.")
+
+@app.on_event("shutdown")
+async def shutdown():
+    scheduler.shutdown()
+
+# ─────────────────────────────────────────────
+# Health check
+# ─────────────────────────────────────────────
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "version": "2.0.0",
+        "provider": WA_PROVIDER,
+        "tasks_stored": len(load_tasks()),
+        "time": datetime.now().isoformat()
+    }

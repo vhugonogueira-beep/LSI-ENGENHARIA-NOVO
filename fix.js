@@ -1,1 +1,26 @@
-{"data":"Y29uc3QgZnMgPSByZXF1aXJlKCdmcycpOwpjb25zdCBmaWxlID0gJ3NyYy9mcm9udGVuZC9wYWdlcy9TaW11bGFkb3JMUFUudHN4JzsKbGV0IHR4dCA9IGZzLnJlYWRGaWxlU3luYyhmaWxlLCAndXRmOCcpOwoKY29uc3Qgc0lkeCA9IHR4dC5pbmRleE9mKCd7LyogRm9ybmVjZWRvcmVzICsgQ2xpZW50ZXMgKi99Jyk7CmNvbnN0IGVJZHggPSB0eHQuaW5kZXhPZigney8qIFVzdcOhcmlvIGxvZ2FkbyArIGxvZ291dCAqL30nKTsKCmlmIChzSWR4ICE9PSAtMSAmJiBlSWR4ICE9PSAtMSkgewogIGNvbnN0IHJlcGxhY2VtZW50ID0gYHsvKiBGb3JuZWNlZG9yZXMgKyBDbGllbnRlcyAqL30KICAgICAgICAgIDxOYXZJdGVtIGlkPSJmb3JuZWNlZG9yZXMiIGljb249IvCfj6IiIGxhYmVsPSJGb3JuZWNlZG9yZXMiIC8+CiAgICAgICAgICA8TmF2SXRlbSBpZD0iY2xpZW50ZXMiIGljb249IvCfpJ0iIGxhYmVsPSJDbGllbnRlcyIgLz4KICAgICAgICAgIDxOYXZJdGVtIGlkPSJmYXR1cmFtZW50byIgaWNvbj0i8J+nviIgbGFiZWw9IkZhdHVyYW1lbnRvIiAvPgoKICAgICAgICAgIHsvKiDilIDilIAgU2XDp8OjbyBBRE1JTklTVFJBw4fDg08g4pSA4pSAICovfQogICAgICAgICAgPGRpdiBzdHlsZT17eyBmb250U2l6ZTogOSwgZm9udFdlaWdodDogNzAwLCBsZXR0ZXJTcGFjaW5nOiAiMC4xNGVtIiwgY29sb3I6IFQudHhEaXMsIG1hcmdpbkJvdHRvbTogNiwgbWFyZ2luVG9wOiAxNCwgcGFkZGluZ0xlZnQ6IDggfX0+QURNSU5JU1RSQcOHw4NPPC9kaXY+CiAgICAgICAgICA8TmF2SXRlbSBpZD0ic2VjcmV0YXJpYSIgaWNvbj0i8J+RqfCfj73igI3wn5K7IiBsYWJlbD0iU2VjcmV0w6FyaWEgTFMiIC8+CgogICAgICAgIDwvbmF2PgoKICAgICAgICBgOwogIGNvbnN0IGNsZWFuU3RyID0gdHh0LnN1YnN0cmluZygwLCBzSWR4KSArIHJlcGxhY2VtZW50ICsgdHh0LnN1YnN0cmluZyhlSWR4KTsKICBmcy53cml0ZUZpbGVTeW5jKGZpbGUsIGNsZWFuU3RyLCAndXRmOCcpOwogIGNvbnNvbGUubG9nKCdGaXhlZCBzdWNjZXNzZnVsbHkhJyk7Cn0gZWxzZSB7CiAgY29uc29sZS5sb2coJ1Rva2VucyBub3QgZm91bmQnKTsKfQo="}
+const fs = require('fs');
+const file = 'src/frontend/pages/SimuladorLPU.tsx';
+let txt = fs.readFileSync(file, 'utf8');
+
+const sIdx = txt.indexOf('{/* Fornecedores + Clientes */}');
+const eIdx = txt.indexOf('{/* Usuário logado + logout */}');
+
+if (sIdx !== -1 && eIdx !== -1) {
+  const replacement = `{/* Fornecedores + Clientes */}
+          <NavItem id="fornecedores" icon="🏢" label="Fornecedores" />
+          <NavItem id="clientes" icon="🤝" label="Clientes" />
+          <NavItem id="faturamento" icon="🧾" label="Faturamento" />
+
+          {/* ── Seção ADMINISTRAÇÃO ── */}
+          <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: T.txDis, marginBottom: 6, marginTop: 14, paddingLeft: 8 }}>ADMINISTRAÇÃO</div>
+          <NavItem id="secretaria" icon="👩🏽‍💻" label="Secretária LS" />
+
+        </nav>
+
+        `;
+  const cleanStr = txt.substring(0, sIdx) + replacement + txt.substring(eIdx);
+  fs.writeFileSync(file, cleanStr, 'utf8');
+  console.log('Fixed successfully!');
+} else {
+  console.log('Tokens not found');
+}

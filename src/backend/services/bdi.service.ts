@@ -1,1 +1,110 @@
-{"data":"aW1wb3J0IHsgcHJpc21hIH0gZnJvbSAnLi4vc2VydmVyJzsNCg0KZXhwb3J0IGNsYXNzIEJkaVNlcnZpY2Ugew0KDQogICAgLyoqDQogICAgICogRmluZHMgdGhlIEJESSBzdWdnZXN0aW9uIGZvciBhIGdpdmVuIGNhdGVnb3J5IGFuZCByZWdpb24gYmFzZWQgb24gdGhlIHRlbmFudCdzIHN0cmF0ZWd5Lg0KICAgICAqLw0KICAgIHN0YXRpYyBhc3luYyBzdWdnZXN0QmRpKHRlbmFudElkOiBzdHJpbmcsIGNhdGVnb3JpYTogc3RyaW5nLCByZWdpYW86IHN0cmluZykgew0KICAgICAgICBjb25zdCBzZXR0aW5ncyA9IGF3YWl0IHByaXNtYS50ZW5hbnRTZXR0aW5ncy5maW5kVW5pcXVlKHsgd2hlcmU6IHsgdGVuYW50X2lkOiB0ZW5hbnRJZCB9IH0pOw0KDQogICAgICAgIC8vIERlZmF1bHRzIGlmIG5vIHNwZWNpZmljIHJ1bGVzIGFyZSBmb3VuZCBvciBhcHBsaWVkDQogICAgICAgIGNvbnN0IGRlZmF1bHRSZXNwb25zZSA9IHsNCiAgICAgICAgICAgIHN1Z2VyaWRvOiAwLA0KICAgICAgICAgICAgbWluOiAwLA0KICAgICAgICAgICAgbWF4OiAwLA0KICAgICAgICAgICAgc3RyYXRlZ3k6ICdJTkFUSVZBJw0KICAgICAgICB9Ow0KDQogICAgICAgIGlmICghc2V0dGluZ3MgfHwgIXNldHRpbmdzLmFwbGljYXJfYmRpX2F1dG9tYXRpY28pIHsNCiAgICAgICAgICAgIHJldHVybiBkZWZhdWx0UmVzcG9uc2U7DQogICAgICAgIH0NCg0KICAgICAgICBjb25zdCBydWxlID0gYXdhaXQgcHJpc21hLmJkaVJ1bGVzLmZpbmRGaXJzdCh7DQogICAgICAgICAgICB3aGVyZTogew0KICAgICAgICAgICAgICAgIHRlbmFudF9pZDogdGVuYW50SWQsDQogICAgICAgICAgICAgICAgcmVnaWFvOiByZWdpYW8sDQogICAgICAgICAgICAgICAgY2F0ZWdvcmlhOiBjYXRlZ29yaWEsDQogICAgICAgICAgICAgICAgYWN0aXZlOiB0cnVlDQogICAgICAgICAgICB9DQogICAgICAgIH0pOw0KDQogICAgICAgIGlmIChzZXR0aW5ncy5iZGlfc3RyYXRlZ3kgPT09ICdSRUdSQV9GSVhBJyAmJiBydWxlKSB7DQogICAgICAgICAgICByZXR1cm4gew0KICAgICAgICAgICAgICAgIHN1Z2VyaWRvOiBydWxlLmJkaV9kZWZhdWx0X3BlcmNlbnQsDQogICAgICAgICAgICAgICAgbWluOiBydWxlLmJkaV9kZWZhdWx0X3BlcmNlbnQsDQogICAgICAgICAgICAgICAgbWF4OiBydWxlLmJkaV9kZWZhdWx0X3BlcmNlbnQsDQogICAgICAgICAgICAgICAgc3RyYXRlZ3k6ICdSRUdSQV9GSVhBJywNCiAgICAgICAgICAgICAgICBtZW5zYWdlbTogYEJESSBGaXhvIHJlZ2lvbmFsIGRlICR7cnVsZS5iZGlfZGVmYXVsdF9wZXJjZW50fSUgKFJlZ2nDo286ICR7cmVnaWFvfSlgDQogICAgICAgICAgICB9Ow0KICAgICAgICB9DQoNCiAgICAgICAgaWYgKHNldHRpbmdzLmJkaV9zdHJhdGVneSA9PT0gJ0ZBSVhBX1NVR0VSSURBJyAmJiBydWxlKSB7DQogICAgICAgICAgICByZXR1cm4gew0KICAgICAgICAgICAgICAgIHN1Z2VyaWRvOiBydWxlLmJkaV9kZWZhdWx0X3BlcmNlbnQsDQogICAgICAgICAgICAgICAgbWluOiBydWxlLmJkaV9taW5fcGVyY2VudCwNCiAgICAgICAgICAgICAgICBtYXg6IHJ1bGUuYmRpX21heF9wZXJjZW50LA0KICAgICAgICAgICAgICAgIHN0cmF0ZWd5OiAnRkFJWEFfU1VHRVJJREEnLA0KICAgICAgICAgICAgICAgIG1lbnNhZ2VtOiBgRmFpeGEgc3VnZXJpZGEgZW50cmUgJHtydWxlLmJkaV9taW5fcGVyY2VudH0lIGUgJHtydWxlLmJkaV9tYXhfcGVyY2VudH0lIChSZWdpw6NvOiAke3JlZ2lhb30pYA0KICAgICAgICAgICAgfTsNCiAgICAgICAgfQ0KDQogICAgICAgIGlmIChzZXR0aW5ncy5iZGlfc3RyYXRlZ3kgPT09ICdISVNUT1JJQ08nKSB7DQogICAgICAgICAgICAvLyBDYWxjdWxhdGUgaGlzdG9yaWNhbCBtZWRpYW4gQkRJIGZvciB0aGlzIGNhdGVnb3J5IGFuZCByZWdpb24gYmFzZWQgb24gQnVkZ2V0cw0KICAgICAgICAgICAgY29uc3QgaGlzdG9yaWNhbEl0ZW1zID0gYXdhaXQgcHJpc21hLmJ1ZGdldEl0ZW0uZmluZE1hbnkoew0KICAgICAgICAgICAgICAgIHdoZXJlOiB7DQogICAgICAgICAgICAgICAgICAgIGF0aXZvOiB0cnVlLA0KICAgICAgICAgICAgICAgICAgICBidWRnZXQ6IHsNCiAgICAgICAgICAgICAgICAgICAgICAgIHRlbmFudF9pZDogdGVuYW50SWQsDQogICAgICAgICAgICAgICAgICAgICAgICBzaXRlOiB7IHVmOiByZWdpYW8gfQ0KICAgICAgICAgICAgICAgICAgICB9LA0KICAgICAgICAgICAgICAgICAgICAvLyBBc3N1bWluZyB3ZSBjYW4gbWFwIGNhdGVnb3J5IHNvbWVob3csIGJ1dCBCdWRnZXRJdGVtIGRvZXNuJ3QgaGF2ZSBpdCBuYXRpdmVseSB1bmxlc3Mgc3RvcmVkIGluIERCDQogICAgICAgICAgICAgICAgICAgIC8vIEl0IG9ubHkgaGFzICdibG9jbycgb3Igd2UgbXVzdCBqb2luIGNhdGFsb2cuIFNpbmNlIHdlIGRvbid0IGhhdmUgaXQgZWFzaWx5IG1hcHBlZCBvbiBCdWRnZXRJdGVtLA0KICAgICAgICAgICAgICAgICAgICAvLyB3ZSBtaWdodCBqdXN0IHJldHVybiB0aGUgcnVsZSBkZWZhdWx0IGFzIGZhbGxiYWNrDQogICAgICAgICAgICAgICAgfSwNCiAgICAgICAgICAgICAgICBzZWxlY3Q6IHsgYmRpX3BlcmNlbnQ6IHRydWUgfQ0KICAgICAgICAgICAgfSk7DQoNCiAgICAgICAgICAgIGlmIChoaXN0b3JpY2FsSXRlbXMubGVuZ3RoID4gMCkgew0KICAgICAgICAgICAgICAgIGNvbnN0IGJkaXMgPSBoaXN0b3JpY2FsSXRlbXMubWFwKGggPT4gaC5iZGlfcGVyY2VudCkuZmlsdGVyKGIgPT4gYiA+IDApLnNvcnQoKGEsIGIpID0+IGEgLSBiKTsNCiAgICAgICAgICAgICAgICBpZiAoYmRpcy5sZW5ndGggPiAwKSB7DQogICAgICAgICAgICAgICAgICAgIGNvbnN0IG1lZGlhbiA9IGJkaXNbTWF0aC5mbG9vcihiZGlzLmxlbmd0aCAvIDIpXTsNCiAgICAgICAgICAgICAgICAgICAgcmV0dXJuIHsNCiAgICAgICAgICAgICAgICAgICAgICAgIHN1Z2VyaWRvOiBtZWRpYW4sDQogICAgICAgICAgICAgICAgICAgICAgICBtaW46IHJ1bGUgPyBydWxlLmJkaV9taW5fcGVyY2VudCA6IDAsDQogICAgICAgICAgICAgICAgICAgICAgICBtYXg6IHJ1bGUgPyBydWxlLmJkaV9tYXhfcGVyY2VudCA6IDEwMCwNCiAgICAgICAgICAgICAgICAgICAgICAgIHN0cmF0ZWd5OiAnSElTVE9SSUNPJywNCiAgICAgICAgICAgICAgICAgICAgICAgIG1lbnNhZ2VtOiBgTWVkaWFuYSBoaXN0w7NyaWNhIHJlZ2lvbmFsIGRlICR7bWVkaWFufSVgDQogICAgICAgICAgICAgICAgICAgIH07DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgfQ0KDQogICAgICAgICAgICAvLyBGYWxsYmFjayB0byBSdWxlIGlmIGhpc3RvcnkgaXMgZW1wdHkNCiAgICAgICAgICAgIGlmIChydWxlKSB7DQogICAgICAgICAgICAgICAgcmV0dXJuIHsNCiAgICAgICAgICAgICAgICAgICAgc3VnZXJpZG86IHJ1bGUuYmRpX2RlZmF1bHRfcGVyY2VudCwNCiAgICAgICAgICAgICAgICAgICAgbWluOiBydWxlLmJkaV9taW5fcGVyY2VudCwNCiAgICAgICAgICAgICAgICAgICAgbWF4OiBydWxlLmJkaV9tYXhfcGVyY2VudCwNCiAgICAgICAgICAgICAgICAgICAgc3RyYXRlZ3k6ICdISVNUT1JJQ09fRkFMTEJBQ0snLA0KICAgICAgICAgICAgICAgICAgICBtZW5zYWdlbTogYFNlbSBoaXN0w7NyaWNvLiBVc2FuZG8gcmVncmEgZGUgJHtydWxlLmJkaV9kZWZhdWx0X3BlcmNlbnR9JWANCiAgICAgICAgICAgICAgICB9Ow0KICAgICAgICAgICAgfQ0KICAgICAgICB9DQoNCiAgICAgICAgcmV0dXJuIGRlZmF1bHRSZXNwb25zZTsNCiAgICB9DQoNCiAgICAvKioNCiAgICAgKiBDcmVhdGUgb3IgdXBkYXRlIGEgQkRJIFJ1bGUNCiAgICAgKi8NCiAgICBzdGF0aWMgYXN5bmMgdXBzZXJ0UnVsZSh0ZW5hbnRJZDogc3RyaW5nLCBkYXRhOiBhbnkpIHsNCiAgICAgICAgY29uc3QgZXhpc3RpbmcgPSBhd2FpdCBwcmlzbWEuYmRpUnVsZXMuZmluZEZpcnN0KHsNCiAgICAgICAgICAgIHdoZXJlOiB7IHRlbmFudF9pZDogdGVuYW50SWQsIHJlZ2lhbzogZGF0YS5yZWdpYW8sIGNhdGVnb3JpYTogZGF0YS5jYXRlZ29yaWEgfQ0KICAgICAgICB9KTsNCiAgICAgICAgaWYgKGV4aXN0aW5nKSB7DQogICAgICAgICAgICByZXR1cm4gcHJpc21hLmJkaVJ1bGVzLnVwZGF0ZSh7IHdoZXJlOiB7IGlkOiBleGlzdGluZy5pZCB9LCBkYXRhIH0pOw0KICAgICAgICB9IGVsc2Ugew0KICAgICAgICAgICAgcmV0dXJuIHByaXNtYS5iZGlSdWxlcy5jcmVhdGUoeyBkYXRhOiB7IC4uLmRhdGEsIHRlbmFudF9pZDogdGVuYW50SWQgfSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCn0NCg=="}
+import { prisma } from '../server';
+
+export class BdiService {
+
+    /**
+     * Finds the BDI suggestion for a given category and region based on the tenant's strategy.
+     */
+    static async suggestBdi(tenantId: string, categoria: string, regiao: string) {
+        const settings = await prisma.tenantSettings.findUnique({ where: { tenant_id: tenantId } });
+
+        // Defaults if no specific rules are found or applied
+        const defaultResponse = {
+            sugerido: 0,
+            min: 0,
+            max: 0,
+            strategy: 'INATIVA'
+        };
+
+        if (!settings || !settings.aplicar_bdi_automatico) {
+            return defaultResponse;
+        }
+
+        const rule = await prisma.bdiRules.findFirst({
+            where: {
+                tenant_id: tenantId,
+                regiao: regiao,
+                categoria: categoria,
+                active: true
+            }
+        });
+
+        if (settings.bdi_strategy === 'REGRA_FIXA' && rule) {
+            return {
+                sugerido: rule.bdi_default_percent,
+                min: rule.bdi_default_percent,
+                max: rule.bdi_default_percent,
+                strategy: 'REGRA_FIXA',
+                mensagem: `BDI Fixo regional de ${rule.bdi_default_percent}% (Região: ${regiao})`
+            };
+        }
+
+        if (settings.bdi_strategy === 'FAIXA_SUGERIDA' && rule) {
+            return {
+                sugerido: rule.bdi_default_percent,
+                min: rule.bdi_min_percent,
+                max: rule.bdi_max_percent,
+                strategy: 'FAIXA_SUGERIDA',
+                mensagem: `Faixa sugerida entre ${rule.bdi_min_percent}% e ${rule.bdi_max_percent}% (Região: ${regiao})`
+            };
+        }
+
+        if (settings.bdi_strategy === 'HISTORICO') {
+            // Calculate historical median BDI for this category and region based on Budgets
+            const historicalItems = await prisma.budgetItem.findMany({
+                where: {
+                    ativo: true,
+                    budget: {
+                        tenant_id: tenantId,
+                        site: { uf: regiao }
+                    },
+                    // Assuming we can map category somehow, but BudgetItem doesn't have it natively unless stored in DB
+                    // It only has 'bloco' or we must join catalog. Since we don't have it easily mapped on BudgetItem,
+                    // we might just return the rule default as fallback
+                },
+                select: { bdi_percent: true }
+            });
+
+            if (historicalItems.length > 0) {
+                const bdis = historicalItems.map(h => h.bdi_percent).filter(b => b > 0).sort((a, b) => a - b);
+                if (bdis.length > 0) {
+                    const median = bdis[Math.floor(bdis.length / 2)];
+                    return {
+                        sugerido: median,
+                        min: rule ? rule.bdi_min_percent : 0,
+                        max: rule ? rule.bdi_max_percent : 100,
+                        strategy: 'HISTORICO',
+                        mensagem: `Mediana histórica regional de ${median}%`
+                    };
+                }
+            }
+
+            // Fallback to Rule if history is empty
+            if (rule) {
+                return {
+                    sugerido: rule.bdi_default_percent,
+                    min: rule.bdi_min_percent,
+                    max: rule.bdi_max_percent,
+                    strategy: 'HISTORICO_FALLBACK',
+                    mensagem: `Sem histórico. Usando regra de ${rule.bdi_default_percent}%`
+                };
+            }
+        }
+
+        return defaultResponse;
+    }
+
+    /**
+     * Create or update a BDI Rule
+     */
+    static async upsertRule(tenantId: string, data: any) {
+        const existing = await prisma.bdiRules.findFirst({
+            where: { tenant_id: tenantId, regiao: data.regiao, categoria: data.categoria }
+        });
+        if (existing) {
+            return prisma.bdiRules.update({ where: { id: existing.id }, data });
+        } else {
+            return prisma.bdiRules.create({ data: { ...data, tenant_id: tenantId } });
+        }
+    }
+}

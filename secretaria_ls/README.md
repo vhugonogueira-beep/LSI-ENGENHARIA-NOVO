@@ -1,1 +1,175 @@
-{"data":"IyBTZWNyZXTDoXJpYSBMUyBPZmZpY2Ug4oCUIEJhY2tlbmQgdjIuMAoKU2lzdGVtYSBjb21wbGV0byBkZSBnZXN0w6NvIGRlIGF0aXZpZGFkZXMgY29tIGFsZXJ0YXMgYXV0b23DoXRpY29zIHZpYSBXaGF0c0FwcC4KCi0tLQoKIyMgRXN0cnV0dXJhIGRvIHByb2pldG8KCmBgYApzZWNyZXRhcmlhX2xzLwrilJzilIDilIAgbWFpbi5weSAgICAgICAgICAgICAg4oaQIFNlcnZpZG9yIEZhc3RBUEkgKGJhY2tlbmQpCuKUnOKUgOKUgCByZXF1aXJlbWVudHMudHh0ICAgICDihpAgRGVwZW5kw6puY2lhcyBQeXRob24K4pSc4pSA4pSAIC5lbnYuZXhhbXBsZSAgICAgICAgIOKGkCBNb2RlbG8gZGUgY29uZmlndXJhw6fDo28gKGNvcGllIHBhcmEgLmVudikK4pSc4pSA4pSAIHRhc2tzLmpzb24gICAgICAgICAgIOKGkCBCYW5jbyBkZSBkYWRvcyBsb2NhbCAoY3JpYWRvIGF1dG9tYXRpY2FtZW50ZSkK4pSc4pSA4pSAIGNvbmZpZy5qc29uICAgICAgICAgIOKGkCBDb25maWd1cmHDp8O1ZXMgKGNyaWFkbyBhdXRvbWF0aWNhbWVudGUpCuKUnOKUgOKUgCBzdGF0aWMvCuKUgiAgIOKUlOKUgOKUgCBpbmRleC5odG1sICAgICAgIOKGkCBGcm9udGVuZCB3ZWIgY29tcGxldG8K4pSU4pSA4pSAIFJFQURNRS5tZApgYGAKCi0tLQoKIyMgSW5zdGFsYcOnw6NvIHLDoXBpZGEKCiMjIyAxLiBJbnN0YWxhciBkZXBlbmTDqm5jaWFzCgpgYGBiYXNoCnBpcCBpbnN0YWxsIC1yIHJlcXVpcmVtZW50cy50eHQKYGBgCgojIyMgMi4gQ29uZmlndXJhciB2YXJpw6F2ZWlzIGRlIGFtYmllbnRlCgpgYGBiYXNoCmNwIC5lbnYuZXhhbXBsZSAuZW52CiMgRWRpdGUgbyAuZW52IGNvbSBzdWFzIGNyZWRlbmNpYWlzCmBgYAoKIyMjIDMuIEluaWNpYXIgbyBzZXJ2aWRvcgoKYGBgYmFzaAp1dmljb3JuIG1haW46YXBwIC0tcmVsb2FkIC0tcG9ydCA4MDAwCmBgYAoKQWNlc3NlOiBodHRwOi8vbG9jYWxob3N0OjgwMDAvYXBwCgotLS0KCiMjIENvbmZpZ3VyYcOnw6NvIGRvIFdoYXRzQXBwCgojIyMgT3DDp8OjbyBBIOKAlCBFdm9sdXRpb24gQVBJIChyZWNvbWVuZGFkbyBwYXJhIEFudGlncmF2aXR5KQoKQSBFdm9sdXRpb24gQVBJIMOpIG9wZW4gc291cmNlIGUgcm9kYSAxMDAlIGxvY2FsIG5vIHNldSBzZXJ2aWRvci4KCioqSW5zdGFsYcOnw6NvIHZpYSBEb2NrZXI6KioKYGBgYmFzaApkb2NrZXIgcnVuIC1kIFwKICAtLW5hbWUgZXZvbHV0aW9uLWFwaSBcCiAgLXAgODA4MDo4MDgwIFwKICAtZSBBVVRIRU5USUNBVElPTl9BUElfS0VZPXN1YV9jaGF2ZV9zZWNyZXRhIFwKICAtZSBBVVRIRU5USUNBVElPTl9UWVBFPWFwaWtleSBcCiAgYXRlbmRhaS9ldm9sdXRpb24tYXBpOmxhdGVzdApgYGAKCioqQ29uZmlndXJhciBpbnN0w6JuY2lhOioqCjEuIEFjZXNzZSBodHRwOi8vbG9jYWxob3N0OjgwODAgKHBhaW5lbCBFdm9sdXRpb24pCjIuIENyaWUgdW1hIGluc3TDom5jaWEgY2hhbWFkYSBgbHMtb2ZmaWNlYAozLiBDb25lY3RlIHZpYSBRUiBDb2RlIG5vIHNldSBjZWx1bGFyCjQuIENvcGllIGEgQVBJIEtleSBwYXJhIG8gYC5lbnZgCgoqKk5vIC5lbnY6KioKYGBgCldBX1BST1ZJREVSPWV2b2x1dGlvbgpFVk9MVVRJT05fVVJMPWh0dHA6Ly9sb2NhbGhvc3Q6ODA4MApFVk9MVVRJT05fQVBJX0tFWT1zdWFfY2hhdmVfc2VjcmV0YQpFVk9MVVRJT05fSU5TVEFOQ0U9bHMtb2ZmaWNlCkRFRkFVTFRfV0FfTlVNQkVSPTU1MTE5OTk5OTk5OTkKYGBgCgotLS0KCiMjIyBPcMOnw6NvIEIg4oCUIFR3aWxpbyAoY2xvdWQsIHNlbSBzZXJ2aWRvciBleHRyYSkKCjEuIENyaWUgY29udGEgZW0gaHR0cHM6Ly90d2lsaW8uY29tCjIuIEF0aXZlIG8gV2hhdHNBcHAgU2FuZGJveAozLiBDb3BpZSBBY2NvdW50IFNJRCBlIEF1dGggVG9rZW4KCioqTm8gLmVudjoqKgpgYGAKV0FfUFJPVklERVI9dHdpbGlvClRXSUxJT19TSUQ9QUN4eHh4eHh4eHh4eHgKVFdJTElPX1RPS0VOPXNldV90b2tlbgpUV0lMSU9fRlJPTT13aGF0c2FwcDorMTQxNTUyMzg4ODYKREVGQVVMVF9XQV9OVU1CRVI9NTUxMTk5OTk5OTk5OQpgYGAKCi0tLQoKIyMgRW5kcG9pbnRzIHByaW5jaXBhaXMKCnwgTcOpdG9kbyB8IFJvdGEgfCBEZXNjcmnDp8OjbyB8CnwtLS0tLS0tLXwtLS0tLS18LS0tLS0tLS0tLS18CnwgR0VUIHwgL3Rhc2tzIHwgTGlzdGEgdG9kYXMgYXMgdGFyZWZhcyB8CnwgUE9TVCB8IC90YXNrcyB8IENyaWEgbm92YSB0YXJlZmEgfAp8IFBBVENIIHwgL3Rhc2tzL3tpZH0gfCBBdHVhbGl6YSB0YXJlZmEgfAp8IERFTEVURSB8IC90YXNrcy97aWR9IHwgUmVtb3ZlIHRhcmVmYSB8CnwgUE9TVCB8IC90YXNrcy9yZXNjaGVkdWxlLW92ZXJkdWUgfCBSZWFnZW5kYSB2ZW5jaWRhcyBwYXJhIGhvamUgfAp8IFBPU1QgfCAvd2hhdHNhcHAvc2VuZCB8IEVudmlhIG1lbnNhZ2VtIFdBIHwKfCBQT1NUIHwgL3doYXRzYXBwL2RhaWx5LXN1bW1hcnkgfCBFbnZpYSByZXN1bW8gZG8gZGlhIHwKfCBHRVQgfCAvd2hhdHNhcHAvcHJldmlldy1zdW1tYXJ5IHwgUHLDqS12aXN1YWxpemEgcmVzdW1vIHwKfCBHRVQgfCAvcmVwb3J0L3N1bW1hcnkgfCBNw6l0cmljYXMgZ2VyYWlzIHwKfCBHRVQgfCAvY29uZmlnIHwgQ29uZmlndXJhw6fDtWVzIGF0dWFpcyB8CnwgUE9TVCB8IC9jb25maWcgfCBTYWx2YSBjb25maWd1cmHDp8O1ZXMgfAp8IEdFVCB8IC9oZWFsdGggfCBTdGF0dXMgZG8gc2Vydmlkb3IgfAoKRG9jdW1lbnRhw6fDo28gaW50ZXJhdGl2YTogaHR0cDovL2xvY2FsaG9zdDo4MDAwL2RvY3MKCi0tLQoKIyMgUmVsYXTDs3JpbyBkacOhcmlvIGF1dG9tw6F0aWNvCgpPIHNlcnZpZG9yIGFnZW5kYSBhdXRvbWF0aWNhbWVudGUgbyBlbnZpbyBkbyByZXN1bW8gZGnDoXJpbyBwYXJhIG8gaG9yw6FyaW8gY29uZmlndXJhZG8uCgpQYXJhIGFsdGVyYXIgbyBob3LDoXJpbyB2aWEgQVBJOgpgYGBiYXNoCmN1cmwgLVggUE9TVCBodHRwOi8vbG9jYWxob3N0OjgwMDAvY29uZmlnIFwKICAtSCAiQ29udGVudC1UeXBlOiBhcHBsaWNhdGlvbi9qc29uIiBcCiAgLWQgJ3sid2FfbnVtYmVyIjogIjU1MTE5OTk5OTk5OTkiLCAiZGFpbHlfcmVwb3J0X3RpbWUiOiAiMDg6MDAifScKYGBgCgotLS0KCiMjIERlcGxveSBubyBBbnRpZ3Jhdml0eQoKU2Ugdm9jw6ogdXNhIG8gQW50aWdyYXZpdHkgY29tbyBwbGF0YWZvcm1hIGRlIGhvc3BlZGFnZW06CgoxLiBTdWJhIG9zIGFycXVpdm9zIGBtYWluLnB5YCwgYHJlcXVpcmVtZW50cy50eHRgIGUgYSBwYXN0YSBgc3RhdGljL2AKMi4gQ29uZmlndXJlIGFzIHZhcmnDoXZlaXMgZGUgYW1iaWVudGUgbm8gcGFpbmVsIGRvIEFudGlncmF2aXR5CjMuIERlZmluYSBvIGNvbWFuZG8gZGUgc3RhcnQ6IGB1dmljb3JuIG1haW46YXBwIC0taG9zdCAwLjAuMC4wIC0tcG9ydCA4MDAwYAo0LiBBcG9udGUgbyBmcm9udGVuZCBwYXJhIGEgVVJMIGRvIHNldSBzZXJ2aWRvciAoZWRpdGUgYSBsaW5oYSBgY29uc3QgQVBJID0gJy4uLidgIG5vIGBpbmRleC5odG1sYCkKCi0tLQoKIyMgSW50ZWdyYcOnw6NvIGNvbSBvIHNpc3RlbWEgZGUgb3LDp2FtZW50b3MKCk8gYmFja2VuZCBleHDDtWUgdW1hIEFQSSBSRVNUIHBhZHLDo28uIFBhcmEgaW50ZWdyYXIgY29tIHNldSBzaXN0ZW1hIGRlIG9yw6dhbWVudG9zIChQVi9IaWdobGluZSk6CgpgYGBqYXZhc2NyaXB0Ci8vIENyaWFyIGF0aXZpZGFkZSByZWxhY2lvbmFkYSBhIHVtIG9yw6dhbWVudG8KZmV0Y2goJ2h0dHA6Ly9sb2NhbGhvc3Q6ODAwMC90YXNrcycsIHsKICBtZXRob2Q6ICdQT1NUJywKICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicgfSwKICBib2R5OiBKU09OLnN0cmluZ2lmeSh7CiAgICBkZXNjOiAnRW52aWFyIG9yw6dhbWVudG8gcmV2aXNhZG8gcGFyYSBhcHJvdmHDp8OjbycsCiAgICBzdGF0dXM6ICdwZW5kaW5nJywKICAgIHByaW9yaXR5OiAnaGlnaCcsCiAgICBjbGllbnQ6ICdQVi9IaWdobGluZScsCiAgICB0eXBlOiAnQ29udHJhdG8nLAogICAgZGF0ZTogJzIwMjUtMDQtMDMnLAogICAgZGVhZGxpbmU6ICcyMDI1LTA0LTA1JywKICAgIHJlc3A6ICdFbmcuIEpvw6NvJywKICAgIG5vdGU6ICdSZXZpc8OjbyBkZSBCREkgZGUgMjglIHBhcmEgMzAlJwogIH0pCn0pCmBgYAoKLS0tCgojIyBTZWd1cmFuw6dhIChwcm9kdcOnw6NvKQoKUGFyYSBhbWJpZW50ZSBkZSBwcm9kdcOnw6NvLCBhZGljaW9uZSBhbyBgLmVudmA6CmBgYApBUElfU0VDUkVUX0tFWT1jaGF2ZV9sb25nYV9hbGVhdG9yaWEKYGBgCgpFIHByb3RlamEgb3MgZW5kcG9pbnRzIGNvbSBhdXRlbnRpY2HDp8OjbyBCZWFyZXIgbm8gYG1haW4ucHlgIChkZXNjb21lbnRhciBibG9jbyBkZSBzZWd1cmFuw6dhKS4K"}
+# Secretária LS Office — Backend v2.0
+
+Sistema completo de gestão de atividades com alertas automáticos via WhatsApp.
+
+---
+
+## Estrutura do projeto
+
+```
+secretaria_ls/
+├── main.py              ← Servidor FastAPI (backend)
+├── requirements.txt     ← Dependências Python
+├── .env.example         ← Modelo de configuração (copie para .env)
+├── tasks.json           ← Banco de dados local (criado automaticamente)
+├── config.json          ← Configurações (criado automaticamente)
+├── static/
+│   └── index.html       ← Frontend web completo
+└── README.md
+```
+
+---
+
+## Instalação rápida
+
+### 1. Instalar dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Configurar variáveis de ambiente
+
+```bash
+cp .env.example .env
+# Edite o .env com suas credenciais
+```
+
+### 3. Iniciar o servidor
+
+```bash
+uvicorn main:app --reload --port 8000
+```
+
+Acesse: http://localhost:8000/app
+
+---
+
+## Configuração do WhatsApp
+
+### Opção A — Evolution API (recomendado para Antigravity)
+
+A Evolution API é open source e roda 100% local no seu servidor.
+
+**Instalação via Docker:**
+```bash
+docker run -d \
+  --name evolution-api \
+  -p 8080:8080 \
+  -e AUTHENTICATION_API_KEY=sua_chave_secreta \
+  -e AUTHENTICATION_TYPE=apikey \
+  atendai/evolution-api:latest
+```
+
+**Configurar instância:**
+1. Acesse http://localhost:8080 (painel Evolution)
+2. Crie uma instância chamada `ls-office`
+3. Conecte via QR Code no seu celular
+4. Copie a API Key para o `.env`
+
+**No .env:**
+```
+WA_PROVIDER=evolution
+EVOLUTION_URL=http://localhost:8080
+EVOLUTION_API_KEY=sua_chave_secreta
+EVOLUTION_INSTANCE=ls-office
+DEFAULT_WA_NUMBER=5511999999999
+```
+
+---
+
+### Opção B — Twilio (cloud, sem servidor extra)
+
+1. Crie conta em https://twilio.com
+2. Ative o WhatsApp Sandbox
+3. Copie Account SID e Auth Token
+
+**No .env:**
+```
+WA_PROVIDER=twilio
+TWILIO_SID=ACxxxxxxxxxxxx
+TWILIO_TOKEN=seu_token
+TWILIO_FROM=whatsapp:+14155238886
+DEFAULT_WA_NUMBER=5511999999999
+```
+
+---
+
+## Endpoints principais
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | /tasks | Lista todas as tarefas |
+| POST | /tasks | Cria nova tarefa |
+| PATCH | /tasks/{id} | Atualiza tarefa |
+| DELETE | /tasks/{id} | Remove tarefa |
+| POST | /tasks/reschedule-overdue | Reagenda vencidas para hoje |
+| POST | /whatsapp/send | Envia mensagem WA |
+| POST | /whatsapp/daily-summary | Envia resumo do dia |
+| GET | /whatsapp/preview-summary | Pré-visualiza resumo |
+| GET | /report/summary | Métricas gerais |
+| GET | /config | Configurações atuais |
+| POST | /config | Salva configurações |
+| GET | /health | Status do servidor |
+
+Documentação interativa: http://localhost:8000/docs
+
+---
+
+## Relatório diário automático
+
+O servidor agenda automaticamente o envio do resumo diário para o horário configurado.
+
+Para alterar o horário via API:
+```bash
+curl -X POST http://localhost:8000/config \
+  -H "Content-Type: application/json" \
+  -d '{"wa_number": "5511999999999", "daily_report_time": "08:00"}'
+```
+
+---
+
+## Deploy no Antigravity
+
+Se você usa o Antigravity como plataforma de hospedagem:
+
+1. Suba os arquivos `main.py`, `requirements.txt` e a pasta `static/`
+2. Configure as variáveis de ambiente no painel do Antigravity
+3. Defina o comando de start: `uvicorn main:app --host 0.0.0.0 --port 8000`
+4. Aponte o frontend para a URL do seu servidor (edite a linha `const API = '...'` no `index.html`)
+
+---
+
+## Integração com o sistema de orçamentos
+
+O backend expõe uma API REST padrão. Para integrar com seu sistema de orçamentos (PV/Highline):
+
+```javascript
+// Criar atividade relacionada a um orçamento
+fetch('http://localhost:8000/tasks', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    desc: 'Enviar orçamento revisado para aprovação',
+    status: 'pending',
+    priority: 'high',
+    client: 'PV/Highline',
+    type: 'Contrato',
+    date: '2025-04-03',
+    deadline: '2025-04-05',
+    resp: 'Eng. João',
+    note: 'Revisão de BDI de 28% para 30%'
+  })
+})
+```
+
+---
+
+## Segurança (produção)
+
+Para ambiente de produção, adicione ao `.env`:
+```
+API_SECRET_KEY=chave_longa_aleatoria
+```
+
+E proteja os endpoints com autenticação Bearer no `main.py` (descomentar bloco de segurança).

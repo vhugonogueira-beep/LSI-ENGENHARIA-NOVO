@@ -1,1 +1,121 @@
-{"data":"aW1wb3J0IHsgUmVxdWVzdCwgUmVzcG9uc2UgfSBmcm9tICdleHByZXNzJzsNCmltcG9ydCB7IFByaWNlQm9va1NlcnZpY2UgfSBmcm9tICcuLi9zZXJ2aWNlcy9wcmljZWJvb2suc2VydmljZSc7DQppbXBvcnQgeyBwcmlzbWEgfSBmcm9tICcuLi9zZXJ2ZXInOw0KDQphc3luYyBmdW5jdGlvbiBnZXREZW1vVGVuYW50SWQoKSB7DQogICAgY29uc3QgdCA9IGF3YWl0IHByaXNtYS50ZW5hbnQuZmluZEZpcnN0KCk7DQogICAgcmV0dXJuIHQgPyB0LmlkIDogJyc7DQp9DQoNCmV4cG9ydCBjbGFzcyBQcmljZUJvb2tDb250cm9sbGVyIHsNCg0KICAgIC8vIOKUgOKUgOKUgCBQcmljZUJvb2sg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSADQoNCiAgICBzdGF0aWMgYXN5bmMgbGlzdChyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IHRlbmFudElkID0gKHJlcS5xdWVyeS50ZW5hbnRJZCBhcyBzdHJpbmcpIHx8IGF3YWl0IGdldERlbW9UZW5hbnRJZCgpOw0KICAgICAgICAgICAgY29uc3QgZmlsdGVycyA9IHsNCiAgICAgICAgICAgICAgICBzdXBwbGllcl9pZDogcmVxLnF1ZXJ5LnN1cHBsaWVyX2lkIGFzIHN0cmluZywNCiAgICAgICAgICAgICAgICByZWdpYW86IHJlcS5xdWVyeS5yZWdpYW8gYXMgc3RyaW5nLA0KICAgICAgICAgICAgICAgIHN0YXR1czogcmVxLnF1ZXJ5LnN0YXR1cyBhcyBzdHJpbmcsDQogICAgICAgICAgICB9Ow0KICAgICAgICAgICAgcmVzLmpzb24oYXdhaXQgUHJpY2VCb29rU2VydmljZS5nZXRQcmljZUJvb2tzKHRlbmFudElkLCBmaWx0ZXJzKSk7DQogICAgICAgIH0gY2F0Y2ggKGU6IGFueSkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGdldEJ5SWQocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCBwYiA9IGF3YWl0IFByaWNlQm9va1NlcnZpY2UuZ2V0UHJpY2VCb29rQnlJZChyZXEucGFyYW1zLmlkKTsNCiAgICAgICAgICAgIGlmICghcGIpIHJldHVybiByZXMuc3RhdHVzKDQwNCkuanNvbih7IGVycm9yOiAnTFBVIG7Do28gZW5jb250cmFkYScgfSk7DQogICAgICAgICAgICByZXMuanNvbihwYik7DQogICAgICAgIH0gY2F0Y2ggKGU6IGFueSkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGNyZWF0ZShyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IGRhdGEgPSB7IC4uLnJlcS5ib2R5IH07DQogICAgICAgICAgICBpZiAoIWRhdGEudGVuYW50X2lkKSBkYXRhLnRlbmFudF9pZCA9IGF3YWl0IGdldERlbW9UZW5hbnRJZCgpOw0KICAgICAgICAgICAgcmVzLnN0YXR1cygyMDEpLmpzb24oYXdhaXQgUHJpY2VCb29rU2VydmljZS5jcmVhdGVQcmljZUJvb2soZGF0YSkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyB1cGRhdGUocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICByZXMuanNvbihhd2FpdCBQcmljZUJvb2tTZXJ2aWNlLnVwZGF0ZVByaWNlQm9vayhyZXEucGFyYW1zLmlkLCByZXEuYm9keSkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIC8vIOKUgOKUgOKUgCBQcmljZUJvb2sgSXRlbXMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSADQoNCiAgICBzdGF0aWMgYXN5bmMgbGlzdEl0ZW1zKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgZmlsdGVycyA9IHsNCiAgICAgICAgICAgICAgICB0aXBvX2VzY29wbzogcmVxLnF1ZXJ5LnRpcG9fZXNjb3BvIGFzIHN0cmluZywNCiAgICAgICAgICAgICAgICBzZWFyY2g6IHJlcS5xdWVyeS5zZWFyY2ggYXMgc3RyaW5nLA0KICAgICAgICAgICAgICAgIHVuaWRhZGU6IHJlcS5xdWVyeS51bmlkYWRlIGFzIHN0cmluZywNCiAgICAgICAgICAgICAgICBwYWdlOiBwYXJzZUludChyZXEucXVlcnkucGFnZSBhcyBzdHJpbmcpIHx8IDEsDQogICAgICAgICAgICAgICAgbGltaXQ6IHBhcnNlSW50KHJlcS5xdWVyeS5saW1pdCBhcyBzdHJpbmcpIHx8IDEwMCwNCiAgICAgICAgICAgIH07DQogICAgICAgICAgICByZXMuanNvbihhd2FpdCBQcmljZUJvb2tTZXJ2aWNlLmdldFByaWNlQm9va0l0ZW1zKHJlcS5wYXJhbXMuaWQsIGZpbHRlcnMpKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgY3JlYXRlSXRlbShyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IGRhdGEgPSB7IC4uLnJlcS5ib2R5IH07DQogICAgICAgICAgICBpZiAoIWRhdGEudGVuYW50X2lkKSBkYXRhLnRlbmFudF9pZCA9IGF3YWl0IGdldERlbW9UZW5hbnRJZCgpOw0KICAgICAgICAgICAgcmVzLnN0YXR1cygyMDEpLmpzb24oYXdhaXQgUHJpY2VCb29rU2VydmljZS5jcmVhdGVQcmljZUJvb2tJdGVtKGRhdGEpKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgdXBkYXRlSXRlbShyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIHJlcy5qc29uKGF3YWl0IFByaWNlQm9va1NlcnZpY2UudXBkYXRlUHJpY2VCb29rSXRlbShyZXEucGFyYW1zLmlkLCByZXEuYm9keSkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBkZWxldGVJdGVtKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgcmVzLmpzb24oYXdhaXQgUHJpY2VCb29rU2VydmljZS5kZWxldGVQcmljZUJvb2tJdGVtKHJlcS5wYXJhbXMuaWQpKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQoNCiAgICAvLyDilIDilIDilIAgUHJpY2UgTG9va3VwIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgA0KDQogICAgc3RhdGljIGFzeW5jIGxvb2t1cFByaWNlKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgdGVuYW50SWQgPSAocmVxLnF1ZXJ5LnRlbmFudElkIGFzIHN0cmluZykgfHwgYXdhaXQgZ2V0RGVtb1RlbmFudElkKCk7DQogICAgICAgICAgICBjb25zdCB7IHN1cHBsaWVyX2lkLCByZWdpYW8sIGRlc2NyaWNhbywgdW5pZGFkZSwgbGltaXQ6IGsgfSA9IHJlcS5xdWVyeTsNCg0KICAgICAgICAgICAgaWYgKCFkZXNjcmljYW8pIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiAnUGFyw6JtZXRybyBkZXNjcmljYW8gb2JyaWdhdMOzcmlvJyB9KTsNCg0KICAgICAgICAgICAgY29uc3QgcmVzdWx0cyA9IGF3YWl0IFByaWNlQm9va1NlcnZpY2UubG9va3VwUHJpY2UoDQogICAgICAgICAgICAgICAgdGVuYW50SWQsDQogICAgICAgICAgICAgICAgc3VwcGxpZXJfaWQgYXMgc3RyaW5nIHwgdW5kZWZpbmVkLA0KICAgICAgICAgICAgICAgIFN0cmluZyhyZWdpYW8gfHwgJ1NVREVTVEUnKSwNCiAgICAgICAgICAgICAgICBTdHJpbmcoZGVzY3JpY2FvKSwNCiAgICAgICAgICAgICAgICB1bmlkYWRlIGFzIHN0cmluZyB8IHVuZGVmaW5lZCwNCiAgICAgICAgICAgICAgICBrID8gcGFyc2VJbnQoayBhcyBzdHJpbmcpIDogNQ0KICAgICAgICAgICAgKTsNCiAgICAgICAgICAgIHJlcy5qc29uKHJlc3VsdHMpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCn0NCg=="}
+import { Request, Response } from 'express';
+import { PriceBookService } from '../services/pricebook.service';
+import { prisma } from '../server';
+
+async function getDemoTenantId() {
+    const t = await prisma.tenant.findFirst();
+    return t ? t.id : '';
+}
+
+export class PriceBookController {
+
+    // ─── PriceBook ──────────────────────────────────────────────────
+
+    static async list(req: Request, res: Response) {
+        try {
+            const tenantId = (req.query.tenantId as string) || await getDemoTenantId();
+            const filters = {
+                supplier_id: req.query.supplier_id as string,
+                regiao: req.query.regiao as string,
+                status: req.query.status as string,
+            };
+            res.json(await PriceBookService.getPriceBooks(tenantId, filters));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async getById(req: Request, res: Response) {
+        try {
+            const pb = await PriceBookService.getPriceBookById(req.params.id);
+            if (!pb) return res.status(404).json({ error: 'LPU não encontrada' });
+            res.json(pb);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async create(req: Request, res: Response) {
+        try {
+            const data = { ...req.body };
+            if (!data.tenant_id) data.tenant_id = await getDemoTenantId();
+            res.status(201).json(await PriceBookService.createPriceBook(data));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async update(req: Request, res: Response) {
+        try {
+            res.json(await PriceBookService.updatePriceBook(req.params.id, req.body));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    // ─── PriceBook Items ────────────────────────────────────────────
+
+    static async listItems(req: Request, res: Response) {
+        try {
+            const filters = {
+                tipo_escopo: req.query.tipo_escopo as string,
+                search: req.query.search as string,
+                unidade: req.query.unidade as string,
+                page: parseInt(req.query.page as string) || 1,
+                limit: parseInt(req.query.limit as string) || 100,
+            };
+            res.json(await PriceBookService.getPriceBookItems(req.params.id, filters));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async createItem(req: Request, res: Response) {
+        try {
+            const data = { ...req.body };
+            if (!data.tenant_id) data.tenant_id = await getDemoTenantId();
+            res.status(201).json(await PriceBookService.createPriceBookItem(data));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async updateItem(req: Request, res: Response) {
+        try {
+            res.json(await PriceBookService.updatePriceBookItem(req.params.id, req.body));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async deleteItem(req: Request, res: Response) {
+        try {
+            res.json(await PriceBookService.deletePriceBookItem(req.params.id));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    // ─── Price Lookup ───────────────────────────────────────────────
+
+    static async lookupPrice(req: Request, res: Response) {
+        try {
+            const tenantId = (req.query.tenantId as string) || await getDemoTenantId();
+            const { supplier_id, regiao, descricao, unidade, limit: k } = req.query;
+
+            if (!descricao) return res.status(400).json({ error: 'Parâmetro descricao obrigatório' });
+
+            const results = await PriceBookService.lookupPrice(
+                tenantId,
+                supplier_id as string | undefined,
+                String(regiao || 'SUDESTE'),
+                String(descricao),
+                unidade as string | undefined,
+                k ? parseInt(k as string) : 5
+            );
+            res.json(results);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+}

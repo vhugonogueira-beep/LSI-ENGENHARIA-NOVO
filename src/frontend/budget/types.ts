@@ -1,1 +1,209 @@
-{"data":"Ly8g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQCi8vIFRJUE9TIERPIFNJU1RFTUEgREUgT1LDh0FNRU5UT1Mg4oCUIE1VTFRJLVNIQVJJTkcgKyBMUFUKLy8g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQCgovLyDilIDilIAgU2hhcmluZyBDbGllbnQgKEVtcHJlc2EgZGUgU2hhcmluZyAvIENsaWVudGUgZGUgSW5mcmEpIOKUgOKUgApleHBvcnQgaW50ZXJmYWNlIFNoYXJpbmdDbGllbnQgewogIGlkOiBzdHJpbmc7CiAgbm9tZTogc3RyaW5nOyAgICAgICAgICAgLy8gIkhpZ2hsaW5lIGRvIEJyYXNpbCIKICBzaWdsYTogc3RyaW5nOyAgICAgICAgICAvLyAiSEwiCiAgY25wajogc3RyaW5nOwogIHRpcG86ICJTaGFyaW5nIiB8ICJPcGVyYWRvcmEiOwogIGNvbnRhdG86IHN0cmluZzsKICBlbWFpbDogc3RyaW5nOwogIHRlbGVmb25lOiBzdHJpbmc7CiAgYmRpUGFkcmFvOiBudW1iZXI7ICAgICAgLy8gQkRJIGRlZmF1bHQgZG8gY29udHJhdG8KICBsdWNyb1BhZHJhbzogbnVtYmVyOyAgICAvLyBNYXJnZW0gZGVmYXVsdAogIGRlc2NvbnRvUGFkcmFvOiBudW1iZXI7IC8vIERlc2NvbnRvIGRlZmF1bHQKICBjb3I6IHN0cmluZzsgICAgICAgICAgICAvLyBDb3IgcGFyYSBVSQogIGF0aXZvOiBib29sZWFuOwp9CgovLyDilIDilIAgSXRlbSBkZSBUZW1wbGF0ZSBMUFUg4pSA4pSACmV4cG9ydCBpbnRlcmZhY2UgTHB1VGVtcGxhdGVJdGVtIHsKICBjb2Q6IHN0cmluZzsgICAgICAgICAgICAvLyAiTVMwMDEiCiAgcmVzdW1vOiBzdHJpbmc7ICAgICAgICAgLy8gQ2F0ZWdvcmlhOiAiTUFTVFJPIiwgIkZVTkRBw4fDg08iCiAgc29sdWNhbzogc3RyaW5nOyAgICAgICAgLy8gRGVzY3Jpw6fDo28gZG8gZXNjb3BvCiAgY29uZmlnPzogc3RyaW5nOyAgICAgICAgLy8gQ29uZmlndXJhw6fDo28vdmFyaWFudGUKICB1bmlkOiBzdHJpbmc7ICAgICAgICAgICAvLyAiVkIiLCAiTSIsICJNwrIiLCAiUMOHIiwgIkgvSCIKICB0aXBvQ3VzdG86ICJNTyIgfCAiTWF0ZXJpYWwiIHwgIlNlcnZpw6dvIiB8ICJWZXJiYSI7CiAgdmxSZWZlcmVuY2lhOiBudW1iZXI7ICAgLy8gUHJlw6dvIHJlZmVyw6puY2lhCiAgb2JyaWdhdG9yaW86IGJvb2xlYW47ICAgLy8gSXRlbSBvYnJpZ2F0w7NyaW8gbm8gb3LDp2FtZW50bz8KfQoKLy8g4pSA4pSAIFRlbXBsYXRlIGRlIExQVSAoMSB0ZW1wbGF0ZSA9IDEgU2hhcmluZyDDlyAxIFRpcG8pIOKUgOKUgApleHBvcnQgaW50ZXJmYWNlIExwdVRlbXBsYXRlIHsKICBpZDogc3RyaW5nOwogIHNoYXJpbmdJZDogc3RyaW5nOyAgICAgIC8vIExpbmsgcGFyYSBTaGFyaW5nQ2xpZW50CiAgdGlwbzogImltcGxhbnRhY2FvIiB8ICJtYW51dGVuY2FvIjsKICBub21lOiBzdHJpbmc7ICAgICAgICAgICAvLyAiTFBVIEhpZ2hsaW5lIOKAlCBJbXBsYW50YcOnw6NvIDIwMjYiCiAgdmVyc2FvOiBzdHJpbmc7ICAgICAgICAgLy8gIlYxIiwgIlYyIgogIGl0ZW5zOiBMcHVUZW1wbGF0ZUl0ZW1bXTsKICBhdGl2bzogYm9vbGVhbjsKICBjcmlhZG9FbTogc3RyaW5nOwp9CgovLyDilIDilIAgSXRlbSBkZSBsaW5oYSBkZW50cm8gZGUgdW0gYmxvY28gZGUgb3LDp2FtZW50byDilIDilIAKZXhwb3J0IGludGVyZmFjZSBCdWRnZXRMaW5lSXRlbSB7CiAgaWQ6IHN0cmluZzsKICBjb2Q6IHN0cmluZzsKICBkZXNjcmljYW86IHN0cmluZzsKICBjb25maWc/OiBzdHJpbmc7CiAgdW5pZDogc3RyaW5nOwogIHRpcG9DdXN0bzogIk1PIiB8ICJNYXRlcmlhbCIgfCAiU2VydmnDp28iIHwgIlZlcmJhIjsKICBjYXRlZ29yaWE6IHN0cmluZzsgICAgICAvLyAiTUFTVFJPIiwgIkZVTkRBw4fDg08iCiAgcXRkZTogbnVtYmVyOwogIHZsVW5pdGFyaW86IG51bWJlcjsgICAgIC8vIFZhbG9yIGJhc2UgKGFudGVzIGRvIGRlc2NvbnRvKQogIHZsUmVmZXJlbmNpYTogbnVtYmVyOyAgIC8vIE9yaWdpbmFsIGRvIHRlbXBsYXRlIChyZWFkLW9ubHkpCiAgZGVzY29udG9QY3Q/OiBudW1iZXI7ICAgLy8gRGVzY29udG8gcGVyY2VudHVhbCBwb3IgaXRlbQogIGRlc2NvbnRvVmFsb3I/OiBudW1iZXI7IC8vIERlc2NvbnRvIGVtIFIkIHBvciBpdGVtCiAgZGVzY29udG8/OiBudW1iZXI7ICAgICAgLy8gTGVnYWN5OiBkZXNjb250byBwZXJjZW50dWFsIChjb21wYXRpYmlsaWRhZGUpCn0KCi8vIOKUgOKUgCBCbG9jbyBkZSBTaGFyaW5nIGRlbnRybyBkZSB1bSBvcsOnYW1lbnRvIOKUgOKUgApleHBvcnQgaW50ZXJmYWNlIEJ1ZGdldFNoYXJpbmdCbG9jayB7CiAgaWQ6IHN0cmluZzsKICBzaGFyaW5nSWQ6IHN0cmluZzsKICBzaGFyaW5nTm9tZTogc3RyaW5nOyAgICAvLyBEZXNub3JtYWxpemFkbyBwYXJhIGRpc3BsYXkKICBzaGFyaW5nQ29yOiBzdHJpbmc7CiAgdGlwbzogImltcGxhbnRhY2FvIiB8ICJtYW51dGVuY2FvIjsKICB0ZW1wbGF0ZUlkPzogc3RyaW5nOyAgICAvLyBRdWFsIHRlbXBsYXRlIGZvaSBjYXJyZWdhZG8KICBpdGVuczogQnVkZ2V0TGluZUl0ZW1bXTsKICBiZGk6IG51bWJlcjsKICBsdWNybzogbnVtYmVyOwogIGRpc2NvdW50OiBudW1iZXI7CiAgb2JzOiBzdHJpbmc7Cn0KCi8vIOKUgOKUgCBPcsOnYW1lbnRvIGNvbXBsZXRvIChkb2N1bWVudG8gcHJpbmNpcGFsKSDilIDilIAKZXhwb3J0IGludGVyZmFjZSBCdWRnZXQgewogIGlkOiBzdHJpbmc7ICAgICAgICAgICAgIC8vICJPUkMtMjAyNi0wMDAxIgogIHZlcnNhbzogbnVtYmVyOwogIGRhdGE6IHN0cmluZzsKICBzdGF0dXM6ICJSYXNjdW5obyIgfCAiVmFsaWRhZG8iIHwgIkVudmlhZG8iIHwgIkFwcm92YWRvIiB8ICJSZWplaXRhZG8iOwoKICAvLyBTaXRlCiAgc2l0ZUluZm86IHsKICAgIHNpdGVJZDogc3RyaW5nOyAgICAgICAgIC8vIElEIEludGVybm8vQnVzY2EKICAgIHNoYXJpbmdOb21lOiBzdHJpbmc7ICAgIC8vIEVtcHJlc2EgZGUgU2hhcmluZyAoSW5mcmEpCiAgICBzaXRlSWRTaGFyaW5nOiBzdHJpbmc7ICAvLyBJRCBubyBjbGllbnRlIGRlIGluZnJhCiAgICBzaXRlSWRPcGVyYWRvcmE6IHN0cmluZzsgLy8gSUQgbmEgb3BlcmFkb3JhIGZpbmFsCiAgICBvcGVyYWRvcmE6IHN0cmluZzsKICAgIHVmOiBzdHJpbmc7CiAgICBtdW5pY2lwaW86IHN0cmluZzsKICAgIGVuZGVyZWNvOiBzdHJpbmc7CiAgICBsYXRpdHVkZT86IHN0cmluZzsKICAgIGxvbmdpdHVkZT86IHN0cmluZzsKCiAgICAvLyBIaWVyYXJxdWlhIGRlIFByb2pldG8KICAgIGNhdGVnb3JpYVByb2pldG8/OiBzdHJpbmc7IC8vICJNYW51dGVuw6fDo28gTyZNIiB8ICJJbXBsYW50YcOnw6NvIgogICAgdGlwb1Byb2pldG8/OiBzdHJpbmc7ICAgICAgLy8gIkJUUyIsICJPYnJhIEJUUyIsIGV0Yy4KICB9OwoKICAvLyBCbG9jb3MgZGUgc2hhcmluZyAoY29yYcOnw6NvIGRvIG11bHRpLXNoYXJpbmcpCiAgYmxvY29zOiBCdWRnZXRTaGFyaW5nQmxvY2tbXTsKCiAgLy8gTWV0YWRhZG9zCiAgY29udHJhdGFudGU6IHN0cmluZzsKICBvYmpldG86IHN0cmluZzsKICB2aWdlbmNpYTogc3RyaW5nOwogIHByYXpvT3BleD86IG51bWJlcjsgICAgIC8vIE1lc2VzIChwYXJhIGPDoWxjdWxvIE9QRVggY29udHJhdG8pCiAgZm9ybmVjZWRvcjogc3RyaW5nOwogIG9iczogc3RyaW5nOwoKICAvLyBUb3RhaXMgY29tcHV0YWRvcyAoY2FjaGUgcGFyYSBsaXN0YWdlbnMpCiAgdG90YWxDYXBleDogbnVtYmVyOwogIHRvdGFsT3BleDogbnVtYmVyOwogIHRvdGFsR2VyYWw6IG51bWJlcjsKCiAgLy8gQ29udHJvbGUKICBwcm9qZXRvSWQ/OiBzdHJpbmc7ICAgICAvLyBTZSB2aXJvdSBvYnJhCn0KCmV4cG9ydCBpbnRlcmZhY2UgQnVkZ2V0TGluZUl0ZW1GaW5hbmNpYWxzIHsKICB1bml0QmFzZTogbnVtYmVyOwogIGRpc2NvdW50UGN0OiBudW1iZXI7CiAgZGlzY291bnRVbml0OiBudW1iZXI7CiAgdW5pdE5ldDogbnVtYmVyOwogIHRvdGFsQmFzZTogbnVtYmVyOwogIHRvdGFsRGlzY291bnQ6IG51bWJlcjsKICB0b3RhbE5ldDogbnVtYmVyOwp9CgovLyDilIDilIAgSGVscGVycyBkZSBjw6FsY3VsbyDilIDilIAKZXhwb3J0IGZ1bmN0aW9uIGNhbGNJdGVtVG90YWwoaXRlbTogQnVkZ2V0TGluZUl0ZW0pOiBudW1iZXIgewogIHJldHVybiBjYWxjSXRlbVVuaXROZXQoaXRlbSkgKiBpdGVtLnF0ZGU7Cn0KCmNvbnN0IGNsYW1wID0gKHY6IG51bWJlciwgbWluOiBudW1iZXIsIG1heDogbnVtYmVyKSA9PiBNYXRoLm1pbihtYXgsIE1hdGgubWF4KG1pbiwgdikpOwpleHBvcnQgY29uc3Qgcm91bmRDdXJyZW5jeSA9ICh2OiBudW1iZXIpID0+IE1hdGgucm91bmQoKHYgKyBOdW1iZXIuRVBTSUxPTikgKiAxMDApIC8gMTAwOwoKZXhwb3J0IGZ1bmN0aW9uIGdldEl0ZW1CYXNlKGl0ZW06IEJ1ZGdldExpbmVJdGVtKTogbnVtYmVyIHsKICByZXR1cm4gTnVtYmVyKGl0ZW0udmxVbml0YXJpbykgfHwgMDsKfQoKZXhwb3J0IGZ1bmN0aW9uIGdldEl0ZW1EaXNjb3VudFBjdChpdGVtOiBCdWRnZXRMaW5lSXRlbSk6IG51bWJlciB7CiAgaWYgKGl0ZW0uZGVzY29udG9QY3QgIT0gbnVsbCAmJiAhTnVtYmVyLmlzTmFOKGl0ZW0uZGVzY29udG9QY3QpKSByZXR1cm4gY2xhbXAoaXRlbS5kZXNjb250b1BjdCwgMCwgMTAwKTsKICBpZiAoaXRlbS5kZXNjb250byAhPSBudWxsICYmICFOdW1iZXIuaXNOYU4oaXRlbS5kZXNjb250bykpIHJldHVybiBjbGFtcChpdGVtLmRlc2NvbnRvLCAwLCAxMDApOwogIGNvbnN0IGJhc2UgPSBnZXRJdGVtQmFzZShpdGVtKTsKICBpZiAoaXRlbS5kZXNjb250b1ZhbG9yICE9IG51bGwgJiYgIU51bWJlci5pc05hTihpdGVtLmRlc2NvbnRvVmFsb3IpICYmIGJhc2UgPiAwKSB7CiAgICByZXR1cm4gY2xhbXAoKGl0ZW0uZGVzY29udG9WYWxvciAvIGJhc2UpICogMTAwLCAwLCAxMDApOwogIH0KICByZXR1cm4gMDsKfQoKZXhwb3J0IGZ1bmN0aW9uIGdldEl0ZW1EaXNjb3VudFZhbG9yKGl0ZW06IEJ1ZGdldExpbmVJdGVtKTogbnVtYmVyIHsKICBjb25zdCBiYXNlID0gZ2V0SXRlbUJhc2UoaXRlbSk7CiAgaWYgKGl0ZW0uZGVzY29udG9WYWxvciAhPSBudWxsICYmICFOdW1iZXIuaXNOYU4oaXRlbS5kZXNjb250b1ZhbG9yKSkgcmV0dXJuIGNsYW1wKGl0ZW0uZGVzY29udG9WYWxvciwgMCwgYmFzZSk7CiAgY29uc3QgcGN0ID0gZ2V0SXRlbURpc2NvdW50UGN0KGl0ZW0pOwogIHJldHVybiBjbGFtcChiYXNlICogKHBjdCAvIDEwMCksIDAsIGJhc2UpOwp9CgpleHBvcnQgZnVuY3Rpb24gY2FsY0l0ZW1Vbml0TmV0KGl0ZW06IEJ1ZGdldExpbmVJdGVtKTogbnVtYmVyIHsKICBjb25zdCBiYXNlID0gZ2V0SXRlbUJhc2UoaXRlbSk7CiAgY29uc3QgZGVzYyA9IGdldEl0ZW1EaXNjb3VudFZhbG9yKGl0ZW0pOwogIHJldHVybiBNYXRoLm1heCgwLCBiYXNlIC0gZGVzYyk7Cn0KCmV4cG9ydCBmdW5jdGlvbiBjYWxjSXRlbUZpbmFuY2lhbHMoaXRlbTogQnVkZ2V0TGluZUl0ZW0pOiBCdWRnZXRMaW5lSXRlbUZpbmFuY2lhbHMgewogIGNvbnN0IHF0ZGUgPSBOdW1iZXIoaXRlbS5xdGRlKSB8fCAwOwogIGNvbnN0IHVuaXRCYXNlID0gcm91bmRDdXJyZW5jeShnZXRJdGVtQmFzZShpdGVtKSk7CiAgY29uc3QgZGlzY291bnRQY3QgPSByb3VuZEN1cnJlbmN5KGdldEl0ZW1EaXNjb3VudFBjdChpdGVtKSk7CiAgY29uc3QgZGlzY291bnRVbml0ID0gcm91bmRDdXJyZW5jeShnZXRJdGVtRGlzY291bnRWYWxvcihpdGVtKSk7CiAgY29uc3QgdW5pdE5ldCA9IHJvdW5kQ3VycmVuY3koY2FsY0l0ZW1Vbml0TmV0KGl0ZW0pKTsKICBjb25zdCB0b3RhbEJhc2UgPSByb3VuZEN1cnJlbmN5KHVuaXRCYXNlICogcXRkZSk7CiAgY29uc3QgdG90YWxEaXNjb3VudCA9IHJvdW5kQ3VycmVuY3koZGlzY291bnRVbml0ICogcXRkZSk7CiAgY29uc3QgdG90YWxOZXQgPSByb3VuZEN1cnJlbmN5KHVuaXROZXQgKiBxdGRlKTsKCiAgcmV0dXJuIHsKICAgIHVuaXRCYXNlLAogICAgZGlzY291bnRQY3QsCiAgICBkaXNjb3VudFVuaXQsCiAgICB1bml0TmV0LAogICAgdG90YWxCYXNlLAogICAgdG90YWxEaXNjb3VudCwKICAgIHRvdGFsTmV0LAogIH07Cn0KCmV4cG9ydCBmdW5jdGlvbiBjYWxjQmxvY29Ub3RhbChibG9jbzogQnVkZ2V0U2hhcmluZ0Jsb2NrKTogbnVtYmVyIHsKICByZXR1cm4gYmxvY28uaXRlbnMucmVkdWNlKChzdW0sIGl0ZW0pID0+IHN1bSArIGNhbGNJdGVtVG90YWwoaXRlbSksIDApOwp9CgpleHBvcnQgZnVuY3Rpb24gY2FsY0Jsb2NvQ3VzdG9EaXJldG8oYmxvY286IEJ1ZGdldFNoYXJpbmdCbG9jayk6IG51bWJlciB7CiAgcmV0dXJuIGJsb2NvLml0ZW5zLnJlZHVjZSgoc3VtLCBpdGVtKSA9PiBzdW0gKyBjYWxjSXRlbVRvdGFsKGl0ZW0pLCAwKTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGNhbGNCdWRnZXRUb3RhbHMoYnVkZ2V0OiBCdWRnZXQpOiB7IHRvdGFsQ2FwZXg6IG51bWJlcjsgdG90YWxPcGV4OiBudW1iZXI7IHRvdGFsR2VyYWw6IG51bWJlciB9IHsKICBsZXQgdG90YWxDYXBleCA9IDAsIHRvdGFsT3BleCA9IDA7CiAgYnVkZ2V0LmJsb2Nvcy5mb3JFYWNoKGIgPT4gewogICAgY29uc3QgdCA9IGNhbGNCbG9jb1RvdGFsKGIpOwogICAgaWYgKGIudGlwbyA9PT0gImltcGxhbnRhY2FvIikgdG90YWxDYXBleCArPSB0OwogICAgZWxzZSB0b3RhbE9wZXggKz0gdDsKICB9KTsKICByZXR1cm4geyB0b3RhbENhcGV4LCB0b3RhbE9wZXgsIHRvdGFsR2VyYWw6IHRvdGFsQ2FwZXggKyB0b3RhbE9wZXggfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIG5ld0lkKCk6IHN0cmluZyB7CiAgcmV0dXJuIERhdGUubm93KCkudG9TdHJpbmcoMzYpICsgTWF0aC5yYW5kb20oKS50b1N0cmluZygzNikuc2xpY2UoMiwgNik7Cn0K"}
+// ══════════════════════════════════════════════════════════
+// TIPOS DO SISTEMA DE ORÇAMENTOS — MULTI-SHARING + LPU
+// ══════════════════════════════════════════════════════════
+
+// ── Sharing Client (Empresa de Sharing / Cliente de Infra) ──
+export interface SharingClient {
+  id: string;
+  nome: string;           // "Highline do Brasil"
+  sigla: string;          // "HL"
+  cnpj: string;
+  tipo: "Sharing" | "Operadora";
+  contato: string;
+  email: string;
+  telefone: string;
+  bdiPadrao: number;      // BDI default do contrato
+  lucroPadrao: number;    // Margem default
+  descontoPadrao: number; // Desconto default
+  cor: string;            // Cor para UI
+  ativo: boolean;
+}
+
+// ── Item de Template LPU ──
+export interface LpuTemplateItem {
+  cod: string;            // "MS001"
+  resumo: string;         // Categoria: "MASTRO", "FUNDAÇÃO"
+  solucao: string;        // Descrição do escopo
+  config?: string;        // Configuração/variante
+  unid: string;           // "VB", "M", "M²", "PÇ", "H/H"
+  tipoCusto: "MO" | "Material" | "Serviço" | "Verba";
+  vlReferencia: number;   // Preço referência
+  obrigatorio: boolean;   // Item obrigatório no orçamento?
+}
+
+// ── Template de LPU (1 template = 1 Sharing × 1 Tipo) ──
+export interface LpuTemplate {
+  id: string;
+  sharingId: string;      // Link para SharingClient
+  tipo: "implantacao" | "manutencao";
+  nome: string;           // "LPU Highline — Implantação 2026"
+  versao: string;         // "V1", "V2"
+  itens: LpuTemplateItem[];
+  ativo: boolean;
+  criadoEm: string;
+}
+
+// ── Item de linha dentro de um bloco de orçamento ──
+export interface BudgetLineItem {
+  id: string;
+  cod: string;
+  descricao: string;
+  config?: string;
+  unid: string;
+  tipoCusto: "MO" | "Material" | "Serviço" | "Verba";
+  categoria: string;      // "MASTRO", "FUNDAÇÃO"
+  qtde: number;
+  vlUnitario: number;     // Valor base (antes do desconto)
+  vlReferencia: number;   // Original do template (read-only)
+  descontoPct?: number;   // Desconto percentual por item
+  descontoValor?: number; // Desconto em R$ por item
+  desconto?: number;      // Legacy: desconto percentual (compatibilidade)
+}
+
+// ── Bloco de Sharing dentro de um orçamento ──
+export interface BudgetSharingBlock {
+  id: string;
+  sharingId: string;
+  sharingNome: string;    // Desnormalizado para display
+  sharingCor: string;
+  tipo: "implantacao" | "manutencao";
+  templateId?: string;    // Qual template foi carregado
+  itens: BudgetLineItem[];
+  bdi: number;
+  lucro: number;
+  discount: number;
+  obs: string;
+}
+
+// ── Orçamento completo (documento principal) ──
+export interface Budget {
+  id: string;             // "ORC-2026-0001"
+  versao: number;
+  data: string;
+  status: "Rascunho" | "Validado" | "Enviado" | "Aprovado" | "Rejeitado";
+
+  // Site
+  siteInfo: {
+    siteId: string;         // ID Interno/Busca
+    sharingNome: string;    // Empresa de Sharing (Infra)
+    siteIdSharing: string;  // ID no cliente de infra
+    siteIdOperadora: string; // ID na operadora final
+    operadora: string;
+    uf: string;
+    municipio: string;
+    endereco: string;
+    latitude?: string;
+    longitude?: string;
+
+    // Hierarquia de Projeto
+    categoriaProjeto?: string; // "Manutenção O&M" | "Implantação"
+    tipoProjeto?: string;      // "BTS", "Obra BTS", etc.
+  };
+
+  // Blocos de sharing (coração do multi-sharing)
+  blocos: BudgetSharingBlock[];
+
+  // Metadados
+  contratante: string;
+  objeto: string;
+  vigencia: string;
+  prazoOpex?: number;     // Meses (para cálculo OPEX contrato)
+  fornecedor: string;
+  obs: string;
+
+  // Totais computados (cache para listagens)
+  totalCapex: number;
+  totalOpex: number;
+  totalGeral: number;
+
+  // Controle
+  projetoId?: string;     // Se virou obra
+}
+
+export interface BudgetLineItemFinancials {
+  unitBase: number;
+  discountPct: number;
+  discountUnit: number;
+  unitNet: number;
+  totalBase: number;
+  totalDiscount: number;
+  totalNet: number;
+}
+
+// ── Helpers de cálculo ──
+export function calcItemTotal(item: BudgetLineItem): number {
+  return calcItemUnitNet(item) * item.qtde;
+}
+
+const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
+export const roundCurrency = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
+
+export function getItemBase(item: BudgetLineItem): number {
+  return Number(item.vlUnitario) || 0;
+}
+
+export function getItemDiscountPct(item: BudgetLineItem): number {
+  if (item.descontoPct != null && !Number.isNaN(item.descontoPct)) return clamp(item.descontoPct, 0, 100);
+  if (item.desconto != null && !Number.isNaN(item.desconto)) return clamp(item.desconto, 0, 100);
+  const base = getItemBase(item);
+  if (item.descontoValor != null && !Number.isNaN(item.descontoValor) && base > 0) {
+    return clamp((item.descontoValor / base) * 100, 0, 100);
+  }
+  return 0;
+}
+
+export function getItemDiscountValor(item: BudgetLineItem): number {
+  const base = getItemBase(item);
+  if (item.descontoValor != null && !Number.isNaN(item.descontoValor)) return clamp(item.descontoValor, 0, base);
+  const pct = getItemDiscountPct(item);
+  return clamp(base * (pct / 100), 0, base);
+}
+
+export function calcItemUnitNet(item: BudgetLineItem): number {
+  const base = getItemBase(item);
+  const desc = getItemDiscountValor(item);
+  return Math.max(0, base - desc);
+}
+
+export function calcItemFinancials(item: BudgetLineItem): BudgetLineItemFinancials {
+  const qtde = Number(item.qtde) || 0;
+  const unitBase = roundCurrency(getItemBase(item));
+  const discountPct = roundCurrency(getItemDiscountPct(item));
+  const discountUnit = roundCurrency(getItemDiscountValor(item));
+  const unitNet = roundCurrency(calcItemUnitNet(item));
+  const totalBase = roundCurrency(unitBase * qtde);
+  const totalDiscount = roundCurrency(discountUnit * qtde);
+  const totalNet = roundCurrency(unitNet * qtde);
+
+  return {
+    unitBase,
+    discountPct,
+    discountUnit,
+    unitNet,
+    totalBase,
+    totalDiscount,
+    totalNet,
+  };
+}
+
+export function calcBlocoTotal(bloco: BudgetSharingBlock): number {
+  return bloco.itens.reduce((sum, item) => sum + calcItemTotal(item), 0);
+}
+
+export function calcBlocoCustoDireto(bloco: BudgetSharingBlock): number {
+  return bloco.itens.reduce((sum, item) => sum + calcItemTotal(item), 0);
+}
+
+export function calcBudgetTotals(budget: Budget): { totalCapex: number; totalOpex: number; totalGeral: number } {
+  let totalCapex = 0, totalOpex = 0;
+  budget.blocos.forEach(b => {
+    const t = calcBlocoTotal(b);
+    if (b.tipo === "implantacao") totalCapex += t;
+    else totalOpex += t;
+  });
+  return { totalCapex, totalOpex, totalGeral: totalCapex + totalOpex };
+}
+
+export function newId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}

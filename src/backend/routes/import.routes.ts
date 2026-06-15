@@ -1,1 +1,23 @@
-{"data":"aW1wb3J0IHsgUm91dGVyIH0gZnJvbSAnZXhwcmVzcyc7DQppbXBvcnQgbXVsdGVyIGZyb20gJ211bHRlcic7DQppbXBvcnQgeyBJbXBvcnRDb250cm9sbGVyIH0gZnJvbSAnLi4vY29udHJvbGxlcnMvaW1wb3J0LmNvbnRyb2xsZXInOw0KaW1wb3J0IHsgUHJpY2VCb29rQ29udHJvbGxlciB9IGZyb20gJy4uL2NvbnRyb2xsZXJzL3ByaWNlYm9vay5jb250cm9sbGVyJzsNCg0KY29uc3QgdXBsb2FkID0gbXVsdGVyKHsgc3RvcmFnZTogbXVsdGVyLm1lbW9yeVN0b3JhZ2UoKSwgbGltaXRzOiB7IGZpbGVTaXplOiAxMCAqIDEwMjQgKiAxMDI0IH0gfSk7IC8vIDEwTUIgbGltaXQNCg0KY29uc3Qgcm91dGVyID0gUm91dGVyKCk7DQoNCi8vIFVwbG9hZCBDU1YvWExTWCDihpIgcGFyc2Ug4oaSIHByZXZpZXcNCnJvdXRlci5wb3N0KCcvdXBsb2FkJywgdXBsb2FkLnNpbmdsZSgnZmlsZScpLCBJbXBvcnRDb250cm9sbGVyLnVwbG9hZCk7DQoNCi8vIEdldCBpbXBvcnQgYmF0Y2ggc3RhdHVzL3ByZXZpZXcNCnJvdXRlci5nZXQoJy9iYXRjaGVzLzppZCcsIEltcG9ydENvbnRyb2xsZXIuZ2V0QmF0Y2gpOw0KDQovLyBDb25maXJtIGltcG9ydCDihpIgd3JpdGUgUHJpY2VCb29rSXRlbXMgdG8gREINCnJvdXRlci5wb3N0KCcvYmF0Y2hlcy86aWQvY29uZmlybScsIEltcG9ydENvbnRyb2xsZXIuY29uZmlybUJhdGNoKTsNCg0KLy8gUHJpY2VCb29rSXRlbSBpbmRpdmlkdWFsIHJvdXRlcw0Kcm91dGVyLnB1dCgnL3ByaWNlYm9vay1pdGVtcy86aWQnLCBQcmljZUJvb2tDb250cm9sbGVyLnVwZGF0ZUl0ZW0pOw0Kcm91dGVyLmRlbGV0ZSgnL3ByaWNlYm9vay1pdGVtcy86aWQnLCBQcmljZUJvb2tDb250cm9sbGVyLmRlbGV0ZUl0ZW0pOw0KDQpleHBvcnQgZGVmYXVsdCByb3V0ZXI7DQo="}
+import { Router } from 'express';
+import multer from 'multer';
+import { ImportController } from '../controllers/import.controller';
+import { PriceBookController } from '../controllers/pricebook.controller';
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } }); // 10MB limit
+
+const router = Router();
+
+// Upload CSV/XLSX → parse → preview
+router.post('/upload', upload.single('file'), ImportController.upload);
+
+// Get import batch status/preview
+router.get('/batches/:id', ImportController.getBatch);
+
+// Confirm import → write PriceBookItems to DB
+router.post('/batches/:id/confirm', ImportController.confirmBatch);
+
+// PriceBookItem individual routes
+router.put('/pricebook-items/:id', PriceBookController.updateItem);
+router.delete('/pricebook-items/:id', PriceBookController.deleteItem);
+
+export default router;

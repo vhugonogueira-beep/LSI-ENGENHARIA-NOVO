@@ -1,1 +1,90 @@
-{"data":"aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsNCmltcG9ydCB7IENhdGFsb2dBbmFseXRpY3NNb2RhbCB9IGZyb20gJy4uL2NvbXBvbmVudHMvQ2F0YWxvZ0FuYWx5dGljc01vZGFsJzsNCmltcG9ydCB7IEJhckNoYXJ0MyB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7DQoNCmV4cG9ydCBmdW5jdGlvbiBDYXRhbG9nKCkgew0KICAgIGNvbnN0IFtpdGVtcywgc2V0SXRlbXNdID0gdXNlU3RhdGU8YW55W10+KFtdKTsNCiAgICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsNCg0KICAgIC8vIE1vZGFsIFN0YXRlDQogICAgY29uc3QgW21vZGFsT3Blbiwgc2V0TW9kYWxPcGVuXSA9IHVzZVN0YXRlKGZhbHNlKTsNCiAgICBjb25zdCBbc2VsZWN0ZWRJdGVtS2V5LCBzZXRTZWxlY3RlZEl0ZW1LZXldID0gdXNlU3RhdGU8c3RyaW5nIHwgbnVsbD4obnVsbCk7DQogICAgY29uc3QgW3NlbGVjdGVkSXRlbVRpdGxlLCBzZXRTZWxlY3RlZEl0ZW1UaXRsZV0gPSB1c2VTdGF0ZTxzdHJpbmc+KCcnKTsNCg0KICAgIHVzZUVmZmVjdCgoKSA9PiB7DQogICAgICAgIGZldGNoKCdodHRwOi8vbG9jYWxob3N0OjMwMDEvYXBpL2NhdGFsb2ctc2VydmljZXMnKQ0KICAgICAgICAgICAgLnRoZW4ocmVzID0+IHJlcy5qc29uKCkpDQogICAgICAgICAgICAudGhlbihkYXRhID0+IHsNCiAgICAgICAgICAgICAgICBzZXRJdGVtcyhkYXRhKTsNCiAgICAgICAgICAgICAgICBzZXRMb2FkaW5nKGZhbHNlKTsNCiAgICAgICAgICAgIH0pDQogICAgICAgICAgICAuY2F0Y2goZSA9PiB7DQogICAgICAgICAgICAgICAgY29uc29sZS5lcnJvcihlKTsNCiAgICAgICAgICAgICAgICBzZXRMb2FkaW5nKGZhbHNlKTsNCiAgICAgICAgICAgIH0pOw0KICAgIH0sIFtdKTsNCg0KICAgIGNvbnN0IG9wZW5BbmFseXRpY3MgPSAoaXRlbTogYW55KSA9PiB7DQogICAgICAgIHNldFNlbGVjdGVkSXRlbUtleShpdGVtLmlkKTsNCiAgICAgICAgc2V0U2VsZWN0ZWRJdGVtVGl0bGUoaXRlbS50aXR1bG8pOw0KICAgICAgICBzZXRNb2RhbE9wZW4odHJ1ZSk7DQogICAgfTsNCg0KICAgIHJldHVybiAoDQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJwLTgiPg0KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgganVzdGlmeS1iZXR3ZWVuIGl0ZW1zLWNlbnRlciBtYi02Ij4NCiAgICAgICAgICAgICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LTN4bCBmb250LWJvbGQiPkNhdMOhbG9nbyBkZSBTZXJ2acOnb3M8L2gyPg0KICAgICAgICAgICAgICAgIDxidXR0b24gY2xhc3NOYW1lPSJiZy1wcmltYXJ5IHRleHQtcHJpbWFyeS1mb3JlZ3JvdW5kIHB4LTQgcHktMiByb3VuZGVkLW1kIGhvdmVyOmJnLXByaW1hcnkvOTAiPk5vdm8gSXRlbTwvYnV0dG9uPg0KICAgICAgICAgICAgPC9kaXY+DQoNCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1jYXJkIHJvdW5kZWQtbGcgc2hhZG93LXNtIGJvcmRlciBwLTYiPg0KICAgICAgICAgICAgICAgIHtsb2FkaW5nID8gKA0KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icC00IHRleHQtY2VudGVyIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+Q2FycmVnYW5kbyBjYXTDoWxvZ28uLi48L2Rpdj4NCiAgICAgICAgICAgICAgICApIDogKA0KICAgICAgICAgICAgICAgICAgICA8dGFibGUgY2xhc3NOYW1lPSJ3LWZ1bGwgdGV4dC1sZWZ0Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgIDx0aGVhZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dHIgY2xhc3NOYW1lPSJib3JkZXItYiI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InBiLTMgZm9udC1tZWRpdW0iPkPDs2RpZ288L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJwYi0zIGZvbnQtbWVkaXVtIj5Uw610dWxvPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoIGNsYXNzTmFtZT0icGItMyBmb250LW1lZGl1bSI+Q2F0ZWdvcmlhPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoIGNsYXNzTmFtZT0icGItMyBmb250LW1lZGl1bSB0ZXh0LXJpZ2h0Ij5Bw6fDtWVzPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RyPg0KICAgICAgICAgICAgICAgICAgICAgICAgPC90aGVhZD4NCiAgICAgICAgICAgICAgICAgICAgICAgIDx0Ym9keSBjbGFzc05hbWU9ImRpdmlkZS15Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7aXRlbXMubWFwKGl0ZW0gPT4gKA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dHIga2V5PXtpdGVtLmlkfSBjbGFzc05hbWU9ImhvdmVyOmJnLW11dGVkLzMwIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB5LTQgZm9udC1tZWRpdW0iPntpdGVtLmNvZGlnb308L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHktNCI+e2l0ZW0udGl0dWxvfTwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS00Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImJnLW11dGVkIHB4LTIgcHktMSByb3VuZGVkLW1kIHRleHQteHMgZm9udC1zZW1pYm9sZCI+e2l0ZW0uY2F0ZWdvcmlhfTwvc3Bhbj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS00IHRleHQtcmlnaHQgZmxleCBqdXN0aWZ5LWVuZCBnYXAtNCI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBvcGVuQW5hbHl0aWNzKGl0ZW0pfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InRleHQtYmx1ZS02MDAgaG92ZXI6dGV4dC1ibHVlLTgwMCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMSB0ZXh0LXNtIGZvbnQtbWVkaXVtIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgID4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPEJhckNoYXJ0MyBzaXplPXsxNn0gLz4gRGlzcGVyc8OjbyBlIFZhbG9yZXMNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uIGNsYXNzTmFtZT0idGV4dC1wcmltYXJ5IGhvdmVyOnVuZGVybGluZSBmb250LW1lZGl1bSB0ZXh0LXNtIj5FZGl0YXI8L2J1dHRvbj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdHI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgKSl9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAge2l0ZW1zLmxlbmd0aCA9PT0gMCAmJiAoDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZCBjb2xTcGFuPXs0fSBjbGFzc05hbWU9InB5LTggdGV4dC1jZW50ZXIgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj5OZW5odW0gaXRlbSBubyBjYXTDoWxvZ28uPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICApfQ0KICAgICAgICAgICAgICAgICAgICAgICAgPC90Ym9keT4NCiAgICAgICAgICAgICAgICAgICAgPC90YWJsZT4NCiAgICAgICAgICAgICAgICApfQ0KICAgICAgICAgICAgPC9kaXY+DQoNCiAgICAgICAgICAgIDxDYXRhbG9nQW5hbHl0aWNzTW9kYWwNCiAgICAgICAgICAgICAgICBpc09wZW49e21vZGFsT3Blbn0NCiAgICAgICAgICAgICAgICBvbkNsb3NlPXsoKSA9PiBzZXRNb2RhbE9wZW4oZmFsc2UpfQ0KICAgICAgICAgICAgICAgIGl0ZW1LZXk9e3NlbGVjdGVkSXRlbUtleX0NCiAgICAgICAgICAgICAgICBpdGVtVGl0bGU9e3NlbGVjdGVkSXRlbVRpdGxlfQ0KICAgICAgICAgICAgLz4NCiAgICAgICAgPC9kaXY+DQogICAgKTsNCn0NCg=="}
+import { useState, useEffect } from 'react';
+import { CatalogAnalyticsModal } from '../components/CatalogAnalyticsModal';
+import { BarChart3 } from 'lucide-react';
+
+export function Catalog() {
+    const [items, setItems] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Modal State
+    const [modalOpen, setModalOpen] = useState(false);
+    const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
+    const [selectedItemTitle, setSelectedItemTitle] = useState<string>('');
+
+    useEffect(() => {
+        fetch('http://localhost:3001/api/catalog-services')
+            .then(res => res.json())
+            .then(data => {
+                setItems(data);
+                setLoading(false);
+            })
+            .catch(e => {
+                console.error(e);
+                setLoading(false);
+            });
+    }, []);
+
+    const openAnalytics = (item: any) => {
+        setSelectedItemKey(item.id);
+        setSelectedItemTitle(item.titulo);
+        setModalOpen(true);
+    };
+
+    return (
+        <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">Catálogo de Serviços</h2>
+                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">Novo Item</button>
+            </div>
+
+            <div className="bg-card rounded-lg shadow-sm border p-6">
+                {loading ? (
+                    <div className="p-4 text-center text-muted-foreground">Carregando catálogo...</div>
+                ) : (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b">
+                                <th className="pb-3 font-medium">Código</th>
+                                <th className="pb-3 font-medium">Título</th>
+                                <th className="pb-3 font-medium">Categoria</th>
+                                <th className="pb-3 font-medium text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                            {items.map(item => (
+                                <tr key={item.id} className="hover:bg-muted/30">
+                                    <td className="py-4 font-medium">{item.codigo}</td>
+                                    <td className="py-4">{item.titulo}</td>
+                                    <td className="py-4">
+                                        <span className="bg-muted px-2 py-1 rounded-md text-xs font-semibold">{item.categoria}</span>
+                                    </td>
+                                    <td className="py-4 text-right flex justify-end gap-4">
+                                        <button
+                                            onClick={() => openAnalytics(item)}
+                                            className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm font-medium"
+                                        >
+                                            <BarChart3 size={16} /> Dispersão e Valores
+                                        </button>
+                                        <button className="text-primary hover:underline font-medium text-sm">Editar</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {items.length === 0 && (
+                                <tr>
+                                    <td colSpan={4} className="py-8 text-center text-muted-foreground">Nenhum item no catálogo.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
+            <CatalogAnalyticsModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                itemKey={selectedItemKey}
+                itemTitle={selectedItemTitle}
+            />
+        </div>
+    );
+}

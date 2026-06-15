@@ -1,1 +1,154 @@
-{"data":"aW1wb3J0IHsgUHJpc21hQ2xpZW50LCBCdWRnZXRJdGVtLCBCdWRnZXQgfSBmcm9tICdAcHJpc21hL2NsaWVudCc7DQppbXBvcnQgeyBwcmlzbWEgfSBmcm9tICcuLi9zZXJ2ZXInOw0KDQpleHBvcnQgaW50ZXJmYWNlIEJ1ZGdldENhbGN1bGF0aW9uUmVzdWx0IHsNCiAgICB0b3RhbEdlcmFsOiBudW1iZXI7DQogICAgc3VidG90YWxzUG9yQmxvY286IFJlY29yZDxzdHJpbmcsIG51bWJlcj47DQogICAgaXRlbnNEZWxpbmVhZG9zOiBCdWRnZXRJdGVtW107DQp9DQoNCmV4cG9ydCBjbGFzcyBCdWRnZXRTZXJ2aWNlIHsNCiAgICAvKioNCiAgICAgKiBSZWNhbGN1bGEgb3MgdG90YWlzIGRlIHVtIG9yw6dhbWVudG8gY29tIGJhc2UgZW0gc2V1cyBpdGVucyBhdGl2b3MuDQogICAgICovDQogICAgc3RhdGljIGNhbGN1bGFyT3JjYW1lbnRvKGl0ZW5zOiBCdWRnZXRJdGVtW10pOiBCdWRnZXRDYWxjdWxhdGlvblJlc3VsdCB7DQogICAgICAgIGxldCB0b3RhbEdlcmFsID0gMDsNCiAgICAgICAgY29uc3Qgc3VidG90YWxzUG9yQmxvY286IFJlY29yZDxzdHJpbmcsIG51bWJlcj4gPSB7fTsNCg0KICAgICAgICBjb25zdCBpdGVuc0RlbGluZWFkb3MgPSBpdGVucy5tYXAoaXRlbSA9PiB7DQogICAgICAgICAgICAvLyBSZWdyYXM6IHRvdGFsX2xpbmhhID0gcXVhbnRpZGFkZSAqIHZhbG9yX3VuaXRhcmlvICogKDEgKyBiZGlfcGVyY2VudC8xMDApDQogICAgICAgICAgICAvLyBBcnJlZG9uZGFtZW50byBwYXJhIDIgY2FzYXMgZGVjaW1haXMNCiAgICAgICAgICAgIGxldCB0b3RhbExpbmhhID0gMDsNCg0KICAgICAgICAgICAgaWYgKGl0ZW0uYXRpdm8gJiYgaXRlbS5xdWFudGlkYWRlID49IDAgJiYgaXRlbS52YWxvcl91bml0YXJpbyA+PSAwKSB7DQogICAgICAgICAgICAgICAgLy8gQXNzdW1lIGlzSGVhZGVyIGlmIGl0IGhhcyBubyBjaGlsZHJlbiBsb2dpYz8gTm8sIGp1c3Qga2VlcCBpdCBzaW1wbGU6IGlmIHVuaXRhcmlvID4gMCwgaXQgY291bnRzLg0KICAgICAgICAgICAgICAgIGNvbnN0IGJkaU11bHRpcGxpZXIgPSAxICsgKE1hdGgubWF4KDAsIGl0ZW0uYmRpX3BlcmNlbnQpIC8gMTAwKTsNCiAgICAgICAgICAgICAgICB0b3RhbExpbmhhID0gaXRlbS5xdWFudGlkYWRlICogaXRlbS52YWxvcl91bml0YXJpbyAqIGJkaU11bHRpcGxpZXI7DQogICAgICAgICAgICAgICAgdG90YWxMaW5oYSA9IE1hdGgucm91bmQodG90YWxMaW5oYSAqIDEwMCkgLyAxMDA7DQogICAgICAgICAgICB9DQoNCiAgICAgICAgICAgIC8vIEF0dWFsaXphIG8gc3VidG90YWwgZG8gYmxvY28NCiAgICAgICAgICAgIGlmIChpdGVtLmF0aXZvKSB7DQogICAgICAgICAgICAgICAgaWYgKCFzdWJ0b3RhbHNQb3JCbG9jb1tpdGVtLmJsb2NvXSkgew0KICAgICAgICAgICAgICAgICAgICBzdWJ0b3RhbHNQb3JCbG9jb1tpdGVtLmJsb2NvXSA9IDA7DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIHN1YnRvdGFsc1BvckJsb2NvW2l0ZW0uYmxvY29dICs9IHRvdGFsTGluaGE7DQogICAgICAgICAgICAgICAgLy8gZ2FyYW50aW5kbyByb3VuZCBubyBzdWJ0b3RhbA0KICAgICAgICAgICAgICAgIHN1YnRvdGFsc1BvckJsb2NvW2l0ZW0uYmxvY29dID0gTWF0aC5yb3VuZChzdWJ0b3RhbHNQb3JCbG9jb1tpdGVtLmJsb2NvXSAqIDEwMCkgLyAxMDA7DQogICAgICAgICAgICB9DQoNCiAgICAgICAgICAgIHJldHVybiB7DQogICAgICAgICAgICAgICAgLi4uaXRlbSwNCiAgICAgICAgICAgICAgICB0b3RhbF9saW5oYTogdG90YWxMaW5oYQ0KICAgICAgICAgICAgfTsNCiAgICAgICAgfSk7DQoNCiAgICAgICAgLy8gQ2FsY3VsYSB0b3RhbCBnZXJhbA0KICAgICAgICB0b3RhbEdlcmFsID0gT2JqZWN0LnZhbHVlcyhzdWJ0b3RhbHNQb3JCbG9jbykucmVkdWNlKChhY2MsIGN1cnIpID0+IGFjYyArIGN1cnIsIDApOw0KICAgICAgICB0b3RhbEdlcmFsID0gTWF0aC5yb3VuZCh0b3RhbEdlcmFsICogMTAwKSAvIDEwMDsNCg0KICAgICAgICByZXR1cm4gew0KICAgICAgICAgICAgdG90YWxHZXJhbCwNCiAgICAgICAgICAgIHN1YnRvdGFsc1BvckJsb2NvLA0KICAgICAgICAgICAgaXRlbnNEZWxpbmVhZG9zDQogICAgICAgIH07DQogICAgfQ0KDQogICAgLy8gRGVmaW5lIENSVUQgb3BlcmF0aW9ucyB1c2luZyBQcmlzbWENCiAgICBzdGF0aWMgYXN5bmMgZ2V0QnVkZ2V0c0J5VGVuYW50KHRlbmFudElkOiBzdHJpbmcpIHsNCiAgICAgICAgcmV0dXJuIHByaXNtYS5idWRnZXQuZmluZE1hbnkoew0KICAgICAgICAgICAgd2hlcmU6IHsgdGVuYW50X2lkOiB0ZW5hbnRJZCB9LA0KICAgICAgICAgICAgaW5jbHVkZTogew0KICAgICAgICAgICAgICAgIGNvbnRyYXRhbnRlOiB0cnVlLA0KICAgICAgICAgICAgICAgIHNpdGU6IHRydWUsDQogICAgICAgICAgICB9LA0KICAgICAgICAgICAgb3JkZXJCeTogeyB1cGRhdGVkX2F0OiAnZGVzYycgfQ0KICAgICAgICB9KTsNCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgZ2V0QnVkZ2V0QnlJZChpZDogc3RyaW5nKSB7DQogICAgICAgIHJldHVybiBwcmlzbWEuYnVkZ2V0LmZpbmRVbmlxdWUoew0KICAgICAgICAgICAgd2hlcmU6IHsgaWQgfSwNCiAgICAgICAgICAgIGluY2x1ZGU6IHsNCiAgICAgICAgICAgICAgICBjb250cmF0YW50ZTogdHJ1ZSwNCiAgICAgICAgICAgICAgICBzaXRlOiB0cnVlLA0KICAgICAgICAgICAgICAgIGl0ZW1zOiB7DQogICAgICAgICAgICAgICAgICAgIG9yZGVyQnk6IHsgb3JkZW06ICdhc2MnIH0NCiAgICAgICAgICAgICAgICB9LA0KICAgICAgICAgICAgICAgIHZlcnNpb25zOiB0cnVlDQogICAgICAgICAgICB9DQogICAgICAgIH0pOw0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBjcmVhdGVCdWRnZXQoZGF0YTogYW55KSB7DQogICAgICAgIHJldHVybiBwcmlzbWEuYnVkZ2V0LmNyZWF0ZSh7DQogICAgICAgICAgICBkYXRhDQogICAgICAgIH0pOw0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyB1cGRhdGVCdWRnZXRIZWFkZXIoaWQ6IHN0cmluZywgZGF0YTogUGFydGlhbDxCdWRnZXQ+KSB7DQogICAgICAgIHJldHVybiBwcmlzbWEuYnVkZ2V0LnVwZGF0ZSh7DQogICAgICAgICAgICB3aGVyZTogeyBpZCB9LA0KICAgICAgICAgICAgZGF0YQ0KICAgICAgICB9KTsNCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgdXBkYXRlQnVkZ2V0SXRlbXMoYnVkZ2V0SWQ6IHN0cmluZywgdmVyc2FvQXR1YWw6IG51bWJlciwgaXRlbXM6IEJ1ZGdldEl0ZW1bXSkgew0KICAgICAgICAvLyAxLiBDYWxjdWxhdGUgdG90YWxzDQogICAgICAgIGNvbnN0IGNhbGMgPSB0aGlzLmNhbGN1bGFyT3JjYW1lbnRvKGl0ZW1zKTsNCg0KICAgICAgICAvLyAyLiBQZXJmb3JtIERCIHVwZGF0ZXMgaW4gdHJhbnNhY3Rpb24NCiAgICAgICAgY29uc3QgdXBkYXRlT3BlcmF0aW9ucyA9IGNhbGMuaXRlbnNEZWxpbmVhZG9zLm1hcChpdGVtID0+DQogICAgICAgICAgICBwcmlzbWEuYnVkZ2V0SXRlbS51cGRhdGUoew0KICAgICAgICAgICAgICAgIHdoZXJlOiB7IGlkOiBpdGVtLmlkIH0sDQogICAgICAgICAgICAgICAgZGF0YTogew0KICAgICAgICAgICAgICAgICAgICBxdWFudGlkYWRlOiBpdGVtLnF1YW50aWRhZGUsDQogICAgICAgICAgICAgICAgICAgIHZhbG9yX3VuaXRhcmlvOiBpdGVtLnZhbG9yX3VuaXRhcmlvLA0KICAgICAgICAgICAgICAgICAgICBiZGlfcGVyY2VudDogaXRlbS5iZGlfcGVyY2VudCwNCiAgICAgICAgICAgICAgICAgICAgdG90YWxfbGluaGE6IGl0ZW0udG90YWxfbGluaGEsDQogICAgICAgICAgICAgICAgICAgIGF0aXZvOiBpdGVtLmF0aXZvLA0KICAgICAgICAgICAgICAgICAgICB0aXR1bG86IGl0ZW0udGl0dWxvLA0KICAgICAgICAgICAgICAgICAgICBkZXNjcmljYW86IGl0ZW0uZGVzY3JpY2FvLA0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgIH0pDQogICAgICAgICk7DQoNCiAgICAgICAgYXdhaXQgcHJpc21hLiR0cmFuc2FjdGlvbih1cGRhdGVPcGVyYXRpb25zKTsNCg0KICAgICAgICAvLyBVcGRhdGUgYnVkZ2V0IHVwZGF0ZWRfYXQNCiAgICAgICAgYXdhaXQgcHJpc21hLmJ1ZGdldC51cGRhdGUoew0KICAgICAgICAgICAgd2hlcmU6IHsgaWQ6IGJ1ZGdldElkIH0sDQogICAgICAgICAgICBkYXRhOiB7IHVwZGF0ZWRfYXQ6IG5ldyBEYXRlKCkgfQ0KICAgICAgICB9KTsNCg0KICAgICAgICByZXR1cm4gdGhpcy5nZXRCdWRnZXRCeUlkKGJ1ZGdldElkKTsNCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgY3JlYXRlVmVyc2lvbihidWRnZXRJZDogc3RyaW5nLCB1c2VySWQ/OiBzdHJpbmcpIHsNCiAgICAgICAgY29uc3QgYnVkZ2V0ID0gYXdhaXQgdGhpcy5nZXRCdWRnZXRCeUlkKGJ1ZGdldElkKTsNCiAgICAgICAgaWYgKCFidWRnZXQpIHRocm93IG5ldyBFcnJvcigiQnVkZ2V0IG5vdCBmb3VuZCIpOw0KDQogICAgICAgIGNvbnN0IG5ld1ZlcnNpb25OdW0gPSBidWRnZXQudmVyc2FvX2F0dWFsICsgMTsNCiAgICAgICAgY29uc3QgY2FsYyA9IHRoaXMuY2FsY3VsYXJPcmNhbWVudG8oYnVkZ2V0Lml0ZW1zKTsNCg0KICAgICAgICAvLyBDcmVhdGUgYSBzbmFwc2hvdCBzdHJpbmcNCiAgICAgICAgY29uc3Qgc25hcHNob3RKc29uID0gSlNPTi5zdHJpbmdpZnkoYnVkZ2V0KTsNCg0KICAgICAgICAvLyBEYXRhYmFzZSB0cmFuc2FjdGlvbiB0byBidW1wIHZlcnNpb24gYW5kIGNyZWF0ZSByZWNvcmQNCiAgICAgICAgcmV0dXJuIHByaXNtYS4kdHJhbnNhY3Rpb24oWw0KICAgICAgICAgICAgcHJpc21hLmJ1ZGdldFZlcnNpb24uY3JlYXRlKHsNCiAgICAgICAgICAgICAgICBkYXRhOiB7DQogICAgICAgICAgICAgICAgICAgIGJ1ZGdldF9pZDogYnVkZ2V0SWQsDQogICAgICAgICAgICAgICAgICAgIHZlcnNhbzogbmV3VmVyc2lvbk51bSwNCiAgICAgICAgICAgICAgICAgICAgc25hcHNob3RfanNvbjogc25hcHNob3RKc29uLA0KICAgICAgICAgICAgICAgICAgICB0b3RhbF9nZXJhbDogY2FsYy50b3RhbEdlcmFsLA0KICAgICAgICAgICAgICAgICAgICBjcmlhZG9fcG9yOiB1c2VySWQNCiAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICB9KSwNCiAgICAgICAgICAgIHByaXNtYS5idWRnZXQudXBkYXRlKHsNCiAgICAgICAgICAgICAgICB3aGVyZTogeyBpZDogYnVkZ2V0SWQgfSwNCiAgICAgICAgICAgICAgICBkYXRhOiB7IHZlcnNhb19hdHVhbDogbmV3VmVyc2lvbk51bSB9DQogICAgICAgICAgICB9KQ0KICAgICAgICBdKTsNCiAgICB9DQp9DQo="}
+import { PrismaClient, BudgetItem, Budget } from '@prisma/client';
+import { prisma } from '../server';
+
+export interface BudgetCalculationResult {
+    totalGeral: number;
+    subtotalsPorBloco: Record<string, number>;
+    itensDelineados: BudgetItem[];
+}
+
+export class BudgetService {
+    /**
+     * Recalcula os totais de um orçamento com base em seus itens ativos.
+     */
+    static calcularOrcamento(itens: BudgetItem[]): BudgetCalculationResult {
+        let totalGeral = 0;
+        const subtotalsPorBloco: Record<string, number> = {};
+
+        const itensDelineados = itens.map(item => {
+            // Regras: total_linha = quantidade * valor_unitario * (1 + bdi_percent/100)
+            // Arredondamento para 2 casas decimais
+            let totalLinha = 0;
+
+            if (item.ativo && item.quantidade >= 0 && item.valor_unitario >= 0) {
+                // Assume isHeader if it has no children logic? No, just keep it simple: if unitario > 0, it counts.
+                const bdiMultiplier = 1 + (Math.max(0, item.bdi_percent) / 100);
+                totalLinha = item.quantidade * item.valor_unitario * bdiMultiplier;
+                totalLinha = Math.round(totalLinha * 100) / 100;
+            }
+
+            // Atualiza o subtotal do bloco
+            if (item.ativo) {
+                if (!subtotalsPorBloco[item.bloco]) {
+                    subtotalsPorBloco[item.bloco] = 0;
+                }
+                subtotalsPorBloco[item.bloco] += totalLinha;
+                // garantindo round no subtotal
+                subtotalsPorBloco[item.bloco] = Math.round(subtotalsPorBloco[item.bloco] * 100) / 100;
+            }
+
+            return {
+                ...item,
+                total_linha: totalLinha
+            };
+        });
+
+        // Calcula total geral
+        totalGeral = Object.values(subtotalsPorBloco).reduce((acc, curr) => acc + curr, 0);
+        totalGeral = Math.round(totalGeral * 100) / 100;
+
+        return {
+            totalGeral,
+            subtotalsPorBloco,
+            itensDelineados
+        };
+    }
+
+    // Define CRUD operations using Prisma
+    static async getBudgetsByTenant(tenantId: string) {
+        return prisma.budget.findMany({
+            where: { tenant_id: tenantId },
+            include: {
+                contratante: true,
+                site: true,
+            },
+            orderBy: { updated_at: 'desc' }
+        });
+    }
+
+    static async getBudgetById(id: string) {
+        return prisma.budget.findUnique({
+            where: { id },
+            include: {
+                contratante: true,
+                site: true,
+                items: {
+                    orderBy: { ordem: 'asc' }
+                },
+                versions: true
+            }
+        });
+    }
+
+    static async createBudget(data: any) {
+        return prisma.budget.create({
+            data
+        });
+    }
+
+    static async updateBudgetHeader(id: string, data: Partial<Budget>) {
+        return prisma.budget.update({
+            where: { id },
+            data
+        });
+    }
+
+    static async updateBudgetItems(budgetId: string, versaoAtual: number, items: BudgetItem[]) {
+        // 1. Calculate totals
+        const calc = this.calcularOrcamento(items);
+
+        // 2. Perform DB updates in transaction
+        const updateOperations = calc.itensDelineados.map(item =>
+            prisma.budgetItem.update({
+                where: { id: item.id },
+                data: {
+                    quantidade: item.quantidade,
+                    valor_unitario: item.valor_unitario,
+                    bdi_percent: item.bdi_percent,
+                    total_linha: item.total_linha,
+                    ativo: item.ativo,
+                    titulo: item.titulo,
+                    descricao: item.descricao,
+                }
+            })
+        );
+
+        await prisma.$transaction(updateOperations);
+
+        // Update budget updated_at
+        await prisma.budget.update({
+            where: { id: budgetId },
+            data: { updated_at: new Date() }
+        });
+
+        return this.getBudgetById(budgetId);
+    }
+
+    static async createVersion(budgetId: string, userId?: string) {
+        const budget = await this.getBudgetById(budgetId);
+        if (!budget) throw new Error("Budget not found");
+
+        const newVersionNum = budget.versao_atual + 1;
+        const calc = this.calcularOrcamento(budget.items);
+
+        // Create a snapshot string
+        const snapshotJson = JSON.stringify(budget);
+
+        // Database transaction to bump version and create record
+        return prisma.$transaction([
+            prisma.budgetVersion.create({
+                data: {
+                    budget_id: budgetId,
+                    versao: newVersionNum,
+                    snapshot_json: snapshotJson,
+                    total_geral: calc.totalGeral,
+                    criado_por: userId
+                }
+            }),
+            prisma.budget.update({
+                where: { id: budgetId },
+                data: { versao_atual: newVersionNum }
+            })
+        ]);
+    }
+}

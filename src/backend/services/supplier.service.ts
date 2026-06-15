@@ -1,1 +1,66 @@
-{"data":"aW1wb3J0IHsgcHJpc21hIH0gZnJvbSAnLi4vc2VydmVyJzsNCg0KZXhwb3J0IGNsYXNzIFN1cHBsaWVyU2VydmljZSB7DQoNCiAgICBzdGF0aWMgYXN5bmMgZ2V0U3VwcGxpZXJzKHRlbmFudElkOiBzdHJpbmcsIHBhZ2UgPSAxLCBsaW1pdCA9IDUwKSB7DQogICAgICAgIGNvbnN0IHNraXAgPSAocGFnZSAtIDEpICogbGltaXQ7DQogICAgICAgIGNvbnN0IFtpdGVtcywgdG90YWxdID0gYXdhaXQgUHJvbWlzZS5hbGwoWw0KICAgICAgICAgICAgcHJpc21hLnN1cHBsaWVyLmZpbmRNYW55KHsNCiAgICAgICAgICAgICAgICB3aGVyZTogeyB0ZW5hbnRfaWQ6IHRlbmFudElkLCBhdGl2bzogdHJ1ZSB9LA0KICAgICAgICAgICAgICAgIGluY2x1ZGU6IHsNCiAgICAgICAgICAgICAgICAgICAgX2NvdW50OiB7IHNlbGVjdDogeyBwcmljZUJvb2tzOiB0cnVlIH0gfQ0KICAgICAgICAgICAgICAgIH0sDQogICAgICAgICAgICAgICAgb3JkZXJCeTogeyBub21lOiAnYXNjJyB9LA0KICAgICAgICAgICAgICAgIHNraXAsDQogICAgICAgICAgICAgICAgdGFrZTogbGltaXQsDQogICAgICAgICAgICB9KSwNCiAgICAgICAgICAgIHByaXNtYS5zdXBwbGllci5jb3VudCh7IHdoZXJlOiB7IHRlbmFudF9pZDogdGVuYW50SWQsIGF0aXZvOiB0cnVlIH0gfSkNCiAgICAgICAgXSk7DQogICAgICAgIHJldHVybiB7IGl0ZW1zLCB0b3RhbCwgcGFnZSwgbGltaXQgfTsNCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgZ2V0U3VwcGxpZXJCeUlkKGlkOiBzdHJpbmcpIHsNCiAgICAgICAgcmV0dXJuIHByaXNtYS5zdXBwbGllci5maW5kVW5pcXVlKHsNCiAgICAgICAgICAgIHdoZXJlOiB7IGlkIH0sDQogICAgICAgICAgICBpbmNsdWRlOiB7DQogICAgICAgICAgICAgICAgcHJpY2VCb29rczogew0KICAgICAgICAgICAgICAgICAgICBvcmRlckJ5OiB7IGNyZWF0ZWRfYXQ6ICdkZXNjJyB9LA0KICAgICAgICAgICAgICAgICAgICB3aGVyZTogeyBzdGF0dXM6ICdBVElWQScgfQ0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgIH0NCiAgICAgICAgfSk7DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGNyZWF0ZVN1cHBsaWVyKGRhdGE6IHsNCiAgICAgICAgdGVuYW50X2lkOiBzdHJpbmc7DQogICAgICAgIG5vbWU6IHN0cmluZzsNCiAgICAgICAgY25waj86IHN0cmluZzsNCiAgICAgICAgZW1haWw/OiBzdHJpbmc7DQogICAgICAgIHRlbGVmb25lPzogc3RyaW5nOw0KICAgICAgICBsb2dvX3VybD86IHN0cmluZzsNCiAgICB9KSB7DQogICAgICAgIHJldHVybiBwcmlzbWEuc3VwcGxpZXIuY3JlYXRlKHsgZGF0YSB9KTsNCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgdXBkYXRlU3VwcGxpZXIoaWQ6IHN0cmluZywgZGF0YTogew0KICAgICAgICBub21lPzogc3RyaW5nOw0KICAgICAgICBjbnBqPzogc3RyaW5nOw0KICAgICAgICBlbWFpbD86IHN0cmluZzsNCiAgICAgICAgdGVsZWZvbmU/OiBzdHJpbmc7DQogICAgICAgIGxvZ29fdXJsPzogc3RyaW5nOw0KICAgICAgICBhdGl2bz86IGJvb2xlYW47DQogICAgfSkgew0KICAgICAgICByZXR1cm4gcHJpc21hLnN1cHBsaWVyLnVwZGF0ZSh7DQogICAgICAgICAgICB3aGVyZTogeyBpZCB9LA0KICAgICAgICAgICAgZGF0YTogeyAuLi5kYXRhLCB1cGRhdGVkX2F0OiBuZXcgRGF0ZSgpIH0NCiAgICAgICAgfSk7DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGRlbGV0ZVN1cHBsaWVyKGlkOiBzdHJpbmcpIHsNCiAgICAgICAgLy8gU29mdC1kZWxldGUNCiAgICAgICAgcmV0dXJuIHByaXNtYS5zdXBwbGllci51cGRhdGUoew0KICAgICAgICAgICAgd2hlcmU6IHsgaWQgfSwNCiAgICAgICAgICAgIGRhdGE6IHsgYXRpdm86IGZhbHNlLCB1cGRhdGVkX2F0OiBuZXcgRGF0ZSgpIH0NCiAgICAgICAgfSk7DQogICAgfQ0KfQ0K"}
+import { prisma } from '../server';
+
+export class SupplierService {
+
+    static async getSuppliers(tenantId: string, page = 1, limit = 50) {
+        const skip = (page - 1) * limit;
+        const [items, total] = await Promise.all([
+            prisma.supplier.findMany({
+                where: { tenant_id: tenantId, ativo: true },
+                include: {
+                    _count: { select: { priceBooks: true } }
+                },
+                orderBy: { nome: 'asc' },
+                skip,
+                take: limit,
+            }),
+            prisma.supplier.count({ where: { tenant_id: tenantId, ativo: true } })
+        ]);
+        return { items, total, page, limit };
+    }
+
+    static async getSupplierById(id: string) {
+        return prisma.supplier.findUnique({
+            where: { id },
+            include: {
+                priceBooks: {
+                    orderBy: { created_at: 'desc' },
+                    where: { status: 'ATIVA' }
+                }
+            }
+        });
+    }
+
+    static async createSupplier(data: {
+        tenant_id: string;
+        nome: string;
+        cnpj?: string;
+        email?: string;
+        telefone?: string;
+        logo_url?: string;
+    }) {
+        return prisma.supplier.create({ data });
+    }
+
+    static async updateSupplier(id: string, data: {
+        nome?: string;
+        cnpj?: string;
+        email?: string;
+        telefone?: string;
+        logo_url?: string;
+        ativo?: boolean;
+    }) {
+        return prisma.supplier.update({
+            where: { id },
+            data: { ...data, updated_at: new Date() }
+        });
+    }
+
+    static async deleteSupplier(id: string) {
+        // Soft-delete
+        return prisma.supplier.update({
+            where: { id },
+            data: { ativo: false, updated_at: new Date() }
+        });
+    }
+}

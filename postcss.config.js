@@ -1,1 +1,6 @@
-{"data":"ZXhwb3J0IGRlZmF1bHQgew0KICAgIHBsdWdpbnM6IHsNCiAgICAgICAgdGFpbHdpbmRjc3M6IHt9LA0KICAgICAgICBhdXRvcHJlZml4ZXI6IHt9LA0KICAgIH0sDQp9DQo="}
+module.exports = {
+    plugins: {
+        tailwindcss: {},
+        autoprefixer: {},
+    },
+}

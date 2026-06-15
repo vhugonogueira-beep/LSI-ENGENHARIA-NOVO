@@ -1,1 +1,31 @@
-{"data":"ew0KICAgICJjb21waWxlck9wdGlvbnMiOiB7DQogICAgICAgICJ0YXJnZXQiOiAiRVMyMDIwIiwNCiAgICAgICAgInVzZURlZmluZUZvckNsYXNzRmllbGRzIjogdHJ1ZSwNCiAgICAgICAgImxpYiI6IFsNCiAgICAgICAgICAgICJFUzIwMjAiLA0KICAgICAgICAgICAgIkRPTSIsDQogICAgICAgICAgICAiRE9NLkl0ZXJhYmxlIg0KICAgICAgICBdLA0KICAgICAgICAibW9kdWxlIjogIkVTTmV4dCIsDQogICAgICAgICJza2lwTGliQ2hlY2siOiB0cnVlLA0KICAgICAgICAibW9kdWxlUmVzb2x1dGlvbiI6ICJidW5kbGVyIiwNCiAgICAgICAgImFsbG93SW1wb3J0aW5nVHNFeHRlbnNpb25zIjogdHJ1ZSwNCiAgICAgICAgInJlc29sdmVKc29uTW9kdWxlIjogdHJ1ZSwNCiAgICAgICAgImlzb2xhdGVkTW9kdWxlcyI6IHRydWUsDQogICAgICAgICJub0VtaXQiOiB0cnVlLA0KICAgICAgICAianN4IjogInJlYWN0LWpzeCIsDQogICAgICAgICJzdHJpY3QiOiB0cnVlLA0KICAgICAgICAibm9VbnVzZWRMb2NhbHMiOiB0cnVlLA0KICAgICAgICAibm9VbnVzZWRQYXJhbWV0ZXJzIjogdHJ1ZSwNCiAgICAgICAgIm5vRmFsbHRocm91Z2hDYXNlc0luU3dpdGNoIjogdHJ1ZQ0KICAgIH0sDQogICAgImluY2x1ZGUiOiBbDQogICAgICAgICJzcmMvZnJvbnRlbmQiDQogICAgXSwNCiAgICAicmVmZXJlbmNlcyI6IFsNCiAgICAgICAgew0KICAgICAgICAgICAgInBhdGgiOiAiLi90c2NvbmZpZy5ub2RlLmpzb24iDQogICAgICAgIH0NCiAgICBdDQp9"}
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "useDefineForClassFields": true,
+        "lib": [
+            "ES2020",
+            "DOM",
+            "DOM.Iterable"
+        ],
+        "module": "ESNext",
+        "skipLibCheck": true,
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "jsx": "react-jsx",
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true
+    },
+    "include": [
+        "src/frontend"
+    ],
+    "references": [
+        {
+            "path": "./tsconfig.node.json"
+        }
+    ]
+}

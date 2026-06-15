@@ -1,1 +1,82 @@
-{"data":"aW1wb3J0ICogYXMgZnV6emJhbGwgZnJvbSAnZnV6emJhbGwnOw0KaW1wb3J0IHsgcHJpc21hIH0gZnJvbSAnLi4vc2VydmVyJzsNCg0KZXhwb3J0IGNsYXNzIFByaWNlRW5naW5lU2VydmljZSB7DQoNCiAgICBzdGF0aWMgbm9ybWFsaXphckRlc2NyaWNhbyh0ZXh0bzogc3RyaW5nKTogc3RyaW5nIHsNCiAgICAgICAgaWYgKCF0ZXh0bykgcmV0dXJuICcnOw0KICAgICAgICByZXR1cm4gdGV4dG8NCiAgICAgICAgICAgIC50b0xvd2VyQ2FzZSgpDQogICAgICAgICAgICAubm9ybWFsaXplKCdORkQnKS5yZXBsYWNlKC9bXHUwMzAwLVx1MDM2Zl0vZywgIiIpIC8vIFJlbW92ZSBhY2NlbnRzDQogICAgICAgICAgICAucmVwbGFjZSgvW15cd1xzXXxfL2csICIiKSAvLyBSZW1vdmUgcHVuY3R1YXRpb24NCiAgICAgICAgICAgIC5yZXBsYWNlKC9ccysvZywgIiAiKSAvLyBSZW1vdmUgZXh0cmEgc3BhY2VzDQogICAgICAgICAgICAudHJpbSgpOw0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBzdWdnZXN0SXRlbXModGVuYW50SWQ6IHN0cmluZywgcXVlcnk6IHN0cmluZywgcmVnaWFvOiBzdHJpbmcsIGxpbWl0OiBudW1iZXIgPSA1KSB7DQogICAgICAgIGlmICghcXVlcnkpIHJldHVybiBbXTsNCiAgICAgICAgY29uc3Qgbm9ybWFsaXplZFF1ZXJ5ID0gdGhpcy5ub3JtYWxpemFyRGVzY3JpY2FvKHF1ZXJ5KTsNCg0KICAgICAgICAvLyBHZXQgYWxsIGFjdGl2ZSBjYXRhbG9nIGl0ZW1zIGZyb20gdGhpcyB0ZW5hbnQNCiAgICAgICAgLy8gTGF0ZXIgd2UgY2FuIGZpbHRlciBieSAnb3JpZ2VtX2ltcG9ydGFjYW9faWQnIG9yICdyZWdpYW8nIGlmIHRoZSBEQiBzaXplIGp1c3RpZmllcyBpdA0KICAgICAgICBjb25zdCBhbGxJdGVtcyA9IGF3YWl0IHByaXNtYS5jYXRhbG9nU2VydmljZS5maW5kTWFueSh7DQogICAgICAgICAgICB3aGVyZTogeyB0ZW5hbnRfaWQ6IHRlbmFudElkLCBhdGl2bzogdHJ1ZSB9LA0KICAgICAgICB9KTsNCg0KICAgICAgICAvLyBTY29yZSB0aGVtDQogICAgICAgIGNvbnN0IHNjb3JlZCA9IGFsbEl0ZW1zLm1hcChpdGVtID0+IHsNCiAgICAgICAgICAgIC8vIFVzZSBwcmUtY29tcHV0ZWQgbm9ybWFsaXplZCBkZXNjcmlwdGlvbiBpZiBhdmFpbGFibGUsIG90aGVyd2lzZSBjb21wdXRlIG9uIHRoZSBmbHkNCiAgICAgICAgICAgIGNvbnN0IHRhcmdldE5vcm0gPSBpdGVtLmRlc2NyaWNhb19pdGVtX25vcm1hbGl6YWRhIHx8IHRoaXMubm9ybWFsaXphckRlc2NyaWNhbyhpdGVtLnRpdHVsbyArICcgJyArIChpdGVtLmRlc2NyaWNhb19wYWRyYW8gfHwgJycpKTsNCg0KICAgICAgICAgICAgLy8gZnV6emJhbGwgcmF0aW86IHN0YW5kYXJkIGxldmVuc2h0ZWluIHBlcmNlbnRhZ2UNCiAgICAgICAgICAgIC8vIHRva2VuX3NvcnRfcmF0aW86IGlnbm9yZXMgd29yZCBvcmRlcg0KICAgICAgICAgICAgY29uc3Qgc2NvcmUgPSBmdXp6YmFsbC50b2tlbl9zb3J0X3JhdGlvKG5vcm1hbGl6ZWRRdWVyeSwgdGFyZ2V0Tm9ybSk7DQoNCiAgICAgICAgICAgIHJldHVybiB7DQogICAgICAgICAgICAgICAgY2F0YWxvZ19pdGVtX2lkOiBpdGVtLmlkLA0KICAgICAgICAgICAgICAgIGNvZGlnbzogaXRlbS5jb2RpZ28sDQogICAgICAgICAgICAgICAgZGVzY3JpY2FvX29yaWdpbmFsOiBpdGVtLnRpdHVsbywNCiAgICAgICAgICAgICAgICBkZXNjcmljYW9fbm9ybWFsaXphZGE6IHRhcmdldE5vcm0sDQogICAgICAgICAgICAgICAgdmFsb3JfYmFzZTogaXRlbS52YWxvcl9iYXNlLA0KICAgICAgICAgICAgICAgIHVuaWRhZGVfcGFkcmFvOiBpdGVtLnVuaWRhZGVfcGFkcmFvLA0KICAgICAgICAgICAgICAgIGNhdGVnb3JpYTogaXRlbS5jYXRlZ29yaWEsDQogICAgICAgICAgICAgICAgc2NvcmVfZnV6enk6IHNjb3JlLA0KICAgICAgICAgICAgICAgIHNjb3JlX2VtYmVkZGluZzogbnVsbCwgLy8gUGxhY2Vob2xkZXIgZm9yIGZ1dHVyZSBlbWJlZGRpbmcgaW1wbGVtZW50YXRpb24NCiAgICAgICAgICAgICAgICBtYXRjaF90eXBlOiBzY29yZSA+PSA4NSA/ICdTVFJPTkdfTUFUQ0gnIDogKHNjb3JlID49IDcwID8gJ1BPU1NJQkxFX01BVENIJyA6ICdXRUFLX01BVENIJykNCiAgICAgICAgICAgIH07DQogICAgICAgIH0pOw0KDQogICAgICAgIC8vIFNvcnQgYnkgc2NvcmUgZGVzY2VuZGluZyBhbmQgZmlsdGVyIG9ubHkgcG9zc2libGUgb3Igc3Ryb25nIG1hdGNoZXMNCiAgICAgICAgY29uc3QgbWF0Y2hlcyA9IHNjb3JlZA0KICAgICAgICAgICAgLmZpbHRlcihzID0+IHMuc2NvcmVfZnV6enkgPj0gNzApDQogICAgICAgICAgICAuc29ydCgoYSwgYikgPT4gYi5zY29yZV9mdXp6eSAtIGEuc2NvcmVfZnV6enkpDQogICAgICAgICAgICAuc2xpY2UoMCwgbGltaXQpOw0KDQogICAgICAgIC8vIElmIHdlIHdhbnQgcmVnaW9uYWwgc3RhdHMgaW1tZWRpYXRlbHksIHdlIGNhbiBqb2luIFByaWNlU3RhdHMgaGVyZQ0KICAgICAgICBjb25zdCBlbnJpY2hlZE1hdGNoZXMgPSBhd2FpdCBQcm9taXNlLmFsbChtYXRjaGVzLm1hcChhc3luYyAobSkgPT4gew0KICAgICAgICAgICAgLy8gRmluZCBzdGF0cyBmb3IgdGhpcyBzcGVjaWZpYyBpdGVtIGFuZCByZWdpb24NCiAgICAgICAgICAgIGNvbnN0IHN0YXRzID0gYXdhaXQgcHJpc21hLnByaWNlU3RhdHMuZmluZEZpcnN0KHsNCiAgICAgICAgICAgICAgICB3aGVyZTogew0KICAgICAgICAgICAgICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudElkLA0KICAgICAgICAgICAgICAgICAgICByZWdpYW86IHJlZ2lhbywNCiAgICAgICAgICAgICAgICAgICAgaXRlbV9rZXk6IG0uY2F0YWxvZ19pdGVtX2lkIC8vIEFzc3VtaW5nIGl0ZW1fa2V5IGJpbmRzIHRvIENhdGFsb2dTZXJ2aWNlIElEDQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgfSk7DQoNCiAgICAgICAgICAgIHJldHVybiB7DQogICAgICAgICAgICAgICAgLi4ubSwNCiAgICAgICAgICAgICAgICBzdGF0c19yZWdpYW86IHN0YXRzID8gew0KICAgICAgICAgICAgICAgICAgICBtaW46IHN0YXRzLm1pbiwNCiAgICAgICAgICAgICAgICAgICAgbWF4OiBzdGF0cy5tYXgsDQogICAgICAgICAgICAgICAgICAgIG1lYW46IHN0YXRzLm1lYW4sDQogICAgICAgICAgICAgICAgICAgIG1lZGlhbjogc3RhdHMubWVkaWFuLA0KICAgICAgICAgICAgICAgICAgICBwMjU6IHN0YXRzLnAyNSwNCiAgICAgICAgICAgICAgICAgICAgcDc1OiBzdGF0cy5wNzUsDQogICAgICAgICAgICAgICAgICAgIGNvdW50OiBzdGF0cy5jb3VudA0KICAgICAgICAgICAgICAgIH0gOiBudWxsDQogICAgICAgICAgICB9Ow0KICAgICAgICB9KSk7DQoNCiAgICAgICAgcmV0dXJuIGVucmljaGVkTWF0Y2hlczsNCiAgICB9DQp9DQo="}
+import * as fuzzball from 'fuzzball';
+import { prisma } from '../server';
+
+export class PriceEngineService {
+
+    static normalizarDescricao(texto: string): string {
+        if (!texto) return '';
+        return texto
+            .toLowerCase()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, "") // Remove accents
+            .replace(/[^\w\s]|_/g, "") // Remove punctuation
+            .replace(/\s+/g, " ") // Remove extra spaces
+            .trim();
+    }
+
+    static async suggestItems(tenantId: string, query: string, regiao: string, limit: number = 5) {
+        if (!query) return [];
+        const normalizedQuery = this.normalizarDescricao(query);
+
+        // Get all active catalog items from this tenant
+        // Later we can filter by 'origem_importacao_id' or 'regiao' if the DB size justifies it
+        const allItems = await prisma.catalogService.findMany({
+            where: { tenant_id: tenantId, ativo: true },
+        });
+
+        // Score them
+        const scored = allItems.map(item => {
+            // Use pre-computed normalized description if available, otherwise compute on the fly
+            const targetNorm = item.descricao_item_normalizada || this.normalizarDescricao(item.titulo + ' ' + (item.descricao_padrao || ''));
+
+            // fuzzball ratio: standard levenshtein percentage
+            // token_sort_ratio: ignores word order
+            const score = fuzzball.token_sort_ratio(normalizedQuery, targetNorm);
+
+            return {
+                catalog_item_id: item.id,
+                codigo: item.codigo,
+                descricao_original: item.titulo,
+                descricao_normalizada: targetNorm,
+                valor_base: item.valor_base,
+                unidade_padrao: item.unidade_padrao,
+                categoria: item.categoria,
+                score_fuzzy: score,
+                score_embedding: null, // Placeholder for future embedding implementation
+                match_type: score >= 85 ? 'STRONG_MATCH' : (score >= 70 ? 'POSSIBLE_MATCH' : 'WEAK_MATCH')
+            };
+        });
+
+        // Sort by score descending and filter only possible or strong matches
+        const matches = scored
+            .filter(s => s.score_fuzzy >= 70)
+            .sort((a, b) => b.score_fuzzy - a.score_fuzzy)
+            .slice(0, limit);
+
+        // If we want regional stats immediately, we can join PriceStats here
+        const enrichedMatches = await Promise.all(matches.map(async (m) => {
+            // Find stats for this specific item and region
+            const stats = await prisma.priceStats.findFirst({
+                where: {
+                    tenant_id: tenantId,
+                    regiao: regiao,
+                    item_key: m.catalog_item_id // Assuming item_key binds to CatalogService ID
+                }
+            });
+
+            return {
+                ...m,
+                stats_regiao: stats ? {
+                    min: stats.min,
+                    max: stats.max,
+                    mean: stats.mean,
+                    median: stats.median,
+                    p25: stats.p25,
+                    p75: stats.p75,
+                    count: stats.count
+                } : null
+            };
+        }));
+
+        return enrichedMatches;
+    }
+}

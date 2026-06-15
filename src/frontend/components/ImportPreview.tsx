@@ -1,1 +1,366 @@
-{"data":"aW1wb3J0IHsgdXNlU3RhdGUsIHVzZVJlZiB9IGZyb20gJ3JlYWN0JzsNCmltcG9ydCB7IFVwbG9hZCwgRmlsZVNwcmVhZHNoZWV0LCBBbGVydFRyaWFuZ2xlLCBDaGVja0NpcmNsZTIsIFgsIEFycm93UmlnaHQgfSBmcm9tICdsdWNpZGUtcmVhY3QnOw0KDQppbnRlcmZhY2UgUGFyc2VkUm93IHsNCiAgICByb3dJbmRleDogbnVtYmVyOw0KICAgIGRlc2NyaWNhbzogc3RyaW5nOw0KICAgIHZhbG9yX3VuaXRhcmlvOiBudW1iZXI7DQogICAgdW5pZGFkZTogc3RyaW5nOw0KICAgIHRpcG9fZXNjb3BvOiBzdHJpbmc7DQogICAgY29kaWdvX2l0ZW0/OiBzdHJpbmc7DQogICAgc3VidGlwbz86IHN0cmluZzsNCiAgICBvYnNlcnZhY29lcz86IHN0cmluZzsNCiAgICB2YWxpZDogYm9vbGVhbjsNCiAgICBlcnJvcnM6IHN0cmluZ1tdOw0KfQ0KDQppbnRlcmZhY2UgSW1wb3J0UHJldmlld1Byb3BzIHsNCiAgICBwcmljZWJvb2tJZDogc3RyaW5nOw0KICAgIHN1cHBsaWVySWQ6IHN0cmluZzsNCiAgICBvbkNsb3NlOiAoKSA9PiB2b2lkOw0KICAgIG9uQ29tcGxldGU6ICgpID0+IHZvaWQ7DQp9DQoNCnR5cGUgU3RlcCA9ICd1cGxvYWQnIHwgJ21hcHBpbmcnIHwgJ3ByZXZpZXcnIHwgJ2RvbmUnOw0KDQpleHBvcnQgZnVuY3Rpb24gSW1wb3J0UHJldmlldyh7IHByaWNlYm9va0lkLCBzdXBwbGllcklkLCBvbkNsb3NlLCBvbkNvbXBsZXRlIH06IEltcG9ydFByZXZpZXdQcm9wcykgew0KICAgIGNvbnN0IGZpbGVJbnB1dFJlZiA9IHVzZVJlZjxIVE1MSW5wdXRFbGVtZW50PihudWxsKTsNCiAgICBjb25zdCBbc3RlcCwgc2V0U3RlcF0gPSB1c2VTdGF0ZTxTdGVwPigndXBsb2FkJyk7DQogICAgY29uc3QgW3VwbG9hZGluZywgc2V0VXBsb2FkaW5nXSA9IHVzZVN0YXRlKGZhbHNlKTsNCiAgICBjb25zdCBbY29uZmlybWluZywgc2V0Q29uZmlybWluZ10gPSB1c2VTdGF0ZShmYWxzZSk7DQogICAgY29uc3QgW2Vycm9yLCBzZXRFcnJvcl0gPSB1c2VTdGF0ZSgnJyk7DQoNCiAgICAvLyBEYXRhIGZyb20gc2VydmVyDQogICAgY29uc3QgW2JhdGNoSWQsIHNldEJhdGNoSWRdID0gdXNlU3RhdGUoJycpOw0KICAgIGNvbnN0IFtkZXRlY3RlZEhlYWRlcnMsIHNldERldGVjdGVkSGVhZGVyc10gPSB1c2VTdGF0ZTxzdHJpbmdbXT4oW10pOw0KICAgIGNvbnN0IFttYXBwaW5nLCBzZXRNYXBwaW5nXSA9IHVzZVN0YXRlPFJlY29yZDxzdHJpbmcsIHN0cmluZz4+KHt9KTsNCiAgICBjb25zdCBbcHJldmlld1Jvd3MsIHNldFByZXZpZXdSb3dzXSA9IHVzZVN0YXRlPFBhcnNlZFJvd1tdPihbXSk7DQogICAgY29uc3QgW3RvdGFsUm93cywgc2V0VG90YWxSb3dzXSA9IHVzZVN0YXRlKDApOw0KICAgIGNvbnN0IFt2YWxpZENvdW50LCBzZXRWYWxpZENvdW50XSA9IHVzZVN0YXRlKDApOw0KICAgIGNvbnN0IFtpbnZhbGlkQ291bnQsIHNldEludmFsaWRDb3VudF0gPSB1c2VTdGF0ZSgwKTsNCiAgICBjb25zdCBbcGVuZGluZ1RpcG9Fc2NvcG8sIHNldFBlbmRpbmdUaXBvRXNjb3BvXSA9IHVzZVN0YXRlKDApOw0KDQogICAgLy8gSW1wb3J0IHJlc3VsdA0KICAgIGNvbnN0IFtpbXBvcnRSZXN1bHQsIHNldEltcG9ydFJlc3VsdF0gPSB1c2VTdGF0ZTx7IGltcG9ydGVkOiBudW1iZXI7IHNraXBwZWQ6IG51bWJlciB9IHwgbnVsbD4obnVsbCk7DQoNCiAgICBjb25zdCBCUkwgPSAodmFsOiBudW1iZXIpID0+IG5ldyBJbnRsLk51bWJlckZvcm1hdCgncHQtQlInLCB7IHN0eWxlOiAnY3VycmVuY3knLCBjdXJyZW5jeTogJ0JSTCcgfSkuZm9ybWF0KHZhbCk7DQoNCiAgICBjb25zdCBoYW5kbGVGaWxlU2VsZWN0ID0gYXN5bmMgKGZpbGU6IEZpbGUpID0+IHsNCiAgICAgICAgc2V0VXBsb2FkaW5nKHRydWUpOw0KICAgICAgICBzZXRFcnJvcignJyk7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCBmb3JtRGF0YSA9IG5ldyBGb3JtRGF0YSgpOw0KICAgICAgICAgICAgZm9ybURhdGEuYXBwZW5kKCdmaWxlJywgZmlsZSk7DQogICAgICAgICAgICBmb3JtRGF0YS5hcHBlbmQoJ3N1cHBsaWVyX2lkJywgc3VwcGxpZXJJZCk7DQogICAgICAgICAgICBmb3JtRGF0YS5hcHBlbmQoJ3ByaWNlYm9va19pZCcsIHByaWNlYm9va0lkKTsNCg0KICAgICAgICAgICAgY29uc3QgcmVzcCA9IGF3YWl0IGZldGNoKCcvYXBpL2ltcG9ydC91cGxvYWQnLCB7DQogICAgICAgICAgICAgICAgbWV0aG9kOiAnUE9TVCcsDQogICAgICAgICAgICAgICAgYm9keTogZm9ybURhdGEsDQogICAgICAgICAgICB9KTsNCg0KICAgICAgICAgICAgaWYgKCFyZXNwLm9rKSB7DQogICAgICAgICAgICAgICAgY29uc3QgZXJyID0gYXdhaXQgcmVzcC5qc29uKCk7DQogICAgICAgICAgICAgICAgdGhyb3cgbmV3IEVycm9yKGVyci5lcnJvciB8fCAnRXJybyBhbyBwcm9jZXNzYXIgYXJxdWl2bycpOw0KICAgICAgICAgICAgfQ0KDQogICAgICAgICAgICBjb25zdCBkYXRhID0gYXdhaXQgcmVzcC5qc29uKCk7DQogICAgICAgICAgICBzZXRCYXRjaElkKGRhdGEuYmF0Y2hJZCk7DQogICAgICAgICAgICBzZXREZXRlY3RlZEhlYWRlcnMoZGF0YS5kZXRlY3RlZEhlYWRlcnMgfHwgW10pOw0KICAgICAgICAgICAgc2V0TWFwcGluZyhkYXRhLnN1Z2dlc3RlZE1hcHBpbmcgfHwge30pOw0KICAgICAgICAgICAgc2V0UHJldmlld1Jvd3MoZGF0YS5wcmV2aWV3Um93cyB8fCBbXSk7DQogICAgICAgICAgICBzZXRUb3RhbFJvd3MoZGF0YS50b3RhbFJvd3MgfHwgMCk7DQogICAgICAgICAgICBzZXRWYWxpZENvdW50KGRhdGEudmFsaWRDb3VudCB8fCAwKTsNCiAgICAgICAgICAgIHNldEludmFsaWRDb3VudChkYXRhLmludmFsaWRDb3VudCB8fCAwKTsNCiAgICAgICAgICAgIHNldFBlbmRpbmdUaXBvRXNjb3BvKGRhdGEucGVuZGluZ1RpcG9Fc2NvcG8gfHwgMCk7DQoNCiAgICAgICAgICAgIC8vIElmIG1hcHBpbmcgbG9va3MgZ29vZCwganVtcCBzdHJhaWdodCB0byBwcmV2aWV3DQogICAgICAgICAgICBpZiAoZGF0YS5zdWdnZXN0ZWRNYXBwaW5nPy5kZXNjcmljYW8gJiYgZGF0YS5zdWdnZXN0ZWRNYXBwaW5nPy52YWxvcl91bml0YXJpbykgew0KICAgICAgICAgICAgICAgIHNldFN0ZXAoJ3ByZXZpZXcnKTsNCiAgICAgICAgICAgIH0gZWxzZSB7DQogICAgICAgICAgICAgICAgc2V0U3RlcCgnbWFwcGluZycpOw0KICAgICAgICAgICAgfQ0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHNldEVycm9yKGUubWVzc2FnZSk7DQogICAgICAgIH0gZmluYWxseSB7DQogICAgICAgICAgICBzZXRVcGxvYWRpbmcoZmFsc2UpOw0KICAgICAgICB9DQogICAgfTsNCg0KICAgIGNvbnN0IGhhbmRsZURyb3AgPSAoZTogUmVhY3QuRHJhZ0V2ZW50KSA9PiB7DQogICAgICAgIGUucHJldmVudERlZmF1bHQoKTsNCiAgICAgICAgY29uc3QgZmlsZSA9IGUuZGF0YVRyYW5zZmVyLmZpbGVzWzBdOw0KICAgICAgICBpZiAoZmlsZSkgaGFuZGxlRmlsZVNlbGVjdChmaWxlKTsNCiAgICB9Ow0KDQogICAgY29uc3QgdXBkYXRlUm93RmllbGQgPSAoaW5kZXg6IG51bWJlciwgZmllbGQ6IGtleW9mIFBhcnNlZFJvdywgdmFsdWU6IHN0cmluZykgPT4gew0KICAgICAgICBzZXRQcmV2aWV3Um93cyhwcmV2ID0+IHByZXYubWFwKChyb3csIGkpID0+IHsNCiAgICAgICAgICAgIGlmIChpICE9PSBpbmRleCkgcmV0dXJuIHJvdzsNCiAgICAgICAgICAgIGNvbnN0IHVwZGF0ZWQgPSB7IC4uLnJvdywgW2ZpZWxkXTogdmFsdWUgfTsNCiAgICAgICAgICAgIC8vIFJldmFsaWRhdGUNCiAgICAgICAgICAgIGNvbnN0IGVycm9yczogc3RyaW5nW10gPSBbXTsNCiAgICAgICAgICAgIGlmICghdXBkYXRlZC5kZXNjcmljYW8pIGVycm9ycy5wdXNoKCdEZXNjcmnDp8OjbyBvYnJpZ2F0w7NyaWEnKTsNCiAgICAgICAgICAgIGlmICghdXBkYXRlZC51bmlkYWRlKSBlcnJvcnMucHVzaCgnVW5pZGFkZSBvYnJpZ2F0w7NyaWEnKTsNCiAgICAgICAgICAgIGlmICghdXBkYXRlZC50aXBvX2VzY29wbyB8fCAhWydTRVJWSUNPJywgJ0lORlJBJ10uaW5jbHVkZXModXBkYXRlZC50aXBvX2VzY29wbykpIHsNCiAgICAgICAgICAgICAgICBpZiAoIXVwZGF0ZWQudGlwb19lc2NvcG8pIGVycm9ycy5wdXNoKCdUaXBvIGVzY29wbyBvYnJpZ2F0w7NyaW8nKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIHVwZGF0ZWQuZXJyb3JzID0gZXJyb3JzOw0KICAgICAgICAgICAgdXBkYXRlZC52YWxpZCA9IGVycm9ycy5sZW5ndGggPT09IDAgJiYgISF1cGRhdGVkLnRpcG9fZXNjb3BvOw0KICAgICAgICAgICAgcmV0dXJuIHVwZGF0ZWQ7DQogICAgICAgIH0pKTsNCiAgICB9Ow0KDQogICAgY29uc3QgaGFuZGxlQ29uZmlybSA9IGFzeW5jICgpID0+IHsNCiAgICAgICAgc2V0Q29uZmlybWluZyh0cnVlKTsNCiAgICAgICAgc2V0RXJyb3IoJycpOw0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgcmVzcCA9IGF3YWl0IGZldGNoKGAvYXBpL2ltcG9ydC9iYXRjaGVzLyR7YmF0Y2hJZH0vY29uZmlybWAsIHsNCiAgICAgICAgICAgICAgICBtZXRob2Q6ICdQT1NUJywNCiAgICAgICAgICAgICAgICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicgfSwNCiAgICAgICAgICAgICAgICBib2R5OiBKU09OLnN0cmluZ2lmeSh7IHJvd3M6IHByZXZpZXdSb3dzIH0pLA0KICAgICAgICAgICAgfSk7DQoNCiAgICAgICAgICAgIGlmICghcmVzcC5vaykgew0KICAgICAgICAgICAgICAgIGNvbnN0IGVyciA9IGF3YWl0IHJlc3AuanNvbigpOw0KICAgICAgICAgICAgICAgIHRocm93IG5ldyBFcnJvcihlcnIuZXJyb3IgfHwgJ0Vycm8gYW8gY29uZmlybWFyIGltcG9ydGHDp8OjbycpOw0KICAgICAgICAgICAgfQ0KDQogICAgICAgICAgICBjb25zdCByZXN1bHQgPSBhd2FpdCByZXNwLmpzb24oKTsNCiAgICAgICAgICAgIHNldEltcG9ydFJlc3VsdChyZXN1bHQpOw0KICAgICAgICAgICAgc2V0U3RlcCgnZG9uZScpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHNldEVycm9yKGUubWVzc2FnZSk7DQogICAgICAgIH0gZmluYWxseSB7DQogICAgICAgICAgICBzZXRDb25maXJtaW5nKGZhbHNlKTsNCiAgICAgICAgfQ0KICAgIH07DQoNCiAgICBjb25zdCB2YWxpZFJvd3MgPSBwcmV2aWV3Um93cy5maWx0ZXIociA9PiByLnZhbGlkKTsNCiAgICBjb25zdCBpbnZhbGlkUm93cyA9IHByZXZpZXdSb3dzLmZpbHRlcihyID0+ICFyLnZhbGlkKTsNCg0KICAgIHJldHVybiAoDQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGJnLWJsYWNrLzUwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHotNTAgcC00Ij4NCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1iYWNrZ3JvdW5kIHJvdW5kZWQteGwgc2hhZG93LTJ4bCB3LWZ1bGwgbWF4LXctNXhsIG1heC1oLVs5MHZoXSBmbGV4IGZsZXgtY29sIj4NCiAgICAgICAgICAgICAgICB7LyogSGVhZGVyICovfQ0KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtNiBweS00IGJvcmRlci1iIj4NCiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4NCiAgICAgICAgICAgICAgICAgICAgICAgIDxGaWxlU3ByZWFkc2hlZXQgY2xhc3NOYW1lPSJ0ZXh0LXByaW1hcnkiIHNpemU9ezIyfSAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgPGgzIGNsYXNzTmFtZT0idGV4dC14bCBmb250LWJvbGQiPkltcG9ydGFyIEl0ZW5zIGRhIExQVTwvaDM+DQogICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTEgbWwtNCI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAge1sndXBsb2FkJywgJ21hcHBpbmcnLCAncHJldmlldycsICdkb25lJ10ubWFwKChzLCBpKSA9PiAoDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYga2V5PXtzfSBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0xIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPXtgdy0yLjUgaC0yLjUgcm91bmRlZC1mdWxsICR7cyA9PT0gc3RlcCA/ICdiZy1wcmltYXJ5JyA6DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFsndXBsb2FkJywgJ21hcHBpbmcnLCAncHJldmlldycsICdkb25lJ10uaW5kZXhPZihzdGVwKSA+IGkgPyAnYmctZW1lcmFsZC01MDAnIDogJ2JnLWdyYXktMzAwJw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH1gfSAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2kgPCAzICYmIDxkaXYgY2xhc3NOYW1lPSJ3LTYgaC0wLjUgYmctZ3JheS0yMDAiIC8+fQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICApKX0NCiAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXtvbkNsb3NlfSBjbGFzc05hbWU9InAtMS41IGhvdmVyOmJnLW11dGVkIHJvdW5kZWQtbWQiPg0KICAgICAgICAgICAgICAgICAgICAgICAgPFggc2l6ZT17MjB9IC8+DQogICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPg0KICAgICAgICAgICAgICAgIDwvZGl2Pg0KDQogICAgICAgICAgICAgICAgey8qIEJvZHkgKi99DQogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgtMSBvdmVyZmxvdy15LWF1dG8gcC02Ij4NCiAgICAgICAgICAgICAgICAgICAge2Vycm9yICYmICgNCiAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYi00IHAtMyBiZy1yZWQtNTAgYm9yZGVyIGJvcmRlci1yZWQtMjAwIHRleHQtcmVkLTcwMCByb3VuZGVkLWxnIGZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8QWxlcnRUcmlhbmdsZSBzaXplPXsxOH0gLz4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7ZXJyb3J9DQogICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgKX0NCg0KICAgICAgICAgICAgICAgICAgICB7LyogU3RlcDogVXBsb2FkICovfQ0KICAgICAgICAgICAgICAgICAgICB7c3RlcCA9PT0gJ3VwbG9hZCcgJiYgKA0KICAgICAgICAgICAgICAgICAgICAgICAgPGRpdg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iYm9yZGVyLTIgYm9yZGVyLWRhc2hlZCByb3VuZGVkLXhsIHAtMTIgdGV4dC1jZW50ZXIgY3Vyc29yLXBvaW50ZXIgaG92ZXI6Ym9yZGVyLXByaW1hcnkvNTAgaG92ZXI6YmctcHJpbWFyeS81IHRyYW5zaXRpb24tY29sb3JzIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9uRHJhZ092ZXI9e2UgPT4gZS5wcmV2ZW50RGVmYXVsdCgpfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9uRHJvcD17aGFuZGxlRHJvcH0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBmaWxlSW5wdXRSZWYuY3VycmVudD8uY2xpY2soKX0NCiAgICAgICAgICAgICAgICAgICAgICAgID4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8aW5wdXQNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcmVmPXtmaWxlSW5wdXRSZWZ9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHR5cGU9ImZpbGUiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjY2VwdD0iLmNzdiwueGxzeCwueGxzIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9ImhpZGRlbiINCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gZS50YXJnZXQuZmlsZXM/LlswXSAmJiBoYW5kbGVGaWxlU2VsZWN0KGUudGFyZ2V0LmZpbGVzWzBdKX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxVcGxvYWQgc2l6ZT17NDh9IGNsYXNzTmFtZT0ibXgtYXV0byB0ZXh0LW11dGVkLWZvcmVncm91bmQgbWItNCIgLz4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8aDQgY2xhc3NOYW1lPSJ0ZXh0LWxnIGZvbnQtc2VtaWJvbGQgbWItMiI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHt1cGxvYWRpbmcgPyAnUHJvY2Vzc2FuZG8gYXJxdWl2by4uLicgOiAnQXJyYXN0ZSBvIGFycXVpdm8gb3UgY2xpcXVlIHBhcmEgc2VsZWNpb25hcid9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9oND4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtbXV0ZWQtZm9yZWdyb3VuZCB0ZXh0LXNtIj5Gb3JtYXRvcyBhY2VpdG9zOiBDU1YsIFhMU1gsIFhMUyDigJQgbcOheGltbyAxME1CPC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgICAgICl9DQoNCiAgICAgICAgICAgICAgICAgICAgey8qIFN0ZXA6IE1hcHBpbmcgKi99DQogICAgICAgICAgICAgICAgICAgIHtzdGVwID09PSAnbWFwcGluZycgJiYgKA0KICAgICAgICAgICAgICAgICAgICAgICAgPGRpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8aDQgY2xhc3NOYW1lPSJmb250LXNlbWlib2xkIG1iLTMiPk1hcGVhbWVudG8gZGUgQ29sdW5hczwvaDQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCBtYi00Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgQXNzb2NpZSBhcyBjb2x1bmFzIGRvIGFycXVpdm8gw6BzIGNvbHVuYXMgZG8gc2lzdGVtYToNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3A+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHtbJ2Rlc2NyaWNhbycsICd2YWxvcl91bml0YXJpbycsICd1bmlkYWRlJywgJ3RpcG9fZXNjb3BvJywgJ2NvZGlnb19pdGVtJ10ubWFwKGZpZWxkID0+ICgNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYga2V5PXtmaWVsZH0gY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0idy00MCBmb250LW1lZGl1bSB0ZXh0LXNtIGNhcGl0YWxpemUiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7ZmllbGQucmVwbGFjZSgnXycsICcgJyl9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHtbJ2Rlc2NyaWNhbycsICd2YWxvcl91bml0YXJpbycsICd1bmlkYWRlJ10uaW5jbHVkZXMoZmllbGQpICYmIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1yZWQtNTAwIG1sLTEiPio8L3NwYW4+fQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvbGFiZWw+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPEFycm93UmlnaHQgc2l6ZT17MTZ9IGNsYXNzTmFtZT0idGV4dC1tdXRlZC1mb3JlZ3JvdW5kIiAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzZWxlY3QNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmFsdWU9e21hcHBpbmdbZmllbGRdIHx8ICcnfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXRNYXBwaW5nKHsgLi4ubWFwcGluZywgW2ZpZWxkXTogZS50YXJnZXQudmFsdWUgfSl9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0iZmxleC0xIGJvcmRlciByb3VuZGVkLWxnIHAtMiB0ZXh0LXNtIGZvY3VzOm91dGxpbmUtbm9uZSBmb2N1czpyaW5nLTIgZm9jdXM6cmluZy1wcmltYXJ5LzMwIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgID4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0iIj7igJQgU2VsZWNpb25hciBjb2x1bmEg4oCUPC9vcHRpb24+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHtkZXRlY3RlZEhlYWRlcnMubWFwKGggPT4gPG9wdGlvbiBrZXk9e2h9IHZhbHVlPXtofT57aH08L29wdGlvbj4pfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvc2VsZWN0Pg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICkpfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGp1c3RpZnktZW5kIG10LTYiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiB7DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLy8gUmUtdXBsb2FkIHdpdGggY3VzdG9tIG1hcHBpbmcNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzZXRTdGVwKCdwcmV2aWV3Jyk7DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9fQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJiZy1wcmltYXJ5IHRleHQtcHJpbWFyeS1mb3JlZ3JvdW5kIHB4LTYgcHktMi41IHJvdW5kZWQtbGcgZm9udC1tZWRpdW0gc2hhZG93LXNtIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBQcsOzeGltbzogUHJldmlldw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2J1dHRvbj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgICAgICApfQ0KDQogICAgICAgICAgICAgICAgICAgIHsvKiBTdGVwOiBQcmV2aWV3ICovfQ0KICAgICAgICAgICAgICAgICAgICB7c3RlcCA9PT0gJ3ByZXZpZXcnICYmICgNCiAgICAgICAgICAgICAgICAgICAgICAgIDxkaXY+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgey8qIFN0YXRzICovfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy00IGdhcC0zIG1iLTQiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0icC0zIGJnLW11dGVkLzMwIHJvdW5kZWQtbGcgdGV4dC1jZW50ZXIiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQiPnt0b3RhbFJvd3N9PC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCI+TGluaGFzIGxpZGFzPC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtMyBiZy1lbWVyYWxkLTUwIHJvdW5kZWQtbGcgdGV4dC1jZW50ZXIiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC1lbWVyYWxkLTcwMCI+e3ZhbGlkUm93cy5sZW5ndGh9PC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtZW1lcmFsZC02MDAiPlbDoWxpZGFzPC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtMyBiZy1yZWQtNTAgcm91bmRlZC1sZyB0ZXh0LWNlbnRlciI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LXJlZC02MDAiPntpbnZhbGlkUm93cy5sZW5ndGh9PC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtcmVkLTUwMCI+Q29tIGVycm9zPC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtMyBiZy1hbWJlci01MCByb3VuZGVkLWxnIHRleHQtY2VudGVyIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1ib2xkIHRleHQtYW1iZXItNjAwIj57cHJldmlld1Jvd3MuZmlsdGVyKHIgPT4gIXIudGlwb19lc2NvcG8pLmxlbmd0aH08L3A+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1hbWJlci01MDAiPlNlbSB0aXBvIGVzY29wbzwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQoNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7LyogUHJldmlldyBUYWJsZSAqL30NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0ib3ZlcmZsb3cteC1hdXRvIGJvcmRlciByb3VuZGVkLWxnIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRhYmxlIGNsYXNzTmFtZT0idy1mdWxsIHRleHQtc20iPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoZWFkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ciBjbGFzc05hbWU9ImJnLW11dGVkLzMwIGJvcmRlci1iIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoIGNsYXNzTmFtZT0idGV4dC1sZWZ0IHB5LTIgcHgtMiBmb250LW1lZGl1bSB3LTgiPiM8L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJ0ZXh0LWxlZnQgcHktMiBweC0yIGZvbnQtbWVkaXVtIj5TdGF0dXM8L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJ0ZXh0LWxlZnQgcHktMiBweC0yIGZvbnQtbWVkaXVtIj5UaXBvPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoIGNsYXNzTmFtZT0idGV4dC1sZWZ0IHB5LTIgcHgtMiBmb250LW1lZGl1bSI+Q8OzZGlnbzwvdGg+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InRleHQtbGVmdCBweS0yIHB4LTIgZm9udC1tZWRpdW0iPkRlc2NyacOnw6NvPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoIGNsYXNzTmFtZT0idGV4dC1sZWZ0IHB5LTIgcHgtMiBmb250LW1lZGl1bSI+VW5pZGFkZTwvdGg+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InRleHQtcmlnaHQgcHktMiBweC0yIGZvbnQtbWVkaXVtIj5WYWxvciBVbml0LjwvdGg+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdGhlYWQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGJvZHkgY2xhc3NOYW1lPSJkaXZpZGUteSI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge3ByZXZpZXdSb3dzLm1hcCgocm93LCBpKSA9PiAoDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ciBrZXk9e2l9IGNsYXNzTmFtZT17YCR7cm93LnZhbGlkID8gJycgOiAnYmctcmVkLTUwLzUwJ30gaG92ZXI6YmctbXV0ZWQvMjBgfT4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB5LTEuNSBweC0yIHRleHQtbXV0ZWQtZm9yZWdyb3VuZCB0ZXh0LXhzIj57cm93LnJvd0luZGV4fTwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS0xLjUgcHgtMiI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge3Jvdy52YWxpZCA/ICgNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPENoZWNrQ2lyY2xlMiBzaXplPXsxNn0gY2xhc3NOYW1lPSJ0ZXh0LWVtZXJhbGQtNTAwIiAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICkgOiAoDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIHRpdGxlPXtyb3cuZXJyb3JzLmpvaW4oJywgJyl9IGNsYXNzTmFtZT0iY3Vyc29yLWhlbHAiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPEFsZXJ0VHJpYW5nbGUgc2l6ZT17MTZ9IGNsYXNzTmFtZT0idGV4dC1yZWQtNTAwIiAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NwYW4+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS0xLjUgcHgtMiI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHNlbGVjdA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT17cm93LnRpcG9fZXNjb3BvfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiB1cGRhdGVSb3dGaWVsZChpLCAndGlwb19lc2NvcG8nLCBlLnRhcmdldC52YWx1ZSl9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGJvcmRlciByb3VuZGVkIHB4LTEuNSBweS0wLjUgdGV4dC14cyBmb250LXNlbWlib2xkICR7IXJvdy50aXBvX2VzY29wbyA/ICdib3JkZXItYW1iZXItNDAwIGJnLWFtYmVyLTUwJyA6ICdiZy1iYWNrZ3JvdW5kJw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfWB9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSIiPuKAlDwvb3B0aW9uPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJTRVJWSUNPIj5TRVJWScOHTzwvb3B0aW9uPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJJTkZSQSI+SU5GUkE8L29wdGlvbj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3NlbGVjdD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS0xLjUgcHgtMiB0ZXh0LW11dGVkLWZvcmVncm91bmQgdGV4dC14cyI+e3Jvdy5jb2RpZ29faXRlbSB8fCAn4oCUJ308L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHktMS41IHB4LTIgZm9udC1tZWRpdW0gdGV4dC14cyBtYXgtdy14cyB0cnVuY2F0ZSIgdGl0bGU9e3Jvdy5kZXNjcmljYW99Pntyb3cuZGVzY3JpY2FvfTwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS0xLjUgcHgtMiI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGlucHV0DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHR5cGU9InRleHQiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHZhbHVlPXtyb3cudW5pZGFkZX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gdXBkYXRlUm93RmllbGQoaSwgJ3VuaWRhZGUnLCBlLnRhcmdldC52YWx1ZSl9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YGJvcmRlciByb3VuZGVkIHB4LTEuNSBweS0wLjUgdGV4dC14cyB3LTE0ICR7IXJvdy51bmlkYWRlID8gJ2JvcmRlci1yZWQtNDAwIGJnLXJlZC01MCcgOiAnJ31gfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHktMS41IHB4LTIgdGV4dC1yaWdodCBmb250LXNlbWlib2xkIHRleHQteHMiPntCUkwocm93LnZhbG9yX3VuaXRhcmlvKX08L3RkPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RyPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICkpfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90Ym9keT4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90YWJsZT4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIHtwcmV2aWV3Um93cy5sZW5ndGggPCB0b3RhbFJvd3MgJiYgKA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIG10LTIiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTW9zdHJhbmRvIHtwcmV2aWV3Um93cy5sZW5ndGh9IGRlIHt0b3RhbFJvd3N9IGxpbmhhcy4gVG9kYXMgc2Vyw6NvIGltcG9ydGFkYXMgbmEgY29uZmlybWHDp8Ojby4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICl9DQogICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgKX0NCg0KICAgICAgICAgICAgICAgICAgICB7LyogU3RlcDogRG9uZSAqL30NCiAgICAgICAgICAgICAgICAgICAge3N0ZXAgPT09ICdkb25lJyAmJiBpbXBvcnRSZXN1bHQgJiYgKA0KICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InRleHQtY2VudGVyIHB5LTgiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxDaGVja0NpcmNsZTIgc2l6ZT17NTZ9IGNsYXNzTmFtZT0ibXgtYXV0byB0ZXh0LWVtZXJhbGQtNTAwIG1iLTQiIC8+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGg0IGNsYXNzTmFtZT0idGV4dC0yeGwgZm9udC1ib2xkIG1iLTIiPkltcG9ydGHDp8OjbyBDb25jbHXDrWRhITwvaDQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LW11dGVkLWZvcmVncm91bmQiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9InRleHQtZW1lcmFsZC02MDAgZm9udC1zZW1pYm9sZCI+e2ltcG9ydFJlc3VsdC5pbXBvcnRlZH08L3NwYW4+IGl0ZW5zIGltcG9ydGFkb3MNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAge2ltcG9ydFJlc3VsdC5za2lwcGVkID4gMCAmJiA8PiwgPHNwYW4gY2xhc3NOYW1lPSJ0ZXh0LWFtYmVyLTYwMCBmb250LXNlbWlib2xkIj57aW1wb3J0UmVzdWx0LnNraXBwZWR9PC9zcGFuPiBpZ25vcmFkb3M8Lz59Lg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9e29uQ29tcGxldGV9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0ibXQtNiBiZy1wcmltYXJ5IHRleHQtcHJpbWFyeS1mb3JlZ3JvdW5kIHB4LTYgcHktMi41IHJvdW5kZWQtbGcgZm9udC1tZWRpdW0gc2hhZG93LXNtIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgID4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgRmVjaGFyDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+DQogICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgKX0NCiAgICAgICAgICAgICAgICA8L2Rpdj4NCg0KICAgICAgICAgICAgICAgIHsvKiBGb290ZXIgKi99DQogICAgICAgICAgICAgICAge3N0ZXAgPT09ICdwcmV2aWV3JyAmJiAoDQogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJib3JkZXItdCBweC02IHB5LTQgZmxleCBqdXN0aWZ5LWJldHdlZW4gaXRlbXMtY2VudGVyIj4NCiAgICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LW11dGVkLWZvcmVncm91bmQiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIHt2YWxpZFJvd3MubGVuZ3RofSBsaW5oYXMgc2Vyw6NvIGltcG9ydGFkYXMNCiAgICAgICAgICAgICAgICAgICAgICAgIDwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGdhcC0zIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e29uQ2xvc2V9IGNsYXNzTmFtZT0icHgtNCBweS0yLjUgYm9yZGVyIHJvdW5kZWQtbGcgaG92ZXI6YmctbXV0ZWQgZm9udC1tZWRpdW0iPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBDYW5jZWxhcg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DbGljaz17aGFuZGxlQ29uZmlybX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZGlzYWJsZWQ9e2NvbmZpcm1pbmcgfHwgdmFsaWRSb3dzLmxlbmd0aCA9PT0gMH0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJiZy1lbWVyYWxkLTYwMCB0ZXh0LXdoaXRlIHB4LTYgcHktMi41IHJvdW5kZWQtbGcgZm9udC1tZWRpdW0gc2hhZG93LXNtIGhvdmVyOmJnLWVtZXJhbGQtNzAwIGRpc2FibGVkOm9wYWNpdHktNTAiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7Y29uZmlybWluZyA/ICdJbXBvcnRhbmRvLi4uJyA6IGBDb25maXJtYXIgSW1wb3J0YcOnw6NvICgke3ZhbGlkUm93cy5sZW5ndGh9IGl0ZW5zKWB9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+DQogICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgKX0NCiAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICA8L2Rpdj4NCiAgICApOw0KfQ0K"}
+import { useState, useRef } from 'react';
+import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, X, ArrowRight } from 'lucide-react';
+
+interface ParsedRow {
+    rowIndex: number;
+    descricao: string;
+    valor_unitario: number;
+    unidade: string;
+    tipo_escopo: string;
+    codigo_item?: string;
+    subtipo?: string;
+    observacoes?: string;
+    valid: boolean;
+    errors: string[];
+}
+
+interface ImportPreviewProps {
+    pricebookId: string;
+    supplierId: string;
+    onClose: () => void;
+    onComplete: () => void;
+}
+
+type Step = 'upload' | 'mapping' | 'preview' | 'done';
+
+export function ImportPreview({ pricebookId, supplierId, onClose, onComplete }: ImportPreviewProps) {
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [step, setStep] = useState<Step>('upload');
+    const [uploading, setUploading] = useState(false);
+    const [confirming, setConfirming] = useState(false);
+    const [error, setError] = useState('');
+
+    // Data from server
+    const [batchId, setBatchId] = useState('');
+    const [detectedHeaders, setDetectedHeaders] = useState<string[]>([]);
+    const [mapping, setMapping] = useState<Record<string, string>>({});
+    const [previewRows, setPreviewRows] = useState<ParsedRow[]>([]);
+    const [totalRows, setTotalRows] = useState(0);
+    const [validCount, setValidCount] = useState(0);
+    const [invalidCount, setInvalidCount] = useState(0);
+    const [pendingTipoEscopo, setPendingTipoEscopo] = useState(0);
+
+    // Import result
+    const [importResult, setImportResult] = useState<{ imported: number; skipped: number } | null>(null);
+
+    const BRL = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+
+    const handleFileSelect = async (file: File) => {
+        setUploading(true);
+        setError('');
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('supplier_id', supplierId);
+            formData.append('pricebook_id', pricebookId);
+
+            const resp = await fetch('/api/import/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.error || 'Erro ao processar arquivo');
+            }
+
+            const data = await resp.json();
+            setBatchId(data.batchId);
+            setDetectedHeaders(data.detectedHeaders || []);
+            setMapping(data.suggestedMapping || {});
+            setPreviewRows(data.previewRows || []);
+            setTotalRows(data.totalRows || 0);
+            setValidCount(data.validCount || 0);
+            setInvalidCount(data.invalidCount || 0);
+            setPendingTipoEscopo(data.pendingTipoEscopo || 0);
+
+            // If mapping looks good, jump straight to preview
+            if (data.suggestedMapping?.descricao && data.suggestedMapping?.valor_unitario) {
+                setStep('preview');
+            } else {
+                setStep('mapping');
+            }
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file) handleFileSelect(file);
+    };
+
+    const updateRowField = (index: number, field: keyof ParsedRow, value: string) => {
+        setPreviewRows(prev => prev.map((row, i) => {
+            if (i !== index) return row;
+            const updated = { ...row, [field]: value };
+            // Revalidate
+            const errors: string[] = [];
+            if (!updated.descricao) errors.push('Descrição obrigatória');
+            if (!updated.unidade) errors.push('Unidade obrigatória');
+            if (!updated.tipo_escopo || !['SERVICO', 'INFRA'].includes(updated.tipo_escopo)) {
+                if (!updated.tipo_escopo) errors.push('Tipo escopo obrigatório');
+            }
+            updated.errors = errors;
+            updated.valid = errors.length === 0 && !!updated.tipo_escopo;
+            return updated;
+        }));
+    };
+
+    const handleConfirm = async () => {
+        setConfirming(true);
+        setError('');
+        try {
+            const resp = await fetch(`/api/import/batches/${batchId}/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rows: previewRows }),
+            });
+
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.error || 'Erro ao confirmar importação');
+            }
+
+            const result = await resp.json();
+            setImportResult(result);
+            setStep('done');
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setConfirming(false);
+        }
+    };
+
+    const validRows = previewRows.filter(r => r.valid);
+    const invalidRows = previewRows.filter(r => !r.valid);
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-background rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b">
+                    <div className="flex items-center gap-3">
+                        <FileSpreadsheet className="text-primary" size={22} />
+                        <h3 className="text-xl font-bold">Importar Itens da LPU</h3>
+                        <div className="flex items-center gap-1 ml-4">
+                            {['upload', 'mapping', 'preview', 'done'].map((s, i) => (
+                                <div key={s} className="flex items-center gap-1">
+                                    <div className={`w-2.5 h-2.5 rounded-full ${s === step ? 'bg-primary' :
+                                            ['upload', 'mapping', 'preview', 'done'].indexOf(step) > i ? 'bg-emerald-500' : 'bg-gray-300'
+                                        }`} />
+                                    {i < 3 && <div className="w-6 h-0.5 bg-gray-200" />}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-1.5 hover:bg-muted rounded-md">
+                        <X size={20} />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-6">
+                    {error && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-center gap-2">
+                            <AlertTriangle size={18} />
+                            {error}
+                        </div>
+                    )}
+
+                    {/* Step: Upload */}
+                    {step === 'upload' && (
+                        <div
+                            className="border-2 border-dashed rounded-xl p-12 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors"
+                            onDragOver={e => e.preventDefault()}
+                            onDrop={handleDrop}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept=".csv,.xlsx,.xls"
+                                className="hidden"
+                                onChange={e => e.target.files?.[0] && handleFileSelect(e.target.files[0])}
+                            />
+                            <Upload size={48} className="mx-auto text-muted-foreground mb-4" />
+                            <h4 className="text-lg font-semibold mb-2">
+                                {uploading ? 'Processando arquivo...' : 'Arraste o arquivo ou clique para selecionar'}
+                            </h4>
+                            <p className="text-muted-foreground text-sm">Formatos aceitos: CSV, XLSX, XLS — máximo 10MB</p>
+                        </div>
+                    )}
+
+                    {/* Step: Mapping */}
+                    {step === 'mapping' && (
+                        <div>
+                            <h4 className="font-semibold mb-3">Mapeamento de Colunas</h4>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Associe as colunas do arquivo às colunas do sistema:
+                            </p>
+                            <div className="space-y-3">
+                                {['descricao', 'valor_unitario', 'unidade', 'tipo_escopo', 'codigo_item'].map(field => (
+                                    <div key={field} className="flex items-center gap-3">
+                                        <label className="w-40 font-medium text-sm capitalize">
+                                            {field.replace('_', ' ')}
+                                            {['descricao', 'valor_unitario', 'unidade'].includes(field) && <span className="text-red-500 ml-1">*</span>}
+                                        </label>
+                                        <ArrowRight size={16} className="text-muted-foreground" />
+                                        <select
+                                            value={mapping[field] || ''}
+                                            onChange={e => setMapping({ ...mapping, [field]: e.target.value })}
+                                            className="flex-1 border rounded-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                        >
+                                            <option value="">— Selecionar coluna —</option>
+                                            {detectedHeaders.map(h => <option key={h} value={h}>{h}</option>)}
+                                        </select>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex justify-end mt-6">
+                                <button
+                                    onClick={() => {
+                                        // Re-upload with custom mapping
+                                        setStep('preview');
+                                    }}
+                                    className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg font-medium shadow-sm"
+                                >
+                                    Próximo: Preview
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step: Preview */}
+                    {step === 'preview' && (
+                        <div>
+                            {/* Stats */}
+                            <div className="grid grid-cols-4 gap-3 mb-4">
+                                <div className="p-3 bg-muted/30 rounded-lg text-center">
+                                    <p className="text-2xl font-bold">{totalRows}</p>
+                                    <p className="text-xs text-muted-foreground">Linhas lidas</p>
+                                </div>
+                                <div className="p-3 bg-emerald-50 rounded-lg text-center">
+                                    <p className="text-2xl font-bold text-emerald-700">{validRows.length}</p>
+                                    <p className="text-xs text-emerald-600">Válidas</p>
+                                </div>
+                                <div className="p-3 bg-red-50 rounded-lg text-center">
+                                    <p className="text-2xl font-bold text-red-600">{invalidRows.length}</p>
+                                    <p className="text-xs text-red-500">Com erros</p>
+                                </div>
+                                <div className="p-3 bg-amber-50 rounded-lg text-center">
+                                    <p className="text-2xl font-bold text-amber-600">{previewRows.filter(r => !r.tipo_escopo).length}</p>
+                                    <p className="text-xs text-amber-500">Sem tipo escopo</p>
+                                </div>
+                            </div>
+
+                            {/* Preview Table */}
+                            <div className="overflow-x-auto border rounded-lg">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="bg-muted/30 border-b">
+                                            <th className="text-left py-2 px-2 font-medium w-8">#</th>
+                                            <th className="text-left py-2 px-2 font-medium">Status</th>
+                                            <th className="text-left py-2 px-2 font-medium">Tipo</th>
+                                            <th className="text-left py-2 px-2 font-medium">Código</th>
+                                            <th className="text-left py-2 px-2 font-medium">Descrição</th>
+                                            <th className="text-left py-2 px-2 font-medium">Unidade</th>
+                                            <th className="text-right py-2 px-2 font-medium">Valor Unit.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {previewRows.map((row, i) => (
+                                            <tr key={i} className={`${row.valid ? '' : 'bg-red-50/50'} hover:bg-muted/20`}>
+                                                <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.rowIndex}</td>
+                                                <td className="py-1.5 px-2">
+                                                    {row.valid ? (
+                                                        <CheckCircle2 size={16} className="text-emerald-500" />
+                                                    ) : (
+                                                        <span title={row.errors.join(', ')} className="cursor-help">
+                                                            <AlertTriangle size={16} className="text-red-500" />
+                                                        </span>
+                                                    )}
+                                                </td>
+                                                <td className="py-1.5 px-2">
+                                                    <select
+                                                        value={row.tipo_escopo}
+                                                        onChange={e => updateRowField(i, 'tipo_escopo', e.target.value)}
+                                                        className={`border rounded px-1.5 py-0.5 text-xs font-semibold ${!row.tipo_escopo ? 'border-amber-400 bg-amber-50' : 'bg-background'
+                                                            }`}
+                                                    >
+                                                        <option value="">—</option>
+                                                        <option value="SERVICO">SERVIÇO</option>
+                                                        <option value="INFRA">INFRA</option>
+                                                    </select>
+                                                </td>
+                                                <td className="py-1.5 px-2 text-muted-foreground text-xs">{row.codigo_item || '—'}</td>
+                                                <td className="py-1.5 px-2 font-medium text-xs max-w-xs truncate" title={row.descricao}>{row.descricao}</td>
+                                                <td className="py-1.5 px-2">
+                                                    <input
+                                                        type="text"
+                                                        value={row.unidade}
+                                                        onChange={e => updateRowField(i, 'unidade', e.target.value)}
+                                                        className={`border rounded px-1.5 py-0.5 text-xs w-14 ${!row.unidade ? 'border-red-400 bg-red-50' : ''}`}
+                                                    />
+                                                </td>
+                                                <td className="py-1.5 px-2 text-right font-semibold text-xs">{BRL(row.valor_unitario)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {previewRows.length < totalRows && (
+                                <p className="text-xs text-muted-foreground mt-2">
+                                    Mostrando {previewRows.length} de {totalRows} linhas. Todas serão importadas na confirmação.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Step: Done */}
+                    {step === 'done' && importResult && (
+                        <div className="text-center py-8">
+                            <CheckCircle2 size={56} className="mx-auto text-emerald-500 mb-4" />
+                            <h4 className="text-2xl font-bold mb-2">Importação Concluída!</h4>
+                            <p className="text-muted-foreground">
+                                <span className="text-emerald-600 font-semibold">{importResult.imported}</span> itens importados
+                                {importResult.skipped > 0 && <>, <span className="text-amber-600 font-semibold">{importResult.skipped}</span> ignorados</>}.
+                            </p>
+                            <button
+                                onClick={onComplete}
+                                className="mt-6 bg-primary text-primary-foreground px-6 py-2.5 rounded-lg font-medium shadow-sm"
+                            >
+                                Fechar
+                            </button>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer */}
+                {step === 'preview' && (
+                    <div className="border-t px-6 py-4 flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground">
+                            {validRows.length} linhas serão importadas
+                        </p>
+                        <div className="flex gap-3">
+                            <button onClick={onClose} className="px-4 py-2.5 border rounded-lg hover:bg-muted font-medium">
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleConfirm}
+                                disabled={confirming || validRows.length === 0}
+                                className="bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-medium shadow-sm hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                                {confirming ? 'Importando...' : `Confirmar Importação (${validRows.length} itens)`}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

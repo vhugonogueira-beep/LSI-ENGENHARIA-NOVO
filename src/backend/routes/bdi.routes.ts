@@ -1,1 +1,9 @@
-{"data":"aW1wb3J0IHsgUm91dGVyIH0gZnJvbSAnZXhwcmVzcyc7DQppbXBvcnQgeyBCZGlDb250cm9sbGVyIH0gZnJvbSAnLi4vY29udHJvbGxlcnMvYmRpLmNvbnRyb2xsZXInOw0KDQpjb25zdCByb3V0ZXIgPSBSb3V0ZXIoKTsNCg0Kcm91dGVyLmdldCgnL3N1Z2dlc3QnLCBCZGlDb250cm9sbGVyLmdldFN1Z2dlc3Rpb24pOw0Kcm91dGVyLnBvc3QoJy9ydWxlcycsIEJkaUNvbnRyb2xsZXIuc2F2ZVJ1bGUpOw0KDQpleHBvcnQgZGVmYXVsdCByb3V0ZXI7DQo="}
+import { Router } from 'express';
+import { BdiController } from '../controllers/bdi.controller';
+
+const router = Router();
+
+router.get('/suggest', BdiController.getSuggestion);
+router.post('/rules', BdiController.saveRule);
+
+export default router;

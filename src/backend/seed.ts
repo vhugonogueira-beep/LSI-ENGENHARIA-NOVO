@@ -1,1 +1,221 @@
-{"data":"aW1wb3J0IHsgUHJpc21hQ2xpZW50IH0gZnJvbSAnQHByaXNtYS9jbGllbnQnOw0KDQpjb25zdCBwcmlzbWEgPSBuZXcgUHJpc21hQ2xpZW50KCk7DQoNCmZ1bmN0aW9uIG5vcm1hbGl6YXJEZXNjcmljYW8odGV4dG86IHN0cmluZyk6IHN0cmluZyB7DQogICAgaWYgKCF0ZXh0bykgcmV0dXJuICcnOw0KICAgIHJldHVybiB0ZXh0bw0KICAgICAgICAudG9Mb3dlckNhc2UoKQ0KICAgICAgICAubm9ybWFsaXplKCdORkQnKS5yZXBsYWNlKC9bXHUwMzAwLVx1MDM2Zl0vZywgIiIpDQogICAgICAgIC5yZXBsYWNlKC9bXlx3XHNdfF8vZywgIiIpDQogICAgICAgIC5yZXBsYWNlKC9ccysvZywgIiAiKQ0KICAgICAgICAudHJpbSgpOw0KfQ0KDQphc3luYyBmdW5jdGlvbiBtYWluKCkgew0KICAgIGNvbnNvbGUubG9nKCJTZWVkaW5nIGRhdGFiYXNlLi4uIik7DQoNCiAgICAvLyAxLiBDcmlhciBUZW5hbnQNCiAgICBjb25zdCB0ZW5hbnQgPSBhd2FpdCBwcmlzbWEudGVuYW50LmNyZWF0ZSh7DQogICAgICAgIGRhdGE6IHsgbm9tZTogIkxTIE9mZmljZSIgfQ0KICAgIH0pOw0KICAgIGNvbnNvbGUubG9nKCJUZW5hbnQgY3JlYXRlZDoiLCB0ZW5hbnQuaWQpOw0KDQogICAgLy8gMi4gQ3JpYXIgVXN1w6FyaW8gQWRtaW4NCiAgICBhd2FpdCBwcmlzbWEudXNlci5jcmVhdGUoew0KICAgICAgICBkYXRhOiB7DQogICAgICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudC5pZCwNCiAgICAgICAgICAgIG5vbWU6ICJBZG1pbiBMUyIsDQogICAgICAgICAgICBlbWFpbDogImFkbWluQGxzb2ZmaWNlLmNvbSIsDQogICAgICAgICAgICBzZW5oYV9oYXNoOiAiMTIzNDU2IiwNCiAgICAgICAgICAgIHJvbGU6ICJBRE1JTiINCiAgICAgICAgfQ0KICAgIH0pOw0KDQogICAgLy8gMy4gQ3JpYXIgQ29udHJhdGFudGUgKEhJR0hMSU5FKQ0KICAgIGNvbnN0IGNvbnRyYXRhbnRlID0gYXdhaXQgcHJpc21hLmNvbnRyYXRhbnRlLmNyZWF0ZSh7DQogICAgICAgIGRhdGE6IHsNCiAgICAgICAgICAgIHRlbmFudF9pZDogdGVuYW50LmlkLA0KICAgICAgICAgICAgbm9tZTogIkhJR0hMSU5FIiwNCiAgICAgICAgICAgIGNvbnRhdG9fbm9tZTogIkNvbnRhdG8gVGVzdGUiDQogICAgICAgIH0NCiAgICB9KTsNCg0KICAgIC8vIDQuIENyaWFyIFNpdGUNCiAgICBjb25zdCBzaXRlID0gYXdhaXQgcHJpc21hLnNpdGUuY3JlYXRlKHsNCiAgICAgICAgZGF0YTogew0KICAgICAgICAgICAgdGVuYW50X2lkOiB0ZW5hbnQuaWQsDQogICAgICAgICAgICBpZF9zaXRlOiAiUkpDQU0xNV8wMDEgLyBSSkNNUDAzMSIsDQogICAgICAgICAgICBjaWRhZGU6ICJSaW8gZGUgSmFuZWlybyIsDQogICAgICAgICAgICB1ZjogIlJKIg0KICAgICAgICB9DQogICAgfSk7DQoNCiAgICAvLyA1LiBDb25maWcgZG8gVGVtcGxhdGUNCiAgICBjb25zdCB0ZW1wbGF0ZUNvbmZpZyA9IHsNCiAgICAgICAgbm9tZTogIkVuZXJnaWEg4oCTIFVSICsgTWFudXRlbsOnw6NvIEZDQyArIEJhdGVyaWEiLA0KICAgICAgICBkZXNjcmljYW86ICJUUEwtRU5FLVVSLUZDQy1CQVQiLA0KICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudC5pZCwNCiAgICB9Ow0KDQogICAgY29uc3QgdGVtcGxhdGVJdGVtcyA9IFsNCiAgICAgICAgeyBibG9jb19pZDogIk1PQklMSVpBQ0FPIiwgY29kaWdvX2l0ZW06ICIwMSIsIHRpdHVsbzogIk1vYmlsaXphw6fDo28iLCBkZXNjcmljYW86ICJNb2JpbGl6YcOnw6NvIGRlIGVxdWlwZSwgZmVycmFtZW50YXMuLi4iLCB1bmlkYWRlOiAidmIiLCBvcmRlbTogMTAgfSwNCiAgICAgICAgeyBibG9jb19pZDogIlNFUlZJQ09TIiwgY29kaWdvX2l0ZW06ICIwMiIsIHRpdHVsbzogIlNlcnZpw6dvcyIsIGRlc2NyaWNhbzogIlNlcnZpw6dvcyB0w6ljbmljb3MuLi4iLCB1bmlkYWRlOiAidmIiLCBvcmRlbTogMjAgfSwNCiAgICAgICAgeyBibG9jb19pZDogIlNFUlZJQ09TIiwgY29kaWdvX2l0ZW06ICIwMi4xIiwgdGl0dWxvOiAiSW5zdGFsYcOnw6NvIC8gQWp1c3RlcyBlbSBVUiIsIGRlc2NyaWNhbzogIlNlcnZpw6dvIGRlIGluc3RhbGHDp8Ojby4uLiIsIHVuaWRhZGU6ICJ2YiIsIG9yZGVtOiAyMSB9LA0KICAgICAgICB7IGJsb2NvX2lkOiAiU0VSVklDT1MiLCBjb2RpZ29faXRlbTogIjAyLjIiLCB0aXR1bG86ICJNYW51dGVuw6fDo28gRkNDIiwgZGVzY3JpY2FvOiAiTWFudXRlbsOnw6NvIGRvIGdhYmluZXRlLi4uIiwgdW5pZGFkZTogInZiIiwgb3JkZW06IDIyIH0sDQogICAgICAgIHsgYmxvY29faWQ6ICJTRVJWSUNPUyIsIGNvZGlnb19pdGVtOiAiMDIuMyIsIHRpdHVsbzogIk1hbnV0ZW7Dp8OjbyAvIFN1YnN0aXR1acOnw6NvIGRlIEJhdGVyaWFzIiwgZGVzY3JpY2FvOiAiU2VydmnDp29zIHJlbGFjaW9uYWRvcyBhIGJhbmNvLi4uIiwgdW5pZGFkZTogInZiIiwgb3JkZW06IDIzIH0sDQogICAgICAgIHsgYmxvY29faWQ6ICJJTkZSQSIsIGNvZGlnb19pdGVtOiAiMDMiLCB0aXR1bG86ICJJbmZyYSDigJMgRm9ybmVjaW1lbnRvIGUgSW5zdGFsYcOnw6NvIiwgZGVzY3JpY2FvOiAiTWF0ZXJpYWlzL2luZnJhZXN0cnV0dXJhLi4uIiwgdW5pZGFkZTogInZiIiwgb3JkZW06IDMwIH0NCiAgICBdOw0KDQogICAgY29uc3QgdGVtcGxhdGUgPSBhd2FpdCBwcmlzbWEuYnVkZ2V0VGVtcGxhdGUuY3JlYXRlKHsgZGF0YTogdGVtcGxhdGVDb25maWcgfSk7DQoNCiAgICBhd2FpdCBwcmlzbWEuYnVkZ2V0VGVtcGxhdGVJdGVtLmNyZWF0ZU1hbnkoew0KICAgICAgICBkYXRhOiB0ZW1wbGF0ZUl0ZW1zLm1hcChpdGVtID0+ICh7IC4uLml0ZW0sIHRlbXBsYXRlX2lkOiB0ZW1wbGF0ZS5pZCB9KSkNCiAgICB9KTsNCg0KICAgIC8vIDYuIENyaWFyIEl0ZW5zIGRlIENhdMOhbG9nbw0KICAgIGNvbnN0IGNhdGFsb2dJdGVtcyA9IFsNCiAgICAgICAgeyBjb2RpZ286ICJNT0ItMDEiLCB0aXR1bG86ICJNb2JpbGl6YcOnw6NvIiwgdW5pZGFkZV9wYWRyYW86ICJ2YiIsIGNhdGVnb3JpYTogIk9VVFJPUyIgfSwNCiAgICAgICAgeyBjb2RpZ286ICJFTkUtMDEiLCB0aXR1bG86ICJJbnN0YWxhw6fDo28gLyBBanVzdGVzIGVtIFVSIiwgdW5pZGFkZV9wYWRyYW86ICJ2YiIsIGNhdGVnb3JpYTogIkVORVJHSUEiIH0sDQogICAgICAgIHsgY29kaWdvOiAiRU5FLTAyIiwgdGl0dWxvOiAiTWFudXRlbsOnw6NvIEZDQyIsIHVuaWRhZGVfcGFkcmFvOiAidmIiLCBjYXRlZ29yaWE6ICJFTkVSR0lBIiB9LA0KICAgICAgICB7IGNvZGlnbzogIkVORS0wMyIsIHRpdHVsbzogIlN1YnN0aXR1acOnw6NvIGRlIEJhdGVyaWFzIiwgdW5pZGFkZV9wYWRyYW86ICJ2YiIsIGNhdGVnb3JpYTogIkVORVJHSUEiIH0sDQogICAgICAgIHsgY29kaWdvOiAiSU5GLTAxIiwgdGl0dWxvOiAiSW5mcmEg4oCTIEZvcm5lY2ltZW50byIsIHVuaWRhZGVfcGFkcmFvOiAidmIiLCBjYXRlZ29yaWE6ICJDSVZJTCIgfSwNCiAgICBdOw0KDQogICAgYXdhaXQgcHJpc21hLmNhdGFsb2dTZXJ2aWNlLmNyZWF0ZU1hbnkoew0KICAgICAgICBkYXRhOiBjYXRhbG9nSXRlbXMubWFwKGl0ZW0gPT4gKHsgLi4uaXRlbSwgdGVuYW50X2lkOiB0ZW5hbnQuaWQsIHZhbG9yX2Jhc2U6IDAsIGJkaV9zdWdlcmlkb19wZXJjZW50OiAwIH0pKQ0KICAgIH0pOw0KDQogICAgLy8g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQDQogICAgLy8gNy4gRm9ybmVjZWRvcmVzIChTdXBwbGllcnMpICsgUHJpY2VCb29rcyArIFByaWNlQm9va0l0ZW1zDQogICAgLy8g4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQ4pWQDQoNCiAgICBjb25zb2xlLmxvZygiQ3JlYXRpbmcgc3VwcGxpZXJzLi4uIik7DQoNCiAgICBjb25zdCBoaWdobGluZSA9IGF3YWl0IHByaXNtYS5zdXBwbGllci5jcmVhdGUoew0KICAgICAgICBkYXRhOiB7DQogICAgICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudC5pZCwNCiAgICAgICAgICAgIG5vbWU6ICJIaWdobGluZSIsDQogICAgICAgICAgICBjbnBqOiAiMTIuMzQ1LjY3OC8wMDAxLTAxIiwNCiAgICAgICAgICAgIGVtYWlsOiAiY29udGF0b0BoaWdobGluZS5jb20uYnIiLA0KICAgICAgICAgICAgdGVsZWZvbmU6ICIoMjEpIDMzMzMtNDQ0NCIsDQogICAgICAgICAgICBsb2dvX3VybDogImh0dHBzOi8vdXBsb2FkLndpa2ltZWRpYS5vcmcvd2lraXBlZGlhL2NvbW1vbnMvdGh1bWIvYS9hOS9GbGFnX29mX3RoZV9Vbml0ZWRfU3RhdGVzXyUyOERvU19FQ0FfQ29sb3JfU3RhbmRhcmQlMjkuc3ZnLzYwcHgtRmxhZ19vZl90aGVfVW5pdGVkX1N0YXRlc18lMjhEb1NfRUNBX0NvbG9yX1N0YW5kYXJkJTI5LnN2Zy5wbmciLA0KICAgICAgICB9DQogICAgfSk7DQoNCiAgICBjb25zdCB3aW5pdHkgPSBhd2FpdCBwcmlzbWEuc3VwcGxpZXIuY3JlYXRlKHsNCiAgICAgICAgZGF0YTogew0KICAgICAgICAgICAgdGVuYW50X2lkOiB0ZW5hbnQuaWQsDQogICAgICAgICAgICBub21lOiAiV2luaXR5IiwNCiAgICAgICAgICAgIGNucGo6ICIyMi4zMzMuNDQ0LzAwMDEtNTUiLA0KICAgICAgICAgICAgZW1haWw6ICJjb21lcmNpYWxAd2luaXR5LmNvbS5iciIsDQogICAgICAgICAgICB0ZWxlZm9uZTogIigxMSkgNTU1NS02NjY2IiwNCiAgICAgICAgfQ0KICAgIH0pOw0KDQogICAgY29uc3Qgc2JhID0gYXdhaXQgcHJpc21hLnN1cHBsaWVyLmNyZWF0ZSh7DQogICAgICAgIGRhdGE6IHsNCiAgICAgICAgICAgIHRlbmFudF9pZDogdGVuYW50LmlkLA0KICAgICAgICAgICAgbm9tZTogIlNCQSBDb21tdW5pY2F0aW9ucyIsDQogICAgICAgICAgICBjbnBqOiAiMzMuNDQ0LjU1NS8wMDAxLTc3IiwNCiAgICAgICAgICAgIGVtYWlsOiAiYnJhemlsQHNiYXNpdGUuY29tIiwNCiAgICAgICAgfQ0KICAgIH0pOw0KDQogICAgY29uc29sZS5sb2coIlN1cHBsaWVycyBjcmVhdGVkOiIsIGhpZ2hsaW5lLmlkLCB3aW5pdHkuaWQsIHNiYS5pZCk7DQoNCiAgICAvLyBQcmljZUJvb2sgcGFyYSBIaWdobGluZQ0KICAgIGNvbnN0IHBiSGlnaGxpbmUgPSBhd2FpdCBwcmlzbWEucHJpY2VCb29rLmNyZWF0ZSh7DQogICAgICAgIGRhdGE6IHsNCiAgICAgICAgICAgIHRlbmFudF9pZDogdGVuYW50LmlkLA0KICAgICAgICAgICAgc3VwcGxpZXJfaWQ6IGhpZ2hsaW5lLmlkLA0KICAgICAgICAgICAgbm9tZV9scHU6ICJMUFUgSGlnaGxpbmUgMjAyNiAtIFN1ZGVzdGUiLA0KICAgICAgICAgICAgcmVnaWFvOiAiU1VERVNURSIsDQogICAgICAgICAgICBkYXRhX2luaWNpb192aWdlbmNpYTogbmV3IERhdGUoIjIwMjYtMDEtMDEiKSwNCiAgICAgICAgICAgIGRhdGFfZmltX3ZpZ2VuY2lhOiBuZXcgRGF0ZSgiMjAyNi0xMi0zMSIpLA0KICAgICAgICB9DQogICAgfSk7DQoNCiAgICAvLyBQcmljZUJvb2sgcGFyYSBXaW5pdHkNCiAgICBjb25zdCBwYldpbml0eSA9IGF3YWl0IHByaXNtYS5wcmljZUJvb2suY3JlYXRlKHsNCiAgICAgICAgZGF0YTogew0KICAgICAgICAgICAgdGVuYW50X2lkOiB0ZW5hbnQuaWQsDQogICAgICAgICAgICBzdXBwbGllcl9pZDogd2luaXR5LmlkLA0KICAgICAgICAgICAgbm9tZV9scHU6ICJMUFUgV2luaXR5IDIwMjYgLSBOb3JkZXN0ZSIsDQogICAgICAgICAgICByZWdpYW86ICJOT1JERVNURSIsDQogICAgICAgICAgICBkYXRhX2luaWNpb192aWdlbmNpYTogbmV3IERhdGUoIjIwMjYtMDEtMDEiKSwNCiAgICAgICAgfQ0KICAgIH0pOw0KDQogICAgY29uc29sZS5sb2coIlByaWNlQm9va3MgY3JlYXRlZDoiLCBwYkhpZ2hsaW5lLmlkLCBwYldpbml0eS5pZCk7DQoNCiAgICAvLyBQcmljZUJvb2tJdGVtcyBwYXJhIEhpZ2hsaW5lDQogICAgY29uc3QgaGlnaGxpbmVJdGVtcyA9IFsNCiAgICAgICAgLy8gU0VSVknDh09TDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJTRVJWSUNPIiwgY29kaWdvX2l0ZW06ICJTLTAxIiwgZGVzY3JpY2FvOiAiTW9iaWxpemHDp8OjbyBkZSBlcXVpcGUgdMOpY25pY2EgKGF0w6kgMTAwa20pIiwgdW5pZGFkZTogInZiIiwgdmFsb3JfdW5pdGFyaW86IDEyMDAuMDAgfSwNCiAgICAgICAgeyB0aXBvX2VzY29wbzogIlNFUlZJQ08iLCBjb2RpZ29faXRlbTogIlMtMDIiLCBkZXNjcmljYW86ICJEZXNtb2JpbGl6YcOnw6NvIGRlIGVxdWlwZSB0w6ljbmljYSAoYXTDqSAxMDBrbSkiLCB1bmlkYWRlOiAidmIiLCB2YWxvcl91bml0YXJpbzogODAwLjAwIH0sDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJTRVJWSUNPIiwgY29kaWdvX2l0ZW06ICJTLTAzIiwgZGVzY3JpY2FvOiAiSW5zdGFsYcOnw6NvIGRlIFVSIChVbmlkYWRlIFJldGlmaWNhZG9yYSkiLCB1bmlkYWRlOiAidmIiLCB2YWxvcl91bml0YXJpbzogMzUwMC4wMCB9LA0KICAgICAgICB7IHRpcG9fZXNjb3BvOiAiU0VSVklDTyIsIGNvZGlnb19pdGVtOiAiUy0wNCIsIGRlc2NyaWNhbzogIkFkZXF1YcOnw6NvIGRlIHF1YWRybyBkZSBlbmVyZ2lhIC8gUVRNIiwgdW5pZGFkZTogInZiIiwgdmFsb3JfdW5pdGFyaW86IDI4MDAuMDAgfSwNCiAgICAgICAgeyB0aXBvX2VzY29wbzogIlNFUlZJQ08iLCBjb2RpZ29faXRlbTogIlMtMDUiLCBkZXNjcmljYW86ICJJbnN0YWxhw6fDo28gZGUgYW50ZW5hIHNldG9yaWFsIChwb3Igc2V0b3IpIiwgdW5pZGFkZTogInVuIiwgdmFsb3JfdW5pdGFyaW86IDE1MDAuMDAgfSwNCiAgICAgICAgeyB0aXBvX2VzY29wbzogIlNFUlZJQ08iLCBjb2RpZ29faXRlbTogIlMtMDYiLCBkZXNjcmljYW86ICJMYW7Dp2FtZW50byBkZSBjYWJvIGRlIGZpYnJhIMOzcHRpY2EiLCB1bmlkYWRlOiAibSIsIHZhbG9yX3VuaXRhcmlvOiAxMi41MCB9LA0KICAgICAgICB7IHRpcG9fZXNjb3BvOiAiU0VSVklDTyIsIGNvZGlnb19pdGVtOiAiUy0wNyIsIGRlc2NyaWNhbzogIkNvbWlzc2lvbmFtZW50byBlIHRlc3RlcyBkZSBSRiIsIHVuaWRhZGU6ICJ2YiIsIHZhbG9yX3VuaXRhcmlvOiAyMjAwLjAwIH0sDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJTRVJWSUNPIiwgY29kaWdvX2l0ZW06ICJTLTA4IiwgZGVzY3JpY2FvOiAiRWxhYm9yYcOnw6NvIGRlIGFzLWJ1aWx0IiwgdW5pZGFkZTogInZiIiwgdmFsb3JfdW5pdGFyaW86IDk1MC4wMCB9LA0KICAgICAgICAvLyBJTkZSQQ0KICAgICAgICB7IHRpcG9fZXNjb3BvOiAiSU5GUkEiLCBjb2RpZ29faXRlbTogIkktMDEiLCBkZXNjcmljYW86ICJFbGV0cm9kdXRvIGdhbHZhbml6YWRvIDFcIiAoZm9ybmVjaW1lbnRvIGUgaW5zdGFsYcOnw6NvKSIsIHVuaWRhZGU6ICJtIiwgdmFsb3JfdW5pdGFyaW86IDQ1LjAwIH0sDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJJTkZSQSIsIGNvZGlnb19pdGVtOiAiSS0wMiIsIGRlc2NyaWNhbzogIkNhYm8gZGUgZW5lcmdpYSAxMG1twrIgKGZvcm5lY2ltZW50byBlIGluc3RhbGHDp8OjbykiLCB1bmlkYWRlOiAibSIsIHZhbG9yX3VuaXRhcmlvOiAyOC4wMCB9LA0KICAgICAgICB7IHRpcG9fZXNjb3BvOiAiSU5GUkEiLCBjb2RpZ29faXRlbTogIkktMDMiLCBkZXNjcmljYW86ICJEaXNqdW50b3IgdHJpZsOhc2ljbyA2M0EiLCB1bmlkYWRlOiAidW4iLCB2YWxvcl91bml0YXJpbzogMTgwLjAwIH0sDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJJTkZSQSIsIGNvZGlnb19pdGVtOiAiSS0wNCIsIGRlc2NyaWNhbzogIkRQUyBjbGFzc2UgSUkgKHBvciBmYXNlKSIsIHVuaWRhZGU6ICJ1biIsIHZhbG9yX3VuaXRhcmlvOiA5NS4wMCB9LA0KICAgICAgICB7IHRpcG9fZXNjb3BvOiAiSU5GUkEiLCBjb2RpZ29faXRlbTogIkktMDUiLCBkZXNjcmljYW86ICJCYXNlIGRlIGNvbmNyZXRvIHBhcmEgZ2FiaW5ldGUgb3V0ZG9vciIsIHVuaWRhZGU6ICJ2YiIsIHZhbG9yX3VuaXRhcmlvOiAzMjAwLjAwIH0sDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJJTkZSQSIsIGNvZGlnb19pdGVtOiAiSS0wNiIsIGRlc2NyaWNhbzogIkdyYWRlIGRlIHByb3Rlw6fDo28gbWV0w6FsaWNhIGNvbSBwaW50dXJhIiwgdW5pZGFkZTogInZiIiwgdmFsb3JfdW5pdGFyaW86IDI0MDAuMDAgfSwNCiAgICBdOw0KDQogICAgYXdhaXQgcHJpc21hLnByaWNlQm9va0l0ZW0uY3JlYXRlTWFueSh7DQogICAgICAgIGRhdGE6IGhpZ2hsaW5lSXRlbXMubWFwKGl0ZW0gPT4gKHsNCiAgICAgICAgICAgIC4uLml0ZW0sDQogICAgICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudC5pZCwNCiAgICAgICAgICAgIHByaWNlYm9va19pZDogcGJIaWdobGluZS5pZCwNCiAgICAgICAgICAgIHN1cHBsaWVyX2lkOiBoaWdobGluZS5pZCwNCiAgICAgICAgICAgIHJlZ2lhbzogIlNVREVTVEUiLA0KICAgICAgICAgICAgZGVzY3JpY2FvX25vcm1hbGl6YWRhOiBub3JtYWxpemFyRGVzY3JpY2FvKGl0ZW0uZGVzY3JpY2FvKSwNCiAgICAgICAgfSkpDQogICAgfSk7DQoNCiAgICAvLyBQcmljZUJvb2tJdGVtcyBwYXJhIFdpbml0eSAocHJlw6dvcyBsaWdlaXJhbWVudGUgZGlmZXJlbnRlcykNCiAgICBjb25zdCB3aW5pdHlJdGVtcyA9IFsNCiAgICAgICAgeyB0aXBvX2VzY29wbzogIlNFUlZJQ08iLCBjb2RpZ29faXRlbTogIlctMDEiLCBkZXNjcmljYW86ICJNb2JpbGl6YcOnw6NvIGRlIGVxdWlwZSB0w6ljbmljYSAoYXTDqSAxMDBrbSkiLCB1bmlkYWRlOiAidmIiLCB2YWxvcl91bml0YXJpbzogMTM1MC4wMCB9LA0KICAgICAgICB7IHRpcG9fZXNjb3BvOiAiU0VSVklDTyIsIGNvZGlnb19pdGVtOiAiVy0wMiIsIGRlc2NyaWNhbzogIkluc3RhbGHDp8OjbyBkZSBVUiAoVW5pZGFkZSBSZXRpZmljYWRvcmEpIiwgdW5pZGFkZTogInZiIiwgdmFsb3JfdW5pdGFyaW86IDMyMDAuMDAgfSwNCiAgICAgICAgeyB0aXBvX2VzY29wbzogIlNFUlZJQ08iLCBjb2RpZ29faXRlbTogIlctMDMiLCBkZXNjcmljYW86ICJBZGVxdWHDp8OjbyBkZSBxdWFkcm8gZGUgZW5lcmdpYSAvIFFUTSIsIHVuaWRhZGU6ICJ2YiIsIHZhbG9yX3VuaXRhcmlvOiAyNjAwLjAwIH0sDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJTRVJWSUNPIiwgY29kaWdvX2l0ZW06ICJXLTA0IiwgZGVzY3JpY2FvOiAiSW5zdGFsYcOnw6NvIGRlIGFudGVuYSBzZXRvcmlhbCAocG9yIHNldG9yKSIsIHVuaWRhZGU6ICJ1biIsIHZhbG9yX3VuaXRhcmlvOiAxNDAwLjAwIH0sDQogICAgICAgIHsgdGlwb19lc2NvcG86ICJTRVJWSUNPIiwgY29kaWdvX2l0ZW06ICJXLTA1IiwgZGVzY3JpY2FvOiAiQ29taXNzaW9uYW1lbnRvIGUgdGVzdGVzIGRlIFJGIiwgdW5pZGFkZTogInZiIiwgdmFsb3JfdW5pdGFyaW86IDIwMDAuMDAgfSwNCiAgICAgICAgeyB0aXBvX2VzY29wbzogIklORlJBIiwgY29kaWdvX2l0ZW06ICJXSS0wMSIsIGRlc2NyaWNhbzogIkVsZXRyb2R1dG8gZ2FsdmFuaXphZG8gMVwiIiwgdW5pZGFkZTogIm0iLCB2YWxvcl91bml0YXJpbzogNDIuMDAgfSwNCiAgICAgICAgeyB0aXBvX2VzY29wbzogIklORlJBIiwgY29kaWdvX2l0ZW06ICJXSS0wMiIsIGRlc2NyaWNhbzogIkNhYm8gZGUgZW5lcmdpYSAxMG1twrIiLCB1bmlkYWRlOiAibSIsIHZhbG9yX3VuaXRhcmlvOiAyNS4wMCB9LA0KICAgICAgICB7IHRpcG9fZXNjb3BvOiAiSU5GUkEiLCBjb2RpZ29faXRlbTogIldJLTAzIiwgZGVzY3JpY2FvOiAiQmFzZSBkZSBjb25jcmV0byBwYXJhIGdhYmluZXRlIG91dGRvb3IiLCB1bmlkYWRlOiAidmIiLCB2YWxvcl91bml0YXJpbzogMjkwMC4wMCB9LA0KICAgIF07DQoNCiAgICBhd2FpdCBwcmlzbWEucHJpY2VCb29rSXRlbS5jcmVhdGVNYW55KHsNCiAgICAgICAgZGF0YTogd2luaXR5SXRlbXMubWFwKGl0ZW0gPT4gKHsNCiAgICAgICAgICAgIC4uLml0ZW0sDQogICAgICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudC5pZCwNCiAgICAgICAgICAgIHByaWNlYm9va19pZDogcGJXaW5pdHkuaWQsDQogICAgICAgICAgICBzdXBwbGllcl9pZDogd2luaXR5LmlkLA0KICAgICAgICAgICAgcmVnaWFvOiAiTk9SREVTVEUiLA0KICAgICAgICAgICAgZGVzY3JpY2FvX25vcm1hbGl6YWRhOiBub3JtYWxpemFyRGVzY3JpY2FvKGl0ZW0uZGVzY3JpY2FvKSwNCiAgICAgICAgfSkpDQogICAgfSk7DQoNCiAgICBjb25zb2xlLmxvZygiUHJpY2VCb29rSXRlbXMgY3JlYXRlZDoiLCBoaWdobGluZUl0ZW1zLmxlbmd0aCArIHdpbml0eUl0ZW1zLmxlbmd0aCwgInRvdGFsIGl0ZW1zIik7DQogICAgY29uc29sZS5sb2coIkRhdGFiYXNlIHNlZWRlZCBzdWNjZXNzZnVsbHkhIik7DQp9DQoNCm1haW4oKQ0KICAgIC5jYXRjaCgoZSkgPT4gew0KICAgICAgICBjb25zb2xlLmVycm9yKGUpOw0KICAgICAgICBwcm9jZXNzLmV4aXQoMSk7DQogICAgfSkNCiAgICAuZmluYWxseShhc3luYyAoKSA9PiB7DQogICAgICAgIGF3YWl0IHByaXNtYS4kZGlzY29ubmVjdCgpOw0KICAgIH0pOw0K"}
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+function normalizarDescricao(texto: string): string {
+    if (!texto) return '';
+    return texto
+        .toLowerCase()
+        .normalize('NFD').replace(/[̀-ͯ]/g, "")
+        .replace(/[^\w\s]|_/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+const USUARIOS = [
+    { nome: "Victor Hugo",      email: "victor.hugo@lsoffice.com.br", senha: "Victor@2026!",    role: "ADMIN" },
+    { nome: "Admin LS",         email: "admin@lsoffice.com",           senha: "LsAdmin@2026!",   role: "ADMIN" },
+    { nome: "Comercial LS",     email: "comercial@lsoffice.com",       senha: "LsCom@2026!",     role: "COMERCIAL" },
+    { nome: "Operações LS",     email: "operacoes@lsoffice.com",       senha: "LsOp@2026!",      role: "OPERACOES" },
+];
+
+async function main() {
+    console.log("Seeding database...");
+
+    // 1. Criar Tenant
+    const tenant = await prisma.tenant.create({
+        data: { nome: "LS Office" }
+    });
+    console.log("Tenant created:", tenant.id);
+
+    // 2. Criar Usuários com senhas hasheadas
+    for (const u of USUARIOS) {
+        const hash = await bcrypt.hash(u.senha, 12);
+        await prisma.user.create({
+            data: {
+                tenant_id: tenant.id,
+                nome: u.nome,
+                email: u.email,
+                senha_hash: hash,
+                role: u.role,
+            }
+        });
+        console.log(`User created: ${u.email} [${u.role}]`);
+    }
+
+    // 3. Criar Contratante (HIGHLINE)
+    const contratante = await prisma.contratante.create({
+        data: {
+            tenant_id: tenant.id,
+            nome: "HIGHLINE",
+            contato_nome: "Contato Teste"
+        }
+    });
+
+    // 4. Criar Site
+    const site = await prisma.site.create({
+        data: {
+            tenant_id: tenant.id,
+            id_site: "RJCAM15_001 / RJCMP031",
+            cidade: "Rio de Janeiro",
+            uf: "RJ"
+        }
+    });
+
+    // 5. Config do Template
+    const templateConfig = {
+        nome: "Energia – UR + Manutenção FCC + Bateria",
+        descricao: "TPL-ENE-UR-FCC-BAT",
+        tenant_id: tenant.id,
+    };
+
+    const templateItems = [
+        { bloco_id: "MOBILIZACAO", codigo_item: "01", titulo: "Mobilização", descricao: "Mobilização de equipe, ferramentas...", unidade: "vb", ordem: 10 },
+        { bloco_id: "SERVICOS", codigo_item: "02", titulo: "Serviços", descricao: "Serviços técnicos...", unidade: "vb", ordem: 20 },
+        { bloco_id: "SERVICOS", codigo_item: "02.1", titulo: "Instalação / Ajustes em UR", descricao: "Serviço de instalação...", unidade: "vb", ordem: 21 },
+        { bloco_id: "SERVICOS", codigo_item: "02.2", titulo: "Manutenção FCC", descricao: "Manutenção do gabinete...", unidade: "vb", ordem: 22 },
+        { bloco_id: "SERVICOS", codigo_item: "02.3", titulo: "Manutenção / Substituição de Baterias", descricao: "Serviços relacionados a banco...", unidade: "vb", ordem: 23 },
+        { bloco_id: "INFRA", codigo_item: "03", titulo: "Infra – Fornecimento e Instalação", descricao: "Materiais/infraestrutura...", unidade: "vb", ordem: 30 }
+    ];
+
+    const template = await prisma.budgetTemplate.create({ data: templateConfig });
+    await prisma.budgetTemplateItem.createMany({
+        data: templateItems.map(item => ({ ...item, template_id: template.id }))
+    });
+
+    // 6. Criar Itens de Catálogo
+    const catalogItems = [
+        { codigo: "MOB-01", titulo: "Mobilização", unidade_padrao: "vb", categoria: "OUTROS" },
+        { codigo: "ENE-01", titulo: "Instalação / Ajustes em UR", unidade_padrao: "vb", categoria: "ENERGIA" },
+        { codigo: "ENE-02", titulo: "Manutenção FCC", unidade_padrao: "vb", categoria: "ENERGIA" },
+        { codigo: "ENE-03", titulo: "Substituição de Baterias", unidade_padrao: "vb", categoria: "ENERGIA" },
+        { codigo: "INF-01", titulo: "Infra – Fornecimento", unidade_padrao: "vb", categoria: "CIVIL" },
+    ];
+
+    await prisma.catalogService.createMany({
+        data: catalogItems.map(item => ({ ...item, tenant_id: tenant.id, valor_base: 0, bdi_sugerido_percent: 0 }))
+    });
+
+    // 7. Fornecedores + PriceBooks + PriceBookItems
+    console.log("Creating suppliers...");
+
+    const highline = await prisma.supplier.create({
+        data: {
+            tenant_id: tenant.id,
+            nome: "Highline",
+            cnpj: "12.345.678/0001-01",
+            email: "contato@highline.com.br",
+            telefone: "(21) 3333-4444",
+        }
+    });
+
+    const winity = await prisma.supplier.create({
+        data: {
+            tenant_id: tenant.id,
+            nome: "Winity",
+            cnpj: "22.333.444/0001-55",
+            email: "comercial@winity.com.br",
+            telefone: "(11) 5555-6666",
+        }
+    });
+
+    const sba = await prisma.supplier.create({
+        data: {
+            tenant_id: tenant.id,
+            nome: "SBA Communications",
+            cnpj: "33.444.555/0001-77",
+            email: "brazil@sbasite.com",
+        }
+    });
+
+    console.log("Suppliers created:", highline.id, winity.id, sba.id);
+
+    const pbHighline = await prisma.priceBook.create({
+        data: {
+            tenant_id: tenant.id,
+            supplier_id: highline.id,
+            nome_lpu: "LPU Highline 2026 - Sudeste",
+            regiao: "SUDESTE",
+            data_inicio_vigencia: new Date("2026-01-01"),
+            data_fim_vigencia: new Date("2026-12-31"),
+        }
+    });
+
+    const pbWinity = await prisma.priceBook.create({
+        data: {
+            tenant_id: tenant.id,
+            supplier_id: winity.id,
+            nome_lpu: "LPU Winity 2026 - Nordeste",
+            regiao: "NORDESTE",
+            data_inicio_vigencia: new Date("2026-01-01"),
+        }
+    });
+
+    const highlineItems = [
+        { tipo_escopo: "SERVICO", codigo_item: "S-01", descricao: "Mobilização de equipe técnica (até 100km)", unidade: "vb", valor_unitario: 1200.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "S-02", descricao: "Desmobilização de equipe técnica (até 100km)", unidade: "vb", valor_unitario: 800.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "S-03", descricao: "Instalação de UR (Unidade Retificadora)", unidade: "vb", valor_unitario: 3500.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "S-04", descricao: "Adequação de quadro de energia / QTM", unidade: "vb", valor_unitario: 2800.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "S-05", descricao: "Instalação de antena setorial (por setor)", unidade: "un", valor_unitario: 1500.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "S-06", descricao: "Lançamento de cabo de fibra óptica", unidade: "m", valor_unitario: 12.50 },
+        { tipo_escopo: "SERVICO", codigo_item: "S-07", descricao: "Comissionamento e testes de RF", unidade: "vb", valor_unitario: 2200.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "S-08", descricao: "Elaboração de as-built", unidade: "vb", valor_unitario: 950.00 },
+        { tipo_escopo: "INFRA", codigo_item: "I-01", descricao: "Eletroduto galvanizado 1\" (fornecimento e instalação)", unidade: "m", valor_unitario: 45.00 },
+        { tipo_escopo: "INFRA", codigo_item: "I-02", descricao: "Cabo de energia 10mm² (fornecimento e instalação)", unidade: "m", valor_unitario: 28.00 },
+        { tipo_escopo: "INFRA", codigo_item: "I-03", descricao: "Disjuntor trifásico 63A", unidade: "un", valor_unitario: 180.00 },
+        { tipo_escopo: "INFRA", codigo_item: "I-04", descricao: "DPS classe II (por fase)", unidade: "un", valor_unitario: 95.00 },
+        { tipo_escopo: "INFRA", codigo_item: "I-05", descricao: "Base de concreto para gabinete outdoor", unidade: "vb", valor_unitario: 3200.00 },
+        { tipo_escopo: "INFRA", codigo_item: "I-06", descricao: "Grade de proteção metálica com pintura", unidade: "vb", valor_unitario: 2400.00 },
+    ];
+
+    await prisma.priceBookItem.createMany({
+        data: highlineItems.map(item => ({
+            ...item,
+            tenant_id: tenant.id,
+            pricebook_id: pbHighline.id,
+            supplier_id: highline.id,
+            regiao: "SUDESTE",
+            descricao_normalizada: normalizarDescricao(item.descricao),
+        }))
+    });
+
+    const winityItems = [
+        { tipo_escopo: "SERVICO", codigo_item: "W-01", descricao: "Mobilização de equipe técnica (até 100km)", unidade: "vb", valor_unitario: 1350.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "W-02", descricao: "Instalação de UR (Unidade Retificadora)", unidade: "vb", valor_unitario: 3200.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "W-03", descricao: "Adequação de quadro de energia / QTM", unidade: "vb", valor_unitario: 2600.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "W-04", descricao: "Instalação de antena setorial (por setor)", unidade: "un", valor_unitario: 1400.00 },
+        { tipo_escopo: "SERVICO", codigo_item: "W-05", descricao: "Comissionamento e testes de RF", unidade: "vb", valor_unitario: 2000.00 },
+        { tipo_escopo: "INFRA", codigo_item: "WI-01", descricao: "Eletroduto galvanizado 1\"", unidade: "m", valor_unitario: 42.00 },
+        { tipo_escopo: "INFRA", codigo_item: "WI-02", descricao: "Cabo de energia 10mm²", unidade: "m", valor_unitario: 25.00 },
+        { tipo_escopo: "INFRA", codigo_item: "WI-03", descricao: "Base de concreto para gabinete outdoor", unidade: "vb", valor_unitario: 2900.00 },
+    ];
+
+    await prisma.priceBookItem.createMany({
+        data: winityItems.map(item => ({
+            ...item,
+            tenant_id: tenant.id,
+            pricebook_id: pbWinity.id,
+            supplier_id: winity.id,
+            regiao: "NORDESTE",
+            descricao_normalizada: normalizarDescricao(item.descricao),
+        }))
+    });
+
+    console.log("PriceBookItems created:", highlineItems.length + winityItems.length, "total items");
+    console.log("\n✅ Database seeded successfully!");
+    console.log("\n═══════════════ LOGINS CRIADOS ═══════════════");
+    for (const u of USUARIOS) {
+        console.log(`  ${u.role.padEnd(10)} | ${u.email.padEnd(35)} | ${u.senha}`);
+    }
+    console.log("══════════════════════════════════════════════");
+}
+
+main()
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

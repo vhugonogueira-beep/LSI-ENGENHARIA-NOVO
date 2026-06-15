@@ -1,1 +1,104 @@
-{"data":"aW1wb3J0IHsgUmVxdWVzdCwgUmVzcG9uc2UgfSBmcm9tICdleHByZXNzJzsNCmltcG9ydCB7IE1hc3RlclNlcnZpY2UgfSBmcm9tICcuLi9zZXJ2aWNlcy9tYXN0ZXIuc2VydmljZSc7DQppbXBvcnQgeyBwcmlzbWEgfSBmcm9tICcuLi9zZXJ2ZXInOw0KaW1wb3J0IHsgUHJpY2VFbmdpbmVTZXJ2aWNlIH0gZnJvbSAnLi4vc2VydmljZXMvcHJpY2UtZW5naW5lLnNlcnZpY2UnOw0KDQphc3luYyBmdW5jdGlvbiBnZXREZW1vVGVuYW50SWQoKSB7DQogICAgY29uc3QgdCA9IGF3YWl0IHByaXNtYS50ZW5hbnQuZmluZEZpcnN0KCk7DQogICAgcmV0dXJuIHQgPyB0LmlkIDogJyc7DQp9DQoNCmV4cG9ydCBjbGFzcyBNYXN0ZXJDb250cm9sbGVyIHsNCg0KICAgIHN0YXRpYyBhc3luYyBsaXN0Q29udHJhdGFudGVzKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgdGVuYW50SWQgPSByZXEucXVlcnkudGVuYW50SWQgYXMgc3RyaW5nOw0KICAgICAgICAgICAgcmVzLmpzb24oYXdhaXQgTWFzdGVyU2VydmljZS5nZXRDb250cmF0YW50ZXModGVuYW50SWQpKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7IHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBjcmVhdGVDb250cmF0YW50ZShyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IGRhdGEgPSB7IC4uLnJlcS5ib2R5IH07DQogICAgICAgICAgICBpZiAoIWRhdGEudGVuYW50X2lkKSB7DQogICAgICAgICAgICAgICAgZGF0YS50ZW5hbnRfaWQgPSBhd2FpdCBnZXREZW1vVGVuYW50SWQoKTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgICAgIHJlcy5zdGF0dXMoMjAxKS5qc29uKGF3YWl0IE1hc3RlclNlcnZpY2UuY3JlYXRlQ29udHJhdGFudGUoZGF0YSkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOyB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIHVwZGF0ZUNvbnRyYXRhbnRlKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgcmVzLmpzb24oYXdhaXQgTWFzdGVyU2VydmljZS51cGRhdGVDb250cmF0YW50ZShyZXEucGFyYW1zLmlkLCByZXEuYm9keSkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOyB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGxpc3RTaXRlcyhyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IHRlbmFudElkID0gcmVxLnF1ZXJ5LnRlbmFudElkIGFzIHN0cmluZzsNCiAgICAgICAgICAgIHJlcy5qc29uKGF3YWl0IE1hc3RlclNlcnZpY2UuZ2V0U2l0ZXModGVuYW50SWQpKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7IHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBjcmVhdGVTaXRlKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cygyMDEpLmpzb24oYXdhaXQgTWFzdGVyU2VydmljZS5jcmVhdGVTaXRlKHJlcS5ib2R5KSk7DQogICAgICAgIH0gY2F0Y2ggKGU6IGFueSkgeyByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7IH0NCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgbGlzdENhdGFsb2cocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCB0ZW5hbnRJZCA9IHJlcS5xdWVyeS50ZW5hbnRJZCBhcyBzdHJpbmc7DQogICAgICAgICAgICByZXMuanNvbihhd2FpdCBNYXN0ZXJTZXJ2aWNlLmdldENhdGFsb2dTZXJ2aWNlcyh0ZW5hbnRJZCkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOyB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGNyZWF0ZUNhdGFsb2dJdGVtKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cygyMDEpLmpzb24oYXdhaXQgTWFzdGVyU2VydmljZS5jcmVhdGVDYXRhbG9nU2VydmljZShyZXEuYm9keSkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOyB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGxpc3RUZW1wbGF0ZXMocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCB0ZW5hbnRJZCA9IHJlcS5xdWVyeS50ZW5hbnRJZCBhcyBzdHJpbmc7DQogICAgICAgICAgICByZXMuanNvbihhd2FpdCBNYXN0ZXJTZXJ2aWNlLmdldFRlbXBsYXRlcyh0ZW5hbnRJZCkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOyB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGdldFRlbXBsYXRlKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgdHBsID0gYXdhaXQgTWFzdGVyU2VydmljZS5nZXRUZW1wbGF0ZUJ5SWQocmVxLnBhcmFtcy5pZCk7DQogICAgICAgICAgICBpZiAoIXRwbCkgcmV0dXJuIHJlcy5zdGF0dXMoNDA0KS5qc29uKHsgZXJyb3I6ICdOb3QgZm91bmQnIH0pOw0KICAgICAgICAgICAgcmVzLmpzb24odHBsKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7IHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBjcmVhdGVUZW1wbGF0ZShyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IHsgaXRlbXMsIC4uLmRhdGEgfSA9IHJlcS5ib2R5Ow0KICAgICAgICAgICAgcmVzLnN0YXR1cygyMDEpLmpzb24oYXdhaXQgTWFzdGVyU2VydmljZS5jcmVhdGVUZW1wbGF0ZShkYXRhLCBpdGVtcykpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOyB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIHN1Z2dlc3RQcmljZShyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IHRlbmFudElkID0gcmVxLnF1ZXJ5LnRlbmFudElkIGFzIHN0cmluZyB8fCBhd2FpdCBnZXREZW1vVGVuYW50SWQoKTsNCiAgICAgICAgICAgIGNvbnN0IHsgcXVlcnksIHJlZ2lhbywgayB9ID0gcmVxLnF1ZXJ5Ow0KICAgICAgICAgICAgY29uc3QgbGltaXQgPSBrID8gcGFyc2VJbnQoayBhcyBzdHJpbmcpIDogNTsNCg0KICAgICAgICAgICAgaWYgKCFxdWVyeSkgew0KICAgICAgICAgICAgICAgIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiAiTWlzc2luZyBxdWVyeSBwYXJhbWV0ZXIiIH0pOw0KICAgICAgICAgICAgfQ0KDQogICAgICAgICAgICBjb25zdCByZXN1bHRzID0gYXdhaXQgUHJpY2VFbmdpbmVTZXJ2aWNlLnN1Z2dlc3RJdGVtcygNCiAgICAgICAgICAgICAgICB0ZW5hbnRJZCwNCiAgICAgICAgICAgICAgICBTdHJpbmcocXVlcnkpLA0KICAgICAgICAgICAgICAgIFN0cmluZyhyZWdpYW8gfHwgJ0dFUkFMJyksDQogICAgICAgICAgICAgICAgbGltaXQNCiAgICAgICAgICAgICk7DQoNCiAgICAgICAgICAgIHJlcy5qc29uKHJlc3VsdHMpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOyB9DQogICAgfQ0KfQ0K"}
+import { Request, Response } from 'express';
+import { MasterService } from '../services/master.service';
+import { prisma } from '../server';
+import { PriceEngineService } from '../services/price-engine.service';
+
+async function getDemoTenantId() {
+    const t = await prisma.tenant.findFirst();
+    return t ? t.id : '';
+}
+
+export class MasterController {
+
+    static async listContratantes(req: Request, res: Response) {
+        try {
+            const tenantId = req.query.tenantId as string;
+            res.json(await MasterService.getContratantes(tenantId));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async createContratante(req: Request, res: Response) {
+        try {
+            const data = { ...req.body };
+            if (!data.tenant_id) {
+                data.tenant_id = await getDemoTenantId();
+            }
+            res.status(201).json(await MasterService.createContratante(data));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async updateContratante(req: Request, res: Response) {
+        try {
+            res.json(await MasterService.updateContratante(req.params.id, req.body));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async listSites(req: Request, res: Response) {
+        try {
+            const tenantId = req.query.tenantId as string;
+            res.json(await MasterService.getSites(tenantId));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async createSite(req: Request, res: Response) {
+        try {
+            res.status(201).json(await MasterService.createSite(req.body));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async listCatalog(req: Request, res: Response) {
+        try {
+            const tenantId = req.query.tenantId as string;
+            res.json(await MasterService.getCatalogServices(tenantId));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async createCatalogItem(req: Request, res: Response) {
+        try {
+            res.status(201).json(await MasterService.createCatalogService(req.body));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async listTemplates(req: Request, res: Response) {
+        try {
+            const tenantId = req.query.tenantId as string;
+            res.json(await MasterService.getTemplates(tenantId));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async getTemplate(req: Request, res: Response) {
+        try {
+            const tpl = await MasterService.getTemplateById(req.params.id);
+            if (!tpl) return res.status(404).json({ error: 'Not found' });
+            res.json(tpl);
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async createTemplate(req: Request, res: Response) {
+        try {
+            const { items, ...data } = req.body;
+            res.status(201).json(await MasterService.createTemplate(data, items));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    static async suggestPrice(req: Request, res: Response) {
+        try {
+            const tenantId = req.query.tenantId as string || await getDemoTenantId();
+            const { query, regiao, k } = req.query;
+            const limit = k ? parseInt(k as string) : 5;
+
+            if (!query) {
+                return res.status(400).json({ error: "Missing query parameter" });
+            }
+
+            const results = await PriceEngineService.suggestItems(
+                tenantId,
+                String(query),
+                String(regiao || 'GERAL'),
+                limit
+            );
+
+            res.json(results);
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+}

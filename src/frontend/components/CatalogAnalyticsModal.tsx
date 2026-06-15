@@ -1,1 +1,141 @@
-{"data":"aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsNCmltcG9ydCB7IFNjYXR0ZXJDaGFydCwgU2NhdHRlciwgWEF4aXMsIFlBeGlzLCBDYXJ0ZXNpYW5HcmlkLCBUb29sdGlwLCBSZXNwb25zaXZlQ29udGFpbmVyIH0gZnJvbSAncmVjaGFydHMnOw0KaW1wb3J0IHsgWCB9IGZyb20gJ2x1Y2lkZS1yZWFjdCc7DQoNCmludGVyZmFjZSBTdGF0c1Byb3BzIHsNCiAgICBzdGF0czogYW55Ow0KICAgIGRhdGFzZXQ6IGFueVtdOw0KfQ0KDQpleHBvcnQgZnVuY3Rpb24gQ2F0YWxvZ0FuYWx5dGljc01vZGFsKHsgaXNPcGVuLCBvbkNsb3NlLCBpdGVtS2V5LCBpdGVtVGl0bGUgfTogYW55KSB7DQogICAgaWYgKCFpc09wZW4pIHJldHVybiBudWxsOw0KDQogICAgY29uc3QgW2xvYWRpbmcsIHNldExvYWRpbmddID0gdXNlU3RhdGUoZmFsc2UpOw0KICAgIGNvbnN0IFtkYXRhLCBzZXREYXRhXSA9IHVzZVN0YXRlPFN0YXRzUHJvcHMgfCBudWxsPihudWxsKTsNCiAgICBjb25zdCBbbW9kZSwgc2V0TW9kZV0gPSB1c2VTdGF0ZTwnT1JJR0lOQUwnIHwgJ0NPUlJJR0lETyc+KCdPUklHSU5BTCcpOw0KDQogICAgdXNlRWZmZWN0KCgpID0+IHsNCiAgICAgICAgaWYgKCFpdGVtS2V5KSByZXR1cm47DQogICAgICAgIHNldExvYWRpbmcodHJ1ZSk7DQogICAgICAgIC8vIEhhcmRjb2RlZCByZWdpYW8gR0VSQUwgZm9yIG5vdyBhcyB0aGVyZSdzIG5vIFVJIHRvIHNlbGVjdCByZWdpb24gYmVmb3JlaGFuZCBoZXJlDQogICAgICAgIGZldGNoKGBodHRwOi8vbG9jYWxob3N0OjMwMDEvYXBpL2FuYWx5dGljcy9kaXNwZXJzaW9uP2l0ZW1LZXk9JHtpdGVtS2V5fSZyZWdpYW89R0VSQUwmbW9kZT0ke21vZGV9YCkNCiAgICAgICAgICAgIC50aGVuKHJlcyA9PiByZXMuanNvbigpKQ0KICAgICAgICAgICAgLnRoZW4oZGF0YSA9PiB7DQogICAgICAgICAgICAgICAgc2V0RGF0YShkYXRhKTsNCiAgICAgICAgICAgICAgICBzZXRMb2FkaW5nKGZhbHNlKTsNCiAgICAgICAgICAgIH0pDQogICAgICAgICAgICAuY2F0Y2goKGUpID0+IHsNCiAgICAgICAgICAgICAgICBjb25zb2xlLmVycm9yKGUpOw0KICAgICAgICAgICAgICAgIHNldExvYWRpbmcoZmFsc2UpOw0KICAgICAgICAgICAgfSk7DQogICAgfSwgW2l0ZW1LZXksIG1vZGVdKTsNCg0KICAgIGNvbnN0IEJSTCA9ICh2YWw6IG51bWJlcikgPT4gew0KICAgICAgICByZXR1cm4gbmV3IEludGwuTnVtYmVyRm9ybWF0KCdwdC1CUicsIHsgc3R5bGU6ICdjdXJyZW5jeScsIGN1cnJlbmN5OiAnQlJMJyB9KS5mb3JtYXQodmFsIHx8IDApOw0KICAgIH07DQoNCiAgICByZXR1cm4gKA0KICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZml4ZWQgaW5zZXQtMCBiZy1ibGFjay81MCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciB6LTUwIj4NCiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLWxnIHNoYWRvdy1sZyB3LWZ1bGwgbWF4LXctNHhsIHAtNiByZWxhdGl2ZSBtYXgtaC1bOTB2aF0gb3ZlcmZsb3cteS1hdXRvIj4NCiAgICAgICAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9e29uQ2xvc2V9IGNsYXNzTmFtZT0iYWJzb2x1dGUgcmlnaHQtNCB0b3AtNCB0ZXh0LWdyYXktNTAwIGhvdmVyOnRleHQtYmxhY2siPg0KICAgICAgICAgICAgICAgICAgICA8WCBzaXplPXsyNH0gLz4NCiAgICAgICAgICAgICAgICA8L2J1dHRvbj4NCg0KICAgICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQtMnhsIGZvbnQtYm9sZCBtYi0yIj5BbsOhbGlzZSBkZSBQcmXDp29zIChEaXNwZXJzw6NvKTwvaDM+DQogICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LWdyYXktNjAwIG1iLTYgZm9udC1tZWRpdW0iPntpdGVtVGl0bGV9PC9wPg0KDQogICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggYmctZ3JheS0xMDAgcC0xIHJvdW5kZWQtbWQgdy1maXQgbWItNiI+DQogICAgICAgICAgICAgICAgICAgIDxidXR0b24NCiAgICAgICAgICAgICAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldE1vZGUoJ09SSUdJTkFMJyl9DQogICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9e2BweC00IHB5LTEuNSByb3VuZGVkLW1kIGZvbnQtbWVkaXVtIHRleHQtc20gdHJhbnNpdGlvbi1jb2xvcnMgJHttb2RlID09PSAnT1JJR0lOQUwnID8gJ2JnLXdoaXRlIHNoYWRvdyB0ZXh0LWJsYWNrJyA6ICd0ZXh0LWdyYXktNjAwIGhvdmVyOnRleHQtYmxhY2snfWB9DQogICAgICAgICAgICAgICAgICAgID4NCiAgICAgICAgICAgICAgICAgICAgICAgIFZhbG9yIE9yaWdpbmFsDQogICAgICAgICAgICAgICAgICAgIDwvYnV0dG9uPg0KICAgICAgICAgICAgICAgICAgICA8YnV0dG9uDQogICAgICAgICAgICAgICAgICAgICAgICBvbkNsaWNrPXsoKSA9PiBzZXRNb2RlKCdDT1JSSUdJRE8nKX0NCiAgICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT17YHB4LTQgcHktMS41IHJvdW5kZWQtbWQgZm9udC1tZWRpdW0gdGV4dC1zbSB0cmFuc2l0aW9uLWNvbG9ycyAke21vZGUgPT09ICdDT1JSSUdJRE8nID8gJ2JnLXdoaXRlIHNoYWRvdyB0ZXh0LWJsYWNrJyA6ICd0ZXh0LWdyYXktNjAwIGhvdmVyOnRleHQtYmxhY2snfWB9DQogICAgICAgICAgICAgICAgICAgID4NCiAgICAgICAgICAgICAgICAgICAgICAgIENvcnJpZ2lkbyAoSW5mbGHDp8OjbykNCiAgICAgICAgICAgICAgICAgICAgPC9idXR0b24+DQogICAgICAgICAgICAgICAgPC9kaXY+DQoNCiAgICAgICAgICAgICAgICB7bG9hZGluZyA/ICgNCiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImgtNjQgZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIiPkNhcnJlZ2FuZG8gZGFkb3MuLi48L2Rpdj4NCiAgICAgICAgICAgICAgICApIDogIWRhdGEgfHwgIWRhdGEuc3RhdHMgPyAoDQogICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJoLTY0IGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHRleHQtZ3JheS01MDAiPlNlbSBoaXN0w7NyaWNvIGRlIHByZcOnb3MgcGFyYSBlc3RlIGl0ZW0uPC9kaXY+DQogICAgICAgICAgICAgICAgKSA6ICgNCiAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktOCI+DQogICAgICAgICAgICAgICAgICAgICAgICB7LyogU3RhdHMgQ2FyZHMgKi99DQogICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZ3JpZCBncmlkLWNvbHMtNSBnYXAtNCI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWdyYXktNTAgYm9yZGVyIHAtNCByb3VuZGVkLXhsIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtZ3JheS01MDAgZm9udC1tZWRpdW0iPkNvbnRhZ2VtPC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteGwgZm9udC1ib2xkIj57ZGF0YS5zdGF0cy5jb3VudH0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LWdyYXktNDAwIGZvbnQtbm9ybWFsIG1sLTEiPm9jb3JyLjwvc3Bhbj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy1ibHVlLTUwIGJvcmRlciBib3JkZXItYmx1ZS0xMDAgcC00IHJvdW5kZWQteGwiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1ibHVlLTYwMCBmb250LW1lZGl1bSI+TWVkaWFuYTwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhsIGZvbnQtYm9sZCB0ZXh0LWJsdWUtOTAwIj57QlJMKGRhdGEuc3RhdHMubWVkaWFuKX08L3A+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWdyYXktNTAgYm9yZGVyIHAtNCByb3VuZGVkLXhsIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtZ3JheS01MDAgZm9udC1tZWRpdW0iPk3DqWRpYTwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhsIGZvbnQtYm9sZCI+e0JSTChkYXRhLnN0YXRzLm1lYW4pfTwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctZ3JheS01MCBib3JkZXIgcC00IHJvdW5kZWQteGwiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1ncmF5LTUwMCBmb250LW1lZGl1bSI+RmFpeGEgVMOtcGljYSAoUDI1LVA3NSk8L3A+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1sZyBmb250LWJvbGQiPntCUkwoZGF0YS5zdGF0cy5wMjUpfSAtIHtCUkwoZGF0YS5zdGF0cy5wNzUpfTwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctZ3JheS01MCBib3JkZXIgcC00IHJvdW5kZWQteGwiPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1ncmF5LTUwMCBmb250LW1lZGl1bSI+TcOtbi4gZSBNw6F4LjwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LWxnIGZvbnQtYm9sZCI+e0JSTChkYXRhLnN0YXRzLm1pbil9IC0ge0JSTChkYXRhLnN0YXRzLm1heCl9PC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQoNCiAgICAgICAgICAgICAgICAgICAgICAgIHsvKiBDaGFydCBBcmVhICovfQ0KICAgICAgICAgICAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImgtODAgdy1mdWxsIGJvcmRlciByb3VuZGVkLXhsIGJnLXdoaXRlIHAtNCI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPFJlc3BvbnNpdmVDb250YWluZXIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxTY2F0dGVyQ2hhcnQgbWFyZ2luPXt7IHRvcDogMjAsIHJpZ2h0OiAyMCwgYm90dG9tOiAyMCwgbGVmdDogMjAgfX0+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8Q2FydGVzaWFuR3JpZCBzdHJva2VEYXNoYXJyYXk9IjMgMyIgdmVydGljYWw9e2ZhbHNlfSBzdHJva2U9IiNFNUU3RUIiIC8+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8WEF4aXMNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0eXBlPSJjYXRlZ29yeSINCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBkYXRhS2V5PSJkYXRlIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG5hbWU9IkRhdGEiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGlja0xpbmU9e2ZhbHNlfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGF4aXNMaW5lPXtmYWxzZX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0aWNrPXt7IGZpbGw6ICcjNkI3MjgwJywgZm9udFNpemU6IDEyIH19DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPFlBeGlzDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHlwZT0ibnVtYmVyIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGRhdGFLZXk9InZhbHVlIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG5hbWU9IlZhbG9yIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRpY2tGb3JtYXR0ZXI9eyh2YWwpID0+IGBSJCAke3ZhbH1gfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHRpY2tMaW5lPXtmYWxzZX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBheGlzTGluZT17ZmFsc2V9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdGljaz17eyBmaWxsOiAnIzZCNzI4MCcsIGZvbnRTaXplOiAxMiB9fQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgLz4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxUb29sdGlwDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY3Vyc29yPXt7IHN0cm9rZURhc2hhcnJheTogJzMgMycgfX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjb250ZW50PXsoeyBhY3RpdmUsIHBheWxvYWQgfSkgPT4gew0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBpZiAoYWN0aXZlICYmIHBheWxvYWQgJiYgcGF5bG9hZC5sZW5ndGgpIHsNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGNvbnN0IHAgPSBwYXlsb2FkWzBdLnBheWxvYWQ7DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gKA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJiZy13aGl0ZSBib3JkZXIgc2hhZG93LWxnIHJvdW5kZWQtbGcgcC0zIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LWJvbGQgdGV4dC1zbSBtYi0xIj57QlJMKHAudmFsdWUpfTwvcD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtZ3JheS01MDAiPkRhdGE6IHtwLmRhdGV9PC9wPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQteHMgdGV4dC1ncmF5LTUwMCI+U2l0ZToge3Auc2l0ZX08L3A+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICApOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJldHVybiBudWxsOw0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH19DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPFNjYXR0ZXIgbmFtZT0iUHJlw6dvcyIgZGF0YT17ZGF0YS5kYXRhc2V0fSBmaWxsPSIjM0I4MkY2IiBmaWxsT3BhY2l0eT17MC42fSAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1NjYXR0ZXJDaGFydD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L1Jlc3BvbnNpdmVDb250YWluZXI+DQogICAgICAgICAgICAgICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgKX0NCiAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICA8L2Rpdj4NCiAgICApOw0KfQ0K"}
+import { useState, useEffect } from 'react';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { X } from 'lucide-react';
+
+interface StatsProps {
+    stats: any;
+    dataset: any[];
+}
+
+export function CatalogAnalyticsModal({ isOpen, onClose, itemKey, itemTitle }: any) {
+    if (!isOpen) return null;
+
+    const [loading, setLoading] = useState(false);
+    const [data, setData] = useState<StatsProps | null>(null);
+    const [mode, setMode] = useState<'ORIGINAL' | 'CORRIGIDO'>('ORIGINAL');
+
+    useEffect(() => {
+        if (!itemKey) return;
+        setLoading(true);
+        // Hardcoded regiao GERAL for now as there's no UI to select region beforehand here
+        fetch(`http://localhost:3001/api/analytics/dispersion?itemKey=${itemKey}&regiao=GERAL&mode=${mode}`)
+            .then(res => res.json())
+            .then(data => {
+                setData(data);
+                setLoading(false);
+            })
+            .catch((e) => {
+                console.error(e);
+                setLoading(false);
+            });
+    }, [itemKey, mode]);
+
+    const BRL = (val: number) => {
+        return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6 relative max-h-[90vh] overflow-y-auto">
+                <button onClick={onClose} className="absolute right-4 top-4 text-gray-500 hover:text-black">
+                    <X size={24} />
+                </button>
+
+                <h3 className="text-2xl font-bold mb-2">Análise de Preços (Dispersão)</h3>
+                <p className="text-gray-600 mb-6 font-medium">{itemTitle}</p>
+
+                <div className="flex bg-gray-100 p-1 rounded-md w-fit mb-6">
+                    <button
+                        onClick={() => setMode('ORIGINAL')}
+                        className={`px-4 py-1.5 rounded-md font-medium text-sm transition-colors ${mode === 'ORIGINAL' ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                    >
+                        Valor Original
+                    </button>
+                    <button
+                        onClick={() => setMode('CORRIGIDO')}
+                        className={`px-4 py-1.5 rounded-md font-medium text-sm transition-colors ${mode === 'CORRIGIDO' ? 'bg-white shadow text-black' : 'text-gray-600 hover:text-black'}`}
+                    >
+                        Corrigido (Inflação)
+                    </button>
+                </div>
+
+                {loading ? (
+                    <div className="h-64 flex items-center justify-center">Carregando dados...</div>
+                ) : !data || !data.stats ? (
+                    <div className="h-64 flex items-center justify-center text-gray-500">Sem histórico de preços para este item.</div>
+                ) : (
+                    <div className="space-y-8">
+                        {/* Stats Cards */}
+                        <div className="grid grid-cols-5 gap-4">
+                            <div className="bg-gray-50 border p-4 rounded-xl">
+                                <p className="text-sm text-gray-500 font-medium">Contagem</p>
+                                <p className="text-xl font-bold">{data.stats.count}
+                                    <span className="text-xs text-gray-400 font-normal ml-1">ocorr.</span>
+                                </p>
+                            </div>
+                            <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl">
+                                <p className="text-sm text-blue-600 font-medium">Mediana</p>
+                                <p className="text-xl font-bold text-blue-900">{BRL(data.stats.median)}</p>
+                            </div>
+                            <div className="bg-gray-50 border p-4 rounded-xl">
+                                <p className="text-sm text-gray-500 font-medium">Média</p>
+                                <p className="text-xl font-bold">{BRL(data.stats.mean)}</p>
+                            </div>
+                            <div className="bg-gray-50 border p-4 rounded-xl">
+                                <p className="text-sm text-gray-500 font-medium">Faixa Típica (P25-P75)</p>
+                                <p className="text-lg font-bold">{BRL(data.stats.p25)} - {BRL(data.stats.p75)}</p>
+                            </div>
+                            <div className="bg-gray-50 border p-4 rounded-xl">
+                                <p className="text-sm text-gray-500 font-medium">Mín. e Máx.</p>
+                                <p className="text-lg font-bold">{BRL(data.stats.min)} - {BRL(data.stats.max)}</p>
+                            </div>
+                        </div>
+
+                        {/* Chart Area */}
+                        <div className="h-80 w-full border rounded-xl bg-white p-4">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                    <XAxis
+                                        type="category"
+                                        dataKey="date"
+                                        name="Data"
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tick={{ fill: '#6B7280', fontSize: 12 }}
+                                    />
+                                    <YAxis
+                                        type="number"
+                                        dataKey="value"
+                                        name="Valor"
+                                        tickFormatter={(val) => `R$ ${val}`}
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tick={{ fill: '#6B7280', fontSize: 12 }}
+                                    />
+                                    <Tooltip
+                                        cursor={{ strokeDasharray: '3 3' }}
+                                        content={({ active, payload }) => {
+                                            if (active && payload && payload.length) {
+                                                const p = payload[0].payload;
+                                                return (
+                                                    <div className="bg-white border shadow-lg rounded-lg p-3">
+                                                        <p className="font-bold text-sm mb-1">{BRL(p.value)}</p>
+                                                        <p className="text-xs text-gray-500">Data: {p.date}</p>
+                                                        <p className="text-xs text-gray-500">Site: {p.site}</p>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        }}
+                                    />
+                                    <Scatter name="Preços" data={data.dataset} fill="#3B82F6" fillOpacity={0.6} />
+                                </ScatterChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

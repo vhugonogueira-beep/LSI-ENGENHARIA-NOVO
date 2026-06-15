@@ -1,1 +1,190 @@
-{"data":"aW1wb3J0IHsgdXNlU3RhdGUsIHVzZUVmZmVjdCB9IGZyb20gJ3JlYWN0JzsNCg0KaW50ZXJmYWNlIENvbnRyYXRhbnRlIHsNCiAgICBpZDogc3RyaW5nOw0KICAgIG5vbWU6IHN0cmluZzsNCiAgICBjb250YXRvX25vbWU6IHN0cmluZzsNCiAgICBsb2dvX3VybDogc3RyaW5nIHwgbnVsbDsNCn0NCg0KZXhwb3J0IGZ1bmN0aW9uIENvbnRyYXRhbnRlcygpIHsNCiAgICBjb25zdCBbaXRlbXMsIHNldEl0ZW1zXSA9IHVzZVN0YXRlPENvbnRyYXRhbnRlW10+KFtdKTsNCiAgICBjb25zdCBbbG9hZGluZywgc2V0TG9hZGluZ10gPSB1c2VTdGF0ZSh0cnVlKTsNCiAgICBjb25zdCBbaXNNb2RhbE9wZW4sIHNldElzTW9kYWxPcGVuXSA9IHVzZVN0YXRlKGZhbHNlKTsNCiAgICBjb25zdCBbbm92b05vbWUsIHNldE5vdm9Ob21lXSA9IHVzZVN0YXRlKCcnKTsNCiAgICBjb25zdCBbbm92b0NvbnRhdG8sIHNldE5vdm9Db250YXRvXSA9IHVzZVN0YXRlKCcnKTsNCiAgICBjb25zdCBbbm92YUxvZ28sIHNldE5vdmFMb2dvXSA9IHVzZVN0YXRlKCcnKTsNCg0KICAgIGNvbnN0IGxvYWRDb250cmF0YW50ZXMgPSAoKSA9PiB7DQogICAgICAgIHNldExvYWRpbmcodHJ1ZSk7DQogICAgICAgIGZldGNoKCcvYXBpL2NvbnRyYXRhbnRlcycpDQogICAgICAgICAgICAudGhlbihyZXMgPT4gcmVzLmpzb24oKSkNCiAgICAgICAgICAgIC50aGVuKGRhdGEgPT4gew0KICAgICAgICAgICAgICAgIGlmIChBcnJheS5pc0FycmF5KGRhdGEpKSB7DQogICAgICAgICAgICAgICAgICAgIHNldEl0ZW1zKGRhdGEpOw0KICAgICAgICAgICAgICAgIH0gZWxzZSB7DQogICAgICAgICAgICAgICAgICAgIGNvbnNvbGUuZXJyb3IoIkFQSSBkaWQgbm90IHJldHVybiBhbiBhcnJheToiLCBkYXRhKTsNCiAgICAgICAgICAgICAgICAgICAgc2V0SXRlbXMoW10pOw0KICAgICAgICAgICAgICAgIH0NCiAgICAgICAgICAgIH0pDQogICAgICAgICAgICAuY2F0Y2goZXJyID0+IHsNCiAgICAgICAgICAgICAgICBjb25zb2xlLmVycm9yKGVycik7DQogICAgICAgICAgICAgICAgc2V0SXRlbXMoW10pOw0KICAgICAgICAgICAgfSkNCiAgICAgICAgICAgIC5maW5hbGx5KCgpID0+IHNldExvYWRpbmcoZmFsc2UpKTsNCiAgICB9Ow0KDQogICAgdXNlRWZmZWN0KCgpID0+IHsNCiAgICAgICAgbG9hZENvbnRyYXRhbnRlcygpOw0KICAgIH0sIFtdKTsNCg0KICAgIGNvbnN0IGhhbmRsZVVwZGF0ZUxvZ28gPSBhc3luYyAoaWQ6IHN0cmluZykgPT4gew0KICAgICAgICBjb25zdCB1cmwgPSBwcm9tcHQoIkRpZ2l0ZSBhIFVSTCBkYSBub3ZhIGxvZ28gcGFyYSBlc3RlIGNvbnRyYXRhbnRlOiIpOw0KICAgICAgICBpZiAodXJsID09PSBudWxsKSByZXR1cm47DQoNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IHJlc3AgPSBhd2FpdCBmZXRjaChgL2FwaS9jb250cmF0YW50ZXMvJHtpZH1gLCB7DQogICAgICAgICAgICAgICAgbWV0aG9kOiAnUFVUJywNCiAgICAgICAgICAgICAgICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicgfSwNCiAgICAgICAgICAgICAgICBib2R5OiBKU09OLnN0cmluZ2lmeSh7IGxvZ29fdXJsOiB1cmwgfSkNCiAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgaWYgKHJlc3Aub2spIHsNCiAgICAgICAgICAgICAgICBzZXRJdGVtcyhpdGVtcy5tYXAoaSA9PiBpLmlkID09PSBpZCA/IHsgLi4uaSwgbG9nb191cmw6IHVybCB9IDogaSkpOw0KICAgICAgICAgICAgfSBlbHNlIHsNCiAgICAgICAgICAgICAgICBhbGVydCgiRXJybyBhbyBhdHVhbGl6YXIgbG9nbyIpOw0KICAgICAgICAgICAgfQ0KICAgICAgICB9IGNhdGNoIHsNCiAgICAgICAgICAgIGFsZXJ0KCJFcnJvIGFvIGF0dWFsaXphciBsb2dvIik7DQogICAgICAgIH0NCiAgICB9Ow0KDQogICAgY29uc3QgaGFuZGxlQ3JlYXRlQ29udHJhdGFudGUgPSBhc3luYyAoZTogUmVhY3QuRm9ybUV2ZW50KSA9PiB7DQogICAgICAgIGUucHJldmVudERlZmF1bHQoKTsNCg0KICAgICAgICBsZXQgdGVuYW50SWQgPSAiIjsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IHJlc3AgPSBhd2FpdCBmZXRjaCgnL2FwaS9jb250cmF0YW50ZXMnKTsNCiAgICAgICAgICAgIGNvbnN0IGRhdGEgPSBhd2FpdCByZXNwLmpzb24oKTsNCiAgICAgICAgICAgIGlmIChkYXRhICYmIGRhdGEubGVuZ3RoID4gMCAmJiBBcnJheS5pc0FycmF5KGRhdGEpKSB7DQogICAgICAgICAgICAgICAgdGVuYW50SWQgPSBkYXRhWzBdLnRlbmFudF9pZDsNCiAgICAgICAgICAgIH0gZWxzZSB7DQogICAgICAgICAgICAgICAgdGVuYW50SWQgPSAiYTFkMzBmNDEtMjgyMC00N2M0LWJhYjMtZGM3YTAzZTgxNzUwIjsgLy8gRmFsbGJhY2sgZGVtbyBJRA0KICAgICAgICAgICAgfQ0KICAgICAgICB9IGNhdGNoIChlKSB7DQogICAgICAgICAgICB0ZW5hbnRJZCA9ICJhMWQzMGY0MS0yODIwLTQ3YzQtYmFiMy1kYzdhMDNlODE3NTAiOw0KICAgICAgICB9DQoNCiAgICAgICAgLy8gSWYgZXZlbiBmYWxsYmFjayBmYWlscywgbGV0J3MganVzdCBtYWtlIHN1cmUgdGhlcmUncyBTT01FIGlkIChmb3Igc3FsaXRlIHJlbGF0aW9uKQ0KICAgICAgICBpZiAoIXRlbmFudElkKSB0ZW5hbnRJZCA9ICdmYWxsYmFjay10ZW5hbnQtaWQnOw0KDQogICAgICAgIGNvbnN0IHBheWxvYWQgPSB7DQogICAgICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudElkLA0KICAgICAgICAgICAgbm9tZTogbm92b05vbWUsDQogICAgICAgICAgICBjb250YXRvX25vbWU6IG5vdm9Db250YXRvLA0KICAgICAgICAgICAgbG9nb191cmw6IG5vdmFMb2dvIHx8IG51bGwNCiAgICAgICAgfTsNCg0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgcmVzcCA9IGF3YWl0IGZldGNoKCcvYXBpL2NvbnRyYXRhbnRlcycsIHsNCiAgICAgICAgICAgICAgICBtZXRob2Q6ICdQT1NUJywNCiAgICAgICAgICAgICAgICBoZWFkZXJzOiB7ICdDb250ZW50LVR5cGUnOiAnYXBwbGljYXRpb24vanNvbicgfSwNCiAgICAgICAgICAgICAgICBib2R5OiBKU09OLnN0cmluZ2lmeShwYXlsb2FkKQ0KICAgICAgICAgICAgfSk7DQogICAgICAgICAgICBpZiAocmVzcC5vaykgew0KICAgICAgICAgICAgICAgIHNldElzTW9kYWxPcGVuKGZhbHNlKTsNCiAgICAgICAgICAgICAgICBzZXROb3ZvTm9tZSgnJyk7DQogICAgICAgICAgICAgICAgc2V0Tm92b0NvbnRhdG8oJycpOw0KICAgICAgICAgICAgICAgIHNldE5vdmFMb2dvKCcnKTsNCiAgICAgICAgICAgICAgICBsb2FkQ29udHJhdGFudGVzKCk7DQogICAgICAgICAgICB9IGVsc2Ugew0KICAgICAgICAgICAgICAgIGFsZXJ0KCJFcnJvIGFvIGNyaWFyIGNvbnRyYXRhbnRlLiIpOw0KICAgICAgICAgICAgfQ0KICAgICAgICB9IGNhdGNoIChlKSB7DQogICAgICAgICAgICBjb25zb2xlLmVycm9yKCJFcnJvIGFvIGNyaWFyIGNvbnRyYXRhbnRlIiwgZSk7DQogICAgICAgIH0NCiAgICB9Ow0KDQogICAgcmV0dXJuICgNCiAgICAgICAgPGRpdiBjbGFzc05hbWU9InAtOCI+DQogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBqdXN0aWZ5LWJldHdlZW4gaXRlbXMtY2VudGVyIG1iLTYiPg0KICAgICAgICAgICAgICAgIDxoMiBjbGFzc05hbWU9InRleHQtM3hsIGZvbnQtYm9sZCI+Q29udHJhdGFudGVzPC9oMj4NCiAgICAgICAgICAgICAgICA8YnV0dG9uIG9uQ2xpY2s9eygpID0+IHNldElzTW9kYWxPcGVuKHRydWUpfSBjbGFzc05hbWU9ImJnLXByaW1hcnkgdGV4dC1wcmltYXJ5LWZvcmVncm91bmQgcHgtNCBweS0yIHJvdW5kZWQtbWQgaG92ZXI6YmctcHJpbWFyeS85MCI+Tm92byBDb250cmF0YW50ZTwvYnV0dG9uPg0KICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctY2FyZCByb3VuZGVkLWxnIHNoYWRvdy1zbSBib3JkZXIgcC02Ij4NCiAgICAgICAgICAgICAgICB7bG9hZGluZyA/IDxwPkNhcnJlZ2FuZG8uLi48L3A+IDogKA0KICAgICAgICAgICAgICAgICAgICA8dGFibGUgY2xhc3NOYW1lPSJ3LWZ1bGwgdGV4dC1sZWZ0Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgIDx0aGVhZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dHIgY2xhc3NOYW1lPSJib3JkZXItYiI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InBiLTMgZm9udC1tZWRpdW0iPkxvZ288L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJwYi0zIGZvbnQtbWVkaXVtIj5Ob21lPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRoIGNsYXNzTmFtZT0icGItMyBmb250LW1lZGl1bSI+Q29udGF0bzwvdGg+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InBiLTMgZm9udC1tZWRpdW0gdGV4dC1yaWdodCI+QcOnw7VlczwvdGg+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAgICAgICAgICAgIDwvdGhlYWQ+DQogICAgICAgICAgICAgICAgICAgICAgICA8dGJvZHk+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAge2l0ZW1zLm1hcChjID0+ICgNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRyIGtleT17Yy5pZH0gY2xhc3NOYW1lPSJib3JkZXItYiI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS00Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB7Yy5sb2dvX3VybCA/IDxpbWcgc3JjPXtjLmxvZ29fdXJsfSBhbHQ9IkxvZ28iIGNsYXNzTmFtZT0iaC04IG9iamVjdC1jb250YWluIiAvPiA6IDxzcGFuIGNsYXNzTmFtZT0idGV4dC1tdXRlZC1mb3JlZ3JvdW5kIHRleHQtc20iPlNlbSBsb2dvPC9zcGFuPn0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS00IGZvbnQtbWVkaXVtIj57Yy5ub21lfTwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGQgY2xhc3NOYW1lPSJweS00Ij57Yy5jb250YXRvX25vbWV9PC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0ZCBjbGFzc05hbWU9InB5LTQgdGV4dC1yaWdodCI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBvbkNsaWNrPXsoKSA9PiBoYW5kbGVVcGRhdGVMb2dvKGMuaWQpfSBjbGFzc05hbWU9InRleHQtcHJpbWFyeSBob3Zlcjp1bmRlcmxpbmUgdGV4dC1zbSBtci00Ij5Ucm9jYXIgTG9nbzwvYnV0dG9uPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24gY2xhc3NOYW1lPSJ0ZXh0LXByaW1hcnkgaG92ZXI6dW5kZXJsaW5lIHRleHQtc20iPkVkaXRhcjwvYnV0dG9uPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90ZD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90cj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICApKX0NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7aXRlbXMubGVuZ3RoID09PSAwICYmICgNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRyPjx0ZCBjb2xTcGFuPXs0fSBjbGFzc05hbWU9InB5LTQgdGV4dC1jZW50ZXIgdGV4dC1tdXRlZC1mb3JlZ3JvdW5kIj5OZW5odW0gY29udHJhdGFudGUgY2FkYXN0cmFkby48L3RkPjwvdHI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgKX0NCiAgICAgICAgICAgICAgICAgICAgICAgIDwvdGJvZHk+DQogICAgICAgICAgICAgICAgICAgIDwvdGFibGU+DQogICAgICAgICAgICAgICAgKX0NCiAgICAgICAgICAgIDwvZGl2Pg0KDQogICAgICAgICAgICB7aXNNb2RhbE9wZW4gJiYgKA0KICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmaXhlZCBpbnNldC0wIGJnLWJsYWNrLzUwIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHotNTAiPg0KICAgICAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctYmFja2dyb3VuZCByb3VuZGVkLWxnIHNoYWRvdy1sZyBwLTYgdy1mdWxsIG1heC13LW1kIj4NCiAgICAgICAgICAgICAgICAgICAgICAgIDxoMyBjbGFzc05hbWU9InRleHQteGwgZm9udC1ib2xkIG1iLTQiPk5vdm8gQ29udHJhdGFudGU8L2gzPg0KICAgICAgICAgICAgICAgICAgICAgICAgPGZvcm0gb25TdWJtaXQ9e2hhbmRsZUNyZWF0ZUNvbnRyYXRhbnRlfSBjbGFzc05hbWU9InNwYWNlLXktNCI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC1zbSBmb250LW1lZGl1bSBtYi0xIj5Ob21lIGRhIEVtcHJlc2E8L2xhYmVsPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8aW5wdXQNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHR5cGU9InRleHQiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT17bm92b05vbWV9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXROb3ZvTm9tZShlLnRhcmdldC52YWx1ZSl9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgcm91bmRlZC1tZCBwLTIiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXF1aXJlZA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXY+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxsYWJlbCBjbGFzc05hbWU9ImJsb2NrIHRleHQtc20gZm9udC1tZWRpdW0gbWItMSI+Q29udGF0byAoTm9tZSk8L2xhYmVsPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8aW5wdXQNCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHR5cGU9InRleHQiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT17bm92b0NvbnRhdG99DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBvbkNoYW5nZT17ZSA9PiBzZXROb3ZvQ29udGF0byhlLnRhcmdldC52YWx1ZSl9DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBib3JkZXIgcm91bmRlZC1tZCBwLTIiDQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPGRpdj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGxhYmVsIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC1zbSBmb250LW1lZGl1bSBtYi0xIj5VUkwgZGEgTG9nbyAoT3BjaW9uYWwpPC9sYWJlbD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGlucHV0DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0eXBlPSJ0ZXh0Ig0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdmFsdWU9e25vdmFMb2dvfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgb25DaGFuZ2U9e2UgPT4gc2V0Tm92YUxvZ28oZS50YXJnZXQudmFsdWUpfQ0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcGxhY2Vob2xkZXI9Imh0dHBzOi8vLi4uIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY2xhc3NOYW1lPSJ3LWZ1bGwgYm9yZGVyIHJvdW5kZWQtbWQgcC0yIg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAvPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJmbGV4IGp1c3RpZnktZW5kIHNwYWNlLXgtMyBtdC02Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiB0eXBlPSJidXR0b24iIG9uQ2xpY2s9eygpID0+IHNldElzTW9kYWxPcGVuKGZhbHNlKX0gY2xhc3NOYW1lPSJweC00IHB5LTIgYm9yZGVyIHJvdW5kZWQtbWQgaG92ZXI6YmctbXV0ZWQgZm9udC1tZWRpdW0iPkNhbmNlbGFyPC9idXR0b24+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDxidXR0b24gdHlwZT0ic3VibWl0IiBjbGFzc05hbWU9ImJnLXByaW1hcnkgdGV4dC1wcmltYXJ5LWZvcmVncm91bmQgcHgtNCBweS0yIHJvdW5kZWQtbWQgaG92ZXI6YmctcHJpbWFyeS85MCBmb250LW1lZGl1bSI+U2FsdmFyPC9idXR0b24+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC9kaXY+DQogICAgICAgICAgICAgICAgICAgICAgICA8L2Zvcm0+DQogICAgICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgKX0NCiAgICAgICAgPC9kaXY+DQogICAgKTsNCn0NCg=="}
+import { useState, useEffect } from 'react';
+
+interface Contratante {
+    id: string;
+    nome: string;
+    contato_nome: string;
+    logo_url: string | null;
+}
+
+export function Contratantes() {
+    const [items, setItems] = useState<Contratante[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [novoNome, setNovoNome] = useState('');
+    const [novoContato, setNovoContato] = useState('');
+    const [novaLogo, setNovaLogo] = useState('');
+
+    const loadContratantes = () => {
+        setLoading(true);
+        fetch('/api/contratantes')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setItems(data);
+                } else {
+                    console.error("API did not return an array:", data);
+                    setItems([]);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                setItems([]);
+            })
+            .finally(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        loadContratantes();
+    }, []);
+
+    const handleUpdateLogo = async (id: string) => {
+        const url = prompt("Digite a URL da nova logo para este contratante:");
+        if (url === null) return;
+
+        try {
+            const resp = await fetch(`/api/contratantes/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ logo_url: url })
+            });
+            if (resp.ok) {
+                setItems(items.map(i => i.id === id ? { ...i, logo_url: url } : i));
+            } else {
+                alert("Erro ao atualizar logo");
+            }
+        } catch {
+            alert("Erro ao atualizar logo");
+        }
+    };
+
+    const handleCreateContratante = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        let tenantId = "";
+        try {
+            const resp = await fetch('/api/contratantes');
+            const data = await resp.json();
+            if (data && data.length > 0 && Array.isArray(data)) {
+                tenantId = data[0].tenant_id;
+            } else {
+                tenantId = "a1d30f41-2820-47c4-bab3-dc7a03e81750"; // Fallback demo ID
+            }
+        } catch (e) {
+            tenantId = "a1d30f41-2820-47c4-bab3-dc7a03e81750";
+        }
+
+        // If even fallback fails, let's just make sure there's SOME id (for sqlite relation)
+        if (!tenantId) tenantId = 'fallback-tenant-id';
+
+        const payload = {
+            tenant_id: tenantId,
+            nome: novoNome,
+            contato_nome: novoContato,
+            logo_url: novaLogo || null
+        };
+
+        try {
+            const resp = await fetch('/api/contratantes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (resp.ok) {
+                setIsModalOpen(false);
+                setNovoNome('');
+                setNovoContato('');
+                setNovaLogo('');
+                loadContratantes();
+            } else {
+                alert("Erro ao criar contratante.");
+            }
+        } catch (e) {
+            console.error("Erro ao criar contratante", e);
+        }
+    };
+
+    return (
+        <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">Contratantes</h2>
+                <button onClick={() => setIsModalOpen(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">Novo Contratante</button>
+            </div>
+            <div className="bg-card rounded-lg shadow-sm border p-6">
+                {loading ? <p>Carregando...</p> : (
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b">
+                                <th className="pb-3 font-medium">Logo</th>
+                                <th className="pb-3 font-medium">Nome</th>
+                                <th className="pb-3 font-medium">Contato</th>
+                                <th className="pb-3 font-medium text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {items.map(c => (
+                                <tr key={c.id} className="border-b">
+                                    <td className="py-4">
+                                        {c.logo_url ? <img src={c.logo_url} alt="Logo" className="h-8 object-contain" /> : <span className="text-muted-foreground text-sm">Sem logo</span>}
+                                    </td>
+                                    <td className="py-4 font-medium">{c.nome}</td>
+                                    <td className="py-4">{c.contato_nome}</td>
+                                    <td className="py-4 text-right">
+                                        <button onClick={() => handleUpdateLogo(c.id)} className="text-primary hover:underline text-sm mr-4">Trocar Logo</button>
+                                        <button className="text-primary hover:underline text-sm">Editar</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {items.length === 0 && (
+                                <tr><td colSpan={4} className="py-4 text-center text-muted-foreground">Nenhum contratante cadastrado.</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-background rounded-lg shadow-lg p-6 w-full max-w-md">
+                        <h3 className="text-xl font-bold mb-4">Novo Contratante</h3>
+                        <form onSubmit={handleCreateContratante} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Nome da Empresa</label>
+                                <input
+                                    type="text"
+                                    value={novoNome}
+                                    onChange={e => setNovoNome(e.target.value)}
+                                    className="w-full border rounded-md p-2"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">Contato (Nome)</label>
+                                <input
+                                    type="text"
+                                    value={novoContato}
+                                    onChange={e => setNovoContato(e.target.value)}
+                                    className="w-full border rounded-md p-2"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium mb-1">URL da Logo (Opcional)</label>
+                                <input
+                                    type="text"
+                                    value={novaLogo}
+                                    onChange={e => setNovaLogo(e.target.value)}
+                                    placeholder="https://..."
+                                    className="w-full border rounded-md p-2"
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border rounded-md hover:bg-muted font-medium">Cancelar</button>
+                                <button type="submit" className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 font-medium">Salvar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

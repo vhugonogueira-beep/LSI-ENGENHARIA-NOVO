@@ -1,1 +1,30 @@
-{"data":"ZXhwb3J0IGZ1bmN0aW9uIFNpdGVzKCkgew0KICAgIHJldHVybiAoDQogICAgICAgIDxkaXYgY2xhc3NOYW1lPSJwLTgiPg0KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXgganVzdGlmeS1iZXR3ZWVuIGl0ZW1zLWNlbnRlciBtYi02Ij4NCiAgICAgICAgICAgICAgICA8aDIgY2xhc3NOYW1lPSJ0ZXh0LTN4bCBmb250LWJvbGQiPlNpdGVzPC9oMj4NCiAgICAgICAgICAgICAgICA8YnV0dG9uIGNsYXNzTmFtZT0iYmctcHJpbWFyeSB0ZXh0LXByaW1hcnktZm9yZWdyb3VuZCBweC00IHB5LTIgcm91bmRlZC1tZCBob3ZlcjpiZy1wcmltYXJ5LzkwIj5Ob3ZvIFNpdGU8L2J1dHRvbj4NCiAgICAgICAgICAgIDwvZGl2Pg0KICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLWNhcmQgcm91bmRlZC1sZyBzaGFkb3ctc20gYm9yZGVyIHAtNiI+DQogICAgICAgICAgICAgICAgPHRhYmxlIGNsYXNzTmFtZT0idy1mdWxsIHRleHQtbGVmdCI+DQogICAgICAgICAgICAgICAgICAgIDx0aGVhZD4NCiAgICAgICAgICAgICAgICAgICAgICAgIDx0ciBjbGFzc05hbWU9ImJvcmRlci1iIj4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJwYi0zIGZvbnQtbWVkaXVtIj5JRCBTaXRlPC90aD4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dGggY2xhc3NOYW1lPSJwYi0zIGZvbnQtbWVkaXVtIj5DaWRhZGUvVUY8L3RoPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0aCBjbGFzc05hbWU9InBiLTMgZm9udC1tZWRpdW0gdGV4dC1yaWdodCI+QcOnw7VlczwvdGg+DQogICAgICAgICAgICAgICAgICAgICAgICA8L3RyPg0KICAgICAgICAgICAgICAgICAgICA8L3RoZWFkPg0KICAgICAgICAgICAgICAgICAgICA8dGJvZHk+DQogICAgICAgICAgICAgICAgICAgICAgICA8dHI+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHktNCI+UkpDQU0xNV8wMDEgLyBSSkNNUDAzMTwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHktNCI+UmlvIGRlIEphbmVpcm8gLyBSSjwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRkIGNsYXNzTmFtZT0icHktNCB0ZXh0LXJpZ2h0Ij4NCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPGJ1dHRvbiBjbGFzc05hbWU9InRleHQtcHJpbWFyeSBob3Zlcjp1bmRlcmxpbmUiPkVkaXRhcjwvYnV0dG9uPg0KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDwvdGQ+DQogICAgICAgICAgICAgICAgICAgICAgICA8L3RyPg0KICAgICAgICAgICAgICAgICAgICA8L3Rib2R5Pg0KICAgICAgICAgICAgICAgIDwvdGFibGU+DQogICAgICAgICAgICA8L2Rpdj4NCiAgICAgICAgPC9kaXY+DQogICAgKTsNCn0NCg=="}
+export function Sites() {
+    return (
+        <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-3xl font-bold">Sites</h2>
+                <button className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">Novo Site</button>
+            </div>
+            <div className="bg-card rounded-lg shadow-sm border p-6">
+                <table className="w-full text-left">
+                    <thead>
+                        <tr className="border-b">
+                            <th className="pb-3 font-medium">ID Site</th>
+                            <th className="pb-3 font-medium">Cidade/UF</th>
+                            <th className="pb-3 font-medium text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td className="py-4">RJCAM15_001 / RJCMP031</td>
+                            <td className="py-4">Rio de Janeiro / RJ</td>
+                            <td className="py-4 text-right">
+                                <button className="text-primary hover:underline">Editar</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}

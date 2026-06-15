@@ -1,1 +1,25 @@
-{"data":"aW1wb3J0IHsgUm91dGVyIH0gZnJvbSAnZXhwcmVzcyc7DQppbXBvcnQgeyBNYXN0ZXJDb250cm9sbGVyIH0gZnJvbSAnLi4vY29udHJvbGxlcnMvbWFzdGVyLmNvbnRyb2xsZXInOw0KDQpjb25zdCByb3V0ZXIgPSBSb3V0ZXIoKTsNCg0KLy8gQ29udHJhdGFudGVzDQpyb3V0ZXIuZ2V0KCcvY29udHJhdGFudGVzJywgTWFzdGVyQ29udHJvbGxlci5saXN0Q29udHJhdGFudGVzKTsNCnJvdXRlci5wb3N0KCcvY29udHJhdGFudGVzJywgTWFzdGVyQ29udHJvbGxlci5jcmVhdGVDb250cmF0YW50ZSk7DQpyb3V0ZXIucHV0KCcvY29udHJhdGFudGVzLzppZCcsIE1hc3RlckNvbnRyb2xsZXIudXBkYXRlQ29udHJhdGFudGUpOw0KDQovLyBTaXRlcw0Kcm91dGVyLmdldCgnL3NpdGVzJywgTWFzdGVyQ29udHJvbGxlci5saXN0U2l0ZXMpOw0Kcm91dGVyLnBvc3QoJy9zaXRlcycsIE1hc3RlckNvbnRyb2xsZXIuY3JlYXRlU2l0ZSk7DQoNCi8vIENhdGFsb2cNCnJvdXRlci5nZXQoJy9jYXRhbG9nLXNlcnZpY2VzJywgTWFzdGVyQ29udHJvbGxlci5saXN0Q2F0YWxvZyk7DQpyb3V0ZXIucG9zdCgnL2NhdGFsb2ctc2VydmljZXMnLCBNYXN0ZXJDb250cm9sbGVyLmNyZWF0ZUNhdGFsb2dJdGVtKTsNCnJvdXRlci5nZXQoJy9wcmljZS1lbmdpbmUvc3VnZ2VzdCcsIE1hc3RlckNvbnRyb2xsZXIuc3VnZ2VzdFByaWNlKTsNCg0KLy8gVGVtcGxhdGVzDQpyb3V0ZXIuZ2V0KCcvdGVtcGxhdGVzJywgTWFzdGVyQ29udHJvbGxlci5saXN0VGVtcGxhdGVzKTsNCnJvdXRlci5nZXQoJy90ZW1wbGF0ZXMvOmlkJywgTWFzdGVyQ29udHJvbGxlci5nZXRUZW1wbGF0ZSk7DQpyb3V0ZXIucG9zdCgnL3RlbXBsYXRlcycsIE1hc3RlckNvbnRyb2xsZXIuY3JlYXRlVGVtcGxhdGUpOw0KDQpleHBvcnQgZGVmYXVsdCByb3V0ZXI7DQo="}
+import { Router } from 'express';
+import { MasterController } from '../controllers/master.controller';
+
+const router = Router();
+
+// Contratantes
+router.get('/contratantes', MasterController.listContratantes);
+router.post('/contratantes', MasterController.createContratante);
+router.put('/contratantes/:id', MasterController.updateContratante);
+
+// Sites
+router.get('/sites', MasterController.listSites);
+router.post('/sites', MasterController.createSite);
+
+// Catalog
+router.get('/catalog-services', MasterController.listCatalog);
+router.post('/catalog-services', MasterController.createCatalogItem);
+router.get('/price-engine/suggest', MasterController.suggestPrice);
+
+// Templates
+router.get('/templates', MasterController.listTemplates);
+router.get('/templates/:id', MasterController.getTemplate);
+router.post('/templates', MasterController.createTemplate);
+
+export default router;

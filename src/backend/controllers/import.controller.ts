@@ -1,1 +1,72 @@
-{"data":"aW1wb3J0IHsgUmVxdWVzdCwgUmVzcG9uc2UgfSBmcm9tICdleHByZXNzJzsNCmltcG9ydCB7IEltcG9ydFNlcnZpY2UgfSBmcm9tICcuLi9zZXJ2aWNlcy9pbXBvcnQuc2VydmljZSc7DQppbXBvcnQgeyBwcmlzbWEgfSBmcm9tICcuLi9zZXJ2ZXInOw0KDQphc3luYyBmdW5jdGlvbiBnZXREZW1vVGVuYW50SWQoKSB7DQogICAgY29uc3QgdCA9IGF3YWl0IHByaXNtYS50ZW5hbnQuZmluZEZpcnN0KCk7DQogICAgcmV0dXJuIHQgPyB0LmlkIDogJyc7DQp9DQoNCmV4cG9ydCBjbGFzcyBJbXBvcnRDb250cm9sbGVyIHsNCg0KICAgIHN0YXRpYyBhc3luYyB1cGxvYWQocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCBmaWxlID0gcmVxLmZpbGU7DQogICAgICAgICAgICBpZiAoIWZpbGUpIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiAnTmVuaHVtIGFycXVpdm8gZW52aWFkbycgfSk7DQoNCiAgICAgICAgICAgIGNvbnN0IHRlbmFudElkID0gKHJlcS5ib2R5LnRlbmFudF9pZCBhcyBzdHJpbmcpIHx8IGF3YWl0IGdldERlbW9UZW5hbnRJZCgpOw0KICAgICAgICAgICAgY29uc3Qgc3VwcGxpZXJJZCA9IHJlcS5ib2R5LnN1cHBsaWVyX2lkOw0KICAgICAgICAgICAgY29uc3QgcHJpY2Vib29rSWQgPSByZXEuYm9keS5wcmljZWJvb2tfaWQ7DQoNCiAgICAgICAgICAgIGlmICghc3VwcGxpZXJJZCB8fCAhcHJpY2Vib29rSWQpIHsNCiAgICAgICAgICAgICAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogJ3N1cHBsaWVyX2lkIGUgcHJpY2Vib29rX2lkIHPDo28gb2JyaWdhdMOzcmlvcycgfSk7DQogICAgICAgICAgICB9DQoNCiAgICAgICAgICAgIC8vIERldGVjdCBmaWxlIHR5cGUNCiAgICAgICAgICAgIGNvbnN0IGV4dCA9IGZpbGUub3JpZ2luYWxuYW1lLnNwbGl0KCcuJykucG9wKCk/LnRvTG93ZXJDYXNlKCkgfHwgJyc7DQogICAgICAgICAgICBsZXQgZmlsZVR5cGUgPSAnWExTWCc7DQogICAgICAgICAgICBpZiAoZXh0ID09PSAnY3N2JykgZmlsZVR5cGUgPSAnQ1NWJzsNCiAgICAgICAgICAgIGVsc2UgaWYgKGV4dCA9PT0gJ3hscycpIGZpbGVUeXBlID0gJ1hMUyc7DQoNCiAgICAgICAgICAgIGNvbnN0IGN1c3RvbU1hcHBpbmcgPSByZXEuYm9keS5tYXBwaW5nID8gSlNPTi5wYXJzZShyZXEuYm9keS5tYXBwaW5nKSA6IHVuZGVmaW5lZDsNCg0KICAgICAgICAgICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgSW1wb3J0U2VydmljZS5zdGFydEltcG9ydCgNCiAgICAgICAgICAgICAgICB0ZW5hbnRJZCwNCiAgICAgICAgICAgICAgICBzdXBwbGllcklkLA0KICAgICAgICAgICAgICAgIHByaWNlYm9va0lkLA0KICAgICAgICAgICAgICAgIGZpbGUub3JpZ2luYWxuYW1lLA0KICAgICAgICAgICAgICAgIGZpbGVUeXBlLA0KICAgICAgICAgICAgICAgIGZpbGUuYnVmZmVyLA0KICAgICAgICAgICAgICAgIGN1c3RvbU1hcHBpbmcNCiAgICAgICAgICAgICk7DQoNCiAgICAgICAgICAgIHJlcy5qc29uKHJlc3VsdCk7DQogICAgICAgIH0gY2F0Y2ggKGU6IGFueSkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGdldEJhdGNoKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgYmF0Y2ggPSBhd2FpdCBJbXBvcnRTZXJ2aWNlLmdldEltcG9ydEJhdGNoKHJlcS5wYXJhbXMuaWQpOw0KICAgICAgICAgICAgaWYgKCFiYXRjaCkgcmV0dXJuIHJlcy5zdGF0dXMoNDA0KS5qc29uKHsgZXJyb3I6ICdCYXRjaCBuw6NvIGVuY29udHJhZG8nIH0pOw0KICAgICAgICAgICAgcmVzLmpzb24oYmF0Y2gpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBjb25maXJtQmF0Y2gocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCB7IHJvd3MgfSA9IHJlcS5ib2R5Ow0KICAgICAgICAgICAgaWYgKCFyb3dzIHx8ICFBcnJheS5pc0FycmF5KHJvd3MpKSB7DQogICAgICAgICAgICAgICAgcmV0dXJuIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6ICdDYW1wbyByb3dzIChhcnJheSkgw6kgb2JyaWdhdMOzcmlvJyB9KTsNCiAgICAgICAgICAgIH0NCg0KICAgICAgICAgICAgY29uc3QgcmVzdWx0ID0gYXdhaXQgSW1wb3J0U2VydmljZS5jb25maXJtSW1wb3J0KHJlcS5wYXJhbXMuaWQsIHJvd3MpOw0KICAgICAgICAgICAgcmVzLmpzb24ocmVzdWx0KTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQp9DQo="}
+import { Request, Response } from 'express';
+import { ImportService } from '../services/import.service';
+import { prisma } from '../server';
+
+async function getDemoTenantId() {
+    const t = await prisma.tenant.findFirst();
+    return t ? t.id : '';
+}
+
+export class ImportController {
+
+    static async upload(req: Request, res: Response) {
+        try {
+            const file = req.file;
+            if (!file) return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+
+            const tenantId = (req.body.tenant_id as string) || await getDemoTenantId();
+            const supplierId = req.body.supplier_id;
+            const pricebookId = req.body.pricebook_id;
+
+            if (!supplierId || !pricebookId) {
+                return res.status(400).json({ error: 'supplier_id e pricebook_id são obrigatórios' });
+            }
+
+            // Detect file type
+            const ext = file.originalname.split('.').pop()?.toLowerCase() || '';
+            let fileType = 'XLSX';
+            if (ext === 'csv') fileType = 'CSV';
+            else if (ext === 'xls') fileType = 'XLS';
+
+            const customMapping = req.body.mapping ? JSON.parse(req.body.mapping) : undefined;
+
+            const result = await ImportService.startImport(
+                tenantId,
+                supplierId,
+                pricebookId,
+                file.originalname,
+                fileType,
+                file.buffer,
+                customMapping
+            );
+
+            res.json(result);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async getBatch(req: Request, res: Response) {
+        try {
+            const batch = await ImportService.getImportBatch(req.params.id);
+            if (!batch) return res.status(404).json({ error: 'Batch não encontrado' });
+            res.json(batch);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async confirmBatch(req: Request, res: Response) {
+        try {
+            const { rows } = req.body;
+            if (!rows || !Array.isArray(rows)) {
+                return res.status(400).json({ error: 'Campo rows (array) é obrigatório' });
+            }
+
+            const result = await ImportService.confirmImport(req.params.id, rows);
+            res.json(result);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+}

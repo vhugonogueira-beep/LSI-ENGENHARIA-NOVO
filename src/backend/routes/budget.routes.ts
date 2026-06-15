@@ -1,1 +1,15 @@
-{"data":"aW1wb3J0IHsgUm91dGVyIH0gZnJvbSAnZXhwcmVzcyc7DQppbXBvcnQgeyBCdWRnZXRDb250cm9sbGVyIH0gZnJvbSAnLi4vY29udHJvbGxlcnMvYnVkZ2V0LmNvbnRyb2xsZXInOw0KDQpjb25zdCByb3V0ZXIgPSBSb3V0ZXIoKTsNCg0Kcm91dGVyLmdldCgnLycsIEJ1ZGdldENvbnRyb2xsZXIuZ2V0QWxsKTsNCnJvdXRlci5wb3N0KCcvJywgQnVkZ2V0Q29udHJvbGxlci5jcmVhdGUpOw0Kcm91dGVyLmdldCgnLzppZCcsIEJ1ZGdldENvbnRyb2xsZXIuZ2V0QnlJZCk7DQpyb3V0ZXIucHV0KCcvOmlkL2hlYWRlcicsIEJ1ZGdldENvbnRyb2xsZXIudXBkYXRlSGVhZGVyKTsNCnJvdXRlci5wdXQoJy86aWQvaXRlbXMnLCBCdWRnZXRDb250cm9sbGVyLnVwZGF0ZUl0ZW1zKTsNCnJvdXRlci5wb3N0KCcvOmlkL3ZlcnNpb25zJywgQnVkZ2V0Q29udHJvbGxlci5jcmVhdGVWZXJzaW9uKTsNCnJvdXRlci5nZXQoJy86aWQvZXhwb3J0L2h0bWwnLCBCdWRnZXRDb250cm9sbGVyLmV4cG9ydEh0bWwpOw0Kcm91dGVyLmdldCgnLzppZC9leHBvcnQvZXhjZWwnLCBCdWRnZXRDb250cm9sbGVyLmV4cG9ydEV4Y2VsKTsNCg0KZXhwb3J0IGRlZmF1bHQgcm91dGVyOw0K"}
+import { Router } from 'express';
+import { BudgetController } from '../controllers/budget.controller';
+
+const router = Router();
+
+router.get('/', BudgetController.getAll);
+router.post('/', BudgetController.create);
+router.get('/:id', BudgetController.getById);
+router.put('/:id/header', BudgetController.updateHeader);
+router.put('/:id/items', BudgetController.updateItems);
+router.post('/:id/versions', BudgetController.createVersion);
+router.get('/:id/export/html', BudgetController.exportHtml);
+router.get('/:id/export/excel', BudgetController.exportExcel);
+
+export default router;

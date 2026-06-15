@@ -1,1 +1,194 @@
-{"data":"aW1wb3J0IHsgcHJpc21hIH0gZnJvbSAnLi4vc2VydmVyJzsNCmltcG9ydCB7IEluZmxhdGlvblNlcnZpY2UgfSBmcm9tICcuL2luZmxhdGlvbi5zZXJ2aWNlJzsNCg0KZXhwb3J0IGNsYXNzIEFuYWx5dGljc1NlcnZpY2Ugew0KDQogICAgLy8gQ2FsY3VsYXRlcyBwMjUsIG1lZGlhbiAocDUwKSwgYW5kIHA3NSBmcm9tIGEgc29ydGVkIGFycmF5IG9mIG51bWJlcnMNCiAgICBwcml2YXRlIHN0YXRpYyBjYWxjdWxhdGVQZXJjZW50aWxlcyh2YWx1ZXM6IG51bWJlcltdKSB7DQogICAgICAgIGlmICh2YWx1ZXMubGVuZ3RoID09PSAwKSByZXR1cm4geyBwMjU6IDAsIG1lZGlhbjogMCwgcDc1OiAwIH07DQogICAgICAgIHZhbHVlcy5zb3J0KChhLCBiKSA9PiBhIC0gYik7DQoNCiAgICAgICAgY29uc3QgcTFTcmMgPSAodmFsdWVzLmxlbmd0aCAtIDEpICogMC4yNTsNCiAgICAgICAgY29uc3QgcTJTcmMgPSAodmFsdWVzLmxlbmd0aCAtIDEpICogMC41Ow0KICAgICAgICBjb25zdCBxM1NyYyA9ICh2YWx1ZXMubGVuZ3RoIC0gMSkgKiAwLjc1Ow0KDQogICAgICAgIGNvbnN0IGxlcnAgPSAoaWR4OiBudW1iZXIpID0+IHsNCiAgICAgICAgICAgIGNvbnN0IGJhc2UgPSBNYXRoLmZsb29yKGlkeCk7DQogICAgICAgICAgICBjb25zdCByZXN0ID0gaWR4IC0gYmFzZTsNCiAgICAgICAgICAgIGlmICh2YWx1ZXNbYmFzZSArIDFdICE9PSB1bmRlZmluZWQpIHsNCiAgICAgICAgICAgICAgICByZXR1cm4gdmFsdWVzW2Jhc2VdICsgcmVzdCAqICh2YWx1ZXNbYmFzZSArIDFdIC0gdmFsdWVzW2Jhc2VdKTsNCiAgICAgICAgICAgIH0gZWxzZSB7DQogICAgICAgICAgICAgICAgcmV0dXJuIHZhbHVlc1tiYXNlXTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfTsNCg0KICAgICAgICByZXR1cm4gew0KICAgICAgICAgICAgcDI1OiBsZXJwKHExU3JjKSwNCiAgICAgICAgICAgIG1lZGlhbjogbGVycChxMlNyYyksDQogICAgICAgICAgICBwNzU6IGxlcnAocTNTcmMpDQogICAgICAgIH07DQogICAgfQ0KDQogICAgcHJpdmF0ZSBzdGF0aWMgY2FsY3VsYXRlU3RkRGV2KHZhbHVlczogbnVtYmVyW10sIG1lYW46IG51bWJlcikgew0KICAgICAgICBpZiAodmFsdWVzLmxlbmd0aCA8IDIpIHJldHVybiAwOw0KICAgICAgICBjb25zdCB2YXJpYW5jZSA9IHZhbHVlcy5yZWR1Y2UoKGFjYywgdmFsKSA9PiBhY2MgKyBNYXRoLnBvdyh2YWwgLSBtZWFuLCAyKSwgMCkgLyAodmFsdWVzLmxlbmd0aCAtIDEpOw0KICAgICAgICByZXR1cm4gTWF0aC5zcXJ0KHZhcmlhbmNlKTsNCiAgICB9DQoNCiAgICAvKioNCiAgICAgKiBDb21wdXRlIGFuZCB1cGRhdGUgdGhlIFByaWNlU3RhdHMgZm9yIGEgZ2l2ZW4gaXRlbSBhY3Jvc3MgYSByZWdpb24gYmFzZWQgb24gaGlzdG9yaWNhbCBCdWRnZXRzDQogICAgICovDQogICAgc3RhdGljIGFzeW5jIGNvbXB1dGVTdGF0c0ZvckNhdGFsb2dJdGVtKHRlbmFudElkOiBzdHJpbmcsIGNhdGFsb2dJdGVtSWQ6IHN0cmluZywgcmVnaWFvOiBzdHJpbmcpIHsNCiAgICAgICAgY29uc3QgY2F0YWxvZ0l0ZW0gPSBhd2FpdCBwcmlzbWEuY2F0YWxvZ1NlcnZpY2UuZmluZFVuaXF1ZSh7IHdoZXJlOiB7IGlkOiBjYXRhbG9nSXRlbUlkIH0gfSk7DQogICAgICAgIGlmICghY2F0YWxvZ0l0ZW0pIHRocm93IG5ldyBFcnJvcigiQ2F0YWxvZyBpdGVtIG5vdCBmb3VuZCIpOw0KDQogICAgICAgIC8vIEZpbmQgYWxsIGJ1ZGdldCBpdGVtcyB0aGF0IG1hdGNoIHRoaXMgY2F0YWxvZyBpdGVtJ3MgY29kZSBvciB0aXRsZSwgYW5kIGFyZSBpbiB0aGUgZ2l2ZW4gcmVnaW9uDQogICAgICAgIC8vIFNpbmNlIHJlZ2lhbyBtaWdodCBtYXAgdG8gU2l0ZS51Ziwgd2UnbGwgdHJ5IHRvIGZpbmQgYnVkZ2V0cyB3aGVyZSBzaXRlLnVmID09PSByZWdpYW8NCiAgICAgICAgY29uc3QgaGlzdG9yaWNhbEl0ZW1zID0gYXdhaXQgcHJpc21hLmJ1ZGdldEl0ZW0uZmluZE1hbnkoew0KICAgICAgICAgICAgd2hlcmU6IHsNCiAgICAgICAgICAgICAgICBidWRnZXQ6IHsNCiAgICAgICAgICAgICAgICAgICAgdGVuYW50X2lkOiB0ZW5hbnRJZCwNCiAgICAgICAgICAgICAgICAgICAgc2l0ZTogew0KICAgICAgICAgICAgICAgICAgICAgICAgdWY6IHJlZ2lhbyAvLyBBc3N1bWluZyByZWdpYW8gaXMgVUYgZm9yIG5vdw0KICAgICAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICAgICAgfSwNCiAgICAgICAgICAgICAgICBPUjogWw0KICAgICAgICAgICAgICAgICAgICB7IGNvZGlnb19pdGVtOiBjYXRhbG9nSXRlbS5jb2RpZ28gfSwNCiAgICAgICAgICAgICAgICAgICAgeyB0aXR1bG86IGNhdGFsb2dJdGVtLnRpdHVsbyB9DQogICAgICAgICAgICAgICAgXQ0KICAgICAgICAgICAgfSwNCiAgICAgICAgICAgIHNlbGVjdDogew0KICAgICAgICAgICAgICAgIHZhbG9yX3VuaXRhcmlvOiB0cnVlLA0KICAgICAgICAgICAgICAgIGJ1ZGdldDogew0KICAgICAgICAgICAgICAgICAgICBzZWxlY3Q6IHsgY3JlYXRlZF9hdDogdHJ1ZSB9DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgfQ0KICAgICAgICB9KTsNCg0KICAgICAgICBjb25zdCByYXdWYWx1ZXMgPSBoaXN0b3JpY2FsSXRlbXMubWFwKGkgPT4gaS52YWxvcl91bml0YXJpbyk7DQogICAgICAgIGNvbnN0IGNvdW50ID0gcmF3VmFsdWVzLmxlbmd0aDsNCg0KICAgICAgICAvLyBJZiB3ZSBoYXZlIG5vIGhpc3RvcmljYWwgZGF0YSwgZmFsbGJhY2sgdG8gYmFzZSB2YWx1ZQ0KICAgICAgICBpZiAoY291bnQgPT09IDApIHsNCiAgICAgICAgICAgIHJldHVybiB7DQogICAgICAgICAgICAgICAgdGVuYW50X2lkOiB0ZW5hbnRJZCwNCiAgICAgICAgICAgICAgICBpdGVtX2tleTogY2F0YWxvZ0l0ZW1JZCwNCiAgICAgICAgICAgICAgICByZWdpYW86IHJlZ2lhbywNCiAgICAgICAgICAgICAgICBjb3VudDogMCwNCiAgICAgICAgICAgICAgICBtaW46IGNhdGFsb2dJdGVtLnZhbG9yX2Jhc2UsDQogICAgICAgICAgICAgICAgbWF4OiBjYXRhbG9nSXRlbS52YWxvcl9iYXNlLA0KICAgICAgICAgICAgICAgIG1lYW46IGNhdGFsb2dJdGVtLnZhbG9yX2Jhc2UsDQogICAgICAgICAgICAgICAgbWVkaWFuOiBjYXRhbG9nSXRlbS52YWxvcl9iYXNlLA0KICAgICAgICAgICAgICAgIHAyNTogY2F0YWxvZ0l0ZW0udmFsb3JfYmFzZSwNCiAgICAgICAgICAgICAgICBwNzU6IGNhdGFsb2dJdGVtLnZhbG9yX2Jhc2UsDQogICAgICAgICAgICAgICAgc3RkZGV2OiAwLA0KICAgICAgICAgICAgfTsNCiAgICAgICAgfQ0KDQogICAgICAgIGNvbnN0IG1pbiA9IE1hdGgubWluKC4uLnJhd1ZhbHVlcyk7DQogICAgICAgIGNvbnN0IG1heCA9IE1hdGgubWF4KC4uLnJhd1ZhbHVlcyk7DQogICAgICAgIGNvbnN0IG1lYW4gPSByYXdWYWx1ZXMucmVkdWNlKChhLCBiKSA9PiBhICsgYiwgMCkgLyBjb3VudDsNCiAgICAgICAgY29uc3QgeyBwMjUsIG1lZGlhbiwgcDc1IH0gPSB0aGlzLmNhbGN1bGF0ZVBlcmNlbnRpbGVzKFsuLi5yYXdWYWx1ZXNdKTsNCiAgICAgICAgY29uc3Qgc3RkZGV2ID0gdGhpcy5jYWxjdWxhdGVTdGREZXYocmF3VmFsdWVzLCBtZWFuKTsNCg0KICAgICAgICBjb25zdCBzdGF0c0RhdGEgPSB7DQogICAgICAgICAgICBjb3VudCwgbWluLCBtYXgsIG1lYW4sIG1lZGlhbiwgcDI1LCBwNzUsIHN0ZGRldg0KICAgICAgICB9Ow0KDQogICAgICAgIGNvbnN0IGV4aXN0aW5nU3RhdHMgPSBhd2FpdCBwcmlzbWEucHJpY2VTdGF0cy5maW5kRmlyc3Qoew0KICAgICAgICAgICAgd2hlcmU6IHsgdGVuYW50X2lkOiB0ZW5hbnRJZCwgaXRlbV9rZXk6IGNhdGFsb2dJdGVtSWQsIHJlZ2lhbzogcmVnaWFvIH0NCiAgICAgICAgfSk7DQoNCiAgICAgICAgaWYgKGV4aXN0aW5nU3RhdHMpIHsNCiAgICAgICAgICAgIHJldHVybiBwcmlzbWEucHJpY2VTdGF0cy51cGRhdGUoew0KICAgICAgICAgICAgICAgIHdoZXJlOiB7IGlkOiBleGlzdGluZ1N0YXRzLmlkIH0sDQogICAgICAgICAgICAgICAgZGF0YTogc3RhdHNEYXRhDQogICAgICAgICAgICB9KTsNCiAgICAgICAgfSBlbHNlIHsNCiAgICAgICAgICAgIHJldHVybiBwcmlzbWEucHJpY2VTdGF0cy5jcmVhdGUoew0KICAgICAgICAgICAgICAgIGRhdGE6IHsNCiAgICAgICAgICAgICAgICAgICAgdGVuYW50X2lkOiB0ZW5hbnRJZCwNCiAgICAgICAgICAgICAgICAgICAgaXRlbV9rZXk6IGNhdGFsb2dJdGVtSWQsDQogICAgICAgICAgICAgICAgICAgIHJlZ2lhbzogcmVnaWFvLA0KICAgICAgICAgICAgICAgICAgICAuLi5zdGF0c0RhdGENCiAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIC8qKg0KICAgICAqIEdldCB0aGUgZGlzcGVyc2lvbiBkYXRhc2V0IChzdGF0cyArIHBvaW50cykgZm9yIHRoZSBncmFwaGljDQogICAgICovDQogICAgc3RhdGljIGFzeW5jIGdldERpc3BlcnNpb24odGVuYW50SWQ6IHN0cmluZywgaXRlbUtleTogc3RyaW5nLCByZWdpYW86IHN0cmluZywgbW9kZTogc3RyaW5nID0gJ09SSUdJTkFMJywgdGFyZ2V0RGF0ZVN0cj86IHN0cmluZykgew0KICAgICAgICAvLyBUcnkgdG8gZ2V0IHN0YXRzDQogICAgICAgIGxldCBzdGF0cyA9IGF3YWl0IHByaXNtYS5wcmljZVN0YXRzLmZpbmRGaXJzdCh7DQogICAgICAgICAgICB3aGVyZTogeyB0ZW5hbnRfaWQ6IHRlbmFudElkLCBpdGVtX2tleTogaXRlbUtleSwgcmVnaWFvOiByZWdpYW8gfQ0KICAgICAgICB9KTsNCg0KICAgICAgICBpZiAoIXN0YXRzKSB7DQogICAgICAgICAgICAvLyBBdHRlbXB0IGF1dG8gY29tcHV0ZSBpZiBwb3NzaWJsZQ0KICAgICAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgICAgICBzdGF0cyA9IGF3YWl0IHRoaXMuY29tcHV0ZVN0YXRzRm9yQ2F0YWxvZ0l0ZW0odGVuYW50SWQsIGl0ZW1LZXksIHJlZ2lhbykgYXMgYW55Ow0KICAgICAgICAgICAgfSBjYXRjaCAoZSkgew0KICAgICAgICAgICAgICAgIC8vIElnbm9yZQ0KICAgICAgICAgICAgfQ0KICAgICAgICB9DQoNCiAgICAgICAgLy8gRmV0Y2ggcmF3IHBvaW50cyBmb3IgdGhlIHNjYXR0ZXIgcGxvdA0KICAgICAgICBjb25zdCBjYXRhbG9nSXRlbSA9IGF3YWl0IHByaXNtYS5jYXRhbG9nU2VydmljZS5maW5kVW5pcXVlKHsgd2hlcmU6IHsgaWQ6IGl0ZW1LZXkgfSB9KTsNCiAgICAgICAgbGV0IHJhd1BvaW50czogYW55W10gPSBbXTsNCg0KICAgICAgICBpZiAoY2F0YWxvZ0l0ZW0pIHsNCiAgICAgICAgICAgIGNvbnN0IGhpc3RvcmljYWxJdGVtcyA9IGF3YWl0IHByaXNtYS5idWRnZXRJdGVtLmZpbmRNYW55KHsNCiAgICAgICAgICAgICAgICB3aGVyZTogew0KICAgICAgICAgICAgICAgICAgICBidWRnZXQ6IHsgdGVuYW50X2lkOiB0ZW5hbnRJZCwgc2l0ZTogeyB1ZjogcmVnaWFvIH0gfSwNCiAgICAgICAgICAgICAgICAgICAgT1I6IFsNCiAgICAgICAgICAgICAgICAgICAgICAgIHsgY29kaWdvX2l0ZW06IGNhdGFsb2dJdGVtLmNvZGlnbyB9LA0KICAgICAgICAgICAgICAgICAgICAgICAgeyB0aXR1bG86IGNhdGFsb2dJdGVtLnRpdHVsbyB9DQogICAgICAgICAgICAgICAgICAgIF0NCiAgICAgICAgICAgICAgICB9LA0KICAgICAgICAgICAgICAgIHNlbGVjdDogew0KICAgICAgICAgICAgICAgICAgICB2YWxvcl91bml0YXJpbzogdHJ1ZSwNCiAgICAgICAgICAgICAgICAgICAgYnVkZ2V0OiB7IHNlbGVjdDogeyBjcmVhdGVkX2F0OiB0cnVlLCBzaXRlOiB7IHNlbGVjdDogeyBpZF9zaXRlOiB0cnVlIH0gfSB9IH0NCiAgICAgICAgICAgICAgICB9LA0KICAgICAgICAgICAgICAgIHRha2U6IDEwMCwgLy8gTGltaXQgZm9yIFVJIHBlcmZvcm1hbmNlDQogICAgICAgICAgICAgICAgb3JkZXJCeTogeyBidWRnZXQ6IHsgY3JlYXRlZF9hdDogJ2Rlc2MnIH0gfQ0KICAgICAgICAgICAgfSk7DQoNCiAgICAgICAgICAgIGNvbnN0IHRhcmdldERhdGUgPSB0YXJnZXREYXRlU3RyID8gbmV3IERhdGUodGFyZ2V0RGF0ZVN0cikgOiBuZXcgRGF0ZSgpOw0KDQogICAgICAgICAgICByYXdQb2ludHMgPSBhd2FpdCBQcm9taXNlLmFsbChoaXN0b3JpY2FsSXRlbXMubWFwKGFzeW5jIGggPT4gew0KICAgICAgICAgICAgICAgIGxldCB2YWwgPSBoLnZhbG9yX3VuaXRhcmlvOw0KICAgICAgICAgICAgICAgIGlmIChtb2RlID09PSAnQ09SUklHSURPJykgew0KICAgICAgICAgICAgICAgICAgICAvLyBBZGp1c3QgaW5mbGF0aW9uIHVzaW5nIElQQ0EgZGVmYXVsdCBmb3Igbm93DQogICAgICAgICAgICAgICAgICAgIHZhbCA9IGF3YWl0IEluZmxhdGlvblNlcnZpY2UuYWp1c3RhclZhbG9yKHRlbmFudElkLCB2YWwsIGguYnVkZ2V0LmNyZWF0ZWRfYXQsIHRhcmdldERhdGUsICdJUENBJyk7DQogICAgICAgICAgICAgICAgfQ0KICAgICAgICAgICAgICAgIHJldHVybiB7DQogICAgICAgICAgICAgICAgICAgIGRhdGU6IGguYnVkZ2V0LmNyZWF0ZWRfYXQudG9JU09TdHJpbmcoKS5zcGxpdCgnVCcpWzBdLA0KICAgICAgICAgICAgICAgICAgICB2YWx1ZTogdmFsLA0KICAgICAgICAgICAgICAgICAgICBzaXRlOiBoLmJ1ZGdldC5zaXRlLmlkX3NpdGUNCiAgICAgICAgICAgICAgICB9Ow0KICAgICAgICAgICAgfSkpOw0KICAgICAgICB9DQoNCiAgICAgICAgLy8gUmVjb21wdXRlIHN0YXRzIGlubGluZSBpZiBpbiBDT1JSSUdJRE8gbW9kZSB0byByZWZsZWN0IGFkanVzdGVkIHZhbHVlcw0KICAgICAgICBpZiAobW9kZSA9PT0gJ0NPUlJJR0lETycgJiYgcmF3UG9pbnRzLmxlbmd0aCA+IDApIHsNCiAgICAgICAgICAgIGNvbnN0IHZhbHMgPSByYXdQb2ludHMubWFwKHAgPT4gcC52YWx1ZSk7DQogICAgICAgICAgICBjb25zdCBtaW4gPSBNYXRoLm1pbiguLi52YWxzKTsNCiAgICAgICAgICAgIGNvbnN0IG1heCA9IE1hdGgubWF4KC4uLnZhbHMpOw0KICAgICAgICAgICAgY29uc3QgbWVhbiA9IHZhbHMucmVkdWNlKChhLCBiKSA9PiBhICsgYiwgMCkgLyB2YWxzLmxlbmd0aDsNCiAgICAgICAgICAgIGNvbnN0IHsgcDI1LCBtZWRpYW4sIHA3NSB9ID0gdGhpcy5jYWxjdWxhdGVQZXJjZW50aWxlcyhbLi4udmFsc10pOw0KICAgICAgICAgICAgY29uc3Qgc3RkZGV2ID0gdGhpcy5jYWxjdWxhdGVTdGREZXYodmFscywgbWVhbik7DQoNCiAgICAgICAgICAgIHN0YXRzID0gew0KICAgICAgICAgICAgICAgIC4uLnN0YXRzLA0KICAgICAgICAgICAgICAgIG1pbiwgbWF4LCBtZWFuLCBtZWRpYW4sIHAyNSwgcDc1LCBzdGRkZXYNCiAgICAgICAgICAgIH0gYXMgYW55Ow0KICAgICAgICB9DQoNCiAgICAgICAgcmV0dXJuIHsNCiAgICAgICAgICAgIHN0YXRzOiBzdGF0cyB8fCBudWxsLA0KICAgICAgICAgICAgZGF0YXNldDogcmF3UG9pbnRzDQogICAgICAgIH07DQogICAgfQ0KfQ0K"}
+import { prisma } from '../server';
+import { InflationService } from './inflation.service';
+
+export class AnalyticsService {
+
+    // Calculates p25, median (p50), and p75 from a sorted array of numbers
+    private static calculatePercentiles(values: number[]) {
+        if (values.length === 0) return { p25: 0, median: 0, p75: 0 };
+        values.sort((a, b) => a - b);
+
+        const q1Src = (values.length - 1) * 0.25;
+        const q2Src = (values.length - 1) * 0.5;
+        const q3Src = (values.length - 1) * 0.75;
+
+        const lerp = (idx: number) => {
+            const base = Math.floor(idx);
+            const rest = idx - base;
+            if (values[base + 1] !== undefined) {
+                return values[base] + rest * (values[base + 1] - values[base]);
+            } else {
+                return values[base];
+            }
+        };
+
+        return {
+            p25: lerp(q1Src),
+            median: lerp(q2Src),
+            p75: lerp(q3Src)
+        };
+    }
+
+    private static calculateStdDev(values: number[], mean: number) {
+        if (values.length < 2) return 0;
+        const variance = values.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / (values.length - 1);
+        return Math.sqrt(variance);
+    }
+
+    /**
+     * Compute and update the PriceStats for a given item across a region based on historical Budgets
+     */
+    static async computeStatsForCatalogItem(tenantId: string, catalogItemId: string, regiao: string) {
+        const catalogItem = await prisma.catalogService.findUnique({ where: { id: catalogItemId } });
+        if (!catalogItem) throw new Error("Catalog item not found");
+
+        // Find all budget items that match this catalog item's code or title, and are in the given region
+        // Since regiao might map to Site.uf, we'll try to find budgets where site.uf === regiao
+        const historicalItems = await prisma.budgetItem.findMany({
+            where: {
+                budget: {
+                    tenant_id: tenantId,
+                    site: {
+                        uf: regiao // Assuming regiao is UF for now
+                    }
+                },
+                OR: [
+                    { codigo_item: catalogItem.codigo },
+                    { titulo: catalogItem.titulo }
+                ]
+            },
+            select: {
+                valor_unitario: true,
+                budget: {
+                    select: { created_at: true }
+                }
+            }
+        });
+
+        const rawValues = historicalItems.map(i => i.valor_unitario);
+        const count = rawValues.length;
+
+        // If we have no historical data, fallback to base value
+        if (count === 0) {
+            return {
+                tenant_id: tenantId,
+                item_key: catalogItemId,
+                regiao: regiao,
+                count: 0,
+                min: catalogItem.valor_base,
+                max: catalogItem.valor_base,
+                mean: catalogItem.valor_base,
+                median: catalogItem.valor_base,
+                p25: catalogItem.valor_base,
+                p75: catalogItem.valor_base,
+                stddev: 0,
+            };
+        }
+
+        const min = Math.min(...rawValues);
+        const max = Math.max(...rawValues);
+        const mean = rawValues.reduce((a, b) => a + b, 0) / count;
+        const { p25, median, p75 } = this.calculatePercentiles([...rawValues]);
+        const stddev = this.calculateStdDev(rawValues, mean);
+
+        const statsData = {
+            count, min, max, mean, median, p25, p75, stddev
+        };
+
+        const existingStats = await prisma.priceStats.findFirst({
+            where: { tenant_id: tenantId, item_key: catalogItemId, regiao: regiao }
+        });
+
+        if (existingStats) {
+            return prisma.priceStats.update({
+                where: { id: existingStats.id },
+                data: statsData
+            });
+        } else {
+            return prisma.priceStats.create({
+                data: {
+                    tenant_id: tenantId,
+                    item_key: catalogItemId,
+                    regiao: regiao,
+                    ...statsData
+                }
+            });
+        }
+    }
+
+    /**
+     * Get the dispersion dataset (stats + points) for the graphic
+     */
+    static async getDispersion(tenantId: string, itemKey: string, regiao: string, mode: string = 'ORIGINAL', targetDateStr?: string) {
+        // Try to get stats
+        let stats = await prisma.priceStats.findFirst({
+            where: { tenant_id: tenantId, item_key: itemKey, regiao: regiao }
+        });
+
+        if (!stats) {
+            // Attempt auto compute if possible
+            try {
+                stats = await this.computeStatsForCatalogItem(tenantId, itemKey, regiao) as any;
+            } catch (e) {
+                // Ignore
+            }
+        }
+
+        // Fetch raw points for the scatter plot
+        const catalogItem = await prisma.catalogService.findUnique({ where: { id: itemKey } });
+        let rawPoints: any[] = [];
+
+        if (catalogItem) {
+            const historicalItems = await prisma.budgetItem.findMany({
+                where: {
+                    budget: { tenant_id: tenantId, site: { uf: regiao } },
+                    OR: [
+                        { codigo_item: catalogItem.codigo },
+                        { titulo: catalogItem.titulo }
+                    ]
+                },
+                select: {
+                    valor_unitario: true,
+                    budget: { select: { created_at: true, site: { select: { id_site: true } } } }
+                },
+                take: 100, // Limit for UI performance
+                orderBy: { budget: { created_at: 'desc' } }
+            });
+
+            const targetDate = targetDateStr ? new Date(targetDateStr) : new Date();
+
+            rawPoints = await Promise.all(historicalItems.map(async h => {
+                let val = h.valor_unitario;
+                if (mode === 'CORRIGIDO') {
+                    // Adjust inflation using IPCA default for now
+                    val = await InflationService.ajustarValor(tenantId, val, h.budget.created_at, targetDate, 'IPCA');
+                }
+                return {
+                    date: h.budget.created_at.toISOString().split('T')[0],
+                    value: val,
+                    site: h.budget.site.id_site
+                };
+            }));
+        }
+
+        // Recompute stats inline if in CORRIGIDO mode to reflect adjusted values
+        if (mode === 'CORRIGIDO' && rawPoints.length > 0) {
+            const vals = rawPoints.map(p => p.value);
+            const min = Math.min(...vals);
+            const max = Math.max(...vals);
+            const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+            const { p25, median, p75 } = this.calculatePercentiles([...vals]);
+            const stddev = this.calculateStdDev(vals, mean);
+
+            stats = {
+                ...stats,
+                min, max, mean, median, p25, p75, stddev
+            } as any;
+        }
+
+        return {
+            stats: stats || null,
+            dataset: rawPoints
+        };
+    }
+}

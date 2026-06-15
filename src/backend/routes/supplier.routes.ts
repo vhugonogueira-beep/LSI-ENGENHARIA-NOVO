@@ -1,1 +1,12 @@
-{"data":"aW1wb3J0IHsgUm91dGVyIH0gZnJvbSAnZXhwcmVzcyc7DQppbXBvcnQgeyBTdXBwbGllckNvbnRyb2xsZXIgfSBmcm9tICcuLi9jb250cm9sbGVycy9zdXBwbGllci5jb250cm9sbGVyJzsNCg0KY29uc3Qgcm91dGVyID0gUm91dGVyKCk7DQoNCnJvdXRlci5nZXQoJy8nLCBTdXBwbGllckNvbnRyb2xsZXIubGlzdCk7DQpyb3V0ZXIuZ2V0KCcvOmlkJywgU3VwcGxpZXJDb250cm9sbGVyLmdldEJ5SWQpOw0Kcm91dGVyLnBvc3QoJy8nLCBTdXBwbGllckNvbnRyb2xsZXIuY3JlYXRlKTsNCnJvdXRlci5wdXQoJy86aWQnLCBTdXBwbGllckNvbnRyb2xsZXIudXBkYXRlKTsNCnJvdXRlci5kZWxldGUoJy86aWQnLCBTdXBwbGllckNvbnRyb2xsZXIucmVtb3ZlKTsNCg0KZXhwb3J0IGRlZmF1bHQgcm91dGVyOw0K"}
+import { Router } from 'express';
+import { SupplierController } from '../controllers/supplier.controller';
+
+const router = Router();
+
+router.get('/', SupplierController.list);
+router.get('/:id', SupplierController.getById);
+router.post('/', SupplierController.create);
+router.put('/:id', SupplierController.update);
+router.delete('/:id', SupplierController.remove);
+
+export default router;

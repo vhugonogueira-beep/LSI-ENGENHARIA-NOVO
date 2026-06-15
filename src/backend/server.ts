@@ -1,1 +1,61 @@
-{"data":"aW1wb3J0IGV4cHJlc3MgZnJvbSAnZXhwcmVzcyc7DQppbXBvcnQgY29ycyBmcm9tICdjb3JzJzsNCmltcG9ydCB7IFByaXNtYUNsaWVudCB9IGZyb20gJ0BwcmlzbWEvY2xpZW50JzsNCg0KZXhwb3J0IGNvbnN0IHByaXNtYSA9IG5ldyBQcmlzbWFDbGllbnQoKTsNCmV4cG9ydCBjb25zdCBhcHAgPSBleHByZXNzKCk7DQoNCmFwcC51c2UoY29ycygpKTsNCmFwcC51c2UoZXhwcmVzcy5qc29uKCkpOw0KDQphcHAuZ2V0KCcvYXBpL2hlYWx0aCcsIChfcmVxLCByZXMpID0+IHsNCiAgICByZXMuanNvbih7IHN0YXR1czogJ29rJywgbWVzc2FnZTogJ0xTIE9yw6dhbWVudG8gQVBJIGlzIHJ1bm5pbmcnIH0pOw0KfSk7DQoNCmltcG9ydCBidWRnZXRSb3V0ZXMgZnJvbSAnLi9yb3V0ZXMvYnVkZ2V0LnJvdXRlcyc7DQppbXBvcnQgbWFzdGVyUm91dGVzIGZyb20gJy4vcm91dGVzL21hc3Rlci5yb3V0ZXMnOw0KaW1wb3J0IGFuYWx5dGljc1JvdXRlcyBmcm9tICcuL3JvdXRlcy9hbmFseXRpY3Mucm91dGVzJzsNCmltcG9ydCBpbmZsYXRpb25Sb3V0ZXMgZnJvbSAnLi9yb3V0ZXMvaW5mbGF0aW9uLnJvdXRlcyc7DQppbXBvcnQgYmRpUm91dGVzIGZyb20gJy4vcm91dGVzL2JkaS5yb3V0ZXMnOw0KaW1wb3J0IHN1cHBsaWVyUm91dGVzIGZyb20gJy4vcm91dGVzL3N1cHBsaWVyLnJvdXRlcyc7DQppbXBvcnQgcHJpY2Vib29rUm91dGVzIGZyb20gJy4vcm91dGVzL3ByaWNlYm9vay5yb3V0ZXMnOw0KaW1wb3J0IGltcG9ydFJvdXRlcyBmcm9tICcuL3JvdXRlcy9pbXBvcnQucm91dGVzJzsNCg0KYXBwLnVzZSgnL2FwaS9idWRnZXRzJywgYnVkZ2V0Um91dGVzKTsNCmFwcC51c2UoJy9hcGkvYW5hbHl0aWNzJywgYW5hbHl0aWNzUm91dGVzKTsNCmFwcC51c2UoJy9hcGkvaW5mbGF0aW9uJywgaW5mbGF0aW9uUm91dGVzKTsNCmFwcC51c2UoJy9hcGkvYmRpJywgYmRpUm91dGVzKTsNCmFwcC51c2UoJy9hcGkvc3VwcGxpZXJzJywgc3VwcGxpZXJSb3V0ZXMpOw0KYXBwLnVzZSgnL2FwaS9wcmljZWJvb2tzJywgcHJpY2Vib29rUm91dGVzKTsNCmFwcC51c2UoJy9hcGkvaW1wb3J0JywgaW1wb3J0Um91dGVzKTsNCmFwcC51c2UoJy9hcGknLCBtYXN0ZXJSb3V0ZXMpOw0KDQpjb25zdCBQT1JUID0gcHJvY2Vzcy5lbnYuUE9SVCB8fCAzMDAxOw0KDQppZiAocmVxdWlyZS5tYWluID09PSBtb2R1bGUpIHsNCiAgICBhcHAubGlzdGVuKFBPUlQsICgpID0+IHsNCiAgICAgICAgY29uc29sZS5sb2coYFNlcnZlciBpcyBydW5uaW5nIG9uIGh0dHA6Ly9sb2NhbGhvc3Q6JHtQT1JUfWApOw0KICAgIH0pOw0KfQ0K"}
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { PrismaClient } from '@prisma/client';
+
+dotenv.config();
+
+export const prisma = new PrismaClient();
+export const app = express();
+
+const ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://192.168.10.15:5173',
+    'http://192.168.0.167:5173',
+    process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Origem não permitida pelo CORS'));
+        }
+    },
+    credentials: true,
+}));
+app.use(express.json({ limit: '10mb' }));
+
+app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok', message: 'LS Orçamento API is running' });
+});
+
+import authRoutes from './routes/auth.routes';
+import budgetRoutes from './routes/budget.routes';
+import masterRoutes from './routes/master.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import inflationRoutes from './routes/inflation.routes';
+import bdiRoutes from './routes/bdi.routes';
+import supplierRoutes from './routes/supplier.routes';
+import pricebookRoutes from './routes/pricebook.routes';
+import importRoutes from './routes/import.routes';
+
+app.use('/api/auth', authRoutes);
+app.use('/api/budgets', budgetRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/inflation', inflationRoutes);
+app.use('/api/bdi', bdiRoutes);
+app.use('/api/suppliers', supplierRoutes);
+app.use('/api/pricebooks', pricebookRoutes);
+app.use('/api/import', importRoutes);
+app.use('/api', masterRoutes);
+
+const PORT = process.env.PORT || 3001;
+
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
+}

@@ -1,1 +1,6 @@
-{"data":"WzYzN10gLy8g4pSA4pSAIExpbXBhIG9yY1NlbCBzZSBvcsOnYW1lbnRvIGZvaSBkZWxldGFkbwpbNjM5XSBpZiAob3JjU2VsICYmICFoaXN0b3JpY28uZmluZChvID0+IG8uaWQgPT09IG9yY1NlbCkpIHsKWzY0Ml0gfSwgW29yY1NlbCwgaGlzdG9yaWNvXSk7Cls3MjZdIGNvbnN0IFtvcmNTZWwsIHNldE9yY1NlbF0gPSBSZWFjdC51c2VTdGF0ZShudWxsKTsgLy8gb3LDp2FtZW50byBhYmVydG8gbm8gZGV0YWxoZQpbMzU0Nl0gaWYgKG9yY1NlbCkgewpbMzU0N10gY29uc3Qgb3JjID0gaGlzdG9yaWNvLmZpbmQobyA9PiBvLmlkID09PSBvcmNTZWwpOwo="}
+[637] // ── Limpa orcSel se orçamento foi deletado
+[639] if (orcSel && !historico.find(o => o.id === orcSel)) {
+[642] }, [orcSel, historico]);
+[726] const [orcSel, setOrcSel] = React.useState(null); // orçamento aberto no detalhe
+[3546] if (orcSel) {
+[3547] const orc = historico.find(o => o.id === orcSel);

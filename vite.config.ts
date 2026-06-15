@@ -1,1 +1,21 @@
-{"data":"aW1wb3J0IHsgZGVmaW5lQ29uZmlnIH0gZnJvbSAndml0ZSc7DQppbXBvcnQgcmVhY3QgZnJvbSAnQHZpdGVqcy9wbHVnaW4tcmVhY3QnOw0KaW1wb3J0IHBhdGggZnJvbSAncGF0aCc7DQoNCmV4cG9ydCBkZWZhdWx0IGRlZmluZUNvbmZpZyh7DQogICAgcGx1Z2luczogW3JlYWN0KCldLA0KICAgIHJlc29sdmU6IHsNCiAgICAgICAgYWxpYXM6IHsNCiAgICAgICAgICAgICdAJzogcGF0aC5yZXNvbHZlKF9fZGlybmFtZSwgJy4vc3JjL2Zyb250ZW5kJyksDQogICAgICAgIH0sDQogICAgfSwNCiAgICBzZXJ2ZXI6IHsNCiAgICAgICAgcG9ydDogNTE3MywNCiAgICAgICAgcHJveHk6IHsNCiAgICAgICAgICAgICcvYXBpJzogew0KICAgICAgICAgICAgICAgIHRhcmdldDogJ2h0dHA6Ly9sb2NhbGhvc3Q6MzAwMScsDQogICAgICAgICAgICAgICAgY2hhbmdlT3JpZ2luOiB0cnVlLA0KICAgICAgICAgICAgfQ0KICAgICAgICB9DQogICAgfQ0KfSk7DQo="}
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+    plugins: [react()],
+    resolve: {
+        alias: {
+            '@': path.resolve(__dirname, './src/frontend'),
+        },
+    },
+    server: {
+        port: 5173,
+        proxy: {
+            '/api': {
+                target: 'http://localhost:3001',
+                changeOrigin: true,
+            }
+        }
+    }
+});

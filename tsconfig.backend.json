@@ -1,1 +1,21 @@
-{"data":"ew0KICAgICJjb21waWxlck9wdGlvbnMiOiB7DQogICAgICAgICJ0YXJnZXQiOiAiZXMyMDIyIiwNCiAgICAgICAgIm1vZHVsZSI6ICJjb21tb25qcyIsDQogICAgICAgICJyb290RGlyIjogIi4vc3JjL2JhY2tlbmQiLA0KICAgICAgICAib3V0RGlyIjogIi4vZGlzdC9iYWNrZW5kIiwNCiAgICAgICAgImVzTW9kdWxlSW50ZXJvcCI6IHRydWUsDQogICAgICAgICJmb3JjZUNvbnNpc3RlbnRDYXNpbmdJbkZpbGVOYW1lcyI6IHRydWUsDQogICAgICAgICJzdHJpY3QiOiB0cnVlLA0KICAgICAgICAic2tpcExpYkNoZWNrIjogdHJ1ZQ0KICAgIH0sDQogICAgInRzLW5vZGUiOiB7DQogICAgICAgICJjb21waWxlck9wdGlvbnMiOiB7DQogICAgICAgICAgICAibW9kdWxlIjogIkNvbW1vbkpTIiwNCiAgICAgICAgICAgICJtb2R1bGVSZXNvbHV0aW9uIjogIm5vZGUiDQogICAgICAgIH0NCiAgICB9LA0KICAgICJpbmNsdWRlIjogWw0KICAgICAgICAic3JjL2JhY2tlbmQvKiovKiINCiAgICBdDQp9"}
+{
+    "compilerOptions": {
+        "target": "es2022",
+        "module": "commonjs",
+        "rootDir": "./src/backend",
+        "outDir": "./dist/backend",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "skipLibCheck": true
+    },
+    "ts-node": {
+        "compilerOptions": {
+            "module": "CommonJS",
+            "moduleResolution": "node"
+        }
+    },
+    "include": [
+        "src/backend/**/*"
+    ]
+}

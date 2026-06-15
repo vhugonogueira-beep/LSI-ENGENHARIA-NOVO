@@ -1,1 +1,58 @@
-{"data":"aW1wb3J0IHsgUmVxdWVzdCwgUmVzcG9uc2UgfSBmcm9tICdleHByZXNzJzsNCmltcG9ydCB7IFN1cHBsaWVyU2VydmljZSB9IGZyb20gJy4uL3NlcnZpY2VzL3N1cHBsaWVyLnNlcnZpY2UnOw0KaW1wb3J0IHsgcHJpc21hIH0gZnJvbSAnLi4vc2VydmVyJzsNCg0KYXN5bmMgZnVuY3Rpb24gZ2V0RGVtb1RlbmFudElkKCkgew0KICAgIGNvbnN0IHQgPSBhd2FpdCBwcmlzbWEudGVuYW50LmZpbmRGaXJzdCgpOw0KICAgIHJldHVybiB0ID8gdC5pZCA6ICcnOw0KfQ0KDQpleHBvcnQgY2xhc3MgU3VwcGxpZXJDb250cm9sbGVyIHsNCg0KICAgIHN0YXRpYyBhc3luYyBsaXN0KHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgdGVuYW50SWQgPSAocmVxLnF1ZXJ5LnRlbmFudElkIGFzIHN0cmluZykgfHwgYXdhaXQgZ2V0RGVtb1RlbmFudElkKCk7DQogICAgICAgICAgICBjb25zdCBwYWdlID0gcGFyc2VJbnQocmVxLnF1ZXJ5LnBhZ2UgYXMgc3RyaW5nKSB8fCAxOw0KICAgICAgICAgICAgY29uc3QgbGltaXQgPSBwYXJzZUludChyZXEucXVlcnkubGltaXQgYXMgc3RyaW5nKSB8fCA1MDsNCiAgICAgICAgICAgIHJlcy5qc29uKGF3YWl0IFN1cHBsaWVyU2VydmljZS5nZXRTdXBwbGllcnModGVuYW50SWQsIHBhZ2UsIGxpbWl0KSk7DQogICAgICAgIH0gY2F0Y2ggKGU6IGFueSkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZS5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGdldEJ5SWQocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCBzdXBwbGllciA9IGF3YWl0IFN1cHBsaWVyU2VydmljZS5nZXRTdXBwbGllckJ5SWQocmVxLnBhcmFtcy5pZCk7DQogICAgICAgICAgICBpZiAoIXN1cHBsaWVyKSByZXR1cm4gcmVzLnN0YXR1cyg0MDQpLmpzb24oeyBlcnJvcjogJ0Zvcm5lY2Vkb3IgbsOjbyBlbmNvbnRyYWRvJyB9KTsNCiAgICAgICAgICAgIHJlcy5qc29uKHN1cHBsaWVyKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgY3JlYXRlKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgZGF0YSA9IHsgLi4ucmVxLmJvZHkgfTsNCiAgICAgICAgICAgIGlmICghZGF0YS50ZW5hbnRfaWQpIGRhdGEudGVuYW50X2lkID0gYXdhaXQgZ2V0RGVtb1RlbmFudElkKCk7DQogICAgICAgICAgICByZXMuc3RhdHVzKDIwMSkuanNvbihhd2FpdCBTdXBwbGllclNlcnZpY2UuY3JlYXRlU3VwcGxpZXIoZGF0YSkpOw0KICAgICAgICB9IGNhdGNoIChlOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGUubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyB1cGRhdGUocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICByZXMuanNvbihhd2FpdCBTdXBwbGllclNlcnZpY2UudXBkYXRlU3VwcGxpZXIocmVxLnBhcmFtcy5pZCwgcmVxLmJvZHkpKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgcmVtb3ZlKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgcmVzLmpzb24oYXdhaXQgU3VwcGxpZXJTZXJ2aWNlLmRlbGV0ZVN1cHBsaWVyKHJlcS5wYXJhbXMuaWQpKTsNCiAgICAgICAgfSBjYXRjaCAoZTogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQp9DQo="}
+import { Request, Response } from 'express';
+import { SupplierService } from '../services/supplier.service';
+import { prisma } from '../server';
+
+async function getDemoTenantId() {
+    const t = await prisma.tenant.findFirst();
+    return t ? t.id : '';
+}
+
+export class SupplierController {
+
+    static async list(req: Request, res: Response) {
+        try {
+            const tenantId = (req.query.tenantId as string) || await getDemoTenantId();
+            const page = parseInt(req.query.page as string) || 1;
+            const limit = parseInt(req.query.limit as string) || 50;
+            res.json(await SupplierService.getSuppliers(tenantId, page, limit));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async getById(req: Request, res: Response) {
+        try {
+            const supplier = await SupplierService.getSupplierById(req.params.id);
+            if (!supplier) return res.status(404).json({ error: 'Fornecedor não encontrado' });
+            res.json(supplier);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async create(req: Request, res: Response) {
+        try {
+            const data = { ...req.body };
+            if (!data.tenant_id) data.tenant_id = await getDemoTenantId();
+            res.status(201).json(await SupplierService.createSupplier(data));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async update(req: Request, res: Response) {
+        try {
+            res.json(await SupplierService.updateSupplier(req.params.id, req.body));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async remove(req: Request, res: Response) {
+        try {
+            res.json(await SupplierService.deleteSupplier(req.params.id));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+}

@@ -1,1 +1,89 @@
-{"data":"aW1wb3J0IHsgUmVxdWVzdCwgUmVzcG9uc2UgfSBmcm9tICdleHByZXNzJzsNCmltcG9ydCB7IEJ1ZGdldFNlcnZpY2UgfSBmcm9tICcuLi9zZXJ2aWNlcy9idWRnZXQuc2VydmljZSc7DQppbXBvcnQgeyBFeHBvcnRTZXJ2aWNlIH0gZnJvbSAnLi4vc2VydmljZXMvZXhwb3J0LnNlcnZpY2UnOw0KaW1wb3J0IHsgcHJpc21hIH0gZnJvbSAnLi4vc2VydmVyJzsNCg0KYXN5bmMgZnVuY3Rpb24gZ2V0RGVtb1RlbmFudElkKCkgew0KICAgIGNvbnN0IHQgPSBhd2FpdCBwcmlzbWEudGVuYW50LmZpbmRGaXJzdCgpOw0KICAgIHJldHVybiB0ID8gdC5pZCA6ICcnOw0KfQ0KDQpleHBvcnQgY2xhc3MgQnVkZ2V0Q29udHJvbGxlciB7DQogICAgc3RhdGljIGFzeW5jIGdldEFsbChyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IHRlbmFudElkID0gKHJlcS5xdWVyeS50ZW5hbnRJZCBhcyBzdHJpbmcpIHx8IGF3YWl0IGdldERlbW9UZW5hbnRJZCgpOw0KICAgICAgICAgICAgY29uc3QgYnVkZ2V0cyA9IGF3YWl0IEJ1ZGdldFNlcnZpY2UuZ2V0QnVkZ2V0c0J5VGVuYW50KHRlbmFudElkKTsNCiAgICAgICAgICAgIHJlcy5qc29uKGJ1ZGdldHMpOw0KICAgICAgICB9IGNhdGNoIChlcnJvcjogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGdldEJ5SWQocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCBidWRnZXQgPSBhd2FpdCBCdWRnZXRTZXJ2aWNlLmdldEJ1ZGdldEJ5SWQocmVxLnBhcmFtcy5pZCk7DQogICAgICAgICAgICBpZiAoIWJ1ZGdldCkgcmV0dXJuIHJlcy5zdGF0dXMoNDA0KS5qc29uKHsgZXJyb3I6ICdOb3QgZm91bmQnIH0pOw0KICAgICAgICAgICAgcmVzLmpzb24oYnVkZ2V0KTsNCiAgICAgICAgfSBjYXRjaCAoZXJyb3I6IGFueSkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBjcmVhdGUocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCBidWRnZXQgPSBhd2FpdCBCdWRnZXRTZXJ2aWNlLmNyZWF0ZUJ1ZGdldChyZXEuYm9keSk7DQogICAgICAgICAgICByZXMuc3RhdHVzKDIwMSkuanNvbihidWRnZXQpOw0KICAgICAgICB9IGNhdGNoIChlcnJvcjogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIHVwZGF0ZUhlYWRlcihyZXE6IFJlcXVlc3QsIHJlczogUmVzcG9uc2UpIHsNCiAgICAgICAgdHJ5IHsNCiAgICAgICAgICAgIGNvbnN0IGJ1ZGdldCA9IGF3YWl0IEJ1ZGdldFNlcnZpY2UudXBkYXRlQnVkZ2V0SGVhZGVyKHJlcS5wYXJhbXMuaWQsIHJlcS5ib2R5KTsNCiAgICAgICAgICAgIHJlcy5qc29uKGJ1ZGdldCk7DQogICAgICAgIH0gY2F0Y2ggKGVycm9yOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNDAwKS5qc29uKHsgZXJyb3I6IGVycm9yLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQoNCiAgICBzdGF0aWMgYXN5bmMgdXBkYXRlSXRlbXMocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCB7IGl0ZW1zLCB2ZXJzYW9BdHVhbCB9ID0gcmVxLmJvZHk7DQogICAgICAgICAgICBjb25zdCBidWRnZXQgPSBhd2FpdCBCdWRnZXRTZXJ2aWNlLnVwZGF0ZUJ1ZGdldEl0ZW1zKHJlcS5wYXJhbXMuaWQsIHZlcnNhb0F0dWFsLCBpdGVtcyk7DQogICAgICAgICAgICByZXMuanNvbihidWRnZXQpOw0KICAgICAgICB9IGNhdGNoIChlcnJvcjogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGNyZWF0ZVZlcnNpb24ocmVxOiBSZXF1ZXN0LCByZXM6IFJlc3BvbnNlKSB7DQogICAgICAgIHRyeSB7DQogICAgICAgICAgICBjb25zdCB2ZXJzaW9uID0gYXdhaXQgQnVkZ2V0U2VydmljZS5jcmVhdGVWZXJzaW9uKHJlcS5wYXJhbXMuaWQsIHJlcS5ib2R5LnVzZXJJZCk7DQogICAgICAgICAgICByZXMuc3RhdHVzKDIwMSkuanNvbih2ZXJzaW9uKTsNCiAgICAgICAgfSBjYXRjaCAoZXJyb3I6IGFueSkgew0KICAgICAgICAgICAgcmVzLnN0YXR1cyg0MDApLmpzb24oeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KTsNCiAgICAgICAgfQ0KICAgIH0NCg0KICAgIHN0YXRpYyBhc3luYyBleHBvcnRIdG1sKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgaHRtbCA9IGF3YWl0IEV4cG9ydFNlcnZpY2UuZ2VudGVyYXRlSFRNTChyZXEucGFyYW1zLmlkKTsNCiAgICAgICAgICAgIHJlcy5zZXRIZWFkZXIoJ0NvbnRlbnQtVHlwZScsICd0ZXh0L2h0bWwnKTsNCiAgICAgICAgICAgIHJlcy5zZW5kKGh0bWwpOw0KICAgICAgICB9IGNhdGNoIChlcnJvcjogYW55KSB7DQogICAgICAgICAgICByZXMuc3RhdHVzKDUwMCkuanNvbih7IGVycm9yOiBlcnJvci5tZXNzYWdlIH0pOw0KICAgICAgICB9DQogICAgfQ0KDQogICAgc3RhdGljIGFzeW5jIGV4cG9ydEV4Y2VsKHJlcTogUmVxdWVzdCwgcmVzOiBSZXNwb25zZSkgew0KICAgICAgICB0cnkgew0KICAgICAgICAgICAgY29uc3QgYnVmZmVyID0gYXdhaXQgRXhwb3J0U2VydmljZS5nZW5lcmF0ZUV4Y2VsKHJlcS5wYXJhbXMuaWQpOw0KICAgICAgICAgICAgcmVzLnNldEhlYWRlcignQ29udGVudC1UeXBlJywgJ2FwcGxpY2F0aW9uL3ZuZC5vcGVueG1sZm9ybWF0cy1vZmZpY2Vkb2N1bWVudC5zcHJlYWRzaGVldG1sLnNoZWV0Jyk7DQogICAgICAgICAgICByZXMuc2V0SGVhZGVyKCdDb250ZW50LURpc3Bvc2l0aW9uJywgYGF0dGFjaG1lbnQ7IGZpbGVuYW1lPW9yY2FtZW50by0ke3JlcS5wYXJhbXMuaWR9Lnhsc3hgKTsNCiAgICAgICAgICAgIHJlcy5zZW5kKGJ1ZmZlcik7DQogICAgICAgIH0gY2F0Y2ggKGVycm9yOiBhbnkpIHsNCiAgICAgICAgICAgIHJlcy5zdGF0dXMoNTAwKS5qc29uKHsgZXJyb3I6IGVycm9yLm1lc3NhZ2UgfSk7DQogICAgICAgIH0NCiAgICB9DQp9DQo="}
+import { Request, Response } from 'express';
+import { BudgetService } from '../services/budget.service';
+import { ExportService } from '../services/export.service';
+import { prisma } from '../server';
+
+async function getDemoTenantId() {
+    const t = await prisma.tenant.findFirst();
+    return t ? t.id : '';
+}
+
+export class BudgetController {
+    static async getAll(req: Request, res: Response) {
+        try {
+            const tenantId = (req.query.tenantId as string) || await getDemoTenantId();
+            const budgets = await BudgetService.getBudgetsByTenant(tenantId);
+            res.json(budgets);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async getById(req: Request, res: Response) {
+        try {
+            const budget = await BudgetService.getBudgetById(req.params.id);
+            if (!budget) return res.status(404).json({ error: 'Not found' });
+            res.json(budget);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async create(req: Request, res: Response) {
+        try {
+            const budget = await BudgetService.createBudget(req.body);
+            res.status(201).json(budget);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    static async updateHeader(req: Request, res: Response) {
+        try {
+            const budget = await BudgetService.updateBudgetHeader(req.params.id, req.body);
+            res.json(budget);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    static async updateItems(req: Request, res: Response) {
+        try {
+            const { items, versaoAtual } = req.body;
+            const budget = await BudgetService.updateBudgetItems(req.params.id, versaoAtual, items);
+            res.json(budget);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    static async createVersion(req: Request, res: Response) {
+        try {
+            const version = await BudgetService.createVersion(req.params.id, req.body.userId);
+            res.status(201).json(version);
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    static async exportHtml(req: Request, res: Response) {
+        try {
+            const html = await ExportService.genterateHTML(req.params.id);
+            res.setHeader('Content-Type', 'text/html');
+            res.send(html);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+
+    static async exportExcel(req: Request, res: Response) {
+        try {
+            const buffer = await ExportService.generateExcel(req.params.id);
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', `attachment; filename=orcamento-${req.params.id}.xlsx`);
+            res.send(buffer);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
+    }
+}

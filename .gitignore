@@ -8,3 +8,12 @@ build/
 .DS_Store
 coverage/
 *.log
+
+# Banco de dados local (contém dados sensíveis)
+prisma/dev.db
+prisma/dev.db-journal
+prisma/backups/
+
+# Logs de servidor
+ls-backend.log
+ls-frontend.log

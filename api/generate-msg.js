@@ -1,1 +1,69 @@
-{"data":"bW9kdWxlLmV4cG9ydHMgPSBhc3luYyAocmVxLCByZXMpID0+IHsKICBpZiAocmVxLm1ldGhvZCAhPT0gIlBPU1QiKSB7CiAgICByZXMuc2V0SGVhZGVyKCJBbGxvdyIsICJQT1NUIik7CiAgICByZXR1cm4gcmVzLnN0YXR1cyg0MDUpLmpzb24oeyBlcnJvcjogIk1ldGhvZCBub3QgYWxsb3dlZCIgfSk7CiAgfQoKICB0cnkgewogICAgY29uc3QgYm9keSA9IHR5cGVvZiByZXEuYm9keSA9PT0gInN0cmluZyIgPyBKU09OLnBhcnNlKHJlcS5ib2R5KSA6IChyZXEuYm9keSB8fCB7fSk7CiAgICBjb25zdCB7IHN1YmplY3QgPSAiIiwgYm9keUh0bWwgPSAiIiwgYm9keVRleHQgPSAiIiwgdG8gPSAiIiwgY2MgPSAiIiwgYXR0YWNobWVudHMgPSBbXSwgZmlsZU5hbWUgPSAiZW1haWwubXNnIiB9ID0gYm9keTsKCiAgICBpZiAoIXN1YmplY3QgfHwgIWJvZHlIdG1sKSB7CiAgICAgIHJldHVybiByZXMuc3RhdHVzKDQwMCkuanNvbih7IGVycm9yOiAic3ViamVjdCBlIGJvZHlIdG1sIHPDo28gb2JyaWdhdMOzcmlvcyIgfSk7CiAgICB9CgogICAgY29uc3QgeyBFbWFpbCwgQXR0YWNobWVudCwgTWVzc2FnZUVkaXRvckZvcm1hdCB9ID0gYXdhaXQgaW1wb3J0KCJAdHV0YW8vb3htc2ciKTsKCiAgICB0cnkgewogICAgICBPYmplY3QuZGVmaW5lUHJvcGVydHkoZ2xvYmFsVGhpcywgIm5hdmlnYXRvciIsIHsKICAgICAgICB2YWx1ZTogeyBsYW5ndWFnZTogImVuX1VTIiwgbGFuZ3VhZ2VzOiBbImVuX1VTIl0gfSwKICAgICAgICBjb25maWd1cmFibGU6IHRydWUsCiAgICAgIH0pOwogICAgfSBjYXRjaCB7CiAgICAgIC8vIFNlIG8gcnVudGltZSBuw6NvIHBlcm1pdGlyIHJlZGVmaW5pciBvIG5hdmlnYXRvciwgc2VndWltb3MgY29tIG8gcGFkcsOjby4KICAgIH0KCiAgICBjb25zdCBlbWFpbCA9IG5ldyBFbWFpbCh0cnVlLCBmYWxzZSk7CgogICAgZW1haWwKICAgICAgLnN1YmplY3QoU3RyaW5nKHN1YmplY3QpKQogICAgICAuYm9keUh0bWwoU3RyaW5nKGJvZHlIdG1sKSkKICAgICAgLmJvZHlUZXh0KFN0cmluZyhib2R5VGV4dCB8fCAiIikpCiAgICAgIC5ib2R5Rm9ybWF0KE1lc3NhZ2VFZGl0b3JGb3JtYXQuRURJVE9SX0ZPUk1BVF9IVE1MKTsKCiAgICBjb25zdCBhZGRSZWNpcGllbnRzID0gKHJhdywgbWV0aG9kKSA9PiB7CiAgICAgIFN0cmluZyhyYXcgfHwgIiIpCiAgICAgICAgLnNwbGl0KC9bOyxdLykKICAgICAgICAubWFwKHZhbHVlID0+IHZhbHVlLnRyaW0oKSkKICAgICAgICAuZmlsdGVyKEJvb2xlYW4pCiAgICAgICAgLmZvckVhY2goYWRkcmVzcyA9PiBlbWFpbFttZXRob2RdKGFkZHJlc3MpKTsKICAgIH07CgogICAgYWRkUmVjaXBpZW50cyh0bywgInRvIik7CiAgICBhZGRSZWNpcGllbnRzKGNjLCAiY2MiKTsKCiAgICBhdHRhY2htZW50cy5mb3JFYWNoKGF0dCA9PiB7CiAgICAgIGlmICghYXR0IHx8ICFhdHQubmFtZSB8fCAhYXR0LmJhc2U2NCkgcmV0dXJuOwogICAgICBjb25zdCBieXRlcyA9IG5ldyBVaW50OEFycmF5KEJ1ZmZlci5mcm9tKGF0dC5iYXNlNjQsICJiYXNlNjQiKSk7CiAgICAgIGVtYWlsLmF0dGFjaChuZXcgQXR0YWNobWVudChieXRlcywgU3RyaW5nKGF0dC5uYW1lKSkpOwogICAgfSk7CgogICAgY29uc3QgbXNnQnl0ZXMgPSBlbWFpbC5tc2coKTsKICAgIGNvbnN0IHNhZmVOYW1lID0gU3RyaW5nKGZpbGVOYW1lIHx8ICJlbWFpbC5tc2ciKS5yZXBsYWNlKC9bXlx3LlwtXSsvZywgIl8iKTsKCiAgICByZXMuc2V0SGVhZGVyKCJDb250ZW50LVR5cGUiLCAiYXBwbGljYXRpb24vdm5kLm1zLW91dGxvb2siKTsKICAgIHJlcy5zZXRIZWFkZXIoIkNvbnRlbnQtRGlzcG9zaXRpb24iLCBgYXR0YWNobWVudDsgZmlsZW5hbWU9IiR7c2FmZU5hbWUuZW5kc1dpdGgoIi5tc2ciKSA/IHNhZmVOYW1lIDogYCR7c2FmZU5hbWV9Lm1zZ2B9ImApOwogICAgcmV0dXJuIHJlcy5zdGF0dXMoMjAwKS5zZW5kKEJ1ZmZlci5mcm9tKG1zZ0J5dGVzKSk7CiAgfSBjYXRjaCAoZXJyb3IpIHsKICAgIGNvbnNvbGUuZXJyb3IoIkVycm8gYW8gZ2VyYXIgLm1zZzoiLCBlcnJvcik7CiAgICByZXR1cm4gcmVzLnN0YXR1cyg1MDApLmpzb24oeyBlcnJvcjogIkZhbGhhIGFvIGdlcmFyIGFycXVpdm8gLm1zZyIgfSk7CiAgfQp9OwoKbW9kdWxlLmV4cG9ydHMuY29uZmlnID0gewogIGFwaTogewogICAgYm9keVBhcnNlcjogewogICAgICBzaXplTGltaXQ6ICIxMG1iIiwKICAgIH0sCiAgfSwKfTsK"}
+module.exports = async (req, res) => {
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  try {
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
+    const { subject = "", bodyHtml = "", bodyText = "", to = "", cc = "", attachments = [], fileName = "email.msg" } = body;
+
+    if (!subject || !bodyHtml) {
+      return res.status(400).json({ error: "subject e bodyHtml são obrigatórios" });
+    }
+
+    const { Email, Attachment, MessageEditorFormat } = await import("@tutao/oxmsg");
+
+    try {
+      Object.defineProperty(globalThis, "navigator", {
+        value: { language: "en_US", languages: ["en_US"] },
+        configurable: true,
+      });
+    } catch {
+      // Se o runtime não permitir redefinir o navigator, seguimos com o padrão.
+    }
+
+    const email = new Email(true, false);
+
+    email
+      .subject(String(subject))
+      .bodyHtml(String(bodyHtml))
+      .bodyText(String(bodyText || ""))
+      .bodyFormat(MessageEditorFormat.EDITOR_FORMAT_HTML);
+
+    const addRecipients = (raw, method) => {
+      String(raw || "")
+        .split(/[;,]/)
+        .map(value => value.trim())
+        .filter(Boolean)
+        .forEach(address => email[method](address));
+    };
+
+    addRecipients(to, "to");
+    addRecipients(cc, "cc");
+
+    attachments.forEach(att => {
+      if (!att || !att.name || !att.base64) return;
+      const bytes = new Uint8Array(Buffer.from(att.base64, "base64"));
+      email.attach(new Attachment(bytes, String(att.name)));
+    });
+
+    const msgBytes = email.msg();
+    const safeName = String(fileName || "email.msg").replace(/[^\w.\-]+/g, "_");
+
+    res.setHeader("Content-Type", "application/vnd.ms-outlook");
+    res.setHeader("Content-Disposition", `attachment; filename="${safeName.endsWith(".msg") ? safeName : `${safeName}.msg`}"`);
+    return res.status(200).send(Buffer.from(msgBytes));
+  } catch (error) {
+    console.error("Erro ao gerar .msg:", error);
+    return res.status(500).json({ error: "Falha ao gerar arquivo .msg" });
+  }
+};
+
+module.exports.config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "10mb",
+    },
+  },
+};

@@ -1,1 +1,81 @@
-{"data":"aW1wb3J0IHsgcHJpc21hIH0gZnJvbSAnLi4vc2VydmVyJzsNCg0KZXhwb3J0IGNsYXNzIEluZmxhdGlvblNlcnZpY2Ugew0KDQogICAgLyoqDQogICAgICogQ2FsY3VsYXRlcyB0aGUgY29tcG91bmRlZCBhZGp1c3RtZW50IGZhY3RvciBiZXR3ZWVuIHR3byBkYXRlcyBmb3IgYSBzcGVjaWZpYyBpbmRleC4NCiAgICAgKiBBc3N1bWVzIGZhY3RvcnMgaW4gREIgYXJlIHN0b3JlZCBhcyBtdWx0aXBsaWVycyAoZS5nLiwgMS4wMDQyIGZvciAwLjQyJSBpbmZsYXRpb24gdGhhdCBtb250aCkuDQogICAgICovDQogICAgc3RhdGljIGFzeW5jIGdldEZhdG9yQWN1bXVsYWRvKHRlbmFudElkOiBzdHJpbmcsIGluZGV4TmFtZTogc3RyaW5nLCBkYXRhUmVmZXJlbmNpYTogRGF0ZSwgZGF0YUFsdm86IERhdGUpIHsNCiAgICAgICAgaWYgKGRhdGFSZWZlcmVuY2lhID49IGRhdGFBbHZvKSByZXR1cm4gMS4wOw0KDQogICAgICAgIGNvbnN0IHJlZllNID0gZGF0YVJlZmVyZW5jaWEudG9JU09TdHJpbmcoKS5zbGljZSgwLCA3KTsgLy8gWVlZWS1NTQ0KICAgICAgICBjb25zdCBhbHZvWU0gPSBkYXRhQWx2by50b0lTT1N0cmluZygpLnNsaWNlKDAsIDcpOw0KDQogICAgICAgIGNvbnN0IGluZGljZXMgPSBhd2FpdCBwcmlzbWEuaW5mbGF0aW9uSW5kZXguZmluZE1hbnkoew0KICAgICAgICAgICAgd2hlcmU6IHsNCiAgICAgICAgICAgICAgICB0ZW5hbnRfaWQ6IHRlbmFudElkLA0KICAgICAgICAgICAgICAgIGluZGV4X25hbWU6IGluZGV4TmFtZSwNCiAgICAgICAgICAgICAgICB5ZWFyX21vbnRoOiB7DQogICAgICAgICAgICAgICAgICAgIGd0OiByZWZZTSwNCiAgICAgICAgICAgICAgICAgICAgbHRlOiBhbHZvWU0NCiAgICAgICAgICAgICAgICB9DQogICAgICAgICAgICB9DQogICAgICAgIH0pOw0KDQogICAgICAgIGlmIChpbmRpY2VzLmxlbmd0aCA9PT0gMCkgew0KICAgICAgICAgICAgLy8gRmFsbGJhY2sgdG8gVGVuYW50IGRlZmF1bHQgYW5udWFsIHJhdGUgaWYgbm8gaW5kaWNlcyBmb3VuZA0KICAgICAgICAgICAgY29uc3Qgc2V0dGluZ3MgPSBhd2FpdCBwcmlzbWEudGVuYW50U2V0dGluZ3MuZmluZFVuaXF1ZSh7IHdoZXJlOiB7IHRlbmFudF9pZDogdGVuYW50SWQgfSB9KTsNCiAgICAgICAgICAgIGlmIChzZXR0aW5ncyAmJiBzZXR0aW5ncy5kZWZhdWx0X2luZmxhdGlvbl9yYXRlX2FubnVhbCA+IDApIHsNCiAgICAgICAgICAgICAgICBjb25zdCB5ZWFyc0RpZmYgPSAoZGF0YUFsdm8uZ2V0VGltZSgpIC0gZGF0YVJlZmVyZW5jaWEuZ2V0VGltZSgpKSAvICgxMDAwICogNjAgKiA2MCAqIDI0ICogMzY1LjI1KTsNCiAgICAgICAgICAgICAgICByZXR1cm4gTWF0aC5wb3coMSArIHNldHRpbmdzLmRlZmF1bHRfaW5mbGF0aW9uX3JhdGVfYW5udWFsLCB5ZWFyc0RpZmYpOw0KICAgICAgICAgICAgfQ0KICAgICAgICAgICAgcmV0dXJuIDEuMDsNCiAgICAgICAgfQ0KDQogICAgICAgIC8vIENvbXBvdW5kIGFsbCB0aGUgZm91bmQgbW9udGhseSBmYWN0b3JzDQogICAgICAgIHJldHVybiBpbmRpY2VzLnJlZHVjZSgoYWNjLCBjdXJyZW50KSA9PiBhY2MgKiBjdXJyZW50LmZhY3RvciwgMS4wKTsNCiAgICB9DQoNCiAgICAvKioNCiAgICAgKiBBZGp1c3RzIGEgdmFsdWUgZm9yIGluZmxhdGlvbiBiYXNlZCBvbiBUZW5hbnQgc2V0dGluZ3MuDQogICAgICovDQogICAgc3RhdGljIGFzeW5jIGFqdXN0YXJWYWxvcih0ZW5hbnRJZDogc3RyaW5nLCB2YWxvcjogbnVtYmVyLCBkYXRhUmVmZXJlbmNpYTogRGF0ZSwgZGF0YUFsdm86IERhdGUgPSBuZXcgRGF0ZSgpLCBpbmRleE5hbWU6IHN0cmluZyA9ICdJUENBJykgew0KICAgICAgICBjb25zdCBzZXR0aW5ncyA9IGF3YWl0IHByaXNtYS50ZW5hbnRTZXR0aW5ncy5maW5kVW5pcXVlKHsgd2hlcmU6IHsgdGVuYW50X2lkOiB0ZW5hbnRJZCB9IH0pOw0KDQogICAgICAgIGlmICghc2V0dGluZ3M/LmFwbGljYXJfY29ycmVjYW9fYXV0b21hdGljYSkgew0KICAgICAgICAgICAgcmV0dXJuIHZhbG9yOw0KICAgICAgICB9DQoNCiAgICAgICAgY29uc3QgZmF0b3IgPSBhd2FpdCB0aGlzLmdldEZhdG9yQWN1bXVsYWRvKHRlbmFudElkLCBpbmRleE5hbWUsIGRhdGFSZWZlcmVuY2lhLCBkYXRhQWx2byk7DQogICAgICAgIHJldHVybiB2YWxvciAqIGZhdG9yOw0KICAgIH0NCg0KICAgIC8qKg0KICAgICAqIEhlbHBlciB0byBpbXBvcnQgb3IgcmVnaXN0ZXIgYSBidW5jaCBvZiBtb250aGx5IGluZGljZXMNCiAgICAgKi8NCiAgICBzdGF0aWMgYXN5bmMgcmVnaXN0ZXJJbmRpY2VzKHRlbmFudElkOiBzdHJpbmcsIGluZGV4TmFtZTogc3RyaW5nLCBpbmRpY2VzOiB7IHllYXJNb250aDogc3RyaW5nLCBmYWN0b3I6IG51bWJlciB9W10pIHsNCiAgICAgICAgY29uc3QgY3JlYXRlRGF0YSA9IGluZGljZXMubWFwKGkgPT4gKHsNCiAgICAgICAgICAgIHRlbmFudF9pZDogdGVuYW50SWQsDQogICAgICAgICAgICBpbmRleF9uYW1lOiBpbmRleE5hbWUsDQogICAgICAgICAgICB5ZWFyX21vbnRoOiBpLnllYXJNb250aCwNCiAgICAgICAgICAgIGZhY3RvcjogaS5mYWN0b3INCiAgICAgICAgfSkpOw0KDQogICAgICAgIC8vIFNRTGl0ZSBkb2Vzbid0IGhhdmUgY3JlYXRlTWFueSBza2lwRHVwbGljYXRlcywgc28gd2UgY2FuIGRvIGEgdHJhbnNhY3Rpb24gb3IganVzdCBsb29wDQogICAgICAgIGZvciAoY29uc3QgZGF0YSBvZiBjcmVhdGVEYXRhKSB7DQogICAgICAgICAgICBjb25zdCBleGlzdGluZyA9IGF3YWl0IHByaXNtYS5pbmZsYXRpb25JbmRleC5maW5kRmlyc3Qoew0KICAgICAgICAgICAgICAgIHdoZXJlOiB7IHRlbmFudF9pZDogdGVuYW50SWQsIGluZGV4X25hbWU6IGluZGV4TmFtZSwgeWVhcl9tb250aDogZGF0YS55ZWFyX21vbnRoIH0NCiAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgaWYgKGV4aXN0aW5nKSB7DQogICAgICAgICAgICAgICAgYXdhaXQgcHJpc21hLmluZmxhdGlvbkluZGV4LnVwZGF0ZSh7DQogICAgICAgICAgICAgICAgICAgIHdoZXJlOiB7IGlkOiBleGlzdGluZy5pZCB9LA0KICAgICAgICAgICAgICAgICAgICBkYXRhOiB7IGZhY3RvcjogZGF0YS5mYWN0b3IgfQ0KICAgICAgICAgICAgICAgIH0pOw0KICAgICAgICAgICAgfSBlbHNlIHsNCiAgICAgICAgICAgICAgICBhd2FpdCBwcmlzbWEuaW5mbGF0aW9uSW5kZXguY3JlYXRlKHsgZGF0YSB9KTsNCiAgICAgICAgICAgIH0NCiAgICAgICAgfQ0KICAgICAgICByZXR1cm4geyBzdWNjZXNzOiB0cnVlLCBjb3VudDogaW5kaWNlcy5sZW5ndGggfTsNCiAgICB9DQp9DQo="}
+import { prisma } from '../server';
+
+export class InflationService {
+
+    /**
+     * Calculates the compounded adjustment factor between two dates for a specific index.
+     * Assumes factors in DB are stored as multipliers (e.g., 1.0042 for 0.42% inflation that month).
+     */
+    static async getFatorAcumulado(tenantId: string, indexName: string, dataReferencia: Date, dataAlvo: Date) {
+        if (dataReferencia >= dataAlvo) return 1.0;
+
+        const refYM = dataReferencia.toISOString().slice(0, 7); // YYYY-MM
+        const alvoYM = dataAlvo.toISOString().slice(0, 7);
+
+        const indices = await prisma.inflationIndex.findMany({
+            where: {
+                tenant_id: tenantId,
+                index_name: indexName,
+                year_month: {
+                    gt: refYM,
+                    lte: alvoYM
+                }
+            }
+        });
+
+        if (indices.length === 0) {
+            // Fallback to Tenant default annual rate if no indices found
+            const settings = await prisma.tenantSettings.findUnique({ where: { tenant_id: tenantId } });
+            if (settings && settings.default_inflation_rate_annual > 0) {
+                const yearsDiff = (dataAlvo.getTime() - dataReferencia.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+                return Math.pow(1 + settings.default_inflation_rate_annual, yearsDiff);
+            }
+            return 1.0;
+        }
+
+        // Compound all the found monthly factors
+        return indices.reduce((acc, current) => acc * current.factor, 1.0);
+    }
+
+    /**
+     * Adjusts a value for inflation based on Tenant settings.
+     */
+    static async ajustarValor(tenantId: string, valor: number, dataReferencia: Date, dataAlvo: Date = new Date(), indexName: string = 'IPCA') {
+        const settings = await prisma.tenantSettings.findUnique({ where: { tenant_id: tenantId } });
+
+        if (!settings?.aplicar_correcao_automatica) {
+            return valor;
+        }
+
+        const fator = await this.getFatorAcumulado(tenantId, indexName, dataReferencia, dataAlvo);
+        return valor * fator;
+    }
+
+    /**
+     * Helper to import or register a bunch of monthly indices
+     */
+    static async registerIndices(tenantId: string, indexName: string, indices: { yearMonth: string, factor: number }[]) {
+        const createData = indices.map(i => ({
+            tenant_id: tenantId,
+            index_name: indexName,
+            year_month: i.yearMonth,
+            factor: i.factor
+        }));
+
+        // SQLite doesn't have createMany skipDuplicates, so we can do a transaction or just loop
+        for (const data of createData) {
+            const existing = await prisma.inflationIndex.findFirst({
+                where: { tenant_id: tenantId, index_name: indexName, year_month: data.year_month }
+            });
+            if (existing) {
+                await prisma.inflationIndex.update({
+                    where: { id: existing.id },
+                    data: { factor: data.factor }
+                });
+            } else {
+                await prisma.inflationIndex.create({ data });
+            }
+        }
+        return { success: true, count: indices.length };
+    }
+}

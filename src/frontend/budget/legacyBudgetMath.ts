@@ -1,1 +1,178 @@
-{"data":"ZXhwb3J0IGludGVyZmFjZSBMZWdhY3lCdWRnZXRTaXRlSW5mbyB7CiAgc2l0ZUlkPzogc3RyaW5nOwogIG5vbWVEZXRlbnRvcmE/OiBzdHJpbmc7CiAgc2l0ZURldGVudG9yYT86IHN0cmluZzsKICBvcGVyYWRvcmE/OiBzdHJpbmc7CiAgdWY/OiBzdHJpbmc7CiAgbXVuaWNpcGlvPzogc3RyaW5nOwogIGVuZGVyZWNvPzogc3RyaW5nOwogIHNoYXJpbmdOb21lPzogc3RyaW5nOwogIHNpdGVJZFNoYXJpbmc/OiBzdHJpbmc7CiAgc2l0ZUlkT3BlcmFkb3JhPzogc3RyaW5nOwp9CgpleHBvcnQgaW50ZXJmYWNlIExlZ2FjeUJ1ZGdldEl0ZW0gewogIGNvZDogc3RyaW5nOwogIHJlc3Vtbzogc3RyaW5nOwogIHNvbHVjYW86IHN0cmluZzsKICBjb25maWc/OiBzdHJpbmc7CiAgdW5pZDogc3RyaW5nOwogIHF0ZGU6IG51bWJlcjsKICB2bF9jdXN0b206IG51bWJlcjsKICB2bF9tZWRpbz86IG51bWJlcjsKICBkZXNjSXRlbT86IG51bWJlcjsKICBiZGlJdGVtPzogbnVtYmVyOwogIGx1Y3JvSXRlbT86IG51bWJlcjsKfQoKZXhwb3J0IGludGVyZmFjZSBMZWdhY3lCdWRnZXQgewogIGlkOiBzdHJpbmc7CiAgZGF0YTogc3RyaW5nOwogIGFyZWE6IHN0cmluZzsKICBzdGF0dXM6IHN0cmluZzsKICBzaXRlSW5mbzogTGVnYWN5QnVkZ2V0U2l0ZUluZm87CiAgaXRlbnM6IExlZ2FjeUJ1ZGdldEl0ZW1bXTsKICBkaXNjb3VudD86IG51bWJlcjsKICBkaXNjb3VudFBlcmNlbnR1YWw/OiBudW1iZXI7CiAgZGlzY291bnRWYWx1ZT86IG51bWJlcjsKICBiZGk/OiBudW1iZXI7CiAgbHVjcm8/OiBudW1iZXI7CiAgdG90YWxCcnV0bz86IG51bWJlcjsKICB0b3RhbEN1c3RvbT86IG51bWJlcjsKICB0b3RhbExpcXVpZG8/OiBudW1iZXI7CiAgdG90YWxCZGk/OiBudW1iZXI7CiAgdG90YWxMdWNybz86IG51bWJlcjsKICB0b3RhbEZpbmFsPzogbnVtYmVyOwogIGNvbnRyYXRhbnRlPzogc3RyaW5nOwogIG9iamV0bz86IHN0cmluZzsKICB2aWdlbmNpYT86IHN0cmluZzsKICBvYnM/OiBzdHJpbmc7CiAgW2tleTogc3RyaW5nXTogdW5rbm93bjsKfQoKZXhwb3J0IGludGVyZmFjZSBMZWdhY3lCdWRnZXRJdGVtVG90YWxzIHsKICBxdWFudGl0eTogbnVtYmVyOwogIHVuaXRPcmlnaW5hbDogbnVtYmVyOwogIGRpc2NvdW50UGN0OiBudW1iZXI7CiAgZGlzY291bnRVbml0OiBudW1iZXI7CiAgdW5pdE5ldDogbnVtYmVyOwogIHRvdGFsQnJ1dG86IG51bWJlcjsKICB0b3RhbERlc2NvbnRvOiBudW1iZXI7CiAgdG90YWxMaXF1aWRvOiBudW1iZXI7CiAgYmRpUGN0OiBudW1iZXI7CiAgdG90YWxCZGk6IG51bWJlcjsKICBsdWNyb1BjdDogbnVtYmVyOwogIHRvdGFsTHVjcm86IG51bWJlcjsKICB0b3RhbEZpbmFsOiBudW1iZXI7Cn0KCmV4cG9ydCBpbnRlcmZhY2UgTGVnYWN5QnVkZ2V0VG90YWxzIHsKICB0b3RhbEJydXRvOiBudW1iZXI7CiAgdG90YWxEZXNjb250bzogbnVtYmVyOwogIHRvdGFsTGlxdWlkbzogbnVtYmVyOwogIHRvdGFsQmRpOiBudW1iZXI7CiAgdG90YWxMdWNybzogbnVtYmVyOwogIHRvdGFsRmluYWw6IG51bWJlcjsKfQoKY29uc3QgdG9GaW5pdGVOdW1iZXIgPSAodmFsdWU6IHVua25vd24pOiBudW1iZXIgPT4gewogIGNvbnN0IG51bWVyaWMgPSBOdW1iZXIodmFsdWUpOwogIHJldHVybiBOdW1iZXIuaXNGaW5pdGUobnVtZXJpYykgPyBudW1lcmljIDogMDsKfTsKCmV4cG9ydCBjb25zdCByb3VuZEN1cnJlbmN5ID0gKHZhbHVlOiBudW1iZXIpOiBudW1iZXIgPT4KICBNYXRoLnJvdW5kKCh2YWx1ZSArIE51bWJlci5FUFNJTE9OKSAqIDEwMCkgLyAxMDA7CgpleHBvcnQgY29uc3QgY2xhbXBQZXJjZW50ID0gKHZhbHVlOiB1bmtub3duKTogbnVtYmVyID0+CiAgTWF0aC5taW4oMTAwLCBNYXRoLm1heCgwLCB0b0Zpbml0ZU51bWJlcih2YWx1ZSkpKTsKCmV4cG9ydCBjb25zdCBpc0xlZ2FjeUJ1ZGdldCA9ICh2YWx1ZTogdW5rbm93bik6IHZhbHVlIGlzIExlZ2FjeUJ1ZGdldCA9PiB7CiAgaWYgKCF2YWx1ZSB8fCB0eXBlb2YgdmFsdWUgIT09ICJvYmplY3QiKSByZXR1cm4gZmFsc2U7CiAgY29uc3QgY2FuZGlkYXRlID0gdmFsdWUgYXMgUmVjb3JkPHN0cmluZywgdW5rbm93bj47CiAgcmV0dXJuIEFycmF5LmlzQXJyYXkoY2FuZGlkYXRlLml0ZW5zKSAmJiAhQXJyYXkuaXNBcnJheShjYW5kaWRhdGUuYmxvY29zKTsKfTsKCmV4cG9ydCBmdW5jdGlvbiBjYWxjTGVnYWN5QnVkZ2V0SXRlbVRvdGFscygKICBpdGVtOiBQYXJ0aWFsPExlZ2FjeUJ1ZGdldEl0ZW0+LAogIGJ1ZGdldDogUGljazxMZWdhY3lCdWRnZXQsICJkaXNjb3VudCIgfCAiYmRpIiB8ICJsdWNybyI+Cik6IExlZ2FjeUJ1ZGdldEl0ZW1Ub3RhbHMgewogIGNvbnN0IHF1YW50aXR5ID0gTWF0aC5tYXgoMCwgdG9GaW5pdGVOdW1iZXIoaXRlbS5xdGRlKSk7CiAgY29uc3QgdW5pdE9yaWdpbmFsID0gcm91bmRDdXJyZW5jeShNYXRoLm1heCgwLCB0b0Zpbml0ZU51bWJlcihpdGVtLnZsX2N1c3RvbSkpKTsKICBjb25zdCBkaXNjb3VudFBjdCA9IGNsYW1wUGVyY2VudChpdGVtLmRlc2NJdGVtID8/IGJ1ZGdldC5kaXNjb3VudCA/PyAwKTsKICBjb25zdCBiZGlQY3QgPSBjbGFtcFBlcmNlbnQoaXRlbS5iZGlJdGVtID8/IGJ1ZGdldC5iZGkgPz8gMCk7CiAgY29uc3QgbHVjcm9QY3QgPSBjbGFtcFBlcmNlbnQoaXRlbS5sdWNyb0l0ZW0gPz8gYnVkZ2V0Lmx1Y3JvID8/IDApOwoKICBjb25zdCBkaXNjb3VudFVuaXQgPSByb3VuZEN1cnJlbmN5KHVuaXRPcmlnaW5hbCAqIChkaXNjb3VudFBjdCAvIDEwMCkpOwogIGNvbnN0IHVuaXROZXQgPSByb3VuZEN1cnJlbmN5KHVuaXRPcmlnaW5hbCAtIGRpc2NvdW50VW5pdCk7CiAgY29uc3QgdG90YWxCcnV0byA9IHJvdW5kQ3VycmVuY3kodW5pdE9yaWdpbmFsICogcXVhbnRpdHkpOwogIGNvbnN0IHRvdGFsRGVzY29udG8gPSByb3VuZEN1cnJlbmN5KGRpc2NvdW50VW5pdCAqIHF1YW50aXR5KTsKICBjb25zdCB0b3RhbExpcXVpZG8gPSByb3VuZEN1cnJlbmN5KHVuaXROZXQgKiBxdWFudGl0eSk7CiAgY29uc3QgdG90YWxCZGkgPSByb3VuZEN1cnJlbmN5KHRvdGFsTGlxdWlkbyAqIChiZGlQY3QgLyAxMDApKTsKICBjb25zdCB0b3RhbEx1Y3JvID0gcm91bmRDdXJyZW5jeSgodG90YWxMaXF1aWRvICsgdG90YWxCZGkpICogKGx1Y3JvUGN0IC8gMTAwKSk7CiAgY29uc3QgdG90YWxGaW5hbCA9IHJvdW5kQ3VycmVuY3kodG90YWxMaXF1aWRvICsgdG90YWxCZGkgKyB0b3RhbEx1Y3JvKTsKCiAgcmV0dXJuIHsKICAgIHF1YW50aXR5LAogICAgdW5pdE9yaWdpbmFsLAogICAgZGlzY291bnRQY3QsCiAgICBkaXNjb3VudFVuaXQsCiAgICB1bml0TmV0LAogICAgdG90YWxCcnV0bywKICAgIHRvdGFsRGVzY29udG8sCiAgICB0b3RhbExpcXVpZG8sCiAgICBiZGlQY3QsCiAgICB0b3RhbEJkaSwKICAgIGx1Y3JvUGN0LAogICAgdG90YWxMdWNybywKICAgIHRvdGFsRmluYWwsCiAgfTsKfQoKZXhwb3J0IGZ1bmN0aW9uIGNhbGNMZWdhY3lCdWRnZXRUb3RhbHMoCiAgYnVkZ2V0OiBQaWNrPExlZ2FjeUJ1ZGdldCwgIml0ZW5zIiB8ICJkaXNjb3VudCIgfCAiYmRpIiB8ICJsdWNybyI+Cik6IExlZ2FjeUJ1ZGdldFRvdGFscyB7CiAgcmV0dXJuIChidWRnZXQuaXRlbnMgfHwgW10pLnJlZHVjZTxMZWdhY3lCdWRnZXRUb3RhbHM+KAogICAgKGFjYywgaXRlbSkgPT4gewogICAgICBjb25zdCB0b3RhbHMgPSBjYWxjTGVnYWN5QnVkZ2V0SXRlbVRvdGFscyhpdGVtLCBidWRnZXQpOwogICAgICBhY2MudG90YWxCcnV0byA9IHJvdW5kQ3VycmVuY3koYWNjLnRvdGFsQnJ1dG8gKyB0b3RhbHMudG90YWxCcnV0byk7CiAgICAgIGFjYy50b3RhbERlc2NvbnRvID0gcm91bmRDdXJyZW5jeShhY2MudG90YWxEZXNjb250byArIHRvdGFscy50b3RhbERlc2NvbnRvKTsKICAgICAgYWNjLnRvdGFsTGlxdWlkbyA9IHJvdW5kQ3VycmVuY3koYWNjLnRvdGFsTGlxdWlkbyArIHRvdGFscy50b3RhbExpcXVpZG8pOwogICAgICBhY2MudG90YWxCZGkgPSByb3VuZEN1cnJlbmN5KGFjYy50b3RhbEJkaSArIHRvdGFscy50b3RhbEJkaSk7CiAgICAgIGFjYy50b3RhbEx1Y3JvID0gcm91bmRDdXJyZW5jeShhY2MudG90YWxMdWNybyArIHRvdGFscy50b3RhbEx1Y3JvKTsKICAgICAgYWNjLnRvdGFsRmluYWwgPSByb3VuZEN1cnJlbmN5KGFjYy50b3RhbEZpbmFsICsgdG90YWxzLnRvdGFsRmluYWwpOwogICAgICByZXR1cm4gYWNjOwogICAgfSwKICAgIHsKICAgICAgdG90YWxCcnV0bzogMCwKICAgICAgdG90YWxEZXNjb250bzogMCwKICAgICAgdG90YWxMaXF1aWRvOiAwLAogICAgICB0b3RhbEJkaTogMCwKICAgICAgdG90YWxMdWNybzogMCwKICAgICAgdG90YWxGaW5hbDogMCwKICAgIH0KICApOwp9CgpleHBvcnQgZnVuY3Rpb24gaHlkcmF0ZUxlZ2FjeUJ1ZGdldDxUIGV4dGVuZHMgTGVnYWN5QnVkZ2V0PihidWRnZXQ6IFQpOiBUIHsKICBjb25zdCBzYW5pdGl6ZWQgPSB7CiAgICAuLi5idWRnZXQsCiAgICBkaXNjb3VudDogY2xhbXBQZXJjZW50KGJ1ZGdldC5kaXNjb3VudCA/PyBidWRnZXQuZGlzY291bnRQZXJjZW50dWFsID8/IDApLAogICAgYmRpOiBjbGFtcFBlcmNlbnQoYnVkZ2V0LmJkaSA/PyAwKSwKICAgIGx1Y3JvOiBjbGFtcFBlcmNlbnQoYnVkZ2V0Lmx1Y3JvID8/IDApLAogICAgaXRlbnM6IEFycmF5LmlzQXJyYXkoYnVkZ2V0Lml0ZW5zKSA/IGJ1ZGdldC5pdGVucyA6IFtdLAogIH07CgogIGNvbnN0IHRvdGFscyA9IGNhbGNMZWdhY3lCdWRnZXRUb3RhbHMoc2FuaXRpemVkKTsKCiAgcmV0dXJuIHsKICAgIC4uLnNhbml0aXplZCwKICAgIGRpc2NvdW50UGVyY2VudHVhbDogc2FuaXRpemVkLmRpc2NvdW50LAogICAgZGlzY291bnRWYWx1ZTogdG90YWxzLnRvdGFsRGVzY29udG8sCiAgICB0b3RhbEJydXRvOiB0b3RhbHMudG90YWxCcnV0bywKICAgIHRvdGFsQ3VzdG9tOiB0b3RhbHMudG90YWxCcnV0bywKICAgIHRvdGFsTGlxdWlkbzogdG90YWxzLnRvdGFsTGlxdWlkbywKICAgIHRvdGFsQmRpOiB0b3RhbHMudG90YWxCZGksCiAgICB0b3RhbEx1Y3JvOiB0b3RhbHMudG90YWxMdWNybywKICAgIHRvdGFsRmluYWw6IHRvdGFscy50b3RhbEZpbmFsLAogIH07Cn0K"}
+export interface LegacyBudgetSiteInfo {
+  siteId?: string;
+  nomeDetentora?: string;
+  siteDetentora?: string;
+  operadora?: string;
+  uf?: string;
+  municipio?: string;
+  endereco?: string;
+  sharingNome?: string;
+  siteIdSharing?: string;
+  siteIdOperadora?: string;
+}
+
+export interface LegacyBudgetItem {
+  cod: string;
+  resumo: string;
+  solucao: string;
+  config?: string;
+  unid: string;
+  qtde: number;
+  vl_custom: number;
+  vl_medio?: number;
+  descItem?: number;
+  bdiItem?: number;
+  lucroItem?: number;
+}
+
+export interface LegacyBudget {
+  id: string;
+  data: string;
+  area: string;
+  status: string;
+  siteInfo: LegacyBudgetSiteInfo;
+  itens: LegacyBudgetItem[];
+  discount?: number;
+  discountPercentual?: number;
+  discountValue?: number;
+  bdi?: number;
+  lucro?: number;
+  totalBruto?: number;
+  totalCustom?: number;
+  totalLiquido?: number;
+  totalBdi?: number;
+  totalLucro?: number;
+  totalFinal?: number;
+  contratante?: string;
+  objeto?: string;
+  vigencia?: string;
+  obs?: string;
+  [key: string]: unknown;
+}
+
+export interface LegacyBudgetItemTotals {
+  quantity: number;
+  unitOriginal: number;
+  discountPct: number;
+  discountUnit: number;
+  unitNet: number;
+  totalBruto: number;
+  totalDesconto: number;
+  totalLiquido: number;
+  bdiPct: number;
+  totalBdi: number;
+  lucroPct: number;
+  totalLucro: number;
+  totalFinal: number;
+}
+
+export interface LegacyBudgetTotals {
+  totalBruto: number;
+  totalDesconto: number;
+  totalLiquido: number;
+  totalBdi: number;
+  totalLucro: number;
+  totalFinal: number;
+}
+
+const toFiniteNumber = (value: unknown): number => {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : 0;
+};
+
+export const roundCurrency = (value: number): number =>
+  Math.round((value + Number.EPSILON) * 100) / 100;
+
+export const clampPercent = (value: unknown): number =>
+  Math.min(100, Math.max(0, toFiniteNumber(value)));
+
+export const isLegacyBudget = (value: unknown): value is LegacyBudget => {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  return Array.isArray(candidate.itens) && !Array.isArray(candidate.blocos);
+};
+
+export function calcLegacyBudgetItemTotals(
+  item: Partial<LegacyBudgetItem>,
+  budget: Pick<LegacyBudget, "discount" | "bdi" | "lucro">
+): LegacyBudgetItemTotals {
+  const quantity = Math.max(0, toFiniteNumber(item.qtde));
+  const unitOriginal = roundCurrency(Math.max(0, toFiniteNumber(item.vl_custom)));
+  const discountPct = clampPercent(item.descItem ?? budget.discount ?? 0);
+  const bdiPct = clampPercent(item.bdiItem ?? budget.bdi ?? 0);
+  const lucroPct = clampPercent(item.lucroItem ?? budget.lucro ?? 0);
+
+  const discountUnit = roundCurrency(unitOriginal * (discountPct / 100));
+  const unitNet = roundCurrency(unitOriginal - discountUnit);
+  const totalBruto = roundCurrency(unitOriginal * quantity);
+  const totalDesconto = roundCurrency(discountUnit * quantity);
+  const totalLiquido = roundCurrency(unitNet * quantity);
+  const totalBdi = roundCurrency(totalLiquido * (bdiPct / 100));
+  const totalLucro = roundCurrency((totalLiquido + totalBdi) * (lucroPct / 100));
+  const totalFinal = roundCurrency(totalLiquido + totalBdi + totalLucro);
+
+  return {
+    quantity,
+    unitOriginal,
+    discountPct,
+    discountUnit,
+    unitNet,
+    totalBruto,
+    totalDesconto,
+    totalLiquido,
+    bdiPct,
+    totalBdi,
+    lucroPct,
+    totalLucro,
+    totalFinal,
+  };
+}
+
+export function calcLegacyBudgetTotals(
+  budget: Pick<LegacyBudget, "itens" | "discount" | "bdi" | "lucro">
+): LegacyBudgetTotals {
+  return (budget.itens || []).reduce<LegacyBudgetTotals>(
+    (acc, item) => {
+      const totals = calcLegacyBudgetItemTotals(item, budget);
+      acc.totalBruto = roundCurrency(acc.totalBruto + totals.totalBruto);
+      acc.totalDesconto = roundCurrency(acc.totalDesconto + totals.totalDesconto);
+      acc.totalLiquido = roundCurrency(acc.totalLiquido + totals.totalLiquido);
+      acc.totalBdi = roundCurrency(acc.totalBdi + totals.totalBdi);
+      acc.totalLucro = roundCurrency(acc.totalLucro + totals.totalLucro);
+      acc.totalFinal = roundCurrency(acc.totalFinal + totals.totalFinal);
+      return acc;
+    },
+    {
+      totalBruto: 0,
+      totalDesconto: 0,
+      totalLiquido: 0,
+      totalBdi: 0,
+      totalLucro: 0,
+      totalFinal: 0,
+    }
+  );
+}
+
+export function hydrateLegacyBudget<T extends LegacyBudget>(budget: T): T {
+  const sanitized = {
+    ...budget,
+    discount: clampPercent(budget.discount ?? budget.discountPercentual ?? 0),
+    bdi: clampPercent(budget.bdi ?? 0),
+    lucro: clampPercent(budget.lucro ?? 0),
+    itens: Array.isArray(budget.itens) ? budget.itens : [],
+  };
+
+  const totals = calcLegacyBudgetTotals(sanitized);
+
+  return {
+    ...sanitized,
+    discountPercentual: sanitized.discount,
+    discountValue: totals.totalDesconto,
+    totalBruto: totals.totalBruto,
+    totalCustom: totals.totalBruto,
+    totalLiquido: totals.totalLiquido,
+    totalBdi: totals.totalBdi,
+    totalLucro: totals.totalLucro,
+    totalFinal: totals.totalFinal,
+  };
+}

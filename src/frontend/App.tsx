@@ -1,1 +1,59 @@
-{"data":"aW1wb3J0IHsgQnJvd3NlclJvdXRlciBhcyBSb3V0ZXIsIFJvdXRlcywgUm91dGUgfSBmcm9tICdyZWFjdC1yb3V0ZXItZG9tJzsKaW1wb3J0IFNpbXVsYWRvckxQVSBmcm9tICcuL3BhZ2VzL1NpbXVsYWRvckxQVSc7CgpmdW5jdGlvbiBBcHAoKSB7CiAgICByZXR1cm4gKAogICAgICAgIDxSb3V0ZXI+CiAgICAgICAgICAgIDxSb3V0ZXM+CiAgICAgICAgICAgICAgICA8Um91dGUgcGF0aD0iKiIgZWxlbWVudD17PFNpbXVsYWRvckxQVSAvPn0gLz4KICAgICAgICAgICAgPC9Sb3V0ZXM+CiAgICAgICAgPC9Sb3V0ZXI+CiAgICApOwp9CgpleHBvcnQgZGVmYXVsdCBBcHA7Cg=="}
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import SimuladorLPU from './pages/SimuladorLPU';
+import Login from './pages/Login';
+
+interface AuthUser {
+    nome: string;
+    email: string;
+    role: string;
+}
+
+function App() {
+    const [token, setToken] = useState<string | null>(() => localStorage.getItem('ls_auth_token'));
+    const [user, setUser] = useState<AuthUser | null>(() => {
+        const saved = localStorage.getItem('ls_auth_user');
+        return saved ? JSON.parse(saved) : null;
+    });
+
+    useEffect(() => {
+        if (!token) return;
+        // Verificar se token ainda é válido
+        fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+            .then(r => { if (r.status === 401) { handleLogout(); } })
+            .catch(() => {/* backend offline - manter sessão local */});
+    }, []);
+
+    function handleLogin(newToken: string, newUser: AuthUser) {
+        setToken(newToken);
+        setUser(newUser);
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('ls_auth_token');
+        localStorage.removeItem('ls_auth_user');
+        setToken(null);
+        setUser(null);
+    }
+
+    return (
+        <Router>
+            <Routes>
+                <Route
+                    path="/login"
+                    element={token ? <Navigate to="/" replace /> : <Login onLogin={handleLogin} />}
+                />
+                <Route
+                    path="*"
+                    element={
+                        token
+                            ? <SimuladorLPU authUser={user} onLogout={handleLogout} authToken={token} />
+                            : <Navigate to="/login" replace />
+                    }
+                />
+            </Routes>
+        </Router>
+    );
+}
+
+export default App;

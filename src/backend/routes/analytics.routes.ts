@@ -1,1 +1,8 @@
-{"data":"aW1wb3J0IHsgUm91dGVyIH0gZnJvbSAnZXhwcmVzcyc7DQppbXBvcnQgeyBBbmFseXRpY3NDb250cm9sbGVyIH0gZnJvbSAnLi4vY29udHJvbGxlcnMvYW5hbHl0aWNzLmNvbnRyb2xsZXInOw0KDQpjb25zdCByb3V0ZXIgPSBSb3V0ZXIoKTsNCg0Kcm91dGVyLmdldCgnL2Rpc3BlcnNpb24nLCBBbmFseXRpY3NDb250cm9sbGVyLmdldERpc3BlcnNpb24pOw0KDQpleHBvcnQgZGVmYXVsdCByb3V0ZXI7DQo="}
+import { Router } from 'express';
+import { AnalyticsController } from '../controllers/analytics.controller';
+
+const router = Router();
+
+router.get('/dispersion', AnalyticsController.getDispersion);
+
+export default router;
