@@ -1,12 +1,16 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { MasterController } from '../controllers/master.controller';
 
 const router = Router();
+const uploadLogo = multer({ storage: multer.memoryStorage(), limits: { fileSize: 1024 * 1024, files: 1 } });
 
 // Contratantes
 router.get('/contratantes', MasterController.listContratantes);
 router.post('/contratantes', MasterController.createContratante);
 router.put('/contratantes/:id', MasterController.updateContratante);
+router.post('/contratantes/:id/logo', uploadLogo.single('logo'), MasterController.uploadLogoContratante);
+router.post('/contratantes-upsert', MasterController.upsertContratantePorNome);
 
 // Sites
 router.get('/sites', MasterController.listSites);

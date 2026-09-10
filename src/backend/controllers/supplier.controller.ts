@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { SupplierService } from '../services/supplier.service';
 import { prisma } from '../server';
+import { sincronizarPendenciasFavorecido } from '../services/sincronizacao-pendencias.service';
 
 async function getDemoTenantId() {
     const t = await prisma.tenant.findFirst();
@@ -42,7 +43,11 @@ export class SupplierController {
 
     static async update(req: Request, res: Response) {
         try {
-            res.json(await SupplierService.updateSupplier(req.params.id, req.body));
+            const anterior = await prisma.supplier.findUnique({ where: { id: req.params.id } });
+            if (!anterior) return res.status(404).json({ error: 'Fornecedor não encontrado' });
+            const atualizado = await SupplierService.updateSupplier(req.params.id, req.body);
+            await sincronizarPendenciasFavorecido('supplier', atualizado.id, anterior, atualizado);
+            res.json(atualizado);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
         }
@@ -51,6 +56,36 @@ export class SupplierController {
     static async remove(req: Request, res: Response) {
         try {
             res.json(await SupplierService.deleteSupplier(req.params.id));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async listCondicoesPagamento(req: Request, res: Response) {
+        try {
+            res.json(await SupplierService.listCondicoesPagamento(req.params.id));
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
+    static async createCondicaoPagamento(req: Request, res: Response) {
+        try {
+            const { nome, percentual_entrada, percentual_saldo, gatilho_saldo, prazo_dias } = req.body;
+            if (!nome || percentual_entrada == null || percentual_saldo == null) {
+                return res.status(400).json({ error: 'nome, percentual_entrada e percentual_saldo são obrigatórios' });
+            }
+            if (Math.round(percentual_entrada + percentual_saldo) !== 100) {
+                return res.status(400).json({ error: 'percentual_entrada + percentual_saldo deve somar 100' });
+            }
+            const condicao = await SupplierService.createCondicaoPagamento(req.params.id, {
+                nome,
+                percentual_entrada: parseFloat(percentual_entrada),
+                percentual_saldo: parseFloat(percentual_saldo),
+                gatilho_saldo: gatilho_saldo || 'CONCLUSAO',
+                prazo_dias: prazo_dias != null ? parseInt(prazo_dias) : undefined,
+            });
+            res.status(201).json(condicao);
         } catch (e: any) {
             res.status(400).json({ error: e.message });
         }

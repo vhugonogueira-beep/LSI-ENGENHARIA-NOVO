@@ -1,6 +1,87 @@
-import { BudgetService } from './budget.service';
+import { BudgetService, calcularValorUnitarioFinal } from './budget.service';
 import { prisma } from '../server';
 import ExcelJS from 'exceljs';
+
+type ExportSiteContext = {
+  id: string;
+  endereco: string;
+  cidade: string;
+  uf: string;
+  localizacao: string;
+};
+
+type ExportBlockGroup = {
+  id: string;
+  sequence: string;
+  label: string;
+  items: any[];
+  subtotal: number;
+};
+
+const LEGACY_BLOCK_LABELS: Record<string, string> = {
+  MOBILIZACAO: 'MOBILIZAÇÃO',
+  SERVICOS: 'SERVIÇOS',
+  INFRA: 'INFRA - FORNECIMENTO E INSTALAÇÃO',
+};
+
+function resolveSiteContext(budget: any): ExportSiteContext {
+  const atividade = budget.atividade;
+  const legacySite = budget.site;
+  const value = (candidate: unknown) => typeof candidate === 'string' ? candidate.trim() : '';
+
+  const id = value(atividade?.id_site_sharing)
+    || value(atividade?.id_site_operadora)
+    || value(atividade?.codigo)
+    || value(legacySite?.id_site)
+    || 'N/A';
+  const endereco = value(atividade?.endereco) || value(legacySite?.endereco);
+  const cidade = value(atividade?.municipio)
+    || value(atividade?.cidade)
+    || value(legacySite?.cidade);
+  const uf = value(atividade?.estado)
+    || value(atividade?.uf)
+    || value(legacySite?.uf);
+  const cidadeUf = cidade && uf ? `${cidade}-${uf}` : cidade || uf;
+
+  return {
+    id,
+    endereco,
+    cidade,
+    uf,
+    localizacao: [endereco, cidadeUf].filter(Boolean).join(' - ') || 'N/A',
+  };
+}
+
+function groupActiveItems(items: any[]): ExportBlockGroup[] {
+  const groups = new Map<string, Omit<ExportBlockGroup, 'sequence'>>();
+
+  for (const item of items) {
+    if (!item.ativo) continue;
+
+    const id = typeof item.bloco === 'string' && item.bloco.trim()
+      ? item.bloco.trim()
+      : 'OUTROS';
+    let group = groups.get(id);
+
+    if (!group) {
+      group = {
+        id,
+        label: LEGACY_BLOCK_LABELS[id] || id,
+        items: [],
+        subtotal: 0,
+      };
+      groups.set(id, group);
+    }
+
+    group.items.push(item);
+    group.subtotal = Math.round((group.subtotal + Number(item.total_linha || 0)) * 100) / 100;
+  }
+
+  return Array.from(groups.values()).map((group, index) => ({
+    ...group,
+    sequence: String(index + 1).padStart(2, '0'),
+  }));
+}
 
 export class ExportService {
   static async genterateHTML(budgetId: string): Promise<string> {
@@ -9,6 +90,7 @@ export class ExportService {
       include: {
         contratante: true,
         site: true,
+        atividade: true,
         items: { orderBy: { ordem: 'asc' } },
         versions: true,
         supplier: true,
@@ -17,10 +99,7 @@ export class ExportService {
     if (!budget) throw new Error("Budget not found");
 
     const totals = BudgetService.calcularOrcamento(budget.items);
-
-    const itemsMob = totals.itensDelineados.filter(i => i.bloco === 'MOBILIZACAO' && i.ativo);
-    const itemsServ = totals.itensDelineados.filter(i => i.bloco === 'SERVICOS' && i.ativo);
-    const itemsInfra = totals.itensDelineados.filter(i => i.bloco === 'INFRA' && i.ativo);
+    const blockGroups = groupActiveItems(totals.itensDelineados);
 
     const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -31,41 +110,33 @@ export class ExportService {
         <td style="width: 250px;">${item.descricao || ''}</td>
         <td style="width: 40px; text-align: center; font-weight: bold;">${item.quantidade}</td>
         <td style="width: 50px; text-align: center; font-weight: bold;">${item.unidade}</td>
-        <td style="width: 90px; text-align: right;">R$ <span style="float: right;">${formatter.format(item.valor_unitario).replace('R$', '').trim()}</span></td>
+        <td style="width: 90px; text-align: right;">R$ <span style="float: right;">${formatter.format(calcularValorUnitarioFinal(item)).replace('R$', '').trim()}</span></td>
         <td style="width: 90px; text-align: right; padding-right: 5px;">R$ <span style="float: right;">${formatter.format(item.total_linha).replace('R$', '').trim()}</span></td>
       </tr>
     `;
 
-    const renderBlock = (blockId: string, title: string, items: any[], subtotal: number) => {
-      const hasItems = items.length > 0;
-      if (!hasItems && title !== 'MOBILIZAÇÃO' && title !== 'SERVIÇOS' && title !== 'INFRA - FORNECIMENTO E INSTALAÇÃO') return '';
-
-      return `
+    const renderBlock = (block: ExportBlockGroup) => `
           <table class="block-table">
             <thead>
               <tr class="block-header">
-                <th style="width: 50px; text-align: center;">${blockId}</th>
-                <th colspan="3" style="text-align: center;">${title}</th>
-                <th colspan="3" style="text-align: right; background-color: #b91c1c; color: white;">R$ ${formatter.format(subtotal).replace('R$', '').trim()}</th>
+                <th style="width: 50px; text-align: center;">${block.sequence}</th>
+                <th colspan="3" style="text-align: center;">${block.label}</th>
+                <th colspan="3" style="text-align: right; background-color: #b91c1c; color: white;">R$ ${formatter.format(block.subtotal).replace('R$', '').trim()}</th>
               </tr>
             </thead>
             <tbody>
-              ${hasItems ? items.map(formatRow).join('') : `
-                <tr>
-                   <td colspan="7" style="padding: 6px; background-color: #e2e8f0;"></td>
-                </tr>
-              `}
+              ${block.items.map(formatRow).join('')}
             </tbody>
           </table>
           <div style="height: 12px;"></div>
         `;
-    };
 
     const dataEntrega = new Date(budget.updated_at);
     dataEntrega.setDate(dataEntrega.getDate() + budget.vigencia_dias);
 
     const contratante = budget.contratante as any;
     const supplier = budget.supplier as any;
+    const siteContext = resolveSiteContext(budget);
 
     // Build supplier logo HTML
     const supplierLogoHtml = supplier?.logo_url
@@ -170,13 +241,13 @@ export class ExportService {
             </tr>
             <tr>
               <td class="info-label">Endereço</td>
-              <td class="info-value" style="background: white;">${budget.site.cidade}-${budget.site.uf}</td>
+              <td class="info-value" style="background: white;">${siteContext.localizacao}</td>
               <td style="background: white; border: none;"></td>
               <td class="info-value" style="font-weight: bold; font-size: 11px; background: white; color: black; border: none;">${budget.updated_at.toLocaleDateString('pt-BR')}</td>
             </tr>
             <tr>
               <td class="info-label">ID Site</td>
-              <td class="info-value">${budget.site.id_site}</td>
+              <td class="info-value">${siteContext.id}</td>
               <td colspan="2" style="background: white; border: none;"></td>
             </tr>
             <tr>
@@ -207,9 +278,7 @@ export class ExportService {
           </table>
 
           <!-- Blocks -->
-          ${renderBlock('01', 'MOBILIZAÇÃO', itemsMob, totals.subtotalsPorBloco['MOBILIZACAO'] || 0)}
-          ${renderBlock('02', 'SERVIÇOS', itemsServ, totals.subtotalsPorBloco['SERVICOS'] || 0)}
-          ${renderBlock('03', 'INFRA - FORNECIMENTO E INSTALAÇÃO', itemsInfra, totals.subtotalsPorBloco['INFRA'] || 0)}
+          ${blockGroups.map(renderBlock).join('')}
 
           <!-- Footer Total -->
           <div class="footer-total">
@@ -233,6 +302,7 @@ export class ExportService {
       include: {
         contratante: true,
         site: true,
+        atividade: true,
         items: { orderBy: { ordem: 'asc' } },
         supplier: true,
       }
@@ -240,9 +310,11 @@ export class ExportService {
     if (!budget) throw new Error("Budget not found");
 
     const totals = BudgetService.calcularOrcamento(budget.items);
+    const blockGroups = groupActiveItems(totals.itensDelineados);
     const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
     const contratante = budget.contratante as any;
     const supplier = budget.supplier as any;
+    const siteContext = resolveSiteContext(budget);
 
     const workbook = new ExcelJS.Workbook();
     workbook.creator = 'LS Orçamento';
@@ -272,7 +344,7 @@ export class ExportService {
       ['Contratante', contratante.nome],
       ['Fornecedor', supplier?.nome || 'N/A'],
       ['Assunto', budget.assunto || ''],
-      ['Site', `${budget.site.id_site} - ${budget.site.cidade}/${budget.site.uf}`],
+      ['Site', `${siteContext.id} - ${siteContext.localizacao}`],
       ['Vigência', `${budget.vigencia_dias} dias`],
       ['Versão', `v${budget.versao_atual}`],
     ];
@@ -295,19 +367,12 @@ export class ExportService {
     summaryHeader.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } };
     summaryHeader.alignment = { horizontal: 'center' };
 
-    const blocosLabels: Record<string, string> = {
-      'MOBILIZACAO': '01 - MOBILIZAÇÃO',
-      'SERVICOS': '02 - SERVIÇOS',
-      'INFRA': '03 - INFRA - FORNECIMENTO E INSTALAÇÃO',
-    };
-
     let sRow = summaryStart + 1;
-    for (const [key, label] of Object.entries(blocosLabels)) {
-      const val = totals.subtotalsPorBloco[key] || 0;
+    for (const block of blockGroups) {
       const r = resumoSheet.getRow(sRow);
-      r.getCell(1).value = label;
+      r.getCell(1).value = `${block.sequence} - ${block.label}`;
       r.getCell(1).font = { bold: true };
-      r.getCell(3).value = val;
+      r.getCell(3).value = block.subtotal;
       r.getCell(3).numFmt = 'R$ #,##0.00';
       r.getCell(3).font = { bold: true };
       sRow++;
@@ -350,16 +415,10 @@ export class ExportService {
       };
     });
 
-    // Add items grouped by block
-    const blocks = [
-      { id: 'MOBILIZACAO', label: '01 - MOBILIZAÇÃO', items: totals.itensDelineados.filter(i => i.bloco === 'MOBILIZACAO' && i.ativo) },
-      { id: 'SERVICOS', label: '02 - SERVIÇOS', items: totals.itensDelineados.filter(i => i.bloco === 'SERVICOS' && i.ativo) },
-      { id: 'INFRA', label: '03 - INFRA', items: totals.itensDelineados.filter(i => i.bloco === 'INFRA' && i.ativo) },
-    ];
-
-    for (const block of blocks) {
+    // Add active items grouped in their first-occurrence order.
+    for (const block of blockGroups) {
       // Block header
-      const blockRow = detalhadoSheet.addRow([block.label, '', '', '', '', '', formatter.format(totals.subtotalsPorBloco[block.id] || 0)]);
+      const blockRow = detalhadoSheet.addRow([`${block.sequence} - ${block.label}`, '', '', '', '', '', formatter.format(block.subtotal)]);
       blockRow.eachCell(cell => {
         cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF002060' } };
@@ -373,7 +432,7 @@ export class ExportService {
           descricao: item.descricao || '',
           quantidade: item.quantidade,
           unidade: item.unidade,
-          valor_unitario: item.valor_unitario,
+          valor_unitario: calcularValorUnitarioFinal(item),
           total_linha: item.total_linha,
         });
 

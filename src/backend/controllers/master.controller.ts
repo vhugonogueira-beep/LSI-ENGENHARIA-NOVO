@@ -33,6 +33,55 @@ export class MasterController {
         } catch (e: any) { res.status(400).json({ error: e.message }); }
     }
 
+    // A tela de Clientes ainda é a legada (localStorage), mas a logo precisa chegar aos
+    // documentos gerados, que leem do Contratante real. Este upsert por nome faz a ponte:
+    // salvar um cliente lá cria/atualiza o Contratante correspondente aqui.
+    static async upsertContratantePorNome(req: Request, res: Response) {
+        try {
+            const { nome, cnpj, logo_url } = req.body;
+            if (!nome?.trim()) return res.status(400).json({ error: 'nome é obrigatório' });
+
+            const tenant_id = await getDemoTenantId();
+            const existente = await prisma.contratante.findFirst({
+                where: { tenant_id, nome: { equals: nome.trim() } },
+            });
+
+            if (existente) {
+                const dados: any = {};
+                if (cnpj !== undefined) dados.cnpj = cnpj || null;
+                if (logo_url !== undefined) dados.logo_url = logo_url || null;
+                if (Object.keys(dados).length === 0) return res.json(existente);
+                return res.json(await prisma.contratante.update({ where: { id: existente.id }, data: dados }));
+            }
+
+            const criado = await prisma.contratante.create({
+                data: { tenant_id, nome: nome.trim(), cnpj: cnpj || null, logo_url: logo_url || null },
+            });
+            res.status(201).json(criado);
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
+    // A logo do cliente entra nos documentos gerados (orçamento, cronograma, relatórios).
+    // Guardamos como data URI no próprio registro: o HTML exportado fica autocontido,
+    // imprime/salva em PDF sem depender de o servidor estar acessível.
+    static async uploadLogoContratante(req: Request, res: Response) {
+        try {
+            const file = (req as any).file as Express.Multer.File | undefined;
+            if (!file) return res.status(400).json({ error: 'Selecione uma imagem para a logo' });
+
+            const permitidos = ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'];
+            if (!permitidos.includes(file.mimetype)) {
+                return res.status(400).json({ error: 'Formato não permitido: use PNG, JPG, WEBP ou SVG' });
+            }
+            if (file.size > 1024 * 1024) {
+                return res.status(400).json({ error: 'A logo deve ter no máximo 1 MB' });
+            }
+
+            const dataUri = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+            res.json(await MasterService.updateContratante(req.params.id, { logo_url: dataUri } as any));
+        } catch (e: any) { res.status(400).json({ error: e.message }); }
+    }
+
     static async listSites(req: Request, res: Response) {
         try {
             const tenantId = req.query.tenantId as string;
