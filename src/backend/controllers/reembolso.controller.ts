@@ -625,6 +625,11 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
         };
 
         const { assunto, html } = gerarEmailCorporativo(dados);
+        // A previa sempre reflete os dados mestres atuais do favorecido. Impedir
+        // cache evita que uma chave PIX corrigida seja substituida por uma
+        // resposta antiga mantida pelo navegador ou por algum proxy local.
+        (res as any).setHeader?.('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        (res as any).setHeader?.('Pragma', 'no-cache');
         res.json({
             assunto,
             html,
@@ -670,6 +675,8 @@ export async function baixarEmailReembolsoEml(req: Request, res: Response) {
             .normalize('NFD').replace(/[^\w]+/g, '_').toUpperCase().slice(0, 40);
         res.setHeader('Content-Type', 'message/rfc822; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="${prefixo}_${favorecido}.eml"`);
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+        res.setHeader('Pragma', 'no-cache');
         res.send(linhas.join('\r\n'));
     } catch (e: any) {
         res.status(400).json({ error: e.message });
