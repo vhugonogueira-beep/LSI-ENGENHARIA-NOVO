@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Budget, BudgetSharingBlock, BudgetLineItem, SharingClient, LpuTemplate, calcBlocoTotal, calcBlocoCustoDireto, calcBudgetTotals, calcItemFinancials, calcItemTotal, calcItemUnitNet, getItemDiscountPct, getItemDiscountValor, newId } from "./types";
 import { loadSharingClients } from "./sharingClients";
-import { loadLpuTemplates, saveLpuTemplates, findTemplate, seedTemplatesFromDB } from "./lpuTemplates";
+import { carregarTemplatesDoBanco, findTemplate, templatesDeFallback } from "./lpuTemplates";
 import { gerarPdfBudgetV2 } from "./gerarPdfV2";
 
 // Theme (original dark)
@@ -60,12 +60,21 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
   useEffect(() => {
     const c = loadSharingClients();
     setSharingClients(c);
-    let t = loadLpuTemplates();
-    if (t.length === 0) {
-      t = seedTemplatesFromDB(dbImpl, dbOp, dbHighline);
-      saveLpuTemplates(t);
-    }
-    setTemplates(t);
+    // As LPUs vêm do banco (tela "Bases (LPUs)"). Os catálogos fixos do código
+    // só entram quando o banco ainda não tem base nenhuma, para o orçamento não
+    // abrir vazio numa instalação nova.
+    let cancelado = false;
+    (async () => {
+      let t: LpuTemplate[] = [];
+      try {
+        t = await carregarTemplatesDoBanco();
+      } catch {
+        t = [];
+      }
+      if (t.length === 0) t = templatesDeFallback(dbImpl, dbOp, dbHighline);
+      if (!cancelado) setTemplates(t);
+    })();
+    return () => { cancelado = true; };
   }, []);
 
   useEffect(() => {
