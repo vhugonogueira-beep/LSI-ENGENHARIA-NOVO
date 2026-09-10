@@ -1,35 +1,93 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, Search, ExternalLink, Pencil, Trash2, Image } from 'lucide-react';
+import { Building2, HardHat, Plus, Search, Pencil, Trash2, Wallet, X } from 'lucide-react';
+import DadosBancariosForm from '../components/cadastros/DadosBancariosForm';
+
+interface CondicaoPagamento {
+    id: string;
+    nome: string;
+    percentual_entrada: number;
+    percentual_saldo: number;
+    gatilho_saldo: string;
+}
 
 interface Supplier {
     id: string;
     nome: string;
+    nome_fantasia: string | null;
     cnpj: string | null;
+    cpf: string | null;
     email: string | null;
     telefone: string | null;
-    logo_url: string | null;
+    endereco: string | null;
+    cidade: string | null;
+    uf: string | null;
+    regiao: string | null;
+    banco: string | null;
+    agencia: string | null;
+    conta: string | null;
+    pix: string | null;
+    pix_tipo: string | null;
+    tipo_conta: string | null;
+    forma_pagamento: string | null;
+    tipo: string | null;
+    categoria: string | null;
+    especialidade: string | null;
+    observacoes: string | null;
     ativo: boolean;
-    _count?: { priceBooks: number };
+    _condicoesCount?: number;
 }
+
+const CATEGORIA_INFO: Record<string, { label: string; color: string; icon: string }> = {
+    MATERIAL: { label: 'Material', color: '#22c55e', icon: '🏭' },
+    MAO_DE_OBRA: { label: 'Mão de Obra', color: '#3b82f6', icon: '👷' },
+    SERVICO: { label: 'Serviço', color: '#8b5cf6', icon: '🔧' },
+    LOCACAO: { label: 'Locação', color: '#f59e0b', icon: '🚚' },
+    EQUIPAMENTO: { label: 'Equipamento', color: '#06b6d4', icon: '⚙️' },
+    TRANSPORTE: { label: 'Transporte', color: '#fb923c', icon: '🚛' },
+    ENGENHARIA: { label: 'Engenharia', color: '#6366f1', icon: '🏗️' },
+    SONDAGEM: { label: 'Sondagem', color: '#ec4899', icon: '🔬' },
+    ANALISE: { label: 'Análise', color: '#14b8a6', icon: '📊' },
+    OUTROS: { label: 'Outros', color: '#94a3b8', icon: '📦' },
+};
+const CATEGORIAS_PRESTADOR = ['MAO_DE_OBRA', 'SERVICO', 'LOCACAO', 'EQUIPAMENTO', 'TRANSPORTE', 'ENGENHARIA', 'SONDAGEM', 'ANALISE', 'OUTROS'];
+const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+const REGIOES = ['NACIONAL', 'NORTE', 'NORDESTE', 'CENTRO_OESTE', 'SUDESTE', 'SUL'];
+
+const FORM_INIT = {
+    nome: '', nome_fantasia: '', tipo: 'PESSOA_JURIDICA', cnpj: '', cpf: '', categoria: 'MAO_DE_OBRA',
+    especialidade: '', email: '', telefone: '', endereco: '', cidade: '', uf: '', regiao: '',
+    banco: '', agencia: '', conta: '', tipo_conta: '', pix_tipo: 'CNPJ', pix: '', forma_pagamento: 'PIX', observacoes: '',
+};
+const CONDICAO_FORM_INIT = { nome: '', percentual_entrada: '20', percentual_saldo: '80', gatilho_saldo: 'CONCLUSAO' };
+
+const inputCls = "w-full border border-border rounded-lg p-2.5 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30";
+const smallInputCls = "text-xs border border-border rounded-md px-2 py-1.5 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none";
+const labelCls = "block text-sm font-medium mb-1 text-foreground";
 
 export function Fornecedores() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [filtroModulo, setFiltroModulo] = useState<'TODOS' | 'MATERIAL' | 'PRESTADOR'>('TODOS');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
-
-    // Form state
-    const [form, setForm] = useState({
-        nome: '', cnpj: '', email: '', telefone: '', logo_url: ''
-    });
+    const [form, setForm] = useState(FORM_INIT);
+    const [condicoesModal, setCondicoesModal] = useState<CondicaoPagamento[]>([]);
+    const [condicaoForm, setCondicaoForm] = useState(CONDICAO_FORM_INIT);
+    const [saving, setSaving] = useState(false);
 
     const loadSuppliers = async () => {
         setLoading(true);
         try {
-            const resp = await fetch('/api/suppliers');
+            const resp = await fetch('/api/suppliers?limit=200');
             const data = await resp.json();
-            setSuppliers(data.items || []);
+            const items: Supplier[] = data.items || [];
+            const withCounts = await Promise.all(items.map(async (s) => {
+                const r = await fetch(`/api/suppliers/${s.id}/condicoes-pagamento`);
+                const cond = r.ok ? await r.json() : [];
+                return { ...s, _condicoesCount: cond.length };
+            }));
+            setSuppliers(withCounts);
         } catch (e) {
             console.error(e);
             setSuppliers([]);
@@ -40,236 +98,324 @@ export function Fornecedores() {
 
     useEffect(() => { loadSuppliers(); }, []);
 
-    const resetForm = () => {
-        setForm({ nome: '', cnpj: '', email: '', telefone: '', logo_url: '' });
-        setEditingId(null);
-    };
-
-    const openCreate = () => {
-        resetForm();
-        setIsModalOpen(true);
-    };
-
-    const openEdit = (s: Supplier) => {
+    const resetForm = () => { setForm(FORM_INIT); setEditingId(null); setCondicoesModal([]); setCondicaoForm(CONDICAO_FORM_INIT); };
+    const openCreate = () => { resetForm(); setIsModalOpen(true); };
+    const openEdit = async (s: Supplier) => {
         setForm({
-            nome: s.nome,
-            cnpj: s.cnpj || '',
-            email: s.email || '',
-            telefone: s.telefone || '',
-            logo_url: s.logo_url || '',
+            nome: s.nome, nome_fantasia: s.nome_fantasia || '',
+            tipo: s.tipo || 'PESSOA_JURIDICA', cnpj: s.cnpj || '', cpf: s.cpf || '',
+            categoria: s.categoria || 'MAO_DE_OBRA', especialidade: s.especialidade || '',
+            email: s.email || '', telefone: s.telefone || '',
+            endereco: s.endereco || '', cidade: s.cidade || '', uf: s.uf || '', regiao: s.regiao || '',
+            banco: s.banco || '', agencia: s.agencia || '', conta: s.conta || '', tipo_conta: s.tipo_conta || '', pix_tipo: s.pix_tipo || (s.tipo === 'PESSOA_FISICA' ? 'CPF' : 'CNPJ'), pix: s.pix || '', forma_pagamento: s.forma_pagamento || (s.pix ? 'PIX' : 'TED'),
+            observacoes: s.observacoes || '',
         });
         setEditingId(s.id);
+        setCondicaoForm(CONDICAO_FORM_INIT);
         setIsModalOpen(true);
+        const r = await fetch(`/api/suppliers/${s.id}/condicoes-pagamento`);
+        setCondicoesModal(r.ok ? await r.json() : []);
     };
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSaving(true);
         try {
             const payload = {
                 nome: form.nome,
-                cnpj: form.cnpj || null,
+                nome_fantasia: form.nome_fantasia || null,
+                tipo: form.tipo,
+                cnpj: form.tipo === 'PESSOA_JURIDICA' ? (form.cnpj || null) : null,
+                cpf: form.tipo === 'PESSOA_FISICA' ? (form.cpf || null) : null,
+                categoria: form.categoria,
+                especialidade: form.especialidade || null,
                 email: form.email || null,
                 telefone: form.telefone || null,
-                logo_url: form.logo_url || null,
+                endereco: form.endereco || null,
+                cidade: form.cidade || null,
+                uf: form.uf || null,
+                regiao: form.regiao || null,
+                banco: form.banco || null,
+                agencia: form.agencia || null,
+                conta: form.conta || null,
+                tipo_conta: form.tipo_conta || null,
+                pix_tipo: form.pix_tipo || null,
+                pix: form.pix || null,
+                forma_pagamento: form.forma_pagamento || null,
+                observacoes: form.observacoes || null,
             };
+            const resp = await fetch(editingId ? `/api/suppliers/${editingId}` : '/api/suppliers', {
+                method: editingId ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            const saved = await resp.json();
+            const supplierId = editingId || saved.id;
 
-            if (editingId) {
-                await fetch(`/api/suppliers/${editingId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
-            } else {
-                await fetch('/api/suppliers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload),
-                });
+            // Condição de pagamento preenchida no próprio cadastro (não exige passo separado).
+            if (condicaoForm.nome.trim()) {
+                const entrada = parseFloat(condicaoForm.percentual_entrada);
+                const saldo = parseFloat(condicaoForm.percentual_saldo);
+                if (Math.round(entrada + saldo) === 100) {
+                    await fetch(`/api/suppliers/${supplierId}/condicoes-pagamento`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nome: condicaoForm.nome, percentual_entrada: entrada, percentual_saldo: saldo, gatilho_saldo: condicaoForm.gatilho_saldo }),
+                    });
+                }
             }
+
             setIsModalOpen(false);
             resetForm();
             loadSuppliers();
         } catch (e) {
             alert('Erro ao salvar fornecedor');
+        } finally {
+            setSaving(false);
         }
     };
 
     const handleDelete = async (id: string, nome: string) => {
         if (!confirm(`Deseja desativar o fornecedor "${nome}"?`)) return;
-        try {
-            await fetch(`/api/suppliers/${id}`, { method: 'DELETE' });
-            loadSuppliers();
-        } catch (e) {
-            alert('Erro ao remover fornecedor');
-        }
+        await fetch(`/api/suppliers/${id}`, { method: 'DELETE' });
+        loadSuppliers();
     };
 
-    const filtered = suppliers.filter(s =>
-        s.nome.toLowerCase().includes(search.toLowerCase()) ||
-        (s.cnpj && s.cnpj.includes(search))
-    );
+    const filtered = suppliers.filter(s => {
+        const matchSearch = s.nome.toLowerCase().includes(search.toLowerCase()) || (s.cnpj || '').includes(search) || (s.cpf || '').includes(search);
+        const matchModulo = filtroModulo === 'TODOS' || (filtroModulo === 'MATERIAL' ? s.categoria === 'MATERIAL' : s.categoria !== 'MATERIAL');
+        return matchSearch && matchModulo;
+    });
+
+    const isPF = form.tipo === 'PESSOA_FISICA';
+    const isMaterial = form.categoria === 'MATERIAL';
+    const catInfo = (cat: string | null) => CATEGORIA_INFO[cat || 'OUTROS'];
 
     return (
-        <div className="p-8">
-            {/* Header */}
+        <div className="p-8 text-foreground">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-3xl font-bold flex items-center gap-3">
                         <Building2 className="text-primary" size={28} />
-                        Fornecedores
+                        Fornecedores & Prestadores
                     </h2>
-                    <p className="text-muted-foreground mt-1">Gerencie fornecedores e suas listas de preços (LPU)</p>
+                    <p className="text-muted-foreground mt-1">{suppliers.filter(s => s.categoria === 'MATERIAL').length} fornecedores de material · {suppliers.filter(s => s.categoria !== 'MATERIAL').length} prestadores de serviço</p>
                 </div>
-                <button
-                    onClick={openCreate}
-                    className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-medium shadow-sm"
-                >
-                    <Plus size={18} /> Novo Fornecedor
+                <button onClick={openCreate} className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-semibold shadow-md shadow-primary/20">
+                    <Plus size={18} /> Novo Cadastro
                 </button>
             </div>
 
-            {/* Search */}
-            <div className="mb-4 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                <input
-                    type="text"
-                    placeholder="Buscar por nome ou CNPJ..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 border rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
+            <div className="flex gap-3 mb-5 flex-wrap items-center">
+                <div className="relative flex-1 min-w-[240px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <input type="text" placeholder="Buscar por nome, CNPJ ou CPF..." value={search} onChange={e => setSearch(e.target.value)}
+                        className={`${inputCls} pl-10`} />
+                </div>
+                <div className="flex gap-1 bg-secondary/40 rounded-lg p-1">
+                    {(['TODOS', 'MATERIAL', 'PRESTADOR'] as const).map(m => (
+                        <button key={m} onClick={() => setFiltroModulo(m)}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium ${filtroModulo === m ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                            {m === 'TODOS' ? 'Todos' : m === 'MATERIAL' ? '🏭 Material' : '👷 Prestadores'}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            {/* Supplier Cards Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {loading ? (
                     <div className="col-span-3 text-center py-12 text-muted-foreground">Carregando...</div>
                 ) : filtered.length === 0 ? (
                     <div className="col-span-3 text-center py-12 text-muted-foreground">
-                        {search ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado. Clique em "Novo Fornecedor" para começar.'}
+                        {search ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado. Clique em "Novo Cadastro" para começar.'}
                     </div>
-                ) : filtered.map(s => (
-                    <div key={s.id} className="bg-card rounded-xl border shadow-sm hover:shadow-md transition-shadow p-5">
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                                {s.logo_url ? (
-                                    <img src={s.logo_url} alt={s.nome} className="w-12 h-12 object-contain rounded-lg border bg-white p-1" />
-                                ) : (
-                                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <Building2 className="text-primary" size={24} />
-                                    </div>
-                                )}
-                                <div>
-                                    <h3 className="font-bold text-lg">{s.nome}</h3>
-                                    {s.cnpj && <p className="text-xs text-muted-foreground">{s.cnpj}</p>}
+                ) : filtered.map(s => {
+                    const ci = catInfo(s.categoria);
+                    return (
+                        <div key={s.id} className="bg-card text-foreground rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow p-5"
+                            style={{ borderLeft: `3px solid ${ci.color}` }}>
+                            <div className="flex items-start justify-between mb-2">
+                                <div className="min-w-0">
+                                    <h3 className="font-bold text-base truncate">{ci.icon} {s.nome}</h3>
+                                    <p className="text-xs text-muted-foreground">{s.cnpj || s.cpf || '—'}</p>
+                                </div>
+                                <div className="flex gap-1 flex-shrink-0">
+                                    <button onClick={() => openEdit(s)} className="p-1.5 rounded-md hover:bg-muted" title="Editar"><Pencil size={15} className="text-muted-foreground" /></button>
+                                    <button onClick={() => handleDelete(s.id, s.nome)} className="p-1.5 rounded-md hover:bg-red-500/10" title="Desativar"><Trash2 size={15} className="text-red-500" /></button>
                                 </div>
                             </div>
-                        </div>
-
-                        {(s.email || s.telefone) && (
-                            <div className="text-sm text-muted-foreground mb-3 space-y-0.5">
+                            <div className="flex gap-1.5 flex-wrap mb-3">
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${ci.color}22`, color: ci.color }}>{ci.label}</span>
+                                {s.especialidade && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.especialidade}</span>}
+                                {s.tipo && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.tipo === 'PESSOA_FISICA' ? 'PF' : 'PJ'}</span>}
+                            </div>
+                            <div className="text-xs text-muted-foreground space-y-0.5 mb-3">
                                 {s.email && <p>✉ {s.email}</p>}
                                 {s.telefone && <p>☎ {s.telefone}</p>}
+                                {s.pix && <p>💳 PIX: {s.pix}</p>}
+                                {s.regiao && <p>📍 {s.regiao}</p>}
                             </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-3 border-t">
-                            <a
-                                href={`/pricebooks?supplier=${s.id}`}
-                                className="text-primary text-sm font-medium hover:underline flex items-center gap-1"
-                            >
-                                <ExternalLink size={14} />
-                                {s._count?.priceBooks || 0} LPU(s)
-                            </a>
-                            <div className="flex gap-2">
-                                <button onClick={() => openEdit(s)} className="p-1.5 rounded-md hover:bg-muted" title="Editar">
-                                    <Pencil size={16} className="text-muted-foreground" />
-                                </button>
-                                <button onClick={() => handleDelete(s.id, s.nome)} className="p-1.5 rounded-md hover:bg-red-50" title="Desativar">
-                                    <Trash2 size={16} className="text-red-500" />
-                                </button>
+                            <div className="flex items-center gap-1.5 pt-2 border-t border-border text-xs font-medium" style={{ color: (s._condicoesCount || 0) > 0 ? '#22c55e' : undefined }}>
+                                <Wallet size={13} className={(s._condicoesCount || 0) > 0 ? '' : 'text-muted-foreground'} />
+                                <span className={(s._condicoesCount || 0) > 0 ? '' : 'text-muted-foreground'}>
+                                    {s._condicoesCount ? `${s._condicoesCount} condição(ões) de pagamento cadastrada(s)` : 'Nenhuma condição de pagamento'}
+                                </span>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
-            {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-background rounded-xl shadow-2xl p-6 w-full max-w-lg">
-                        <h3 className="text-xl font-bold mb-5">
-                            {editingId ? 'Editar Fornecedor' : 'Novo Fornecedor'}
-                        </h3>
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Nome *</label>
-                                <input
-                                    type="text" required
-                                    value={form.nome}
-                                    onChange={e => setForm({ ...form, nome: e.target.value })}
-                                    className="w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                    placeholder="Ex: Highline, Winity, SBA..."
-                                />
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-background text-foreground rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border">
+                        <div className="flex items-center justify-between mb-5">
+                            <h3 className="text-xl font-bold">{editingId ? 'Editar Cadastro' : 'Novo Cadastro'}</h3>
+                            <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
+                        </div>
+                        <form onSubmit={handleSave} className="space-y-5">
+
+                            {/* Tipo de cadastro — dois grandes cartões, como no modelo anterior */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button type="button" onClick={() => setForm(f => ({ ...f, categoria: 'MATERIAL' }))}
+                                    className="text-left rounded-xl p-4 transition-colors"
+                                    style={{
+                                        border: `2px solid ${isMaterial ? CATEGORIA_INFO.MATERIAL.color : 'hsl(var(--border))'}`,
+                                        background: isMaterial ? `${CATEGORIA_INFO.MATERIAL.color}18` : 'hsl(var(--secondary) / 0.3)',
+                                    }}>
+                                    <div className="text-2xl mb-1">🏭</div>
+                                    <div className="text-sm font-bold" style={{ color: isMaterial ? CATEGORIA_INFO.MATERIAL.color : undefined }}>Fornecedor de Material</div>
+                                    <div className="text-xs text-muted-foreground mt-0.5">Vende produtos e insumos (CNPJ)</div>
+                                </button>
+                                <button type="button" onClick={() => setForm(f => ({ ...f, categoria: 'MAO_DE_OBRA' }))}
+                                    className="text-left rounded-xl p-4 transition-colors"
+                                    style={{
+                                        border: `2px solid ${!isMaterial ? CATEGORIA_INFO.MAO_DE_OBRA.color : 'hsl(var(--border))'}`,
+                                        background: !isMaterial ? `${CATEGORIA_INFO.MAO_DE_OBRA.color}18` : 'hsl(var(--secondary) / 0.3)',
+                                    }}>
+                                    <div className="text-2xl mb-1"><HardHat size={26} /></div>
+                                    <div className="text-sm font-bold" style={{ color: !isMaterial ? CATEGORIA_INFO.MAO_DE_OBRA.color : undefined }}>Prestador de Serviço</div>
+                                    <div className="text-xs text-muted-foreground mt-0.5">Executa obras e serviços (PF ou PJ)</div>
+                                </button>
                             </div>
+
+                            <div>
+                                <label className={labelCls}>{isMaterial ? 'Razão Social' : 'Nome / Razão Social'} *</label>
+                                <input required value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
+                                    className={inputCls} placeholder={isMaterial ? 'Razão social do fornecedor' : 'Nome ou empresa prestadora'} />
+                            </div>
+                            <div>
+                                <label className={labelCls}>Nome Fantasia</label>
+                                <input value={form.nome_fantasia} onChange={e => setForm(f => ({ ...f, nome_fantasia: e.target.value }))} className={inputCls} />
+                            </div>
+
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">CNPJ</label>
-                                    <input
-                                        type="text"
-                                        value={form.cnpj}
-                                        onChange={e => setForm({ ...form, cnpj: e.target.value })}
-                                        className="w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                        placeholder="00.000.000/0001-00"
-                                    />
+                                    <label className={labelCls}>Tipo</label>
+                                    <select value={form.tipo} onChange={e => setForm(f => ({ ...f, tipo: e.target.value, pix_tipo: ['CPF', 'CNPJ'].includes(f.pix_tipo) ? (e.target.value === 'PESSOA_FISICA' ? 'CPF' : 'CNPJ') : f.pix_tipo }))} className={inputCls}>
+                                        <option value="PESSOA_JURIDICA">Pessoa Jurídica</option>
+                                        <option value="PESSOA_FISICA">Pessoa Física</option>
+                                    </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Telefone</label>
-                                    <input
-                                        type="text"
-                                        value={form.telefone}
-                                        onChange={e => setForm({ ...form, telefone: e.target.value })}
-                                        className="w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                    />
+                                    <label className={labelCls}>{isPF ? 'CPF' : 'CNPJ'}</label>
+                                    <input value={isPF ? form.cpf : form.cnpj} onChange={e => setForm(f => isPF ? { ...f, cpf: e.target.value } : { ...f, cnpj: e.target.value })}
+                                        className={inputCls} placeholder={isPF ? '000.000.000-00' : '00.000.000/0001-00'} />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">E-mail</label>
-                                <input
-                                    type="email"
-                                    value={form.email}
-                                    onChange={e => setForm({ ...form, email: e.target.value })}
-                                    className="w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">URL da Logo</label>
-                                <input
-                                    type="text"
-                                    value={form.logo_url}
-                                    onChange={e => setForm({ ...form, logo_url: e.target.value })}
-                                    className="w-full border rounded-lg p-2.5 focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                    placeholder="https://..."
-                                />
-                                {form.logo_url && (
-                                    <div className="mt-2 p-2 border rounded-lg bg-white inline-block">
-                                        <img src={form.logo_url} alt="Preview" className="h-12 object-contain" onError={e => (e.target as HTMLImageElement).style.display = 'none'} />
+
+                            <div className="grid grid-cols-2 gap-3">
+                                {!isMaterial && (
+                                    <div>
+                                        <label className={labelCls}>Categoria</label>
+                                        <select value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} className={inputCls}>
+                                            {CATEGORIAS_PRESTADOR.map(c => <option key={c} value={c}>{CATEGORIA_INFO[c].label}</option>)}
+                                        </select>
                                     </div>
                                 )}
+                                <div className={isMaterial ? 'col-span-2' : ''}>
+                                    <label className={labelCls}>Especialidade</label>
+                                    <input value={form.especialidade} onChange={e => setForm(f => ({ ...f, especialidade: e.target.value }))}
+                                        className={inputCls} placeholder="Ex: Civil, RF, Elétrico, Cabos & Conectores..." />
+                                </div>
                             </div>
-                            <div className="flex justify-end gap-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => { setIsModalOpen(false); resetForm(); }}
-                                    className="px-4 py-2.5 border rounded-lg hover:bg-muted font-medium"
-                                >
-                                    Cancelar
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 font-medium shadow-sm"
-                                >
-                                    {editingId ? 'Salvar' : 'Criar'}
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className={labelCls}>Telefone</label>
+                                    <input value={form.telefone} onChange={e => setForm(f => ({ ...f, telefone: e.target.value }))} className={inputCls} />
+                                </div>
+                                <div>
+                                    <label className={labelCls}>E-mail</label>
+                                    <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputCls} />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label className={labelCls}>Cidade</label>
+                                    <input value={form.cidade} onChange={e => setForm(f => ({ ...f, cidade: e.target.value }))} className={inputCls} />
+                                </div>
+                                <div>
+                                    <label className={labelCls}>UF</label>
+                                    <select value={form.uf} onChange={e => setForm(f => ({ ...f, uf: e.target.value }))} className={inputCls}>
+                                        <option value="">Selecione</option>
+                                        {UFS.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className={labelCls}>Região</label>
+                                    <select value={form.regiao} onChange={e => setForm(f => ({ ...f, regiao: e.target.value }))} className={inputCls}>
+                                        <option value="">Selecione</option>
+                                        {REGIOES.map(regiao => <option key={regiao} value={regiao}>{regiao.replace('_', '-')}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <DadosBancariosForm
+                                value={{ forma_pagamento: form.forma_pagamento, pix_tipo: form.pix_tipo, pix_chave: form.pix, banco: form.banco, agencia: form.agencia, conta: form.conta, tipo_conta: form.tipo_conta }}
+                                onChange={(campo, valor) => setForm(f => ({ ...f, [campo === 'pix_chave' ? 'pix' : campo]: valor }))}
+                            />
+
+                            {/* Condição de pagamento — agora dentro do próprio cadastro */}
+                            <div className="rounded-lg p-3.5 border" style={{ background: '#3b82f60d', borderColor: '#3b82f630' }}>
+                                <div className="text-xs font-bold text-muted-foreground mb-2 tracking-wide flex items-center gap-1.5">
+                                    <Wallet size={13} /> CONDIÇÃO DE PAGAMENTO PADRÃO
+                                </div>
+                                {condicoesModal.length > 0 && (
+                                    <div className="flex flex-col gap-1.5 mb-3">
+                                        {condicoesModal.map(c => (
+                                            <div key={c.id} className="text-xs bg-secondary/50 rounded-md px-2.5 py-1.5">
+                                                <span className="font-semibold">{c.nome}</span> — {c.percentual_entrada}% entrada + {c.percentual_saldo}% saldo ({c.gatilho_saldo === 'INICIO' ? 'no início' : c.gatilho_saldo === 'MARCO' ? 'em marco' : 'na conclusão'})
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="grid grid-cols-4 gap-2">
+                                    <input value={condicaoForm.nome} onChange={e => setCondicaoForm(f => ({ ...f, nome: e.target.value }))}
+                                        className={`col-span-2 ${smallInputCls}`} placeholder="Nome (ex: 20+80)" />
+                                    <input type="number" value={condicaoForm.percentual_entrada}
+                                        onChange={e => setCondicaoForm(f => ({ ...f, percentual_entrada: e.target.value, percentual_saldo: String(100 - parseFloat(e.target.value || '0')) }))}
+                                        className={smallInputCls} placeholder="% Entrada" />
+                                    <input type="number" value={condicaoForm.percentual_saldo} onChange={e => setCondicaoForm(f => ({ ...f, percentual_saldo: e.target.value }))}
+                                        className={smallInputCls} placeholder="% Saldo" />
+                                </div>
+                                <select value={condicaoForm.gatilho_saldo} onChange={e => setCondicaoForm(f => ({ ...f, gatilho_saldo: e.target.value }))} className={`${smallInputCls} mt-2 w-full`}>
+                                    <option value="INICIO">Saldo pago no início</option>
+                                    <option value="MARCO">Saldo pago em marco intermediário</option>
+                                    <option value="CONCLUSAO">Saldo pago na conclusão</option>
+                                </select>
+                                <p className="text-[11px] text-muted-foreground mt-1.5">Preencha o nome para salvar esta condição junto com o cadastro. Deixe em branco para não criar nenhuma agora.</p>
+                            </div>
+
+                            <div>
+                                <label className={labelCls}>Observações</label>
+                                <textarea rows={2} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
+                                    className={`${inputCls} resize-y`} />
+                            </div>
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="px-4 py-2.5 border border-border rounded-lg hover:bg-muted font-medium">Cancelar</button>
+                                <button type="submit" disabled={saving} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 font-semibold shadow-md shadow-primary/20 disabled:opacity-60">
+                                    {saving ? 'Salvando...' : editingId ? 'Salvar Alterações' : `Adicionar ${isMaterial ? 'Fornecedor' : 'Prestador'}`}
                                 </button>
                             </div>
                         </form>
@@ -279,3 +425,5 @@ export function Fornecedores() {
         </div>
     );
 }
+
+export default Fornecedores;

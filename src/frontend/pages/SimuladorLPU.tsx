@@ -1,5 +1,12 @@
 ﻿import React, { useState, useMemo } from "react";
-import TabSecretaria from "./TabSecretaria";
+import Sidebar from "../components/Sidebar";
+import Atividades from "./Atividades";
+import Configuracoes from "./Configuracoes";
+import DashboardFinanceiro from "./DashboardFinanceiro";
+import ControlePagamentos from "./ControlePagamentos";
+import PessoasPrestadores from "./PessoasPrestadores";
+import FaturamentoReal from "./Faturamento";
+import { Dashboard } from "./Dashboard";
 import { gerarPdfOrcamento } from "./gerarPdfOrcamento";
 import TabOrcamentoV2 from "../budget/TabOrcamentoV2";
 import TabLpus from "../budget/TabLpus";
@@ -447,7 +454,7 @@ const T = {
   green: "#34d399", greenD: "#0d9e74",
   amber: "#fbbf24", amberD: "#d97706",
   red: "#f87171", redD: "#dc2626",
-  purple: "#a78bfa", cyan: "#67e8f9", orange: "#fb923c",
+  purple: "#a78bfa", cyan: "#67e8f9", orange: "#fb923c", indigo: "#6366f1",
   gradBlue: "linear-gradient(90deg, #2563EB, #3B82F6)",
 };
 
@@ -757,7 +764,7 @@ function App({ user, onLogout }) {
     { id: "oi", nome: "Oi", cnpj: "", tipo: "Operadora", contato: "", telefone: "", email: "", regiao: "Nacional", obs: "", contratoNumero: "", contratoVigencia: "", slaGarantia: 30, pos: [] },
   ];
   const [clientes, setClientes] = useState(() => loadLS("ls_clientes_v2", CLI_DEFAULTS));
-  const clienteFormInit = { nome: "", cnpj: "", tipo: "Sharing", contato: "", telefone: "", email: "", regiao: "", obs: "", contratoNumero: "", contratoVigencia: "", slaGarantia: 30, pos: [] };
+  const clienteFormInit = { nome: "", cnpj: "", tipo: "Sharing", contato: "", telefone: "", email: "", regiao: "", obs: "", contratoNumero: "", contratoVigencia: "", slaGarantia: 30, pos: [], logo: "" };
   const [clienteForm, setClienteForm] = useState(clienteFormInit);
   const setClienteField = React.useCallback((k, v) => setClienteForm(p => ({ ...p, [k]: v })), []);
   const [editCliente, setEditCliente] = useState(null);
@@ -1833,367 +1840,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
   );
 
   // ════════════════════════════════════════════════════════════════════
-  // NAV items
-  // ════════════════════════════════════════════════════════════════════
-  // ════════════════════════════════════════════════════════════════════
-  // SIDEBAR — nova estrutura reorganizada
-  // ════════════════════════════════════════════════════════════════════
-  const Sidebar = () => {
-    const isExpanded = sidePinned || sideHovered;
-    const NAV_COLORS = {
-      orcv2: T.blue,
-      historico: T.purple,
-      novo_orcamento: T.blue,
-      projetos: T.blue,
-      controle: T.blue,
-      fornecedores: T.purple,
-      funcionarios: T.green,
-      relatorios: T.cyan,
-      faturamento: T.green,
-      clientes: T.cyan,
-      secretaria: T.amber,
-      tabela: T.blue,
-      faturas: T.green,
-      lpus: T.amber,
-    };
-
-    const NavItem = ({ id, icon, label, badge, indent = false, onClick, activeOverride = undefined, color = null }) => {
-      const active = typeof activeOverride === "boolean" ? activeOverride : (tab === id && !onClick);
-      const handleClick = onClick || (() => setTab(id));
-      const accent = color || NAV_COLORS[id] || T.blue;
-      return (
-        <button onClick={handleClick} style={{
-          width: "100%", display: "flex", alignItems: "center", gap: 10,
-          padding: indent ? (isExpanded ? "7px 12px 7px 28px" : "7px 0") : "10px 14px",
-          borderRadius: 10, border: "none", cursor: "pointer", marginBottom: 3,
-          textAlign: "left",
-          background: active
-            ? `linear-gradient(90deg, ${accent}22, ${accent}08)`
-            : "transparent",
-          color: active ? T.txPri : indent ? T.txSec : T.txMut,
-          fontWeight: active ? 600 : indent ? 500 : 500,
-          fontSize: (indent ? 12 : 13),
-          borderLeft: active ? `3px solid ${accent}` : "3px solid transparent",
-          transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-          justifyContent: isExpanded ? "flex-start" : "center",
-          minHeight: 40,
-        }}
-          onMouseEnter={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = T.bgHover; }}
-          onMouseLeave={e => { if (!active) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
-        >
-          {indent
-            ? (isExpanded ? <span style={{ width: 6, height: 6, borderRadius: "50%", background: active ? accent : (badge || T.txMut), flexShrink: 0, boxShadow: active ? `0 0 6px ${accent}` : "none" }} /> : null)
-            : (
-              <span style={iconBox(accent, active)}>
-                <span style={{ fontSize: 14, opacity: active ? 1 : 0.85, filter: "grayscale(1)" }}>{icon}</span>
-              </span>
-            )
-          }
-          {isExpanded && <span style={{ flex: 1, letterSpacing: "0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>}
-          {isExpanded && badge && !indent && <span style={{ background: T.red, color: "#fff", borderRadius: 10, padding: "2px 7px", fontSize: 9, fontWeight: 700, boxShadow: `0 0 8px ${T.red}60` }}>{badge}</span>}
-        </button>
-      );
-    };
-
-    const obrasAtivas = projetos.filter(p => p.status !== "Concluído");
-    const controleColor = NAV_COLORS.controle || T.blue;
-
-    return (
-      <aside 
-        className="scroll-min"
-        onMouseEnter={() => setSideHovered(true)}
-        onMouseLeave={() => setSideHovered(false)}
-        style={{ 
-          width: isExpanded ? 260 : 64, 
-          minHeight: "100vh", 
-          background: isExpanded ? T.bg2 : T.bgSidebar,
-          borderRight: `1px solid ${T.brBase}`, 
-          boxShadow: isExpanded ? "4px 0 32px rgba(15, 23, 42, 0.08)" : "0 0 16px rgba(15, 23, 42, 0.05)", 
-          display: "flex", 
-          flexDirection: "column", 
-          flexShrink: 0, 
-          position: "fixed", 
-          left: 0,
-          top: 0, 
-          height: "100vh", 
-          overflow: "hidden",
-          zIndex: 1000,
-          transition: "width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s"
-        }}>
-
-        {/* Toggle Pinned Button */}
-        <button 
-          onClick={(e) => { e.stopPropagation(); setSidePinned(!sidePinned); }}
-          style={{
-            position: "absolute", right: 10, top: 12, width: 28, height: 28,
-            borderRadius: 8, background: sidePinned ? T.blue + "33" : "transparent",
-            border: sidePinned ? `1px solid ${T.blue}66` : "1px solid transparent", 
-            cursor: "pointer", display: isExpanded ? "flex" : "none",
-            alignItems: "center", justifyContent: "center", fontSize: 12,
-            color: sidePinned ? T.blue : T.txMut,
-            transition: "all 0.2s", zIndex: 1010
-          }}
-          title={sidePinned ? "Desafixar menu" : "Fixar menu"}
-        >
-          {sidePinned ? "📌" : "📍"}
-        </button>
-
-        <div className="scroll-min" style={{ height: "100%", overflowY: "auto", paddingRight: 12, marginRight: -12, position: "relative", zIndex: 1 }}>
-        {/* Logo — escala maior */}
-        <div style={{
-          padding: isExpanded ? "20px 12px 16px" : "16px 0", borderBottom: `1px solid ${T.brSub}`,
-          textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center",
-          background: isExpanded ? `linear-gradient(180deg, ${T.bg2} 0%, ${T.bg1} 100%)` : "transparent",
-          transition: "padding 0.25s"
-        }}>
-          <div style={{
-            position: "relative", width: isExpanded ? 64 : 40, height: isExpanded ? 64 : 40, marginBottom: isExpanded ? 12 : 0,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "all 0.25s"
-          }}>
-            <div style={{
-              position: "relative", zIndex: 2, width: "100%", height: "100%", borderRadius: 12,
-              background: "#fff",
-              border: `1px solid ${T.brBase}`,
-              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              overflow: "hidden",
-            }}>
-              <img src={LOGO_B64} alt="LS Office" style={{ width: isExpanded ? 50 : 30, height: isExpanded ? 50 : 30, objectFit: "contain", transition: "all 0.25s" }} />
-            </div>
-          </div>
-          {isExpanded && (
-            <div style={{
-              fontSize: 10, fontWeight: 800, letterSpacing: "0.10em", color: T.txSec,
-              background: T.bg1,
-              borderRadius: 6, padding: "4px 12px",
-              border: `1px solid ${T.brBase}`,
-              display: "inline-flex", alignItems: "center", gap: 6,
-              animation: "fadeIn 0.3s ease"
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.blue, flexShrink: 0, boxShadow: `0 0 8px ${T.blue}40` }} />
-              LS OFFICE ERP
-            </div>
-          )}
-          <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
-        </div>
-
-        <nav style={{ padding: isExpanded ? "8px 6px" : "8px 4px", flex: 1, overflowX: "hidden" }}>
-
-          {/* ── Seção DASHBOARD ── */}
-          {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>DASHBOARD</div>}
-          <NavItem id="dashboard" icon="📈" label="Dashboard Financeiro" />
-
-          {/* ── Divisor ── */}
-          {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
-
-          {/* ── Seção ORÇAMENTO ── */}
-          {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>ORÇAMENTO</div>}
-
-          <NavItem id="historico" icon="📁" label="Orçamentos" badge={historico.length > 0 ? historico.length.toString() : null} />
-          <NavItem
-            id="novo_orcamento"
-            icon="＋"
-            label="Novo Orçamento"
-            onClick={() => { setActiveBudgetV2(null); setTab("orcv2"); }}
-          />
-          <NavItem id="lpus" icon="📚" label="Bases (LPUs)" />
-
-          {/* ── Divisor ── */}
-          {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
-
-          {/* ── Seção OBRAS ── */}
-          {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>OBRAS</div>}
-
-          <NavItem id="projetos" icon="🗂️" label="Kanban" />
-
-          {/* Controle de Obras — expansível */}
-          <div>
-            <button
-              onClick={() => {
-                setSideControleOpen(o => !o);
-                setTab("controle");
-                setProjetoSel(null);
-              }}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 10,
-                padding: "10px 14px", borderRadius: 10, border: "none", cursor: "pointer",
-                marginBottom: 3, textAlign: "left",
-                background: tab === "controle" ? `linear-gradient(90deg, ${controleColor}22, ${controleColor}08)` : "transparent",
-                color: tab === "controle" ? T.txPri : T.txMut,
-                fontWeight: tab === "controle" ? 600 : 500, fontSize: 13,
-                borderLeft: tab === "controle" ? `3px solid ${controleColor}` : "3px solid transparent",
-                transition: "all 0.2s",
-                justifyContent: isExpanded ? "flex-start" : "center"
-              }}>
-              <span style={iconBox(controleColor, tab === "controle")}>
-                <span style={{ fontSize: 14, opacity: tab === "controle" ? 1 : 0.85, filter: "grayscale(1)" }}>📊</span>
-              </span>
-              {isExpanded && <span style={{ flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Controle de Obras</span>}
-              {isExpanded && nfsAtraso.length > 0 && (
-                <span style={{ background: T.red, color: "#fff", borderRadius: 8, padding: "0px 5px", fontSize: 8, fontWeight: 700 }}>
-                  {nfsAtraso.length}
-                </span>
-              )}
-              {isExpanded && <span style={{
-                fontSize: 9, color: T.txMut, transition: "transform 0.2s",
-                transform: sideControleOpen ? "rotate(90deg)" : "rotate(0deg)",
-              }}>›</span>}
-            </button>
-
-            {/* Leque de obras */}
-            {isExpanded && sideControleOpen && (
-              <div style={{ marginBottom: 4, marginTop: 2 }}>
-                {obrasAtivas.length === 0
-                  ? <div style={{ padding: "4px 8px 4px 16px", fontSize: 9, color: T.txDis }}>Nenhuma obra ativa</div>
-                  : obrasAtivas.map(p => {
-                    const sc = ST_COLOR[p.status] || T.txMut;
-                    const isActive = projetoSel === p.id && tab === "controle";
-                    return (
-                      <button key={p.id}
-                        onClick={() => { setProjetoSel(p.id); setObraTab("resumo"); setTab("controle"); }}
-                        style={{
-                          width: "100%", display: "flex", alignItems: "center", gap: 10,
-                          padding: "6px 12px 6px 24px",
-                          borderRadius: 8, border: "none", cursor: "pointer", marginBottom: 2,
-                          textAlign: "left",
-                          background: isActive ? T.bg3 : "transparent",
-                          borderLeft: isActive ? `3px solid ${T.blue}` : `3px solid transparent`,
-                          transition: "all 0.2s"
-                        }}>
-                        <div style={{
-                          width: 6, height: 6, borderRadius: "50%",
-                          background: sc, flexShrink: 0,
-                          boxShadow: isActive ? `0 0 6px ${sc}` : "none",
-                        }} />
-                        <div style={{ flex: 1, textAlign: "left", overflow: "hidden" }}>
-                          <div style={{
-                            fontSize: 10, fontWeight: isActive ? 700 : 500,
-                            color: isActive ? T.txPri : T.txSec,
-                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                          }}>
-                            {p.siteIdSharing || "—"}
-                          </div>
-                          <div style={{ fontSize: 8, color: T.txMut, marginTop: 1, display: "flex", alignItems: "center", gap: 3 }}>
-                            <span style={{ color: OP_COLOR[p.operadora] || T.txMut, fontWeight: 600 }}>
-                              {p.operadora}
-                            </span>
-                            {" · "}{getAvancoEfetivo(p)}%
-                          </div>
-                        </div>
-                      </button>
-                    )
-                  })
-                }
-              </div>
-            )}
-          </div>
-
-          <NavItem id="fornecedores" icon="🏢" label="Fornecedores" />
-          <NavItem id="funcionarios" icon="👥" label="Funcionários" />
-          <NavItem id="relatorios" icon="📊" label="Relatórios" />
-          <NavItem id="faturamento" icon="🧾" label="Faturamento" />
-          <NavItem id="clientes" icon="🤝" label="Clientes" />
-
-          {/* ── Divisor ── */}
-          {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "14px 4px" }} />}
-
-          {/* ── Seção ADMINISTRAÇÃO ── */}
-          {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>ADMINISTRAÇÃO</div>}
-          <NavItem id="secretaria" icon="🧑‍💼" label="Secretária LS" />
-
-        </nav>
-
-        {/* Atalhos inferiores */}
-        <div style={{ padding: "6px 6px 8px", borderTop: `1px solid ${T.brStrong}` }}>
-          <NavItem id="tabela" icon="▦" label="Tabela" />
-          <NavItem id="faturas" icon="🧾" label="Faturas" />
-        </div>
-
-        {/* Usuário logado + logout */}
-        <div style={{ borderTop: `1px solid ${T.brStrong}`, background: T.bg1 }}>
-          {/* Backup buttons */}
-          <div style={{ padding: "8px 10px 4px", display: "flex", gap: 6 }}>
-            <button onClick={exportarBackup}
-              title="Exportar backup JSON"
-              style={{
-                flex: 1, background: T.bg3, border: `1px solid ${T.brBase}`, borderRadius: 6,
-                padding: "6px 4px", cursor: "pointer", color: T.txSec, fontSize: 10, fontWeight: 600,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
-                transition: "all 0.15s"
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.blue}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.brBase}
-            >
-              ⬇ Backup
-            </button>
-            <label title="Restaurar dados de um backup JSON"
-              style={{
-                flex: 1, background: T.bg3, border: `1px solid ${T.brBase}`, borderRadius: 6,
-                padding: "6px 4px", cursor: "pointer", color: T.txSec, fontSize: 10, fontWeight: 600,
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
-                transition: "all 0.15s"
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLLabelElement).style.borderColor = T.blue}
-              onMouseLeave={e => (e.currentTarget as HTMLLabelElement).style.borderColor = T.brBase}
-            >
-              ⬆ Restaurar
-              <input type="file" accept=".json" style={{ display: "none" }}
-                onChange={e => e.target.files[0] && importarBackup(e.target.files[0])} />
-            </label>
-          </div>
-          {/* Auto-save indicator */}
-          <div style={{ padding: "2px 14px 6px", display: "flex", alignItems: "center", gap: 5 }}>
-            <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, boxShadow: `0 0 6px ${T.green}` }} />
-            <span style={{ fontSize: 10, color: T.txDis, fontWeight: 500 }}>Auto-save ativo</span>
-          </div>
-          <div style={{ padding: "6px 12px 12px", display: "flex", alignItems: "center", gap: 10, borderTop: `1px solid ${T.brStrong}40` }}>
-            <div style={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: "50%",
-                background: `linear-gradient(135deg, ${T.blueD}, ${T.blue})`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 13, fontWeight: 800, color: "#fff",
-                boxShadow: `0 4px 12px ${T.blue}40`,
-                border: `1px solid ${T.blue}55`
-              }}>
-                {user?.nome?.charAt(0) || "U"}
-              </div>
-              <span style={{
-                position: "absolute", right: -1, bottom: -1,
-                width: 9, height: 9, borderRadius: "50%",
-                background: T.green, border: `2px solid ${T.bg1}`,
-                boxShadow: `0 0 6px ${T.green}`
-              }} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.nome || "Usuário"}</div>
-              <div style={{ fontSize: 10, color: T.txMut, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: 0.8 }}>{user?.email || ""}</div>
-            </div>
-            <button onClick={onLogout}
-              title="Sair"
-              style={{
-                background: "transparent", border: `1px solid ${T.brBase}`, borderRadius: 8,
-                padding: "6px", cursor: "pointer", color: T.txMut, fontSize: 14, flexShrink: 0,
-                transition: "all 0.15s"
-              }}
-              onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.red}
-              onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.brBase}
-            >
-              ⏻
-            </button>
-          </div>
-          <div style={{ padding: "1px 8px 6px", fontSize: 8, color: T.txDis, textAlign: "center", opacity: 0.5 }}>
-            v3.5 · LS Office ERP
-          </div>
-        </div>
-        </div>
-      </aside>
-    );
-  };
-
-  // ════════════════════════════════════════════════════════════════════
   // TAB: ORÇAMENTO
+  // (Sidebar foi extraída para ../components/Sidebar.tsx — Blueprint LSI, Onda 0)
   // ════════════════════════════════════════════════════════════════════
   const TabOrcamento = () => {
     const areaInfo = orcArea === "implantacao"
@@ -5183,12 +4831,39 @@ ${row("Forma Pgto", pagtoInfo)}`;
       (c.nome.toLowerCase().includes(search.toLowerCase()) || (c.cnpj || "").includes(search))
     );
     const openNew = () => { setEditCliente(null); setClienteForm(clienteFormInit); setShowClienteModal(true); };
-    const openEdit = (c) => { setEditCliente(c); setClienteForm({ nome: c.nome, cnpj: c.cnpj || "", tipo: c.tipo, contato: c.contato || "", telefone: c.telefone || "", email: c.email || "", regiao: c.regiao || "", obs: c.obs || "", contratoNumero: c.contratoNumero || "", contratoVigencia: c.contratoVigencia || "", slaGarantia: c.slaGarantia || 30, pos: c.pos || [] }); setShowClienteModal(true); };
+    const openEdit = (c) => { setEditCliente(c); setClienteForm({ nome: c.nome, cnpj: c.cnpj || "", tipo: c.tipo, contato: c.contato || "", telefone: c.telefone || "", email: c.email || "", regiao: c.regiao || "", obs: c.obs || "", contratoNumero: c.contratoNumero || "", contratoVigencia: c.contratoVigencia || "", slaGarantia: c.slaGarantia || 30, pos: c.pos || [], logo: c.logo || "" }); setShowClienteModal(true); };
+
+    // A logo vai junto para o cadastro real (Contratante) — é de lá que os documentos
+    // gerados (orçamento, cronograma, contrato) puxam a marca do cliente.
+    const sincronizarContratante = async (dados) => {
+      try {
+        await fetch("/api/contratantes-upsert", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nome: dados.nome, cnpj: dados.cnpj, logo_url: dados.logo || null }),
+        });
+      } catch { /* cadastro local continua válido mesmo se a API estiver fora */ }
+    };
+
     const save = () => {
       if (!clienteForm.nome.trim()) return;
       if (editCliente) setClientes(prev => prev.map(c => c.id === editCliente.id ? { ...c, ...clienteForm } : c));
       else setClientes(prev => [...prev, { id: `cli_${Date.now()}`, ...clienteForm }]);
+      sincronizarContratante(clienteForm);
       setShowClienteModal(false); setEditCliente(null);
+    };
+
+    const onLogoSelecionada = (e) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      if (!["image/png", "image/jpeg", "image/webp", "image/svg+xml"].includes(file.type)) {
+        alert("Use uma imagem PNG, JPG, WEBP ou SVG."); return;
+      }
+      if (file.size > 1024 * 1024) { alert("A logo deve ter no máximo 1 MB."); return; }
+      const reader = new FileReader();
+      reader.onload = () => setClienteField("logo", String(reader.result || ""));
+      reader.readAsDataURL(file);
     };
 
     // Obras vinculadas por cliente
@@ -5234,9 +4909,16 @@ ${row("Forma Pgto", pagtoInfo)}`;
               return (
                 <div key={c.id} style={{ ...S.card, borderLeft: `3px solid ${tc}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: T.txPri, marginBottom: 4 }}>{c.nome}</div>
-                      <span style={{ background: tc + "18", color: tc, border: `1px solid ${tc}40`, padding: "2px 9px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{c.tipo}</span>
+                    <div style={{ display: "flex", gap: 10, alignItems: "flex-start", minWidth: 0 }}>
+                      {c.logo && (
+                        <div style={{ width: 54, height: 40, borderRadius: 5, background: "#fff", border: `1px solid ${T.brBase}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                          <img src={c.logo} alt={c.nome} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                        </div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: T.txPri, marginBottom: 4 }}>{c.nome}</div>
+                        <span style={{ background: tc + "18", color: tc, border: `1px solid ${tc}40`, padding: "2px 9px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{c.tipo}</span>
+                      </div>
                     </div>
                     <div style={{ display: "flex", gap: 5 }}>
                       <button onClick={() => openEdit(c)} style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}>✏️</button>
@@ -5295,6 +4977,31 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <input value={clienteForm.email} onChange={e => setClienteField("email", e.target.value)} style={S.input} placeholder="email@cliente.com" /></div>
                 <div style={{ gridColumn: "1/-1" }}><label style={S.label}>Região de Atuação</label>
                   <input value={clienteForm.regiao} onChange={e => setClienteField("regiao", e.target.value)} style={S.input} placeholder="Ex: Nacional / Norte / Sul e Sudeste" /></div>
+
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={S.label}>Logomarca do cliente</label>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, background: T.bg3, border: `1px solid ${T.brSub}`, borderRadius: 8, padding: 12 }}>
+                    <div style={{ width: 108, height: 64, borderRadius: 6, background: "#ffffff", border: `1px solid ${T.brBase}`, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", flexShrink: 0 }}>
+                      {clienteForm.logo
+                        ? <img src={clienteForm.logo} alt="Logo" style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+                        : <span style={{ fontSize: 11, color: "#94a3b8" }}>sem logo</span>}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <label style={{ ...S.ghost, cursor: "pointer", display: "inline-block" }}>
+                          {clienteForm.logo ? "Trocar imagem" : "Enviar imagem"}
+                          <input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onChange={onLogoSelecionada} style={{ display: "none" }} />
+                        </label>
+                        {clienteForm.logo && (
+                          <button type="button" onClick={() => setClienteField("logo", "")} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30` }}>Remover</button>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: T.txMut, marginTop: 6 }}>
+                        PNG, JPG, WEBP ou SVG até 1 MB. A logo aparece nos orçamentos, cronogramas e relatórios deste cliente.
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Dados contratuais */}
                 <div style={{ gridColumn: "1/-1", background: T.bg3, borderRadius: 10, padding: 12, border: `1px solid ${T.brBase}` }}>
@@ -7902,7 +7609,16 @@ ${row("Forma Pgto", pagtoInfo)}`;
   // ════════════════════════════════════════════════════════════════════
   return (
     <div className="scroll-min" style={{ fontFamily: "'Inter','DM Sans',system-ui,sans-serif", minHeight: "100vh", background: T.bg0, color: T.txPri, display: "flex", fontSize: 14, position: "relative", WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" } as React.CSSProperties}>
-      {Sidebar()}
+      <Sidebar
+        tab={tab} setTab={setTab}
+        sidePinned={sidePinned} setSidePinned={setSidePinned}
+        sideHovered={sideHovered} setSideHovered={setSideHovered}
+        historico={historico}
+        exportarBackup={exportarBackup} importarBackup={importarBackup}
+        user={user} onLogout={onLogout}
+        onAbrirConfiguracoes={() => setTab("configuracoes")}
+        T={T} iconBox={iconBox} LOGO_B64={LOGO_B64}
+      />
       <div className="scroll-min" style={{ 
         flex: 1, 
         overflowY: "auto", 
@@ -7911,26 +7627,28 @@ ${row("Forma Pgto", pagtoInfo)}`;
         transition: "margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
       }}>
         {tab !== "secretaria" && TopBar()}
-        {tab === "dashboard" && TabDashboard()}
+        {tab === "overview" && <Dashboard onNavigateTo={setTab} />}
+        {/* Pipeline = a mesma tela de Atividades em kanban. TabDemandas ficou sobre
+            o modelo Demanda (cadastro antigo) e mostrava outro conjunto de dados. */}
+        {tab === "demandas" && <Atividades vistaInicial="kanban" />}
+        {tab === "atividades" && <Atividades />}
+        {tab === "configuracoes" && <Configuracoes />}
+        {tab === "pagamentos" && <ControlePagamentos />}
+        {/* Controladoria sobre o modelo real. A TabDashboard() antiga somava
+            `ls_projetos` do localStorage — cadastro paralelo ao banco. */}
+        {tab === "dashboard" && <DashboardFinanceiro />}
         {tab === "orcv2" && <TabOrcamentoV2 dbImpl={DB} dbOp={DB_OP} dbHighline={DB_PV_HIGHLINE?.lpu} onSaveBudget={handleSaveBudgetV2} onCreateProjectFromBudget={openCreateActivityFromBudget} onLinkBudgetToProject={openBudgetLinkModal} onOpenLinkedProject={openLinkedProject} activeBudget={activeBudgetV2} setActiveBudget={setActiveBudgetV2} logoBase64={LOGO_B64} projetos={projetos} clientes={clientes} />}
         {tab === "lpus" && <TabLpus />}
-        {tab === "projetos" && TabProjetos()}
-        {tab === "controle" && (projetoSel ? TabControle() : TabControleDash())}
-        {tab === "fornecedores" && TabFornecedores()}
-        {tab === "funcionarios" && TabFuncionarios()}
+        {(tab === "projetos" || tab === "controle") && <Atividades />}
+        {tab === "fornecedores" && <PessoasPrestadores initialTab="fornecedores" />}
+        {tab === "funcionarios" && <PessoasPrestadores initialTab="funcionarios" />}
         {tab === "relatorios" && TabRelatorios()}
         {tab === "clientes" && TabClientes()}
-        {tab === "faturamento" && TabFaturamento()}
+        {tab === "faturamento" && <FaturamentoReal />}
         {tab === "pvhighline" && TabPVHighline()}
         {tab === "resumo" && TabResumo()}
         {tab === "historico" && TabHistorico()}
-        {tab === "tabela" && TabTabela()}
-      {tab === "faturas" && TabFaturas()}
-      {tab === "secretaria" && (
-        <div style={{ height: "calc(100vh - 20px)", width: "100%", display: "flex", flexDirection: "column", margin: "-10px -12px" }}>
-          <TabSecretaria />
-        </div>
-      )}
+        {/* Tabela, Faturas e Secretária LS saíram da navegação (set/2026). */}
     </div>
       {budgetLinkModalJSX}
       {projectModalJSX}
