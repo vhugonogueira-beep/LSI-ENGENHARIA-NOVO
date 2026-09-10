@@ -166,7 +166,7 @@ export class AnalyticsService {
                 return {
                     date: h.budget.created_at.toISOString().split('T')[0],
                     value: val,
-                    site: h.budget.site.id_site
+                    site: h.budget.site?.id_site || 'Atividade'
                 };
             }));
         }

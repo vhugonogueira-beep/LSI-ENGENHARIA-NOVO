@@ -12,6 +12,7 @@ export interface PriceBookItemFilters {
     tipo_escopo?: string;
     search?: string;
     unidade?: string;
+    comDerivados?: boolean;
     page?: number;
     limit?: number;
 }
@@ -30,9 +31,10 @@ export class PriceBookService {
             where,
             include: {
                 supplier: { select: { id: true, nome: true, logo_url: true } },
+                contratante: { select: { id: true, nome: true, logo_url: true } },
                 _count: { select: { items: true } }
             },
-            orderBy: { created_at: 'desc' }
+            orderBy: [{ origem: 'asc' }, { nome_lpu: 'asc' }]
         });
     }
 
@@ -48,14 +50,18 @@ export class PriceBookService {
 
     static async createPriceBook(data: {
         tenant_id: string;
-        supplier_id: string;
         nome_lpu: string;
         regiao: string;
+        origem?: string;
+        supplier_id?: string | null;
+        contratante_id?: string | null;
+        tipo?: string | null;
+        versao?: string;
         data_inicio_vigencia?: Date | string;
         data_fim_vigencia?: Date | string;
         moeda?: string;
     }) {
-        return prisma.priceBook.create({ data });
+        return prisma.priceBook.create({ data: data as any });
     }
 
     static async updatePriceBook(id: string, data: any) {
@@ -81,12 +87,29 @@ export class PriceBookService {
             };
         }
 
+        // comDerivados: traz, para cada item da PV, o preço de cliente e o custo
+        // LSOC ligados a ele — é o que deixa margem visível sem misturar as bases.
+        const include = filters.comDerivados
+            ? {
+                derivados: {
+                    where: { ativo: true },
+                    select: {
+                        id: true, valor_unitario: true, custo_ls: true,
+                        valor_venda: true, fonte: true, uf: true,
+                        observacoes: true, data_referencia: true,
+                        pricebook: { select: { id: true, nome_lpu: true, origem: true } },
+                    },
+                },
+            }
+            : undefined;
+
         const [items, total] = await Promise.all([
             prisma.priceBookItem.findMany({
                 where,
-                orderBy: [{ tipo_escopo: 'asc' }, { descricao: 'asc' }],
+                orderBy: [{ highline_template_row: 'asc' }, { descricao: 'asc' }],
                 skip,
                 take: limit,
+                ...(include ? { include } : {}),
             }),
             prisma.priceBookItem.count({ where })
         ]);
@@ -97,9 +120,11 @@ export class PriceBookService {
     static async createPriceBookItem(data: {
         tenant_id: string;
         pricebook_id: string;
-        supplier_id: string;
+        supplier_id?: string | null;
         regiao: string;
         tipo_escopo: string;
+        tipo_custo?: string;
+        obrigatorio?: boolean;
         subtipo?: string;
         codigo_item?: string;
         descricao: string;
@@ -112,7 +137,7 @@ export class PriceBookService {
     }) {
         const descricao_normalizada = PriceEngineService.normalizarDescricao(data.descricao);
         return prisma.priceBookItem.create({
-            data: { ...data, descricao_normalizada }
+            data: { ...data, descricao_normalizada } as any
         });
     }
 

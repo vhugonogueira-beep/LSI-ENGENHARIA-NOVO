@@ -34,9 +34,16 @@ export default function Login({ onLogin }: LoginProps) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, senha }),
             });
-            const data = await resp.json();
+            const contentType = resp.headers.get('content-type') || '';
+            const data = contentType.includes('application/json')
+                ? await resp.json()
+                : null;
             if (!resp.ok) {
-                setErro(data.error || 'Credenciais inválidas');
+                setErro(data?.error || `Falha no servidor (${resp.status})`);
+                return;
+            }
+            if (!data?.token || !data?.user) {
+                setErro('Resposta inválida do servidor. Tente novamente.');
                 return;
             }
             localStorage.setItem('ls_auth_token', data.token);

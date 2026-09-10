@@ -8,26 +8,47 @@ datasource db {
 }
 
 model Tenant {
-  id              String            @id @default(uuid())
-  nome            String
-  created_at      DateTime          @default(now())
-  users           User[]
-  contratantes    Contratante[]
-  sites           Site[]
-  catalogServices CatalogService[]
-  budgetTemplates BudgetTemplate[]
-  budgets         Budget[]
-  auditLogs       AuditLog[]
-  settings        TenantSettings?
-  priceStats      PriceStats[]
-  inflationIndexes InflationIndex[]
-  bdiRules        BdiRules[]
-  suppliers       Supplier[]
-  priceBooks      PriceBook[]
-  priceBookItems  PriceBookItem[]
-  importBatches   ImportBatch[]
-  secretariaTasks SecretariaTask[]
-  secretariaConfig SecretariaConfig?
+  id                     String                  @id @default(uuid())
+  nome                   String
+  created_at             DateTime                @default(now())
+  users                  User[]
+  contratantes           Contratante[]
+  sites                  Site[]
+  catalogServices        CatalogService[]
+  budgetTemplates        BudgetTemplate[]
+  budgets                Budget[]
+  auditLogs              AuditLog[]
+  settings               TenantSettings?
+  priceStats             PriceStats[]
+  inflationIndexes       InflationIndex[]
+  bdiRules               BdiRules[]
+  suppliers              Supplier[]
+  priceBooks             PriceBook[]
+  priceBookItems         PriceBookItem[]
+  importBatches          ImportBatch[]
+  secretariaTasks        SecretariaTask[]
+  secretariaConfig       SecretariaConfig?
+  demandas               Demanda[]
+  acionamentos           Acionamento[]
+  atividades             Atividade[]
+  negociacoes            Negociacao[]
+  contratacoesFornecedor ContratacaoFornecedor[]
+  apcs                   APC[]
+  cronogramaItens        CronogramaItem[]
+  registrosExecucao      RegistroExecucao[]
+  rfis                   RFI[]
+  requisitosDocumentais  RequisitoDocumental[]
+  purchaseOrders         PurchaseOrder[]
+  aceites                Aceite[]
+  regrasFaturamento      RegraFaturamento[]
+  faturamentos           Faturamento[]
+  contratoTemplates      ContratoTemplate[]
+  cronogramaModeloItens  CronogramaModeloItem[]
+  empresaConfig EmpresaConfig?
+  operadoras    Operadora[]
+  reembolsos    Reembolso[]
+  funcionarios  Funcionario[]
+  prestacoesContasConsolidadas PrestacaoContasConsolidada[]
 }
 
 model TenantSettings {
@@ -45,7 +66,7 @@ model PriceStats {
   id           String   @id @default(uuid())
   tenant_id    String
   tenant       Tenant   @relation(fields: [tenant_id], references: [id])
-  item_key     String   // CatalogService id or descricao normalizada
+  item_key     String // CatalogService id or descricao normalizada
   regiao       String
   count        Int
   min          Float
@@ -62,53 +83,57 @@ model InflationIndex {
   id         String   @id @default(uuid())
   tenant_id  String
   tenant     Tenant   @relation(fields: [tenant_id], references: [id])
-  index_name String   // IPCA, INCC, IGPM, MANUAL
-  year_month String   // YYYY-MM
-  factor     Float    // Ex: 1.0042
+  index_name String // IPCA, INCC, IGPM, MANUAL
+  year_month String // YYYY-MM
+  factor     Float // Ex: 1.0042
   created_at DateTime @default(now())
 }
 
 model BdiRules {
-  id                  String   @id @default(uuid())
+  id                  String  @id @default(uuid())
   tenant_id           String
-  tenant              Tenant   @relation(fields: [tenant_id], references: [id])
+  tenant              Tenant  @relation(fields: [tenant_id], references: [id])
   regiao              String
-  categoria           String   // ENERGIA, CIVIL, RF, LOGISTICA, OUTROS
+  categoria           String // ENERGIA, CIVIL, RF, LOGISTICA, OUTROS
   bdi_default_percent Float
   bdi_min_percent     Float
   bdi_max_percent     Float
-  active              Boolean  @default(true)
+  active              Boolean @default(true)
 }
 
 model User {
-  id         String     @id @default(uuid())
+  id         String  @id @default(uuid())
   tenant_id  String
-  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  tenant     Tenant  @relation(fields: [tenant_id], references: [id])
   nome       String
-  email      String     @unique
+  email      String  @unique
   senha_hash String
-  role       String     // ADMIN, COMERCIAL, OPERACOES
-  ativo      Boolean    @default(true)
+  role       String // ADMIN, COMERCIAL, OPERACOES
+  ativo      Boolean @default(true)
 }
 
 model Contratante {
-  id              String    @id @default(uuid())
-  tenant_id       String
-  tenant          Tenant    @relation(fields: [tenant_id], references: [id])
-  nome            String
-  cnpj            String?
-  contato_nome    String?
-  contato_email   String?
-  contato_telefone String?
-  logo_url        String?
-  budgets         Budget[]
+  id                String             @id @default(uuid())
+  tenant_id         String
+  tenant            Tenant             @relation(fields: [tenant_id], references: [id])
+  nome              String
+  cnpj              String?
+  contato_nome      String?
+  contato_email     String?
+  contato_telefone  String?
+  logo_url          String?
+  budgets           Budget[]
+  acionamentos      Acionamento[]
+  atividades        Atividade[]
+  regrasFaturamento RegraFaturamento[]
+  priceBooks        PriceBook[]
 }
 
 model Site {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   tenant_id   String
-  tenant      Tenant   @relation(fields: [tenant_id], references: [id])
-  id_site     String   // ex: RJCAM15_001
+  tenant      Tenant    @relation(fields: [tenant_id], references: [id])
+  id_site     String // ex: RJCAM15_001
   endereco    String?
   cidade      String?
   uf          String?
@@ -117,42 +142,43 @@ model Site {
   sharing     String?
   observacoes String?
   budgets     Budget[]
+  demandas    Demanda[]
 }
 
 model CatalogService {
-  id                   String  @id @default(uuid())
-  tenant_id            String
-  tenant               Tenant  @relation(fields: [tenant_id], references: [id])
-  codigo               String  // ex: ENE-UR-INST
-  titulo               String
-  descricao_padrao     String?
-  unidade_padrao       String  // vb, un, m, h, diaria
-  valor_base           Float   @default(0)
-  bdi_sugerido_percent Float   @default(0)
-  categoria            String  // ENERGIA, CIVIL, RF, LOGISTICA, OUTROS
-  ativo                Boolean @default(true)
+  id                         String  @id @default(uuid())
+  tenant_id                  String
+  tenant                     Tenant  @relation(fields: [tenant_id], references: [id])
+  codigo                     String // ex: ENE-UR-INST
+  titulo                     String
+  descricao_padrao           String?
+  unidade_padrao             String // vb, un, m, h, diaria
+  valor_base                 Float   @default(0)
+  bdi_sugerido_percent       Float   @default(0)
+  categoria                  String // ENERGIA, CIVIL, RF, LOGISTICA, OUTROS
+  ativo                      Boolean @default(true)
   descricao_item_normalizada String?
-  embedding_vector     String? // Armazenado como JSON string (vetor)
-  origem_importacao_id String? 
+  embedding_vector           String? // Armazenado como JSON string (vetor)
+  origem_importacao_id       String?
 }
 
 model BudgetTemplate {
-  id          String               @id @default(uuid())
-  tenant_id   String
-  tenant      Tenant               @relation(fields: [tenant_id], references: [id])
-  nome        String
-  descricao   String?
-  ativo       Boolean              @default(true)
-  items       BudgetTemplateItem[]
-  budgets     Budget[]
+  id        String               @id @default(uuid())
+  tenant_id String
+  tenant    Tenant               @relation(fields: [tenant_id], references: [id])
+  nome      String
+  descricao String?
+  ativo     Boolean              @default(true)
+  items     BudgetTemplateItem[]
+  budgets   Budget[]
 }
 
 model BudgetTemplateItem {
   id                     String         @id @default(uuid())
   template_id            String
   template               BudgetTemplate @relation(fields: [template_id], references: [id])
-  bloco_id               String         // MOBILIZACAO, SERVICOS, INFRA
-  codigo_item            String         // ex "01", "01.1"
+  bloco_id               String // MOBILIZACAO, SERVICOS, INFRA
+  codigo_item            String // ex "01", "01.1"
   titulo                 String
   descricao              String?
   unidade                String
@@ -168,8 +194,13 @@ model Budget {
   tenant         Tenant          @relation(fields: [tenant_id], references: [id])
   contratante_id String
   contratante    Contratante     @relation(fields: [contratante_id], references: [id])
-  site_id        String
-  site           Site            @relation(fields: [site_id], references: [id])
+  // Vínculo legado. Novos orçamentos nascem dentro da Atividade.
+  site_id        String?
+  site           Site?           @relation(fields: [site_id], references: [id])
+  demanda_id     String?
+  demanda        Demanda?        @relation(fields: [demanda_id], references: [id])
+  atividade_id   String?
+  atividade      Atividade?      @relation(fields: [atividade_id], references: [id])
   supplier_id    String?
   supplier       Supplier?       @relation(fields: [supplier_id], references: [id])
   pricebook_id   String?
@@ -178,6 +209,7 @@ model Budget {
   template       BudgetTemplate? @relation(fields: [template_id], references: [id])
   regiao         String?
   pricing_mode   String          @default("SUPPLIER_BASE") // SUPPLIER_BASE | BEST_PRICE_REGION
+  tipo_orcamento String          @default("COTACAO_INTERNA") // COTACAO_INTERNA | PV_HIGHLINE — só relevante p/ Implantação + sharing Highline
   assunto        String?
   vigencia_dias  Int             @default(30)
   status         String          @default("RASCUNHO") // RASCUNHO, ENVIADO, APROVADO, REPROVADO, REVISAO
@@ -187,6 +219,7 @@ model Budget {
   updated_at     DateTime        @updatedAt
   versions       BudgetVersion[]
   items          BudgetItem[]
+  negociacoes    Negociacao[]
 }
 
 model BudgetVersion {
@@ -194,7 +227,7 @@ model BudgetVersion {
   budget_id      String
   budget         Budget   @relation(fields: [budget_id], references: [id])
   versao         Int
-  snapshot_json  String   // Backup completo da versão
+  snapshot_json  String // Backup completo da versão
   total_geral    Float
   criado_por     String?
   criado_em      DateTime @default(now())
@@ -202,130 +235,440 @@ model BudgetVersion {
 }
 
 model BudgetItem {
-  id             String  @id @default(uuid())
-  budget_id      String
-  budget         Budget  @relation(fields: [budget_id], references: [id])
-  versao         Int
-  bloco          String  // MOBILIZACAO, SERVICOS, INFRA
-  codigo_item    String
-  titulo         String
-  descricao      String?
-  unidade        String
-  quantidade     Float
-  valor_unitario Float
-  bdi_percent    Float
-  total_linha    Float   // Armazenado pra cache
+  id                       String  @id @default(uuid())
+  budget_id                String
+  budget                   Budget  @relation(fields: [budget_id], references: [id])
+  versao                   Int
+  bloco                    String // MOBILIZACAO, SERVICOS, INFRA
+  codigo_item              String
+  titulo                   String
+  descricao                String?
+  unidade                  String
+  quantidade               Float
+  valor_unitario           Float
+  bdi_percent              Float
+  desconto_interno_percent Float   @default(0)
+  total_linha              Float // Armazenado pra cache
   source_pricebook_item_id String?
-  user_overridden Boolean @default(false)
-  ativo          Boolean @default(true)
-  ordem          Int
+  highline_template_row    Int? // linha oficial da aba Quantitativos; identidade estável mesmo com códigos repetidos
+  origem_item              String  @default("INTERNO") // INTERNO | CATALOGO_HIGHLINE | LPU_FORNECEDOR
+  user_overridden          Boolean @default(false)
+  ativo                    Boolean @default(true)
+  ordem                    Int
+
+  @@unique([budget_id, highline_template_row])
+  @@index([budget_id, ativo, ordem])
 }
 
 model AuditLog {
-  id           String   @id @default(uuid())
-  tenant_id    String
-  tenant       Tenant   @relation(fields: [tenant_id], references: [id])
-  entidade     String
-  entidade_id  String
-  acao         String
-  antes_json   String?
-  depois_json  String?
-  user_id      String?
-  created_at   DateTime @default(now())
+  id          String   @id @default(uuid())
+  tenant_id   String
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id])
+  entidade    String
+  entidade_id String
+  acao        String
+  antes_json  String?
+  depois_json String?
+  user_id     String?
+  created_at  DateTime @default(now())
 }
 
 model Supplier {
-  id         String          @id @default(uuid())
-  tenant_id  String
-  tenant     Tenant          @relation(fields: [tenant_id], references: [id])
-  nome       String
-  cnpj       String?
-  email      String?
-  telefone   String?
-  logo_url   String?
-  ativo      Boolean         @default(true)
-  created_at DateTime        @default(now())
-  updated_at DateTime        @updatedAt
-  priceBooks PriceBook[]
-  budgets    Budget[]
-  priceBookItems PriceBookItem[]
-  importBatches  ImportBatch[]
+  id            String  @id @default(uuid())
+  tenant_id     String
+  tenant        Tenant  @relation(fields: [tenant_id], references: [id])
+  nome          String // razão social
+  nome_fantasia String?
+  cnpj          String?
+  email         String?
+  telefone      String?
+  logo_url      String?
+
+  // Blueprint LSI · Wave 1: cadastro evoluído de fornecedor/prestador (seção 11)
+  endereco      String?
+  cidade        String?
+  uf            String?
+  banco         String?
+  agencia       String?
+  conta         String?
+  pix           String?
+  tipo_conta    String? // CORRENTE | POUPANCA | PAGAMENTO | SALARIO | NAO_APLICAVEL
+  pix_tipo      String? // CPF | CNPJ | EMAIL | TELEFONE | ALEATORIA | NAO_POSSUI
+  // Como este fornecedor recebe. CARTAO_CREDITO = compra no cartao corporativo
+  // da LS, e nao transferencia — nesse caso os dados bancarios nao se aplicam.
+  forma_pagamento String? // PIX | TED | CARTAO_CREDITO | BOLETO | DINHEIRO
+  tipo          String? // PESSOA_FISICA | PESSOA_JURIDICA
+  categoria     String? // MATERIAL | MAO_DE_OBRA | SERVICO | LOCACAO | EQUIPAMENTO | TRANSPORTE | ENGENHARIA | SONDAGEM | ANALISE | OUTROS
+  cpf           String? // documento para fornecedores PESSOA_FISICA (autônomos/diaristas)
+  especialidade String? // tag livre (ex: Civil, Elétrico, RF, Montagem Metálica...)
+  regiao        String? // região de atuação (ex: Nacional, Norte e Nordeste)
+  observacoes   String?
+
+  ativo              Boolean                       @default(true)
+  created_at         DateTime                      @default(now())
+  updated_at         DateTime                      @updatedAt
+  priceBooks         PriceBook[]
+  budgets            Budget[]
+  priceBookItems     PriceBookItem[]
+  importBatches      ImportBatch[]
+  condicoesPagamento CondicaoPagamentoFornecedor[]
+  contratacoes       ContratacaoFornecedor[]
 
   @@index([tenant_id, ativo])
+  @@index([tenant_id, categoria])
+  reembolsos      Reembolso[]
+  qualificacoes Qualificacao[]
+}
+
+// Perfil comercial do fornecedor (Blueprint LSI, seção 12) — modelos reutilizáveis
+// de condição de pagamento que podem ser aplicados a qualquer contratação futura.
+model CondicaoPagamentoFornecedor {
+  id          String   @id @default(uuid())
+  supplier_id String
+  supplier    Supplier @relation(fields: [supplier_id], references: [id])
+
+  nome               String // ex: "20+80 padrão", "50/50 mobilização"
+  percentual_entrada Float // ex: 20
+  percentual_saldo   Float // ex: 80
+  gatilho_saldo      String   @default("CONCLUSAO") // INICIO | MARCO | CONCLUSAO
+  prazo_dias         Int? // prazo em dias para pagamento do saldo após o gatilho
+  ativo              Boolean  @default(true)
+  created_at         DateTime @default(now())
+
+  contratacoes ContratacaoFornecedor[]
+
+  @@index([supplier_id, ativo])
+}
+
+// Vincula um fornecedor a uma atividade para uma finalidade específica (Blueprint LSI, seção 13-14):
+// ATIVIDADE PAPUP2064 → CABO: Fornecedor A / MÃO DE OBRA: Prestador D, etc.
+model ContratacaoFornecedor {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+  // Favorecido: fornecedor/prestador OU funcionario LS. Exatamente um deve ser
+  // informado pela API; ambos opcionais no schema para permitir a relação polimórfica.
+  supplier_id    String?
+  supplier       Supplier?    @relation(fields: [supplier_id], references: [id])
+  funcionario_id String?
+  funcionario    Funcionario? @relation(fields: [funcionario_id], references: [id])
+
+  finalidade       String // CABO | METALICO | QTM | ETM | MAO_DE_OBRA | LOCACAO | MATERIAL_CIVIL | MATERIAL_ELETRICO | EQUIPAMENTO | TRANSPORTE | OUTROS
+  valor_contratado Float
+
+  condicao_id                 String?
+  condicao                    CondicaoPagamentoFornecedor? @relation(fields: [condicao_id], references: [id])
+  // Override manual da condição, caso não use um perfil salvo do fornecedor:
+  percentual_entrada_override Float?
+  percentual_saldo_override   Float?
+  gatilho_saldo_override      String?
+
+  status      String  @default("ATIVA") // ATIVA | CONCLUIDA | CANCELADA
+  observacoes String?
+
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  parcelas ParcelaPagamento[]
+  contrato Contrato?
+
+  @@index([tenant_id, atividade_id])
+  @@index([supplier_id])
+  @@index([funcionario_id])
+}
+
+// Contrato de prestação de serviço gerado a partir de um modelo padrão da LS Office +
+// os dados da contratação (fornecedor + escopo da Atividade). O modelo é texto/HTML com
+// marcadores {{...}}; a geração cria um snapshot imutável em `conteudo_html` — editar o
+// modelo depois não altera contratos já gerados. Ver contrato.service.ts p/ os marcadores
+// disponíveis e a lista de status é só rastreio manual da coleta de assinatura (não há
+// assinatura eletrônica integrada).
+model ContratoTemplate {
+  id         String     @id @default(uuid())
+  tenant_id  String
+  tenant     Tenant     @relation(fields: [tenant_id], references: [id])
+  nome       String     @default("Contrato de Prestação de Serviço")
+  finalidade String? // null = modelo padrão (usado quando não há um específico pra finalidade do fornecedor)
+  corpo_html String
+  ativo      Boolean    @default(true)
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  contratos  Contrato[]
+}
+
+model Contrato {
+  id             String                @id @default(uuid())
+  contratacao_id String                @unique
+  contratacao    ContratacaoFornecedor @relation(fields: [contratacao_id], references: [id])
+  template_id    String
+  template       ContratoTemplate      @relation(fields: [template_id], references: [id])
+  conteudo_html  String
+  status         String                @default("GERADO") // GERADO | ENVIADO | ASSINADO
+  gerado_em      DateTime              @default(now())
+  assinado_em    DateTime?
+  arquivos       ContratoArquivo[]
+}
+
+// O contrato assinado recebido do fornecedor (scan/PDF) — anexado depois que a
+// assinatura é colhida fisicamente/por fora do sistema. Mesmo esquema de storage já
+// usado em DocumentoAtividadeArquivo (arquivo em disco, chave única, hash sha256).
+model ContratoArquivo {
+  id           String   @id @default(uuid())
+  contrato_id  String
+  contrato     Contrato @relation(fields: [contrato_id], references: [id], onDelete: Cascade)
+
+  nome_original String
+  mime_type     String
+  tamanho_bytes Int
+  storage_key   String   @unique
+  sha256        String
+  uploaded_by   String?
+  created_at    DateTime @default(now())
+
+  @@index([contrato_id, created_at])
+}
+
+// Custo comprometido (valor_contratado) ≠ custo pago (soma das parcelas com status PAGO) —
+// Blueprint LSI, seção 09 e achado #3. Geradas automaticamente a partir da condição de pagamento.
+model ParcelaPagamento {
+  id             String                @id @default(uuid())
+  contratacao_id String
+  contratacao    ContratacaoFornecedor @relation(fields: [contratacao_id], references: [id], onDelete: Cascade)
+
+  tipo            String // ENTRADA | SALDO | UNICA
+  percentual      Float
+  valor           Float
+  status          String    @default("PENDENTE")
+  // PENDENTE | SOLICITADO | ENVIADO_FINANCEIRO | AGUARDANDO_PAGAMENTO | PAGO | COMPROVANTE_RECEBIDO | CONFERIDO
+  // Dia em que o e-mail de programacao foi enviado ao financeiro.
+  data_solicitacao   DateTime?
+  data_prevista   DateTime?
+  data_pagamento  DateTime?
+  comprovante_url String?
+
+  // A forma pertence a obrigacao, nao apenas ao cadastro do favorecido. Isso
+  // preserva o historico quando o meio de pagamento padrao mudar depois.
+  // PIX | TED | CARTAO_CREDITO | BOLETO | DINHEIRO
+  forma_pagamento       String?
+  cartao_id             String?
+  cartao_bandeira       String?
+  cartao_final          String?
+  cartao_apelido        String?
+  formalizacao_posterior Boolean @default(false)
+  data_compra_cartao    DateTime?
+  fatura_referencia     String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  solicitacoes SolicitacaoPagamento[]
+
+  @@index([contratacao_id, status])
+}
+
+// Registro de auditoria do botão "Solicitar Pagamento" (Blueprint LSI, seção 15) —
+// snapshot dos dados enviados ao financeiro no momento da solicitação.
+model SolicitacaoPagamento {
+  id         String           @id @default(uuid())
+  parcela_id String
+  parcela    ParcelaPagamento @relation(fields: [parcela_id], references: [id], onDelete: Cascade)
+
+  motivo                  String?
+  destinatario_financeiro String?
+  banco_snapshot          String?
+  agencia_snapshot        String?
+  conta_snapshot          String?
+  pix_snapshot            String?
+  forma_pagamento_snapshot String?
+  cartao_snapshot          String?
+  valor_snapshot           Float?
+  data_prevista           DateTime?
+
+  status              String    @default("ATIVA") // ATIVA | CANCELADA
+  atualizada_em       DateTime?
+  cancelada_em        DateTime?
+  cancelada_por       String?
+  motivo_cancelamento String?
+  enviado_por String?
+  enviado_em  DateTime @default(now())
+
+  @@index([parcela_id])
 }
 
 model PriceBook {
-  id                  String          @id @default(uuid())
-  tenant_id           String
-  tenant              Tenant          @relation(fields: [tenant_id], references: [id])
-  supplier_id         String
-  supplier            Supplier        @relation(fields: [supplier_id], references: [id])
-  nome_lpu            String
-  regiao              String
+  id                   String          @id @default(uuid())
+  tenant_id            String
+  tenant               Tenant          @relation(fields: [tenant_id], references: [id])
+  // Natureza da base — os tres conceitos nao se misturam:
+  //   PV_CLIENTE     estrutura oficial de itens do cliente (a PV). Sem preco.
+  //   PRECO_CLIENTE  o que a LS Office RECEBE do cliente por item.
+  //   LPU_LS_OFFICE       o que CUSTA para a LS executar/adquirir (custo de mercado).
+  //   FORNECEDOR     tabela de um fornecedor especifico.
+  origem               String          @default("FORNECEDOR")
+  supplier_id          String?
+  supplier             Supplier?       @relation(fields: [supplier_id], references: [id])
+  // Base de cliente aponta para o contratante dono da PV (Highline, IHS, ...).
+  contratante_id       String?
+  contratante          Contratante?    @relation(fields: [contratante_id], references: [id])
+  // A LPU vale para um modelo de operacao: IMPLANTACAO | OPERACAO (null = serve aos dois)
+  tipo                 String?
+  versao               String          @default("V1")
+  nome_lpu             String
+  regiao               String
   data_inicio_vigencia DateTime?
-  data_fim_vigencia   DateTime?
-  moeda               String          @default("BRL")
-  status              String          @default("ATIVA") // ATIVA | ARQUIVADA
-  created_at          DateTime        @default(now())
-  updated_at          DateTime        @updatedAt
-  items               PriceBookItem[]
-  importBatches       ImportBatch[]
-  budgets             Budget[]
+  data_fim_vigencia    DateTime?
+  moeda                String          @default("BRL")
+  status               String          @default("ATIVA") // ATIVA | ARQUIVADA
+  created_at           DateTime        @default(now())
+  updated_at           DateTime        @updatedAt
+  items                PriceBookItem[]
+  importBatches        ImportBatch[]
+  budgets              Budget[]
 
   @@index([tenant_id, supplier_id, regiao, status])
 }
 
 model ImportBatch {
-  id                     String          @id @default(uuid())
-  tenant_id              String
-  tenant                 Tenant          @relation(fields: [tenant_id], references: [id])
-  supplier_id            String?
-  supplier               Supplier?       @relation(fields: [supplier_id], references: [id])
-  pricebook_id           String?
-  pricebook              PriceBook?      @relation(fields: [pricebook_id], references: [id])
-  arquivo_nome           String
-  arquivo_tipo           String
-  status                 String          @default("RECEBIDO") // RECEBIDO | PROCESSANDO | AGUARDANDO_MAPEAMENTO | CONCLUIDO | ERRO
-  total_linhas_lidas     Int             @default(0)
-  total_linhas_importadas Int            @default(0)
-  erros_json             String?
-  mapping_json           String?
-  preview_json           String?
-  created_at             DateTime        @default(now())
-  updated_at             DateTime        @updatedAt
-  items                  PriceBookItem[]
+  id                      String          @id @default(uuid())
+  tenant_id               String
+  tenant                  Tenant          @relation(fields: [tenant_id], references: [id])
+  supplier_id             String?
+  supplier                Supplier?       @relation(fields: [supplier_id], references: [id])
+  pricebook_id            String?
+  pricebook               PriceBook?      @relation(fields: [pricebook_id], references: [id])
+  arquivo_nome            String
+  arquivo_tipo            String
+  status                  String          @default("RECEBIDO") // RECEBIDO | PROCESSANDO | AGUARDANDO_MAPEAMENTO | CONCLUIDO | ERRO
+  total_linhas_lidas      Int             @default(0)
+  total_linhas_importadas Int             @default(0)
+  erros_json              String?
+  mapping_json            String?
+  preview_json            String?
+  created_at              DateTime        @default(now())
+  updated_at              DateTime        @updatedAt
+  items                   PriceBookItem[]
 
   @@index([tenant_id, status, created_at])
 }
 
 model PriceBookItem {
-  id                   String       @id @default(uuid())
-  tenant_id            String
-  tenant               Tenant       @relation(fields: [tenant_id], references: [id])
-  pricebook_id         String
-  pricebook            PriceBook    @relation(fields: [pricebook_id], references: [id])
-  supplier_id          String
-  supplier             Supplier     @relation(fields: [supplier_id], references: [id])
-  regiao               String
-  tipo_escopo          String       // SERVICO | INFRA
-  subtipo              String?
-  codigo_item          String?
-  descricao            String
+  id                    String       @id @default(uuid())
+  tenant_id             String
+  tenant                Tenant       @relation(fields: [tenant_id], references: [id])
+  pricebook_id          String
+  pricebook             PriceBook    @relation(fields: [pricebook_id], references: [id])
+  supplier_id           String?
+  supplier              Supplier?    @relation(fields: [supplier_id], references: [id])
+  // linha do template da PV Highline, quando o item vem do catálogo oficial
+  highline_template_row Int?
+  regiao                String
+  tipo_escopo           String // SERVICO | INFRA
+  subtipo               String?
+  codigo_item           String?
+  // Identificador da linha no documento de origem (ex.: "Linha LPU" da BASE
+  // CONSOLIDADA). O codigo_item e o codigo da LS, gerado em cima deste.
+  codigo_origem         String?
+  descricao             String
   descricao_normalizada String
-  unidade              String
-  valor_unitario       Float
-  observacoes          String?
-  detalhamento         String?
-  data_referencia      DateTime?
-  origem_importacao_id String?
-  origem_importacao    ImportBatch? @relation(fields: [origem_importacao_id], references: [id])
-  ativo                Boolean      @default(true)
-  created_at           DateTime     @default(now())
-  updated_at           DateTime     @updatedAt
+  unidade               String
+  // Numero que este item carrega. Qual deles vale depende da origem da base:
+  //   PRECO_CLIENTE -> valor_unitario e o preco cliente
+  //   LPU_LS_OFFICE      -> valor_venda e custo_ls, no vocabulario da
+  //                    "BASE CONSOLIDADA LPU LS":
+  //                      valor_venda = coluna M, o que a LS VENDE ao cliente
+  //                      custo_ls      = coluna T, o que a LS paga na compra
+  //   PV_CLIENTE    -> nenhum; a PV e catalogo, nao tabela de preco
+  valor_unitario        Float
+  valor_venda         Float?
+  custo_ls              Float?
+  // Onde e de quem veio a cotacao (LPU LS Office Geral)
+  uf                    String?
+  fonte                 String?
+  // Item correspondente na PV do cliente, quando existe
+  pv_item_id            String?
+  pv_item               PriceBookItem?  @relation("ItemDaPv", fields: [pv_item_id], references: [id])
+  derivados             PriceBookItem[] @relation("ItemDaPv")
+  // Marcado pela rotina de validacao quando a PV original repete o codigo.
+  // A descricao original NUNCA e sobrescrita — o item so fica sinalizado.
+  codigo_duplicado      Boolean      @default(false)
+  // MO | MATERIAL | SERVICO | VERBA — usado na composicao de custo do orcamento
+  tipo_custo            String       @default("SERVICO")
+  obrigatorio           Boolean      @default(false)
+  observacoes           String?
+  detalhamento          String?
+  data_referencia       DateTime?
+  origem_importacao_id  String?
+  origem_importacao     ImportBatch? @relation(fields: [origem_importacao_id], references: [id])
+  ativo                 Boolean      @default(true)
+  created_at            DateTime     @default(now())
+  updated_at            DateTime     @updatedAt
 
   @@index([tenant_id, supplier_id, regiao, unidade, ativo])
   @@index([tenant_id, descricao_normalizada])
   @@index([pricebook_id, tipo_escopo, ativo])
+}
+
+model Demanda {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  // Identificação
+  codigo  String // Ex: DEM-2026-001
+  titulo  String
+  tipo    String // OPERACAO | IMPLANTACAO | PROJETO
+  sharing String // HIGHLINE | IHS | WINITY | SBA | OUTROS
+
+  // Site vinculado
+  site_id         String?
+  site            Site?   @relation(fields: [site_id], references: [id])
+  id_site_sharing String? // código do site na sharing (ex: RNNTL034)
+
+  // Pipeline
+  status String @default("PROSPECTANDO")
+  // PROSPECTANDO | PLANEJADO | EM_ANDAMENTO | PAUSADO | CONCLUIDO | CANCELADO
+
+  // Financeiro
+  valor_contrato Float? // valor a faturar (receita)
+  valor_orcado   Float? // custo estimado
+
+  // Datas
+  data_abertura         DateTime  @default(now())
+  data_inicio_planejada DateTime?
+  data_fim_planejada    DateTime?
+  data_conclusao        DateTime?
+
+  // Responsável e descrição
+  responsavel String?
+  descricao   String?
+
+  // Audit
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  statusHistorico DemandaStatusHistorico[]
+  orcamentos      Budget[]
+
+  @@index([tenant_id, status, tipo])
+  @@index([tenant_id, sharing])
+}
+
+model DemandaStatusHistorico {
+  id          String   @id @default(uuid())
+  demanda_id  String
+  demanda     Demanda  @relation(fields: [demanda_id], references: [id], onDelete: Cascade)
+  status_de   String?
+  status_para String
+  observacao  String?
+  criado_por  String?
+  criado_em   DateTime @default(now())
+
+  @@index([demanda_id])
 }
 
 model SecretariaTask {
@@ -334,19 +677,632 @@ model SecretariaTask {
   tenant      Tenant   @relation(fields: [tenant_id], references: [id])
   desc        String
   status      String   @default("pending") // pending | awaiting | done
-  priority    String   @default("normal")  // normal | high | low
-  client      String?  
-  type        String?  
-  date        String   // YYYY-MM-DD
-  time        String?  // HH:MM
-  resp        String?  
-  deadline    String?  // YYYY-MM-DD
-  note        String?  
+  priority    String   @default("normal") // normal | high | low
+  client      String?
+  type        String?
+  date        String // YYYY-MM-DD
+  time        String? // HH:MM
+  resp        String?
+  deadline    String? // YYYY-MM-DD
+  note        String?
   rescheduled Boolean  @default(false)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
   @@index([tenant_id, date, status])
+}
+
+// ─── LSI · Blueprint Wave 1: Acionamento ≠ Atividade ───────────────────────
+// Acionamento = solicitação recebida do cliente (bruta, pré-classificação).
+// Atividade   = o que a LS Office efetivamente executa (1 Acionamento : N Atividades).
+// Ver Blueprint LSI, seções 02-05, para o racional completo.
+
+model Acionamento {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  codigo            String // ACI-2026-001
+  titulo            String
+  canal_recebimento String? // EMAIL | PORTAL | WHATSAPP | TELEFONE | OUTRO
+  descricao_bruta   String?
+
+  contratante_id    String?
+  contratante       Contratante? @relation(fields: [contratante_id], references: [id])
+  id_site_sharing   String? // código do site na compartilhadora/detentora
+  id_site_operadora String? // código do site na operadora móvel
+
+  data_recebimento DateTime @default(now())
+  responsavel      String?
+
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  atividades Atividade[]
+
+  @@index([tenant_id, created_at])
+}
+
+model Atividade {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  codigo         String // ATV-2026-001
+  acionamento_id String?
+  acionamento    Acionamento? @relation(fields: [acionamento_id], references: [id])
+
+  titulo          String
+  tipo_demanda    String // IMPLANTACAO | OPERACAO — decide o modelo_operacao padrão e o fluxo do Cockpit
+  subtipo_demanda String? // só quando tipo_demanda=OPERACAO: MANUTENCAO | ADEQUACAO | EMERGENCIAL | VISTORIA | ENGENHARIA | OUTRO (classificação, não muda o fluxo)
+  tipo_obra       String? // BTS | COLLO | RETROFIT | REFORCO_EV_FUNDACAO | OUTROS
+  tipo_site_highline String? // BTS | Roof Top | Collo - BTS | Collo RT | Reforço
+  tipo_atividade  String? // instalação de antena, SPDA, aterramento, obra civil, etc. (catálogo aberto)
+  modelo_operacao String  @default("EXECUCAO_DIRETA") // EXECUCAO_DIRETA | EXECUCAO_COM_APROVACAO | MEDIANTE_APROVACAO
+
+  sharing           String // HIGHLINE | IHS | WINITY | SBA | OUTROS — a compartilhadora/detentora
+  operadora         String? // VIVO | CLARO | TIM | OI | OUTROS — a operadora móvel real, independente da compartilhadora
+  contratante_id    String?
+  contratante       Contratante? @relation(fields: [contratante_id], references: [id])
+  contrato          String?
+  id_site_sharing   String? // código do site na compartilhadora/detentora
+  id_site_operadora String? // código do site na operadora móvel
+  estado            String?
+  municipio         String?
+
+  // Cinco dimensões de status independentes — Blueprint LSI, seção 05 / achado #2.
+  status_operacional String @default("PLANEJAMENTO")
+  // PLANEJAMENTO | AGUARDANDO_APC | APC_LIBERADO | EM_EXECUCAO | CONCLUIDA | PAUSADA
+  status_comercial   String @default("EM_ORCAMENTO")
+  // EM_ORCAMENTO | EM_NEGOCIACAO | APROVADO | REPROVADO
+  status_documental  String @default("NAO_INICIADO")
+  // NAO_INICIADO | EM_ELABORACAO | PENDENCIAS_POS_RFI | COMPLETO
+  status_financeiro  String @default("SEM_COMPROMETIMENTO")
+  // SEM_COMPROMETIMENTO | CUSTO_COMPROMETIDO | CUSTO_PAGO
+  status_faturamento String @default("NAO_INICIADO")
+  // NAO_INICIADO | PRONTO_PARA_FATURAR | ENVIADO_FINANCEIRO | EM_FATURAMENTO | NF_EMITIDA | FATURADO | RECEBIDO
+
+  valor_contrato Float?
+  valor_orcado   Float?
+  // Pasta da obra no servidor. Sai nos e-mails financeiros, para o financeiro
+  // achar orcamento, NF e comprovante sem pedir por e-mail.
+  diretorio_url  String?
+  responsavel    String?
+  // Gestor da atividade — vai na coluna GESTOR da planilha de faturamento enviada ao cliente.
+  gestor         String?
+  descricao      String?
+
+  data_abertura         DateTime  @default(now())
+  data_inicio_planejada DateTime?
+  data_fim_planejada    DateTime?
+  data_conclusao        DateTime?
+
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  statusHistorico        AtividadeStatusHistorico[]
+  negociacoes            Negociacao[]
+  contratacoesFornecedor ContratacaoFornecedor[]
+  apcs                   APC[]
+  cronogramaItens        CronogramaItem[]
+  registrosExecucao      RegistroExecucao[]
+  rfis                   RFI[]
+  documentos             DocumentoAtividade[]
+  purchaseOrders         PurchaseOrder[]
+  aceites                Aceite[]
+  faturamentos           FaturamentoAtividade[]
+  orcamentos             Budget[]
+
+  @@index([tenant_id, status_operacional, tipo_demanda])
+  @@index([tenant_id, sharing])
+  @@index([acionamento_id])
+  reembolsos             Reembolso[]
+  prestacoesContasConsolidadas PrestacaoContasConsolidada[]
+}
+
+model AtividadeStatusHistorico {
+  id           String    @id @default(uuid())
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id], onDelete: Cascade)
+  dimensao     String // OPERACIONAL | COMERCIAL | DOCUMENTAL | FINANCEIRO | FATURAMENTO
+  status_de    String?
+  status_para  String
+  observacao   String?
+  criado_por   String?
+  criado_em    DateTime  @default(now())
+
+  @@index([atividade_id])
+}
+
+// ─── LSI · Blueprint Wave 1: Negociação + Contraproposta ───────────────────
+// Camada de auditoria sobre o Budget/BudgetVersion já existente — não substitui
+// o versionamento de itens, apenas registra a tratativa comercial do valor total.
+// Ver Blueprint LSI, seções 08 (Negociação) e 09 (Motor de Viabilidade).
+
+model Negociacao {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  atividade_id String?
+  atividade    Atividade? @relation(fields: [atividade_id], references: [id])
+  budget_id    String
+  budget       Budget     @relation(fields: [budget_id], references: [id])
+
+  budget_versao_referencia Int // versão do orçamento no momento em que a negociação abriu
+  valor_original           Float // valor comercial da versão de referência
+  margem_minima_aceitavel  Float? // % opcional, parametrizável por contrato/cliente
+
+  status      String @default("ABERTA") // ABERTA | APROVADA | REPROVADA | CANCELADA
+  valor_final Float? // preenchido quando uma contraproposta é aceita
+
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  contrapropostas Contraproposta[]
+
+  @@index([tenant_id, status])
+  @@index([budget_id])
+}
+
+model Contraproposta {
+  id            String     @id @default(uuid())
+  negociacao_id String
+  negociacao    Negociacao @relation(fields: [negociacao_id], references: [id], onDelete: Cascade)
+
+  rodada              Int // 1, 2, 3...
+  origem              String // CLIENTE | LS_OFFICE
+  valor_proposto      Float
+  valor_referencia    Float // valor imediatamente anterior (original ou última rodada)
+  diferenca           Float // valor_proposto - valor_referencia
+  percentual_variacao Float // diferenca / valor_referencia * 100
+
+  custo_previsto_snapshot Float? // custo estimado no momento da rodada (base para margem)
+  margem_projetada_pos    Float? // margem projetada se esta rodada for aceita (%)
+
+  decisao      String    @default("PENDENTE")
+  // PENDENTE | ACEITA | RECUSADA | NOVA_CONTRAPROPOSTA | ANALISE_INTERNA
+  observacao   String?
+  decidido_por String?
+  decidido_em  DateTime?
+
+  created_by String?
+  created_at DateTime @default(now())
+
+  @@index([negociacao_id, rodada])
+}
+
+// ─── LSI · Blueprint Wave 2: APC, Cronograma, Execução, RFI, Documentação, PO ──
+// Ver Blueprint LSI, seções 15-19 e 25-27.
+
+model APC {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+
+  numero        String?
+  data          DateTime?
+  documento_url String?
+  valor         Float?
+  responsavel   String?
+  status        String    @default("AGUARDANDO_APC")
+  // AGUARDANDO_APC | APC_RECEBIDO | APC_VALIDADO | APC_LIBERADO
+  observacoes   String?
+
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([atividade_id])
+}
+
+model CronogramaItem {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+
+  titulo String
+  // Etapa da obra, no vocabulário do cronograma impresso: LIBERACAO (APC) | PRE_OBRA |
+  // CIVIL | ENERGIA | ESTRUTURA | INSTALACAO (RFI) | COMPRA | CONTRATACAO | PAGAMENTO |
+  // LOGISTICA | MOBILIZACAO | EXECUCAO | DOCUMENTACAO | MEDICAO | FATURAMENTO | OUTROS.
+  // O cronograma é a única tela de acompanhamento de obra: concluir um item LIBERACAO
+  // gera o APC liberado e um item INSTALACAO/RFI gera o RFI (ver cronograma.controller).
+  categoria String
+  // Agrupador visual do Gantt (ex.: "SENTIDO LESTE") — opcional.
+  grupo                String?
+  progresso_percentual Float   @default(0)
+  // Etapas de controle interno (prazo de negociação, envio/recebimento da PV...) ficam
+  // no planejamento mas fora do cronograma entregue ao cliente.
+  visivel_cliente      Boolean @default(true)
+  responsavel          String?
+  data_inicio          DateTime?
+  data_fim             DateTime?
+  duracao_dias         Int?
+  status               String    @default("PENDENTE") // PENDENTE | EM_ANDAMENTO | CONCLUIDO | ATRASADO
+  prioridade     String           @default("MEDIA") // BAIXA | MEDIA | ALTA
+  predecessor_id String?
+  predecessor    CronogramaItem?  @relation("Dependencia", fields: [predecessor_id], references: [id])
+  dependentes    CronogramaItem[] @relation("Dependencia")
+  observacoes    String?
+  ordem          Int              @default(0)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([atividade_id, ordem])
+}
+
+// Etapas padrão de obra, reaproveitadas ao abrir o cronograma de uma nova atividade
+// (APC, compras, obra civil, energia, estrutura, RFI...). O usuário aplica o modelo e
+// depois ajusta datas; também pode salvar o cronograma atual como novo modelo.
+model CronogramaModeloItem {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  // null = modelo geral; preenchido = modelo específico daquele tipo de obra
+  tipo_obra       String?
+  titulo          String
+  categoria       String
+  duracao_dias    Int?
+  visivel_cliente Boolean @default(true)
+  prioridade      String  @default("MEDIA")
+  ordem           Int     @default(0)
+
+  @@index([tenant_id, tipo_obra, ordem])
+}
+
+model RegistroExecucao {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+
+  data_inicio             DateTime?
+  data_prevista_conclusao DateTime?
+  data_real_conclusao     DateTime?
+  avanco_percentual       Float     @default(0)
+  equipe                  String?
+  prestadores             String?
+  materiais_utilizados    String?
+  checklist_json          String?
+  ocorrencias             String?
+  nao_conformidades       String?
+  evidencias_json         String?
+  observacoes             String?
+
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([atividade_id])
+}
+
+model RFI {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+
+  data_conclusao  DateTime?
+  data_envio      DateTime  @default(now())
+  responsavel     String?
+  relatorio_url   String?
+  destinatario    String?
+  protocolo       String?
+  evidencias_json String?
+  observacoes     String?
+  energizado      Boolean? // null = não aplicável/desconhecido; usado pelo motor de regras de faturamento (seção 30)
+
+  created_by String?
+  created_at DateTime @default(now())
+
+  @@index([atividade_id])
+}
+
+// Validação formal do cliente pós-entrega — usada como marco "Aceitação" pelo motor de
+// regras de faturamento (Blueprint LSI, seção 30).
+model Aceite {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+
+  data          DateTime @default(now())
+  responsavel   String?
+  documento_url String?
+  observacoes   String?
+
+  created_by String?
+  created_at DateTime @default(now())
+
+  @@index([atividade_id])
+}
+
+// Matriz documental (catálogo, não por atividade) — Blueprint LSI, seção 21.
+// tipo_obra = null significa "aplica-se a todos os tipos de obra".
+model RequisitoDocumental {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  codigo           String   @default(uuid())
+  nome             String
+  sharing          String? // null = qualquer cliente/sharing
+  tipo_obra        String? // BTS | COLLO | RETROFIT | REFORCO_EV_FUNDACAO | null = todos
+  categoria        String?
+  forma_envio      String?
+  obrigatorio      Boolean  @default(true)
+  condicional      Boolean  @default(false)
+  etapa            String? // ex: PRE_OBRA, FORNECIMENTO, EXECUCAO, FINAL
+  exige_assinatura Boolean  @default(false)
+  validade_dias    Int?
+  fonte_planilha   String?
+  fonte_linha      Int?
+  ordem            Int      @default(0)
+  ativo            Boolean  @default(true)
+  created_at       DateTime @default(now())
+
+  documentos DocumentoAtividade[]
+
+  @@unique([tenant_id, codigo])
+  @@index([tenant_id, tipo_obra, ativo])
+  @@index([tenant_id, sharing, ordem])
+}
+
+// Instância de um requisito dentro de uma atividade específica — Blueprint LSI, seção 22-24.
+model DocumentoAtividade {
+  id           String              @id @default(uuid())
+  atividade_id String
+  atividade    Atividade           @relation(fields: [atividade_id], references: [id])
+  requisito_id String
+  requisito    RequisitoDocumental @relation(fields: [requisito_id], references: [id])
+
+  aplicavel        Boolean                     @default(true)
+  status           String                      @default("NAO_INICIADO")
+  // NAO_INICIADO | SOLICITADO | EM_ELABORACAO | RECEBIDO | EM_VALIDACAO | APROVADO | REPROVADO | NECESSITA_CORRECAO | VENCIDO | NAO_APLICAVEL
+  arquivo_url      String?
+  justificativa_na String? // obrigatório quando status = NAO_APLICAVEL
+  data_solicitacao DateTime?
+  data_recebimento DateTime?
+  data_validacao   DateTime?
+  data_validade    DateTime?
+  observacao       String?
+  arquivos         DocumentoAtividadeArquivo[]
+
+  updated_at DateTime @updatedAt
+  created_at DateTime @default(now())
+
+  @@unique([atividade_id, requisito_id])
+  @@index([atividade_id, status])
+}
+
+model DocumentoAtividadeArquivo {
+  id           String             @id @default(uuid())
+  documento_id String
+  documento    DocumentoAtividade @relation(fields: [documento_id], references: [id], onDelete: Cascade)
+
+  nome_original String
+  mime_type     String
+  tamanho_bytes Int
+  storage_key   String   @unique
+  sha256        String
+  uploaded_by   String?
+  created_at    DateTime @default(now())
+
+  @@index([documento_id, created_at])
+}
+
+// Lastro comercial para faturamento — Blueprint LSI, seção 25-26.
+model PurchaseOrder {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+
+  numero              String?
+  valor               Float?
+  data                DateTime?
+  pdf_url             String?
+  parcela             String?
+  portal_status       String? // status no portal do cliente
+  percentual_liberado Float?
+  valor_liberado      Float?
+  data_liberacao      DateTime?
+  status              String    @default("AGUARDANDO") // AGUARDANDO | RECEBIDA | VALIDADA | LIBERADA
+  observacoes         String?
+  // Resultado da leitura do PDF (número, valor, data, fornecedor, descrições e itens
+  // encontrados). Fica gravado para a tela sempre mostrar o que foi lido do documento,
+  // não só no instante do upload — ver po-leitura.service.
+  leitura_json        String?
+
+  created_by String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  arquivos   PurchaseOrderArquivo[]
+  linhas     PurchaseOrderLinha[]
+
+  @@index([atividade_id, status])
+}
+
+// Cada linha da PO (material, serviço, adicional...) é faturada separadamente e em
+// percentuais parciais — a Highline libera, por exemplo, 40% do material e 40% do
+// serviço, e os 60% restantes continuam pendentes para uma remessa futura. Por isso a
+// linha é um registro próprio, criado a partir da leitura do PDF.
+model PurchaseOrderLinha {
+  id    String        @id @default(uuid())
+  po_id String
+  po    PurchaseOrder @relation(fields: [po_id], references: [id], onDelete: Cascade)
+
+  numero_linha   String // 0001, 0002...
+  descricao      String
+  unidade        String?
+  quantidade     Float?
+  site           String?
+  cidade         String?
+  projeto        String?
+  valor_unitario Float?
+  valor_total    Float // "VALOR PO" da planilha de faturamento
+  ordem          Int    @default(0)
+
+  // Autorização do cliente para faturar esta linha (coluna "Liberação Microsiga" da
+  // planilha). Só linha autorizada entra numa solicitação de faturamento.
+  autorizado            Boolean @default(false)
+  autorizacao_observacao String?
+
+  faturamentos FaturamentoLinha[]
+
+  @@unique([po_id, numero_linha])
+  @@index([po_id, ordem])
+}
+
+// Uma solicitação de faturamento de um percentual de uma linha da PO. O que já foi
+// solicitado/faturado sai do saldo pendente da linha.
+model FaturamentoLinha {
+  id      String             @id @default(uuid())
+  linha_id String
+  linha    PurchaseOrderLinha @relation(fields: [linha_id], references: [id], onDelete: Cascade)
+
+  faturamento_id String?
+  faturamento    Faturamento? @relation(fields: [faturamento_id], references: [id])
+
+  percentual Float // percentual da linha liberado nesta remessa (ex.: 40)
+  valor      Float // valor_total * percentual / 100
+  status     String @default("SOLICITADO") // SOLICITADO | FATURADO | RECEBIDO | CANCELADO
+
+  gestor      String?
+  nf_numero   String?
+  data_solicitacao DateTime  @default(now())
+  data_faturamento DateTime?
+  observacoes String?
+
+  // Cancelar devolve saldo à linha e desfaz um compromisso já comunicado ao cliente,
+  // então exige justificativa e fica registrado quem fez e quando.
+  motivo_cancelamento String?
+  cancelado_por       String?
+  cancelado_em        DateTime?
+
+  @@index([linha_id, status])
+}
+
+// O PDF da PO recebido do vendor (cada vendor tem um layout diferente — não há leitura
+// automática do valor ainda; o número/valor continuam sendo digitados por quem recebe
+// a PO). Mesmo esquema de storage já usado em DocumentoAtividadeArquivo/ContratoArquivo.
+model PurchaseOrderArquivo {
+  id             String        @id @default(uuid())
+  po_id          String
+  po             PurchaseOrder @relation(fields: [po_id], references: [id], onDelete: Cascade)
+
+  nome_original String
+  mime_type     String
+  tamanho_bytes Int
+  storage_key   String   @unique
+  sha256        String
+  uploaded_by   String?
+  created_at    DateTime @default(now())
+
+  @@index([po_id, created_at])
+}
+
+// ─── LSI · Blueprint Wave 3: Motor de Regras de Faturamento + Fila de Faturamento ──
+// Ver Blueprint LSI, seção 30 (caso Highline: caminhos condicionais por energia) e 28-29.
+
+model RegraFaturamento {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  nome            String // ex: "Highline - padrão"
+  contratante_id  String? // null = regra global do tenant
+  contratante     Contratante? @relation(fields: [contratante_id], references: [id])
+  contrato        String?
+  tipo_obra       String? // null = aplica a todos os tipos de obra
+  vigencia_inicio DateTime?
+  vigencia_fim    DateTime?
+  ativo           Boolean      @default(true)
+  created_at      DateTime     @default(now())
+
+  marcos RegraFaturamentoMarco[]
+
+  @@index([tenant_id, contratante_id, tipo_obra, ativo])
+}
+
+model RegraFaturamentoMarco {
+  id       String           @id @default(uuid())
+  regra_id String
+  regra    RegraFaturamento @relation(fields: [regra_id], references: [id], onDelete: Cascade)
+
+  caminho    String // PADRAO | ENERGIZADO | SEM_ENERGIA — Blueprint LSI, seção 30/achado #4
+  marco      String // APC | RFI | RFI_ENERGIZADO | RFI_SEM_ENERGIA | ENERGIZACAO_POS_RFI | ACEITACAO
+  percentual Float
+  ordem      Int    @default(0)
+
+  @@index([regra_id, caminho])
+}
+
+// Lote de faturamento — botão "Start Faturamento LS" (Blueprint LSI, seção 28-29).
+model Faturamento {
+  id        String @id @default(uuid())
+  tenant_id String
+  tenant    Tenant @relation(fields: [tenant_id], references: [id])
+
+  codigo           String // FAT-2026-001
+  status           String    @default("ENVIADO_FINANCEIRO")
+  // ENVIADO_FINANCEIRO | EM_FATURAMENTO | NF_EMITIDA | FATURADO | RECEBIDO
+  valor_total      Float
+  nf_numero        String?
+  data_faturamento DateTime?
+  destinatarios    String?
+  planilha_gerada  Boolean   @default(false)
+
+  enviado_por String?
+  enviado_em  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  atividades   FaturamentoAtividade[]
+  recebimentos Recebimento[]
+  linhas       FaturamentoLinha[]
+
+  @@index([tenant_id, status])
+}
+
+model FaturamentoAtividade {
+  id             String      @id @default(uuid())
+  faturamento_id String
+  faturamento    Faturamento @relation(fields: [faturamento_id], references: [id], onDelete: Cascade)
+  atividade_id   String
+  atividade      Atividade   @relation(fields: [atividade_id], references: [id])
+
+  valor_incluido   Float
+  percentual_marco Float? // percentual do motor de regras aplicado nesta remessa, quando houver
+
+  @@unique([faturamento_id, atividade_id])
+  @@index([atividade_id])
+}
+
+model Recebimento {
+  id             String      @id @default(uuid())
+  faturamento_id String
+  faturamento    Faturamento @relation(fields: [faturamento_id], references: [id])
+
+  valor_recebido   Float
+  data_recebimento DateTime @default(now())
+  observacoes      String?
+
+  created_at DateTime @default(now())
+
+  @@index([faturamento_id])
 }
 
 model SecretariaConfig {
@@ -357,4 +1313,390 @@ model SecretariaConfig {
   daily_report_time String   @default("08:00")
   auto_reschedule   Boolean  @default(true)
   updated_at        DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cadastro da propria LS Office: o que sai nos documentos e nas notas fiscais.
+// Um registro por tenant.
+// ─────────────────────────────────────────────────────────────────────────────
+model EmpresaConfig {
+  id                  String   @id @default(uuid())
+  tenant_id           String   @unique
+  tenant              Tenant   @relation(fields: [tenant_id], references: [id])
+
+  razao_social        String
+  nome_fantasia       String?
+  cnpj                String?
+  inscricao_estadual  String?
+  inscricao_municipal String?
+  cnae                String?
+  regime_tributario   String?  // SIMPLES | LUCRO_PRESUMIDO | LUCRO_REAL
+
+  // Endereco fiscal
+  logradouro          String?
+  numero              String?
+  complemento         String?
+  bairro              String?
+  cidade              String?
+  uf                  String?
+  cep                 String?
+
+  telefone            String?
+  email               String?
+  site                String?
+
+  // Aparece no topo do cronograma, da PV e dos demais documentos
+  logo_url            String?
+  assinatura_setor    String?  // ex.: "Engenharia LS"
+
+  // Quem assina os e-mails financeiros (programacao de pagamento, reembolso,
+  // compra). E sempre alguem da LS Office — nao o gestor da contratante.
+  solicitante_nome     String?
+  solicitante_cargo    String?
+  solicitante_email    String?
+  solicitante_telefone String?
+  // Destinatarios fixos dos e-mails de programacao de pagamento, separados por
+  // ";" — o mesmo formato que o Outlook aceita ao colar.
+  destinatarios_pagamento String?
+
+  // Faturamento
+  email_faturamento   String?
+  aliquota_impostos   Float    @default(0.2204)
+  aliquota_iss        Float?
+  observacoes_nf      String?
+
+  contas              ContaBancaria[]
+  cartoes             CartaoCorporativo[]
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+}
+
+// Contas para recebimento. Uma delas e a principal, que sai nos documentos.
+model ContaBancaria {
+  id            String        @id @default(uuid())
+  tenant_id     String
+  empresa_id    String
+  empresa       EmpresaConfig @relation(fields: [empresa_id], references: [id])
+
+  banco         String
+  codigo_banco  String?
+  agencia       String?
+  conta         String?
+  tipo          String        @default("CORRENTE") // CORRENTE | POUPANCA
+  titular       String?
+  cnpj_titular  String?
+  pix_tipo      String?       // CNPJ | EMAIL | TELEFONE | ALEATORIA
+  pix_chave     String?
+  principal     Boolean       @default(false)
+  ativa         Boolean       @default(true)
+  observacoes   String?
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+
+  @@index([tenant_id, ativa])
+}
+
+// Operadora movel (CLARO, TIM, VIVO...). O logo entra no cabecalho dos
+// documentos junto com o da LS e o da compartilhadora.
+model Operadora {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  tenant     Tenant   @relation(fields: [tenant_id], references: [id])
+  nome       String
+  sigla      String?
+  logo_url   String?
+  ativa      Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([tenant_id, nome])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reembolso de despesa adiantada por fornecedor, prestador ou colaborador.
+// Nao passa por ContratacaoFornecedor: e gasto proprio de quem executou, que a
+// LS devolve — nao parcela de um contrato.
+// ─────────────────────────────────────────────────────────────────────────────
+model Reembolso {
+  id           String    @id @default(uuid())
+  tenant_id    String
+  tenant       Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id String
+  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+
+  // Quem recebe. Fornecedor cadastrado OU pessoa avulsa (colaborador).
+  supplier_id     String?
+  supplier        Supplier? @relation(fields: [supplier_id], references: [id])
+  // Favorecido pode ser prestador OU funcionario da LS; o nome fica salvo de
+  // qualquer forma, para o registro nao depender do cadastro seguir existindo.
+  funcionario_id  String?
+  funcionario     Funcionario? @relation(fields: [funcionario_id], references: [id])
+  // ADIANTAMENTO = dinheiro entregue antes da despesa; REEMBOLSO = devolucao.
+  natureza        String    @default("REEMBOLSO")
+  favorecido_nome String
+  cpf_cnpj        String?
+
+  motivo      String?
+  data_despesa DateTime?
+  valor_total  Float    @default(0)
+
+  // Prestacao de contas de viagem. Em REEMBOLSO estes campos ficam nulos e a
+  // prestacao fica NAO_APLICAVEL; em ADIANTAMENTO, valor_adiantado e o valor
+  // efetivamente pago antes da viagem, enquanto valor_total continua sendo a
+  // soma das despesas comprovadas.
+  valor_adiantado          Float?
+  destino                  String?
+  data_inicio_viagem       DateTime?
+  data_fim_viagem          DateTime?
+  // NAO_APLICAVEL | PENDENTE | EM_PREENCHIMENTO | ENVIADA | EM_ANALISE |
+  // APROVADA | AJUSTES_SOLICITADOS
+  status_prestacao         String    @default("NAO_APLICAVEL")
+  prestacao_enviada_em     DateTime?
+  prestacao_conferida_em   DateTime?
+  prestacao_conferida_por  String?
+  parecer_financeiro       String?
+
+  // PENDENTE | SOLICITADO | ENVIADO_FINANCEIRO | AGUARDANDO_PAGAMENTO | PAGO | COMPROVANTE_RECEBIDO | CONFERIDO | CANCELADO
+  status          String    @default("PENDENTE")
+  // Dia em que o e-mail de programacao foi enviado ao financeiro.
+  data_solicitacao   DateTime?
+  data_prevista   DateTime?
+  data_pagamento  DateTime?
+  comprovante_url String?
+
+  // Forma efetivamente usada nesta obrigacao (independe do padrao atual do
+  // cadastro do fornecedor/funcionario).
+  // PIX | TED | BOLETO | DINHEIRO
+  forma_pagamento String?
+
+  // Conta de destino, congelada no momento da solicitacao
+  banco     String?
+  agencia   String?
+  conta     String?
+  tipo_conta String?
+  pix_tipo  String?
+  pix_chave String?
+
+  despesas   ReembolsoDespesa[]
+  pagamentos ReembolsoPagamento[]
+  arquivos   ReembolsoArquivo[]
+  created_at DateTime           @default(now())
+  updated_at DateTime           @updatedAt
+
+  @@index([tenant_id, atividade_id, status])
+  @@index([tenant_id, natureza, status_prestacao])
+}
+
+// Cada transferencia/deposito de um reembolso ou adiantamento. O processo pode
+// ter varios pagamentos, cada um com seu proprio agendamento, status e comprovante.
+model ReembolsoPagamento {
+  id           String     @id @default(uuid())
+  reembolso_id String
+  reembolso    Reembolso  @relation(fields: [reembolso_id], references: [id], onDelete: Cascade)
+
+  numero           Int
+  valor            Float
+  forma_pagamento  String? // PIX | TED | BOLETO | DINHEIRO
+  status           String  @default("PENDENTE")
+  data_solicitacao DateTime?
+  data_prevista    DateTime?
+  data_pagamento   DateTime?
+  comprovante_url  String?
+  observacoes      String?
+
+  prestacoes PrestacaoContasPagamento[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([reembolso_id, numero])
+  @@index([reembolso_id, status])
+}
+
+// Arquivos administrativos do processo, separados do comprovante de cada
+// deposito. Aceita qualquer formato, inclusive arquivos compactados; o
+// servidor armazena fora da pasta publica e entrega sempre como download.
+model ReembolsoArquivo {
+  id             String    @id @default(uuid())
+  reembolso_id   String
+  reembolso      Reembolso @relation(fields: [reembolso_id], references: [id], onDelete: Cascade)
+  tipo           String    @default("MEMORIA_CALCULO")
+  nome_original  String
+  mime_type      String
+  tamanho_bytes  Int
+  storage_key    String    @unique
+  uploaded_by    String?
+  created_at     DateTime  @default(now())
+
+  @@index([reembolso_id, tipo])
+}
+
+// Uma prestacao pode consolidar depositos de varios adiantamentos do mesmo
+// favorecido. A vinculacao e feita no nivel do pagamento, evitando prestar
+// contas duas vezes do mesmo deposito.
+model PrestacaoContasConsolidada {
+  id              String    @id @default(uuid())
+  tenant_id       String
+  tenant          Tenant    @relation(fields: [tenant_id], references: [id])
+  atividade_id    String?
+  atividade       Atividade? @relation(fields: [atividade_id], references: [id])
+  favorecido_nome String
+  cpf_cnpj        String?
+  status          String    @default("EM_PREENCHIMENTO")
+  // EM_PREENCHIMENTO | ENVIADA | EM_ANALISE | APROVADA | AJUSTES_SOLICITADOS
+  valor_adiantado Float     @default(0)
+  valor_despesas  Float     @default(0)
+  parecer_financeiro      String?
+  enviada_em              DateTime?
+  conferida_em            DateTime?
+  conferida_por           String?
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+
+  pagamentos PrestacaoContasPagamento[]
+  despesas   PrestacaoContasDespesa[]
+
+  @@index([tenant_id, atividade_id, status])
+}
+
+model PrestacaoContasPagamento {
+  id           String                       @id @default(uuid())
+  prestacao_id String
+  prestacao    PrestacaoContasConsolidada   @relation(fields: [prestacao_id], references: [id], onDelete: Cascade)
+  pagamento_id String                       @unique
+  pagamento    ReembolsoPagamento           @relation(fields: [pagamento_id], references: [id])
+
+  @@index([prestacao_id])
+}
+
+model PrestacaoContasDespesa {
+  id           String                       @id @default(uuid())
+  prestacao_id String
+  prestacao    PrestacaoContasConsolidada   @relation(fields: [prestacao_id], references: [id], onDelete: Cascade)
+  data         DateTime?
+  descricao    String
+  categoria    String                       @default("OUTROS")
+  valor        Float
+  anexo_url    String?
+  ordem        Int                          @default(0)
+
+  @@index([prestacao_id, ordem])
+}
+
+model ReembolsoDespesa {
+  id           String    @id @default(uuid())
+  reembolso_id String
+  reembolso    Reembolso @relation(fields: [reembolso_id], references: [id], onDelete: Cascade)
+
+  data      DateTime?
+  descricao String
+  // ALIMENTACAO | HOSPEDAGEM | COMBUSTIVEL | PEDAGIO | TRANSPORTE | MATERIAL | SERVICO | FRETE | OUTROS
+  categoria String    @default("OUTROS")
+  valor     Float
+  anexo_url String?
+  ordem     Int       @default(0)
+
+  @@index([reembolso_id, ordem])
+}
+
+// Cartao corporativo usado nas obras. Guarda so a bandeira e os quatro ultimos
+// digitos — numero completo e CVV nao entram em sistema de gestao.
+model CartaoCorporativo {
+  id          String        @id @default(uuid())
+  tenant_id   String
+  empresa_id  String
+  empresa     EmpresaConfig @relation(fields: [empresa_id], references: [id])
+  bandeira    String        // VISA | MASTERCARD | ELO | AMEX | HIPERCARD | OUTRA
+  final       String        // quatro ultimos digitos
+  apelido     String?       // ex.: "Cartao Obras PA"
+  titular     String?
+  limite      Float?
+  dia_fechamento Int?
+  ativo       Boolean       @default(true)
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @updatedAt
+
+  @@index([tenant_id, ativo])
+}
+
+// Funcionario da LS Office. Existe para poder ser favorecido de reembolso e de
+// adiantamento, do mesmo jeito que um prestador de mao de obra.
+model Funcionario {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  tenant        Tenant   @relation(fields: [tenant_id], references: [id])
+
+  // Identificacao
+  nome          String
+  cpf           String?
+  rg            String?
+  rg_orgao      String?  // orgao emissor, ex.: SSP/PA
+  data_nascimento DateTime?
+  // CLT | PJ | AUTONOMO | TERCEIRO — muda a documentacao exigida, nao o fluxo de pagamento
+  tipo_vinculo  String?
+  funcao        String?  // TECNICO | ENCARREGADO | ENGENHEIRO | ADMINISTRATIVO | OUTRO
+  cargo         String?
+  data_admissao DateTime?
+
+  telefone      String?
+  email         String?
+
+  // Endereco. O municipio guarda o codigo do IBGE junto com o nome, porque nome
+  // de cidade se repete entre estados e muda de grafia.
+  logradouro    String?
+  numero        String?
+  complemento   String?
+  bairro        String?
+  cep           String?
+  uf            String?
+  municipio     String?
+  municipio_ibge String?
+
+  // Pagamento
+  banco         String?
+  agencia       String?
+  conta         String?
+  tipo_conta    String?
+  pix_tipo      String?
+  pix_chave     String?
+  forma_pagamento String? // PIX | TED | CARTAO_CREDITO | BOLETO | DINHEIRO
+
+  observacoes   String?
+  ativo         Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  reembolsos    Reembolso[]
+  qualificacoes Qualificacao[]
+  contratacoes  ContratacaoFornecedor[]
+
+  @@index([tenant_id, ativo])
+}
+
+// Certificado que habilita alguem a entrar em obra: ASO e as NRs de telecom.
+// Vale para funcionario da LS e para prestador (Supplier) — quem sobe na torre
+// precisa estar em dia, independente do vinculo.
+model Qualificacao {
+  id             String       @id @default(uuid())
+  tenant_id      String
+  funcionario_id String?
+  funcionario    Funcionario? @relation(fields: [funcionario_id], references: [id])
+  supplier_id    String?
+  supplier       Supplier?    @relation(fields: [supplier_id], references: [id])
+
+  // ASO | NR06 | NR10 | NR10_SEP | NR11 | NR12 | NR18 | NR33 | NR35 | CNH |
+  // TREINAMENTO_ALTURA | RESGATE | OUTRO
+  tipo           String
+  descricao      String?
+  numero         String?
+  entidade       String?      // quem emitiu
+  data_emissao   DateTime?
+  data_validade  DateTime?
+  arquivo_url    String?
+  observacoes    String?
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+
+  @@index([tenant_id, tipo])
+  @@index([funcionario_id])
+  @@index([supplier_id])
 }

@@ -34,25 +34,78 @@ export class SupplierService {
     static async createSupplier(data: {
         tenant_id: string;
         nome: string;
+        nome_fantasia?: string;
         cnpj?: string;
         email?: string;
         telefone?: string;
         logo_url?: string;
+        endereco?: string;
+        cidade?: string;
+        uf?: string;
+        banco?: string;
+        agencia?: string;
+        conta?: string;
+        pix?: string;
+        tipo_conta?: string;
+        pix_tipo?: string;
+        forma_pagamento?: string;
+        tipo?: string;
+        categoria?: string;
+        cpf?: string;
+        especialidade?: string;
+        regiao?: string;
+        observacoes?: string;
     }) {
         return prisma.supplier.create({ data });
     }
 
     static async updateSupplier(id: string, data: {
         nome?: string;
+        nome_fantasia?: string;
         cnpj?: string;
         email?: string;
         telefone?: string;
         logo_url?: string;
+        endereco?: string;
+        cidade?: string;
+        uf?: string;
+        banco?: string;
+        agencia?: string;
+        conta?: string;
+        pix?: string;
+        tipo_conta?: string;
+        pix_tipo?: string;
+        forma_pagamento?: string;
+        tipo?: string;
+        categoria?: string;
+        cpf?: string;
+        especialidade?: string;
+        regiao?: string;
+        observacoes?: string;
         ativo?: boolean;
     }) {
         return prisma.supplier.update({
             where: { id },
             data: { ...data, updated_at: new Date() }
+        });
+    }
+
+    static async listCondicoesPagamento(supplierId: string) {
+        return prisma.condicaoPagamentoFornecedor.findMany({
+            where: { supplier_id: supplierId, ativo: true },
+            orderBy: { created_at: 'desc' },
+        });
+    }
+
+    static async createCondicaoPagamento(supplierId: string, data: {
+        nome: string;
+        percentual_entrada: number;
+        percentual_saldo: number;
+        gatilho_saldo?: string;
+        prazo_dias?: number;
+    }) {
+        return prisma.condicaoPagamentoFornecedor.create({
+            data: { supplier_id: supplierId, ...data },
         });
     }
 
