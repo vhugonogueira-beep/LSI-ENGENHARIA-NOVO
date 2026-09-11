@@ -198,3 +198,15 @@ Migração:
 - O serviço central da regra é `src/backend/services/sincronizacao-pendencias.service.ts`; ele é acionado pelos endpoints de atualização de funcionário, fornecedor e atividade.
 - Validação de integração em 10/09/2026: atualização normal do cadastro DIASTRON sincronizou a solicitação ativa ligada à parcela pendente (PIX, banco, agência e conta), marcou `atualizada_em` e a prévia do e-mail passou a usar os mesmos dados mestres. Builds de backend e frontend aprovados.
 - Correção complementar em 10/09/2026: prévias e arquivos `.eml` de reembolso/adiantamento passaram a impedir cache no navegador e em proxies. A interface também usa `cache: no-store` e uma chave única por geração. Validado com os dois processos de José da Silva: ambos exibiram a chave PIX atual do cadastro mestre e não apresentaram o snapshot antigo; builds de backend e frontend aprovados.
+
+## Padronização visual dos pagamentos — 10/09/2026
+
+- A aba Pagamentos da atividade e o Controle de Pagamentos passaram a usar a mesma hierarquia: favorecido → categoria e total → parcela/depósito → valor e status → datas e comprovante → ação principal.
+- Fornecedores, funcionários, reembolsos e adiantamentos usam os componentes compartilhados de `src/frontend/components/financeiro/FinancialCards.tsx`.
+- O seletor compartilhado `PagamentoStatusSelect` é usado também no Controle de Pagamentos, eliminando a diferença visual entre pagamentos como os de José da Silva e Antônio Fábio.
+- Ações de uso frequente permanecem visíveis. Edição, cancelamento/exclusão, alteração de forma de pagamento e remoção de comprovante ficam no menu “Mais ações”.
+- Arquivos de contrato e memórias de reembolso/adiantamento aparecem em uma seção compacta e recolhível, com inclusão, download e exclusão preservados.
+- Reembolsos e adiantamentos compartilham o mesmo cartão-base; as diferenças são apenas categoria, valores e ações permitidas pela regra existente.
+- O Controle de Pagamentos deixou de depender de tabela larga e agora agrupa obrigações por favorecido, com cartões responsivos para desktop e telas menores.
+- Não houve mudança de schema, API, status, regra financeira ou conteúdo persistido nesta etapa; foi uma refatoração da apresentação e da composição dos controles existentes.
+- Validação: `npm run build:frontend` aprovado. A checagem TypeScript global continua acusando débitos antigos, sobretudo no monólito `SimuladorLPU.tsx`; nenhum novo erro foi encontrado nos arquivos desta refatoração.

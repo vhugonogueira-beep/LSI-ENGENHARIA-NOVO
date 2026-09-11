@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Settings, FileText, Paperclip, Trash2, Mail, Copy, X } from 'lucide-react';
+import { Plus, Settings, Paperclip, Trash2, Mail, Copy, X } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState } from './ui';
 import { fmtData, fmtMoeda } from './constants';
 import PrestacaoContasViagem from './PrestacaoContasViagem';
 import PagamentoStatusSelect from './PagamentoStatusSelect';
+import { FinancialActionMenu, FinancialAttachments, FinancialBeneficiaryCard, FinancialPaymentCard, type FinancialAction } from '../financeiro/FinancialCards';
 
 const CONTRATO_STATUS = ['GERADO', 'ENVIADO', 'ASSINADO'];
 const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIADO: 'Enviado', ASSINADO: 'Assinado' };
@@ -55,7 +56,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [emailPreview, setEmailPreview] = useState<string | null>(null);
     // E-mail de programacao de pagamento no template corporativo, por parcela.
     const [emailPagamento, setEmailPagamento] = useState<any | null>(null);
-    const [gerandoEmail, setGerandoEmail] = useState<string | null>(null);
+    const [, setGerandoEmail] = useState<string | null>(null);
     const [parcelaDoEmail, setParcelaDoEmail] = useState<string | null>(null);
     // Edicao do valor da parcela: adiantar parte do saldo e comum, e o contrato
     // nao muda por isso. Parcela paga nao entra em edicao (o backend recusa).
@@ -590,193 +591,55 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                 <EmptyState text="Nenhum fornecedor contratado para esta atividade ainda." />
             ) : (
                 <div className="flex flex-col gap-3">
-                    {contratacoes.map(c => (
-                        <div key={c.id} className="border border-border rounded-lg p-3">
-                            <div className="flex justify-between items-start mb-2">
-                                <div>
-                                    <div className="text-sm font-semibold">{c.supplier?.nome || c.funcionario?.nome}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                        {c.finalidade.replace(/_/g, ' ')} · Contratado <strong className="text-foreground">{fmtMoeda(c.valor_contratado)}</strong>
-                                        {(() => {
-                                            const alocado = (c.parcelas || []).reduce((s: number, p: any) => s + p.valor, 0);
-                                            const dif = Math.round((c.valor_contratado - alocado) * 100) / 100;
-                                            if (Math.abs(dif) < 0.01) return null;
-                                            return <span className="text-amber-500"> · a alocar {fmtMoeda(dif)}</span>;
-                                        })()}
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {!c.contrato ? (
-                                        <GhostButton onClick={() => gerarContrato(c.id)} disabled={gerandoContrato === c.id}>
-                                            <FileText size={13} className="inline mr-1" />{gerandoContrato === c.id ? 'Gerando...' : 'Gerar Contrato'}
-                                        </GhostButton>
-                                    ) : (
-                                        <>
-                                            <a href={`/api/contratos/${c.contrato.id}/export/html`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-primary hover:underline flex items-center gap-1">
-                                                <FileText size={13} />Ver / Baixar
-                                            </a>
-                                            <select
-                                                value={c.contrato.status}
-                                                onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)}
-                                                className="text-[10px] font-bold rounded px-1.5 py-1 border-0"
-                                                style={{ background: `${CONTRATO_STATUS_COLOR[c.contrato.status]}22`, color: CONTRATO_STATUS_COLOR[c.contrato.status] }}
-                                            >
-                                                {CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}
-                                            </select>
-                                            <GhostButton onClick={() => clicarAnexarContrato(c.contrato.id)} disabled={anexandoContrato === c.contrato.id}>
-                                                <Paperclip size={13} className="inline mr-1" />{anexandoContrato === c.contrato.id ? 'Enviando...' : 'Anexar Assinado'}
-                                            </GhostButton>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
-
-                            {c.contrato?.arquivos?.length > 0 && (
-                                <div className="flex flex-col gap-1 mb-2">
-                                    {c.contrato.arquivos.map((a: any) => (
-                                        <div key={a.id} className="flex items-center justify-between gap-2 text-xs bg-secondary/30 rounded px-2 py-1.5">
-                                            <a href={`/api/contratos/arquivos/${a.id}/download`} className="text-primary hover:underline flex items-center gap-1.5 min-w-0">
-                                                <Paperclip size={12} className="flex-shrink-0" /><span className="truncate">{a.nome_original}</span>
-                                            </a>
-                                            <button onClick={() => removerArquivoContrato(a.id)} className="text-muted-foreground hover:text-destructive flex-shrink-0"><Trash2 size={12} /></button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            <div className="flex flex-col gap-1.5">
-                                {c.parcelas.map((p: any) => (
-                                    <div key={p.id} className="flex items-center justify-between gap-2 bg-secondary/40 rounded-lg px-2.5 py-2">
-                                        <div className="text-xs flex items-center gap-2 flex-wrap">
-                                            <span className="font-semibold">{p.tipo}</span>
-                                            <span className="text-muted-foreground">({p.percentual}%)</span>
-                                            {dividindo === p.id ? (
-                                                <>
-                                                    <span className="text-muted-foreground">adiantar</span>
-                                                    <input
-                                                        autoFocus type="number" step="1" min="0" max="100"
-                                                        className={`${inputClass} h-7 w-16 text-right text-xs`}
-                                                        value={valorParcela}
-                                                        onChange={e => setValorParcela(e.target.value)}
-                                                        onKeyDown={e => {
-                                                            if (e.key === 'Escape') setDividindo(null);
-                                                            if (e.key === 'Enter') dividirParcela(p.id, p.valor, c.valor_contratado);
-                                                        }}
-                                                    />
-                                                    <span className="text-muted-foreground">% do contrato =</span>
-                                                    <strong className="text-emerald-500">
-                                                        {fmtMoeda(Math.round((c.valor_contratado * (Number(String(valorParcela).replace(',', '.')) || 0) / 100) * 100) / 100)}
-                                                    </strong>
-                                                    {[10, 20, 30, 40, 50].map(v => (
-                                                        <button key={v} onClick={() => setValorParcela(String(v))}
-                                                            className="px-1.5 border border-border text-[10px] text-muted-foreground hover:text-foreground">
-                                                            {v}%
-                                                        </button>
-                                                    ))}
-                                                    <button onClick={() => dividirParcela(p.id, p.valor, c.valor_contratado)} className="text-emerald-500 font-semibold hover:underline">aplicar</button>
-                                                    <button onClick={() => setDividindo(null)} className="text-muted-foreground hover:underline">cancelar</button>
-                                                    <span className="text-[10px] text-muted-foreground">o restante volta como SALDO</span>
-                                                </>
-                                            ) : editandoParcela === p.id ? (
-                                                <>
-                                                    <span className="text-muted-foreground">R$</span>
-                                                    <input
-                                                        autoFocus type="number" step="0.01" min="0"
-                                                        className={`${inputClass} h-7 w-28 text-right text-xs`}
-                                                        value={valorParcela}
-                                                        onChange={e => setValorParcela(e.target.value)}
-                                                        onKeyDown={e => {
-                                                            if (e.key === 'Escape') setEditandoParcela(null);
-                                                            if (e.key === 'Enter') salvarValorParcela(p.id);
-                                                        }}
-                                                    />
-                                                    <button onClick={() => salvarValorParcela(p.id)} className="text-emerald-500 font-semibold hover:underline">salvar</button>
-                                                    <button onClick={() => setEditandoParcela(null)} className="text-muted-foreground hover:underline">cancelar</button>
-                                                </>
-                                            ) : (
-                                                <span className="font-semibold">{fmtMoeda(p.valor)}</span>
-                                            )}
-                                            {(p.data_solicitacao || p.data_prevista) && <span className="text-[10px] text-muted-foreground border-l border-border pl-2">
-                                                Solicitado: {p.data_solicitacao ? fmtData(p.data_solicitacao) : '—'} · Previsto: {p.data_prevista ? fmtData(p.data_prevista) : '—'}
-                                            </span>}
-                                            <span className="text-[10px] font-semibold text-sky-400 border-l border-border pl-2 flex items-center gap-1">
-                                                <select className="bg-transparent border-0 text-sky-400 font-semibold text-[10px]" value={p.forma_pagamento || c.supplier?.forma_pagamento || (c.funcionario?.pix_chave ? 'PIX' : 'TED')} onChange={e => mudarFormaParcela(p, e.target.value)}>
-                                                    {Object.entries(FORMA_LABEL).map(([valor, rotulo]) => <option key={valor} value={valor}>{rotulo}</option>)}
-                                                </select>
-                                                {p.cartao_bandeira && p.cartao_final ? ` · ${p.cartao_bandeira} •••• ${p.cartao_final}` : ''}
-                                            </span>
-                                            {p.formalizacao_posterior && <span className="text-[10px] text-amber-400">Compra formalizada após uso do cartão{p.fatura_referencia ? ` · Fatura ${p.fatura_referencia}` : ''}</span>}
-                                            <span className={`text-[10px] ${p.comprovante_url ? 'text-emerald-400' : 'text-muted-foreground'}`}>
-                                                {p.comprovante_url ? 'Comprovante anexado' : 'Sem comprovante'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {!['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status)
-                                                && editandoParcela !== p.id && dividindo !== p.id && (
-                                                <>
-                                                    <button
-                                                        onClick={() => { setEditandoParcela(p.id); setDividindo(null); setValorParcela(String(p.valor)); }}
-                                                        title="Alterar o valor desta parcela sem mexer no contrato"
-                                                        className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
-                                                    >
-                                                        Editar valor
-                                                    </button>
-                                                    <button
-                                                        onClick={() => { setDividindo(p.id); setEditandoParcela(null); setValorParcela(''); }}
-                                                        title="Adiantar parte agora e deixar o restante em uma nova parcela"
-                                                        className="text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:underline"
-                                                    >
-                                                        Adiantar %
-                                                    </button>
-                                                    {p.tipo === 'PARCELA' && (c.parcelas || []).length > 1 && (
-                                                        <button
-                                                            onClick={() => desfazerAdiantamento(p)}
-                                                            title="Devolve este valor ao saldo pendente"
-                                                            className="text-[11px] font-semibold text-muted-foreground hover:text-red-400 hover:underline"
-                                                        >
-                                                            Desfazer
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
-                                            <button
-                                                onClick={() => gerarEmailPagamento(p.id)}
-                                                disabled={gerandoEmail === p.id}
-                                                title="Gerar e-mail de programacao de pagamento (template LS Office)"
-                                                className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline disabled:opacity-50"
-                                            >
-                                                <Mail size={13} /> {gerandoEmail === p.id ? 'Gerando...' : (p.formalizacao_posterior ? 'E-mail de formalização' : 'E-mail de pagamento')}
-                                            </button>
-                                            {p.comprovante_url ? <>
-                                                <a href={p.comprovante_url} target="_blank" rel="noreferrer" className="text-[11px] font-semibold text-emerald-400 hover:underline flex items-center gap-1"><FileText size={12}/>Ver comprovante</a>
-                                                <button onClick={() => removerComprovante(p)} className="text-[11px] text-muted-foreground hover:text-red-400">Remover</button>
-                                            </> : (
-                                                <button onClick={() => clicarAnexarComprovante(p)} disabled={anexandoComprovante === p.id} className="text-[11px] font-semibold text-muted-foreground hover:text-primary flex items-center gap-1 disabled:opacity-50">
-                                                    <Paperclip size={12}/>{anexandoComprovante === p.id ? 'Enviando...' : 'Anexar comprovante'}
-                                                </button>
-                                            )}
-                                            {p.status !== 'PENDENTE' && (
-                                                <button onClick={() => abrirProgramacao(p)} className="text-[11px] text-muted-foreground hover:text-primary hover:underline">Editar datas</button>
-                                            )}
-                                            {!['PENDENTE', 'PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status) && (
-                                                <button
-                                                    onClick={() => cancelarSolicitacaoPagamento(p)}
-                                                    title="Cancela o pedido ao financeiro e mantém a parcela pendente no contrato"
-                                                    className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-red-400"
-                                                >
-                                                    <Trash2 size={12}/> Excluir solicitação
-                                                </button>
-                                            )}
-                                            {p.status === 'PENDENTE' && (
-                                                <GhostButton onClick={() => abrirProgramacao(p)}>Solicitar Pagamento</GhostButton>
-                                            )}
-                                            <PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)} />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    ))}
+                    {contratacoes.map(c => {
+                        const arquivos = c.contrato?.arquivos || [];
+                        const alocado = (c.parcelas || []).reduce((s: number, p: any) => s + p.valor, 0);
+                        const diferenca = Math.round((c.valor_contratado - alocado) * 100) / 100;
+                        const contratoActions: FinancialAction[] = !c.contrato
+                            ? [{ label: gerandoContrato === c.id ? 'Gerando contrato...' : 'Gerar contrato', onClick: () => gerarContrato(c.id), disabled: gerandoContrato === c.id }]
+                            : [
+                                { label: 'Ver / baixar contrato', href: `/api/contratos/${c.contrato.id}/export/html` },
+                                { label: anexandoContrato === c.contrato.id ? 'Enviando assinado...' : 'Anexar contrato assinado', onClick: () => clicarAnexarContrato(c.contrato.id), disabled: anexandoContrato === c.contrato.id },
+                            ];
+                        return <FinancialBeneficiaryCard
+                            key={c.id}
+                            name={c.supplier?.nome || c.funcionario?.nome || 'Favorecido'}
+                            category={FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ')}
+                            total={fmtMoeda(c.valor_contratado)}
+                            status={c.contrato && <select value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className="rounded border-0 px-2 py-1 text-[10px] font-bold" style={{ background: `${CONTRATO_STATUS_COLOR[c.contrato.status]}22`, color: CONTRATO_STATUS_COLOR[c.contrato.status] }}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>}
+                            headerActions={<FinancialActionMenu actions={contratoActions}/>}
+                        >
+                            {Math.abs(diferenca) >= 0.01 && <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-400">Valor ainda não alocado em parcelas: <strong>{fmtMoeda(diferenca)}</strong></div>}
+                            {c.contrato && <FinancialAttachments count={arquivos.length} label="Arquivos do contrato" addAction={<button type="button" onClick={() => clicarAnexarContrato(c.contrato.id)} className="text-[11px] font-semibold text-primary hover:underline">Adicionar</button>}>
+                                {arquivos.map((a: any) => <div key={a.id} className="flex items-center justify-between gap-2 rounded-md bg-secondary/30 px-2.5 py-2 text-xs"><a href={`/api/contratos/arquivos/${a.id}/download`} className="flex min-w-0 items-center gap-1.5 text-primary hover:underline"><Paperclip size={12}/><span className="truncate">{a.nome_original}</span></a><button type="button" onClick={() => removerArquivoContrato(a.id)} className="text-muted-foreground hover:text-destructive"><Trash2 size={12}/></button></div>)}
+                            </FinancialAttachments>}
+                            {(c.parcelas || []).map((p: any) => {
+                                const pago = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status);
+                                const forma = p.forma_pagamento || c.supplier?.forma_pagamento || (c.funcionario?.pix_chave ? 'PIX' : 'TED');
+                                const actions: FinancialAction[] = [
+                                    { label: p.formalizacao_posterior ? 'Gerar e-mail de formalização' : 'Gerar e-mail de pagamento', onClick: () => gerarEmailPagamento(p.id) },
+                                    ...(!pago ? [
+                                        { label: 'Editar valor', onClick: () => { setEditandoParcela(p.id); setDividindo(null); setValorParcela(String(p.valor)); } },
+                                        { label: 'Adiantar percentual', onClick: () => { setDividindo(p.id); setEditandoParcela(null); setValorParcela(''); } },
+                                    ] : []),
+                                    ...(p.tipo === 'PARCELA' && (c.parcelas || []).length > 1 && !pago ? [{ label: 'Desfazer adiantamento', onClick: () => desfazerAdiantamento(p), tone: 'danger' as const }] : []),
+                                    ...Object.entries(FORMA_LABEL).filter(([valor]) => valor !== forma).map(([valor, rotulo]) => ({ label: `Alterar forma para ${rotulo}`, onClick: () => mudarFormaParcela(p, valor) })),
+                                    ...(p.status !== 'PENDENTE' ? [{ label: 'Editar datas', onClick: () => abrirProgramacao(p) }] : []),
+                                    ...(p.comprovante_url ? [{ label: 'Remover comprovante', onClick: () => removerComprovante(p), tone: 'danger' as const }] : []),
+                                    ...(!['PENDENTE', 'PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status) ? [{ label: 'Excluir solicitação', onClick: () => cancelarSolicitacaoPagamento(p), tone: 'danger' as const }] : []),
+                                ];
+                                const primaryAction = p.status === 'PENDENTE'
+                                    ? <GhostButton onClick={() => abrirProgramacao(p)}>Solicitar pagamento</GhostButton>
+                                    : p.comprovante_url
+                                        ? <a href={p.comprovante_url} target="_blank" rel="noreferrer" className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/10">Ver comprovante</a>
+                                        : <GhostButton onClick={() => clicarAnexarComprovante(p)} disabled={anexandoComprovante === p.id}>{anexandoComprovante === p.id ? 'Enviando...' : 'Adicionar comprovante'}</GhostButton>;
+                                return <FinancialPaymentCard key={p.id} title={p.tipo} percentage={`${p.percentual}%`} amount={fmtMoeda(p.valor)} method={<>{FORMA_LABEL[forma] || forma}{p.cartao_bandeira && p.cartao_final ? ` · ${p.cartao_bandeira} •••• ${p.cartao_final}` : ''}</>} context={p.formalizacao_posterior ? `Compra formalizada${p.fatura_referencia ? ` · Fatura ${p.fatura_referencia}` : ''}` : undefined} requestedAt={p.data_solicitacao ? fmtData(p.data_solicitacao) : undefined} expectedAt={p.data_prevista ? fmtData(p.data_prevista) : undefined} paidAt={p.data_pagamento ? fmtData(p.data_pagamento) : undefined} receipt={{ attached: Boolean(p.comprovante_url) }} status={<PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)}/>} primaryAction={primaryAction} actions={actions}>
+                                    {dividindo === p.id && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2 text-xs"><span>Adiantar</span><input autoFocus type="number" step="1" min="0" max="100" className={`${inputClass} h-8 w-20 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setDividindo(null); if (e.key === 'Enter') dividirParcela(p.id, p.valor, c.valor_contratado); }}/><span>% = <strong className="text-emerald-500">{fmtMoeda(Math.round((c.valor_contratado * (Number(String(valorParcela).replace(',', '.')) || 0) / 100) * 100) / 100)}</strong></span>{[10,20,30,40,50].map(v => <button key={v} onClick={() => setValorParcela(String(v))} className="rounded border border-border px-2 py-1 text-[10px]">{v}%</button>)}<button onClick={() => dividirParcela(p.id, p.valor, c.valor_contratado)} className="font-semibold text-emerald-500">Aplicar</button><button onClick={() => setDividindo(null)} className="text-muted-foreground">Cancelar</button></div>}
+                                    {editandoParcela === p.id && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2 text-xs"><span>R$</span><input autoFocus type="number" step="0.01" min="0" className={`${inputClass} h-8 w-32 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setEditandoParcela(null); if (e.key === 'Enter') salvarValorParcela(p.id); }}/><button onClick={() => salvarValorParcela(p.id)} className="font-semibold text-emerald-500">Salvar</button><button onClick={() => setEditandoParcela(null)} className="text-muted-foreground">Cancelar</button></div>}
+                                </FinancialPaymentCard>;
+                            })}
+                        </FinancialBeneficiaryCard>;
+                    })}
                 </div>
             )}
 
