@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximoStatusAutomatico } from '../services/status-atividade.service';
 import { avaliarProntoParaFaturar } from '../services/gates.service';
 
 async function getTenantId(req: Request): Promise<string> {
@@ -61,15 +62,17 @@ export async function upsertRegistroExecucao(req: Request, res: Response) {
 
         // G7: execução concluída — atualiza o status operacional e reavalia a fila de faturamento.
         if (registro.avanco_percentual >= 100 && registro.data_real_conclusao) {
-            if (atividade.status_operacional !== 'CONCLUIDA') {
+            const novo = proximoStatusAutomatico(atividade.status_operacional, 'CONCLUIDA');
+            if (novo) {
                 await prisma.atividade.update({
                     where: { id: atividade_id },
-                    data: { status_operacional: 'CONCLUIDA', data_conclusao: registro.data_real_conclusao },
+                    data: { status_operacional: novo, data_conclusao: registro.data_real_conclusao },
                 });
             }
             await avaliarProntoParaFaturar(atividade_id);
-        } else if (registro.avanco_percentual > 0 && atividade.status_operacional === 'APC_LIBERADO') {
-            await prisma.atividade.update({ where: { id: atividade_id }, data: { status_operacional: 'EM_EXECUCAO' } });
+        } else if (registro.avanco_percentual > 0) {
+            const novo = proximoStatusAutomatico(atividade.status_operacional, 'EM_EXECUCAO');
+            if (novo) await prisma.atividade.update({ where: { id: atividade_id }, data: { status_operacional: novo } });
         }
 
         res.json(registro);

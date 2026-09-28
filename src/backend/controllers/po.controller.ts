@@ -226,7 +226,7 @@ export async function cancelarLinhaFaturamento(req: Request, res: Response) {
 export async function gerarEmailDeFaturamento(req: Request, res: Response) {
     try {
         const { ids, cliente, competencia } = req.body;
-        res.json(await gerarEmailFaturamento(ids, { cliente, competencia }));
+        res.json(await gerarEmailFaturamento(ids, { cliente, competencia }, (req as any).user));
     } catch (e: any) {
         res.status(400).json({ error: e.message });
     }
@@ -250,7 +250,7 @@ export async function baixarPlanilhaFaturamento(req: Request, res: Response) {
         const { buffer, filename } = await gerarPlanilhaFaturamento(ids, {
             cliente: req.query.cliente as string | undefined,
             competencia: req.query.competencia as string | undefined,
-        });
+        }, (req as any).user.tenantId);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.send(buffer);

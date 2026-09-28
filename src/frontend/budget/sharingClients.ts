@@ -7,7 +7,7 @@ export const DEFAULT_SHARING_CLIENTS: SharingClient[] = [
   { id: "winity", nome: "Winity Telecom", sigla: "WIN", cnpj: "", tipo: "Sharing", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#6366f1", ativo: true },
   { id: "vivo", nome: "Vivo / Telefônica", sigla: "VIVO", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#7c3aed", ativo: true },
   { id: "claro", nome: "Claro / América Móvil", sigla: "CLR", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#ef4444", ativo: true },
-  { id: "tim", nome: "TIM Brasil", sigla: "TIM", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#3b82f6", ativo: true },
+  { id: "tim", nome: "TIM Brasil", sigla: "TIM", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#1768D5", ativo: true },
   { id: "oi", nome: "Oi S.A.", sigla: "OI", cnpj: "", tipo: "Operadora", contato: "", email: "", telefone: "", bdiPadrao: 25, lucroPadrao: 10, descontoPadrao: 0, cor: "#f97316", ativo: true },
 ];
 

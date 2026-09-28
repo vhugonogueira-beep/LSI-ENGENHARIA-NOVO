@@ -38,8 +38,8 @@ const MES_CURTO = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set'
 
 /**
  * Logo da operadora movel. Procura primeiro em Contratante, que e onde a tela de
- * Clientes ja mantem Claro, TIM e Vivo com logo; a tabela Operadora fica como
- * complemento para quem nao esta la.
+ * Clientes mantem Claro, TIM e Vivo com logo. A tabela Operadora permanece
+ * somente como fonte historica de migracao e nao participa mais da geracao.
  *
  * O nome vem de Atividade.operadora, texto livre — a comparacao ignora acento,
  * caixa e sobrenome comercial ("Claro" casa com "Claro / America Movil").
@@ -58,11 +58,7 @@ async function acharLogoOperadora(tenantId: string, nomeBruto: string) {
     });
     if (doCliente) return doCliente;
 
-    const daTabela = await prisma.operadora.findFirst({
-        where: { tenant_id: tenantId, nome: nomeBruto.trim().toUpperCase() },
-        select: { nome: true, logo_url: true },
-    });
-    return daTabela;
+    return null;
 }
 
 function chaveNome(v: string): string {

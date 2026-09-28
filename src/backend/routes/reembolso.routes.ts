@@ -7,6 +7,7 @@ import {
     criarPagamentoReembolso, atualizarPagamentoReembolso, atualizarStatusPagamentoReembolso,
     excluirPagamentoReembolso, anexarMemoriaCalculo, baixarArquivoReembolso, removerArquivoReembolso,
 } from '../controllers/reembolso.controller';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024, files: 1 } });
@@ -30,8 +31,8 @@ router.post('/:id/pagamentos', criarPagamentoReembolso);
 router.post('/:id/arquivos-calculo', uploadMemoria, anexarMemoriaCalculo);
 router.put('/:id', updateReembolso);
 router.put('/:id/status', atualizarStatusReembolso);
-router.post('/:id/email', gerarEmailReembolso);
-router.get('/:id/email.eml', baixarEmailReembolsoEml);
+router.post('/:id/email', requireAuth, gerarEmailReembolso);
+router.get('/:id/email.eml', requireAuth, baixarEmailReembolsoEml);
 router.post('/:id/prestacao/enviar', enviarPrestacaoContas);
 router.post('/:id/prestacao/analisar', analisarPrestacaoContas);
 router.delete('/:id', deleteReembolso);

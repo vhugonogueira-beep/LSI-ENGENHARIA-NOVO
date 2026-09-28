@@ -1,15 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+// Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
+import { T } from '../theme';
 
-const T = {
-  bg0: "#07090f", bg1: "#0e1117", bg2: "#13181f", bg3: "#1a2030", bg4: "#222a3a",
-  brSub: "#1e2840", brBase: "#2d3a52", brStrong: "#3d5070",
-  txPri: "#f0f4fa", txSec: "#b4c5d8", txMut: "#7c94b0", txDis: "#506480",
-  blue: "#3b82f6", blueD: "#1d4ed8", blueL: "#93c5fd",
-  green: "#34d399", greenD: "#0d9e74",
-  amber: "#fbbf24", amberD: "#d97706",
-  red: "#f87171", redD: "#dc2626",
-  purple: "#a78bfa", cyan: "#67e8f9", orange: "#fb923c",
-};
 
 interface SecTask {
   id: string; desc: string; status: "pending" | "awaiting" | "done"; priority: "normal" | "high" | "low";

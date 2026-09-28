@@ -40,6 +40,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 import authRoutes from './routes/auth.routes';
+import profileRoutes from './routes/profile.routes';
 import budgetRoutes from './routes/budget.routes';
 import masterRoutes from './routes/master.routes';
 import analyticsRoutes from './routes/analytics.routes';
@@ -67,8 +68,12 @@ import poRoutes from './routes/po.routes';
 import faturamentoRoutes from './routes/faturamento.routes';
 import contratoRoutes from './routes/contrato.routes';
 import prestacaoConsolidadaRoutes from './routes/prestacao-consolidada.routes';
+import emailRoutingRoutes from './routes/email-routing.routes';
+import clienteRoutes from './routes/cliente.routes';
+import paymentAttachmentRoutes from './routes/payment-attachment.routes';
 
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/inflation', inflationRoutes);
@@ -95,6 +100,9 @@ app.use('/api/documentacao', documentacaoRoutes);
 app.use('/api/pos', poRoutes);
 app.use('/api/faturamento', faturamentoRoutes);
 app.use('/api/contratos', contratoRoutes);
+app.use('/api/email-config', emailRoutingRoutes);
+app.use('/api/clientes', clienteRoutes);
+app.use('/api/payment-attachments', paymentAttachmentRoutes);
 app.use('/api', masterRoutes);
 
 const PORT = process.env.PORT || 3001;

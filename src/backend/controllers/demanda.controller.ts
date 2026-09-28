@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximoCodigo } from '../services/codigo-sequencial.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -8,10 +9,6 @@ async function getTenantId(req: Request): Promise<string> {
     return t ? t.id : '';
 }
 
-function gerarCodigo(seq: number): string {
-    const ano = new Date().getFullYear();
-    return `DEM-${ano}-${String(seq).padStart(3, '0')}`;
-}
 
 export async function listDemandas(req: Request, res: Response) {
     try {
@@ -69,9 +66,7 @@ export async function createDemanda(req: Request, res: Response) {
             return res.status(400).json({ error: 'titulo, tipo e sharing são obrigatórios' });
         }
 
-        // Gerar código sequencial
-        const count = await prisma.demanda.count({ where: { tenant_id } });
-        const codigo = gerarCodigo(count + 1);
+        const codigo = await proximoCodigo(prisma.demanda, 'DEM');
 
         const demanda = await prisma.demanda.create({
             data: {

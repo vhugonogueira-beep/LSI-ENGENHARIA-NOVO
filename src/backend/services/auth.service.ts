@@ -36,7 +36,7 @@ export async function loginUser(email: string, senha: string) {
 
     return {
         token,
-        user: { id: user.id, nome: user.nome, email: user.email, role: user.role, tenant_id: user.tenant_id }
+        user: { id: user.id, nome: user.nome, nome_exibicao: user.nome_exibicao, cargo: user.cargo, telefone: user.telefone, email: user.email, role: user.role, tenant_id: user.tenant_id }
     };
 }
 

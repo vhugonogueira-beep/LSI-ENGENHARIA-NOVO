@@ -1,13 +1,24 @@
+import { tema } from '../../theme';
 // Rótulos e cores dos status do Blueprint LSI — mantidos centralizados para
 // as telas de Atividades/Cockpit não divergirem entre si.
 
+/**
+ * Fluxo único da atividade — o mesmo para Implantação e Operação, e as mesmas
+ * colunas do Pipeline. Espelha `src/backend/services/status-atividade.service.ts`;
+ * mudou lá, muda aqui.
+ *
+ * `APC Liberado` saiu: era um gate, não uma fase, e deixava obra parada e obra
+ * com 60% construído com a mesma aparência. `Aguardando APC` virou `Aguardando
+ * liberação` porque Operação também espera autorização e não tem APC.
+ *
+ * On hold é roxo, não vermelho: uma obra parada por decisão não é um erro.
+ */
 export const STATUS_OPERACIONAL: Record<string, { label: string; color: string }> = {
     PLANEJAMENTO: { label: 'Planejamento', color: '#94a3b8' },
-    AGUARDANDO_APC: { label: 'Aguardando APC', color: '#f59e0b' },
-    APC_LIBERADO: { label: 'APC Liberado', color: '#3b82f6' },
-    EM_EXECUCAO: { label: 'Em Execução', color: '#3b82f6' },
-    CONCLUIDA: { label: 'Concluída', color: '#22c55e' },
-    PAUSADA: { label: 'Pausada', color: '#ef4444' },
+    AGUARDANDO_LIBERACAO: { label: 'Aguardando liberação', color: '#f59e0b' },
+    EM_EXECUCAO: { label: 'Em execução', color: '#1768D5' },
+    CONCLUIDA: { label: 'Concluído', color: '#22c55e' },
+    ON_HOLD: { label: 'On hold', color: '#8b5cf6' },
 };
 
 export const STATUS_COMERCIAL: Record<string, { label: string; color: string }> = {
@@ -33,9 +44,9 @@ export const STATUS_FINANCEIRO: Record<string, { label: string; color: string }>
 export const STATUS_FATURAMENTO: Record<string, { label: string; color: string }> = {
     NAO_INICIADO: { label: 'Não Iniciado', color: '#94a3b8' },
     PRONTO_PARA_FATURAR: { label: 'Pronto para Faturar', color: '#22c55e' },
-    ENVIADO_FINANCEIRO: { label: 'Enviado ao Financeiro', color: '#3b82f6' },
-    EM_FATURAMENTO: { label: 'Em Faturamento', color: '#3b82f6' },
-    NF_EMITIDA: { label: 'NF Emitida', color: '#3b82f6' },
+    ENVIADO_FINANCEIRO: { label: 'Enviado ao Financeiro', color: '#1768D5' },
+    EM_FATURAMENTO: { label: 'Em Faturamento', color: '#1768D5' },
+    NF_EMITIDA: { label: 'NF Emitida', color: '#1768D5' },
     FATURADO: { label: 'Faturado', color: '#8b5cf6' },
     RECEBIDO: { label: 'Recebido', color: '#22c55e' },
 };
@@ -101,7 +112,7 @@ export function normalizarUf(value?: string | null): string {
 // a mesma confusão que existia no Controle de Obras legado ("Cliente/Sharing" x "Operadora").
 export const SHARINGS = ['HIGHLINE', 'IHS', 'WINITY', 'SBA', 'OUTROS'];
 export const OPERADORAS = ['VIVO', 'CLARO', 'TIM', 'OI', 'OUTROS'];
-export const OPERADORA_COLOR: Record<string, string> = { VIVO: '#818cf8', CLARO: '#ef4444', TIM: '#3b82f6', OI: '#f59e0b', OUTROS: '#94a3b8' };
+export const OPERADORA_COLOR: Record<string, string> = { VIVO: '#818cf8', CLARO: '#ef4444', TIM: '#1768D5', OI: '#f59e0b', OUTROS: '#94a3b8' };
 // Blueprint LSI, seção 02 — três fluxos reais, não dois:
 // EXECUCAO_DIRETA = "Operação direta (Modelo 1)", sem aprovação prévia nenhuma.
 // EXECUCAO_COM_APROVACAO = "Operação com aprovação (Modelo 2 simplificado)": tem
@@ -163,14 +174,33 @@ export function fmtData(d?: string | null): string {
     });
 }
 
+/**
+ * Equivalentes escurecidos para o tema claro.
+ *
+ * As cores dos mapas de status vieram da paleta do tema escuro (slate-400,
+ * amber-500, green-500...). A pílula pinta o texto com a própria cor sobre um
+ * véu de 13% dela — sobre fundo branco isso dava de 1,94:1 a 4,38:1, ou seja,
+ * as seis reprovavam. Estes tons mantêm o mesmo significado e alcançam 4,5:1.
+ */
+const STATUS_TOM_CLARO: Record<string, string> = {
+    '#94a3b8': '#586B85',  // cinza  · neutro
+    '#f59e0b': '#945F06',  // âmbar  · atenção
+    '#1768D5': '#005EEB',  // azul   · ação
+    '#0066FF': '#005EEB',
+    '#22c55e': '#157839',  // verde  · sucesso
+    '#ef4444': '#CC1111',  // vermelho · erro
+    '#8b5cf6': '#763FF4',  // roxo
+};
+
 export function StatusPill({ status, map }: { status: string; map: Record<string, { label: string; color: string }> }) {
     const info = map[status] || { label: status, color: '#94a3b8' };
+    const cor = tema === 'claro' ? (STATUS_TOM_CLARO[info.color.toLowerCase()] || STATUS_TOM_CLARO[info.color] || info.color) : info.color;
     return (
         <span
-            style={{ background: `${info.color}22`, color: info.color, border: `1px solid ${info.color}55` }}
+            style={{ background: `${cor}22`, color: cor, border: `1px solid ${cor}55` }}
             className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap"
         >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: info.color }} />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: cor }} />
             {info.label}
         </span>
     );

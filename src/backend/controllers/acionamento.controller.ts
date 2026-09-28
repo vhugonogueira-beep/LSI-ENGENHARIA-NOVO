@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximoCodigo } from '../services/codigo-sequencial.service';
 import { gerarMatrizDocumental, recalcularStatusDocumental } from '../services/documentacao.service';
 
 async function getTenantId(req: Request): Promise<string> {
@@ -9,10 +10,6 @@ async function getTenantId(req: Request): Promise<string> {
     return t ? t.id : '';
 }
 
-function gerarCodigo(seq: number): string {
-    const ano = new Date().getFullYear();
-    return `ACI-${ano}-${String(seq).padStart(3, '0')}`;
-}
 
 export async function listAcionamentos(req: Request, res: Response) {
     try {
@@ -61,8 +58,7 @@ export async function createAcionamento(req: Request, res: Response) {
             return res.status(400).json({ error: 'titulo é obrigatório' });
         }
 
-        const count = await prisma.acionamento.count({ where: { tenant_id } });
-        const codigo = gerarCodigo(count + 1);
+        const codigo = await proximoCodigo(prisma.acionamento, 'ACI');
 
         const acionamento = await prisma.acionamento.create({
             data: {
@@ -155,9 +151,7 @@ export async function criarAtividadeDoAcionamento(req: Request, res: Response) {
             return res.status(400).json({ error: 'tipo_demanda, sharing, id_site_sharing e id_site_operadora são obrigatórios' });
         }
 
-        const count = await prisma.atividade.count({ where: { tenant_id: acionamento.tenant_id } });
-        const ano = new Date().getFullYear();
-        const codigo = `ATV-${ano}-${String(count + 1).padStart(3, '0')}`;
+        const codigo = await proximoCodigo(prisma.atividade, 'ATV');
         const modeloDefault = tipo_demanda === 'IMPLANTACAO' ? 'MEDIANTE_APROVACAO' : 'EXECUCAO_DIRETA';
 
         const atividade = await prisma.atividade.create({
@@ -202,5 +196,130 @@ export async function criarAtividadeDoAcionamento(req: Request, res: Response) {
         res.status(201).json(atividade);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
+    }
+}
+
+/**
+ * Inclui atividades JÁ EXISTENTES no projeto, de uma vez.
+ *
+ * É o caso que originou tudo: as 25 vistorias de energia da Oi já estavam
+ * lançadas quando se percebeu que formavam um projeto só, com um orçamento só.
+ * Criar de novo não era opção — elas já têm cronograma, pagamentos e histórico.
+ *
+ * Passar `atividade_ids: []` desvincula tudo; passar um id já vinculado a outro
+ * projeto move a atividade, o que é edição normal e não erro.
+ */
+export async function agruparAtividades(req: Request, res: Response) {
+    try {
+        const { id } = req.params;
+        const ids: string[] = Array.isArray(req.body?.atividade_ids) ? req.body.atividade_ids : [];
+
+        const projeto = await prisma.acionamento.findUnique({ where: { id } });
+        if (!projeto) return res.status(404).json({ error: 'Projeto não encontrado' });
+
+        if (ids.length) {
+            const encontradas = await prisma.atividade.findMany({
+                where: { id: { in: ids } },
+                select: { id: true, tenant_id: true },
+            });
+            if (encontradas.length !== ids.length) {
+                return res.status(400).json({ error: 'Uma ou mais atividades não foram encontradas' });
+            }
+            const deOutroTenant = encontradas.filter(a => a.tenant_id !== projeto.tenant_id);
+            if (deOutroTenant.length) {
+                return res.status(400).json({ error: 'Atividade de outro tenant não pode entrar neste projeto' });
+            }
+            await prisma.atividade.updateMany({
+                where: { id: { in: ids } },
+                data: { acionamento_id: id },
+            });
+        }
+
+        // Quem estava no projeto e não veio na lista sai dele. A atividade não é
+        // apagada — só deixa de pertencer ao grupo.
+        await prisma.atividade.updateMany({
+            where: { acionamento_id: id, ...(ids.length ? { id: { notIn: ids } } : {}) },
+            data: { acionamento_id: null },
+        });
+
+        const atualizado = await prisma.acionamento.findUnique({
+            where: { id },
+            include: { atividades: { select: { id: true, codigo: true, titulo: true } } },
+        });
+        res.json(atualizado);
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
+    }
+}
+
+/**
+ * Consolidado financeiro do projeto.
+ *
+ * Responde o que a tela do projeto precisa mostrar de cabeça: quanto foi orçado,
+ * quanto já se comprometeu com fornecedores, quanto saiu em adiantamento e —
+ * o número que só existe por causa do rateio — quanto desse adiantamento já foi
+ * atribuído a uma atividade concreta.
+ */
+export async function financeiroDoProjeto(req: Request, res: Response) {
+    try {
+        const { id } = req.params;
+        const projeto = await prisma.acionamento.findUnique({
+            where: { id },
+            include: {
+                atividades: {
+                    select: {
+                        id: true, codigo: true, titulo: true, valor_contrato: true, valor_orcado: true,
+                        status_operacional: true, id_site_sharing: true,
+                        contratacoesFornecedor: { select: { valor_contratado: true, status: true } },
+                        despesasRateadas: { select: { valor: true } },
+                    },
+                },
+                reembolsos: {
+                    include: {
+                        pagamentos: { select: { valor: true, status: true } },
+                        despesas: { select: { valor: true, atividade_id: true } },
+                    },
+                },
+                orcamentos: { select: { id: true, assunto: true, status: true, versao_atual: true } },
+            },
+        });
+        if (!projeto) return res.status(404).json({ error: 'Projeto não encontrado' });
+
+        const soma = (ns: number[]) => Math.round(ns.reduce((s, n) => s + (Number(n) || 0), 0) * 100) / 100;
+
+        const atividades = projeto.atividades.map(a => ({
+            id: a.id,
+            codigo: a.codigo,
+            titulo: a.titulo,
+            site: a.id_site_sharing,
+            status_operacional: a.status_operacional,
+            valor_contrato: a.valor_contrato,
+            custo_comprometido: soma(a.contratacoesFornecedor.filter(c => c.status !== 'CANCELADA').map(c => c.valor_contratado)),
+            // A fatia do adiantamento do projeto que foi atribuída a esta atividade.
+            custo_rateado: soma(a.despesasRateadas.map(d => d.valor)),
+        }));
+
+        const adiantado = soma(projeto.reembolsos.flatMap(r => r.pagamentos.map(p => p.valor)));
+        const rateado = soma(projeto.reembolsos.flatMap(r => r.despesas.filter(d => d.atividade_id).map(d => d.valor)));
+        const semRateio = soma(projeto.reembolsos.flatMap(r => r.despesas.filter(d => !d.atividade_id).map(d => d.valor)));
+
+        res.json({
+            projeto: { id: projeto.id, codigo: projeto.codigo, titulo: projeto.titulo },
+            atividades,
+            orcamentos: projeto.orcamentos,
+            resumo: {
+                atividades: atividades.length,
+                receita: soma(atividades.map(a => a.valor_contrato || 0)),
+                custo_comprometido: soma(atividades.map(a => a.custo_comprometido)),
+                adiantado,
+                rateado,
+                // O que saiu do caixa e ainda não tem dono: enquanto for > 0, a
+                // margem por atividade está incompleta.
+                a_ratear: Math.round((adiantado - rateado - semRateio) * 100) / 100,
+                despesas_sem_atividade: semRateio,
+            },
+        });
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
     }
 }

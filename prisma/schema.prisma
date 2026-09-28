@@ -49,6 +49,9 @@ model Tenant {
   reembolsos    Reembolso[]
   funcionarios  Funcionario[]
   prestacoesContasConsolidadas PrestacaoContasConsolidada[]
+  assinaturasEmail       UserEmailSignature[]
+  emailRoutingConfigs    EmailRoutingConfig[]
+  paymentAttachments     PaymentAttachment[]
 }
 
 model TenantSettings {
@@ -106,10 +109,33 @@ model User {
   tenant_id  String
   tenant     Tenant  @relation(fields: [tenant_id], references: [id])
   nome       String
+  nome_exibicao String?
+  cargo      String?
+  telefone   String?
   email      String  @unique
   senha_hash String
   role       String // ADMIN, COMERCIAL, OPERACOES
   ativo      Boolean @default(true)
+  assinatura_email UserEmailSignature?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+}
+
+model UserEmailSignature {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  tenant        Tenant   @relation(fields: [tenant_id], references: [id])
+  user_id       String   @unique
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  storage_key   String
+  original_name String
+  mime_type     String
+  size_bytes    Int
+  active        Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  @@index([tenant_id, active])
 }
 
 model Contratante {
@@ -117,11 +143,20 @@ model Contratante {
   tenant_id         String
   tenant            Tenant             @relation(fields: [tenant_id], references: [id])
   nome              String
+  razao_social      String?
+  sigla             String?
+  tipo              String             @default("CLIENTE") // CLIENTE | SHARING | OPERADORA | SHARING_OPERADORA
   cnpj              String?
   contato_nome      String?
   contato_email     String?
   contato_telefone  String?
   logo_url          String?
+  endereco          String?
+  cidade            String?
+  uf                String?
+  ativo             Boolean            @default(true)
+  created_at        DateTime           @default(now())
+  updated_at        DateTime           @default(now()) @updatedAt
   budgets           Budget[]
   acionamentos      Acionamento[]
   atividades        Atividade[]
@@ -201,6 +236,10 @@ model Budget {
   demanda        Demanda?        @relation(fields: [demanda_id], references: [id])
   atividade_id   String?
   atividade      Atividade?      @relation(fields: [atividade_id], references: [id])
+  // As 25 vistorias foram orçadas juntas, num orçamento só. Sem isto ele teria
+  // de ser pendurado numa vistoria escolhida a esmo.
+  acionamento_id String?
+  acionamento    Acionamento?    @relation(fields: [acionamento_id], references: [id])
   supplier_id    String?
   supplier       Supplier?       @relation(fields: [supplier_id], references: [id])
   pricebook_id   String?
@@ -316,6 +355,8 @@ model Supplier {
 
   @@index([tenant_id, ativo])
   @@index([tenant_id, categoria])
+  // Linhas de rateio de adiantamento de projeto que apontam para aqui.
+  despesasRateadas ReembolsoDespesa[]
   reembolsos      Reembolso[]
   qualificacoes Qualificacao[]
 }
@@ -459,6 +500,9 @@ model ParcelaPagamento {
   cartao_final          String?
   cartao_apelido        String?
   formalizacao_posterior Boolean @default(false)
+  // Processo financeiro canônico. O booleano acima permanece para leitura de
+  // registros legados e será mantido sincronizado pelo serviço de domínio.
+  processo_tipo          String  @default("PAYMENT_REQUEST") // PAYMENT_REQUEST | PAYMENT_FORMALIZATION
   data_compra_cartao    DateTime?
   fatura_referencia     String?
 
@@ -466,6 +510,7 @@ model ParcelaPagamento {
   updated_at DateTime @updatedAt
 
   solicitacoes SolicitacaoPagamento[]
+  anexos       PaymentAttachment[]
 
   @@index([contratacao_id, status])
 }
@@ -720,6 +765,11 @@ model Acionamento {
   updated_at DateTime @updatedAt
 
   atividades Atividade[]
+  // O acionamento é o PROJETO na interface: 25 vistorias de energia da Oi
+  // chegam como um pedido só, com um orçamento só, e o adiantamento que paga
+  // os técnicos é do conjunto — não de uma vistoria escolhida a esmo.
+  reembolsos Reembolso[]
+  orcamentos Budget[]
 
   @@index([tenant_id, created_at])
 }
@@ -753,7 +803,8 @@ model Atividade {
 
   // Cinco dimensões de status independentes — Blueprint LSI, seção 05 / achado #2.
   status_operacional String @default("PLANEJAMENTO")
-  // PLANEJAMENTO | AGUARDANDO_APC | APC_LIBERADO | EM_EXECUCAO | CONCLUIDA | PAUSADA
+  // PLANEJAMENTO | AGUARDANDO_LIBERACAO | EM_EXECUCAO | CONCLUIDA | ON_HOLD
+  // Fonte da regra: src/backend/services/status-atividade.service.ts
   status_comercial   String @default("EM_ORCAMENTO")
   // EM_ORCAMENTO | EM_NEGOCIACAO | APROVADO | REPROVADO
   status_documental  String @default("NAO_INICIADO")
@@ -798,6 +849,8 @@ model Atividade {
   @@index([tenant_id, status_operacional, tipo_demanda])
   @@index([tenant_id, sharing])
   @@index([acionamento_id])
+  // Linhas de rateio de adiantamento de projeto que apontam para aqui.
+  despesasRateadas ReembolsoDespesa[]
   reembolsos             Reembolso[]
   prestacoesContasConsolidadas PrestacaoContasConsolidada[]
 }
@@ -925,6 +978,16 @@ model CronogramaItem {
   data_inicio          DateTime?
   data_fim             DateTime?
   duracao_dias         Int?
+  // Conferência de etapas vencidas. `data_fim` é a previsão VIGENTE e muda a cada
+  // replanejamento; `data_fim_baseline` guarda a primeira previsão e nunca é
+  // sobrescrita — sem ela, empurrar a data apagaria o atraso. As datas reais
+  // registram o que de fato aconteceu, respondido pela pessoa, nunca presumido
+  // pelo calendário.
+  data_fim_baseline    DateTime?
+  data_inicio_real     DateTime?
+  data_fim_real        DateTime?
+  replanejamentos      Int       @default(0)
+  motivo_atraso        String?
   status               String    @default("PENDENTE") // PENDENTE | EM_ANDAMENTO | CONCLUIDO | ATRASADO
   prioridade     String           @default("MEDIA") // BAIXA | MEDIA | ALTA
   predecessor_id String?
@@ -1367,8 +1430,26 @@ model EmpresaConfig {
 
   contas              ContaBancaria[]
   cartoes             CartaoCorporativo[]
+  emailRoutingConfigs EmailRoutingConfig[]
   created_at          DateTime @default(now())
   updated_at          DateTime @updatedAt
+}
+
+model EmailRoutingConfig {
+  id         String        @id @default(uuid())
+  tenant_id  String
+  tenant     Tenant        @relation(fields: [tenant_id], references: [id])
+  empresa_id String
+  empresa    EmpresaConfig @relation(fields: [empresa_id], references: [id], onDelete: Cascade)
+  tipo       String        // PAYMENT_REQUEST | PAYMENT_FORMALIZATION | BILLING
+  para_json  String        @default("[]")
+  cc_json    String        @default("[]")
+  ativo      Boolean       @default(true)
+  created_at DateTime      @default(now())
+  updated_at DateTime      @updatedAt
+
+  @@unique([tenant_id, tipo])
+  @@index([empresa_id, ativo])
 }
 
 // Contas para recebimento. Uma delas e a principal, que sai nos documentos.
@@ -1419,10 +1500,22 @@ model Operadora {
 // ─────────────────────────────────────────────────────────────────────────────
 model Reembolso {
   id           String    @id @default(uuid())
+  // Referencia humana do lancamento: REE-2026-0041 ou ADT-2026-0041, conforme a
+  // natureza. Os e-mails de pagamento citavam um pedaco do UUID, que ninguem
+  // consegue ditar por telefone nem procurar no extrato. Opcional porque os
+  // lancamentos antigos so ganham codigo no backfill.
+  codigo       String?   @unique
   tenant_id    String
   tenant       Tenant    @relation(fields: [tenant_id], references: [id])
-  atividade_id String
-  atividade    Atividade @relation(fields: [atividade_id], references: [id])
+  // Um reembolso/adiantamento pertence a UMA atividade ou a UM projeto, nunca
+  // aos dois e nunca a nenhum — a regra é validada no controller. O adiantamento
+  // de projeto existe para o caso em que o dinheiro cobre várias atividades e
+  // só a prestação de contas dirá quanto coube a cada uma.
+  atividade_id String?
+  atividade    Atividade? @relation(fields: [atividade_id], references: [id])
+
+  acionamento_id String?
+  acionamento    Acionamento? @relation(fields: [acionamento_id], references: [id])
 
   // Quem recebe. Fornecedor cadastrado OU pessoa avulsa (colaborador).
   supplier_id     String?
@@ -1505,11 +1598,34 @@ model ReembolsoPagamento {
   observacoes      String?
 
   prestacoes PrestacaoContasPagamento[]
+  anexos     PaymentAttachment[]
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   @@unique([reembolso_id, numero])
   @@index([reembolso_id, status])
+}
+
+model PaymentAttachment {
+  id                     String              @id @default(uuid())
+  tenant_id              String
+  tenant                 Tenant              @relation(fields: [tenant_id], references: [id])
+  parcela_id             String?
+  parcela                ParcelaPagamento?   @relation(fields: [parcela_id], references: [id], onDelete: Cascade)
+  reembolso_pagamento_id String?
+  reembolso_pagamento    ReembolsoPagamento? @relation(fields: [reembolso_pagamento_id], references: [id], onDelete: Cascade)
+  tipo                   String              // COMPROVANTE_PAGAMENTO | DOCUMENTO_FISCAL
+  nome_original          String
+  mime_type              String
+  tamanho_bytes          Int
+  storage_key            String              @unique
+  sha256                 String
+  uploaded_by            String?
+  created_at             DateTime            @default(now())
+
+  @@index([tenant_id, tipo])
+  @@index([parcela_id, created_at])
+  @@index([reembolso_pagamento_id, created_at])
 }
 
 // Arquivos administrativos do processo, separados do comprovante de cada
@@ -1595,7 +1711,26 @@ model ReembolsoDespesa {
   anexo_url String?
   ordem     Int       @default(0)
 
+  // ─── Rateio nominal do adiantamento de projeto ───────────────────────────
+  // É aqui que o dinheiro do projeto desce para a obra. Cada linha diz ONDE o
+  // valor foi consumido e QUEM recebeu; sem isso o custo ficaria parado no
+  // projeto e a margem de cada vistoria sairia sem mão de obra.
+  //
+  // Rateio manual, não automático: dividir por 25 em partes iguais seria uma
+  // ficção — uma vistoria pode dar o dobro de trabalho da outra.
+  atividade_id String?
+  atividade    Atividade? @relation(fields: [atividade_id], references: [id])
+
+  // O prestador pode ser funcionário da LS ou fornecedor externo. Mesma relação
+  // polimórfica que ContratacaoFornecedor e Reembolso já usam: os dois campos
+  // são opcionais no schema e o controller garante no máximo um.
+  funcionario_id String?
+  funcionario    Funcionario? @relation(fields: [funcionario_id], references: [id])
+  supplier_id    String?
+  supplier       Supplier?    @relation(fields: [supplier_id], references: [id])
+
   @@index([reembolso_id, ordem])
+  @@index([atividade_id])
 }
 
 // Cartao corporativo usado nas obras. Guarda so a bandeira e os quatro ultimos
@@ -1665,6 +1800,8 @@ model Funcionario {
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
+  // Linhas de rateio de adiantamento de projeto que apontam para aqui.
+  despesasRateadas ReembolsoDespesa[]
   reembolsos    Reembolso[]
   qualificacoes Qualificacao[]
   contratacoes  ContratacaoFornecedor[]

@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximoCodigo } from '../services/codigo-sequencial.service';
+import { STATUS_ATIVIDADE } from '../services/status-atividade.service';
 import { gerarMatrizDocumental, recalcularStatusDocumental } from '../services/documentacao.service';
 import { normalizarUf } from '../utils/uf';
 import { removerArquivoDoDisco } from '../services/po-arquivo.service';
@@ -12,10 +14,6 @@ async function getTenantId(req: Request): Promise<string> {
     return t ? t.id : '';
 }
 
-function gerarCodigo(seq: number): string {
-    const ano = new Date().getFullYear();
-    return `ATV-${ano}-${String(seq).padStart(3, '0')}`;
-}
 
 const DIMENSOES = ['status_operacional', 'status_comercial', 'status_documental', 'status_financeiro', 'status_faturamento'] as const;
 type Dimensao = typeof DIMENSOES[number];
@@ -214,8 +212,7 @@ export async function createAtividade(req: Request, res: Response) {
             return res.status(400).json({ error: 'modelo_operacao incompatível com o tipo_demanda' });
         }
 
-        const count = await prisma.atividade.count({ where: { tenant_id } });
-        const codigo = gerarCodigo(count + 1);
+        const codigo = await proximoCodigo(prisma.atividade, 'ATV');
 
         // O sharing já diz quem é o cliente — se existe um Contratante com esse nome,
         // vincula sozinho. Sem isso a atividade nasce sem contratante e trava a criação
@@ -326,6 +323,16 @@ export async function updateAtividade(req: Request, res: Response) {
         if (touchesHighlineIdentity && nextSharing === 'HIGHLINE' && nextDemandType === 'IMPLANTACAO'
             && !nextHighlineSiteType) {
             return res.status(400).json({ error: 'tipo_site_highline é obrigatório para implantação Highline' });
+        }
+
+        // O status operacional é o único com fluxo fechado (os outros quatro ainda
+        // aceitam texto livre do cliente legado). Barra aqui para um POST torto
+        // não plantar um estado que nenhuma tela sabe desenhar.
+        if (body.status_operacional !== undefined
+            && !(STATUS_ATIVIDADE as readonly string[]).includes(body.status_operacional)) {
+            return res.status(400).json({
+                error: `status_operacional inválido. Use: ${STATUS_ATIVIDADE.join(', ')}`,
+            });
         }
 
         // Detecta mudança em qualquer uma das 5 dimensões de status para gerar histórico próprio de cada uma.

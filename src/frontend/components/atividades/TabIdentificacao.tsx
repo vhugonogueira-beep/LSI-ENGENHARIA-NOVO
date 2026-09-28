@@ -29,6 +29,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
         municipio: atividade.municipio || '',
         responsavel: atividade.responsavel || '',
         gestor: atividade.gestor || '',
+        diretorio_url: atividade.diretorio_url || '',
         descricao: atividade.descricao || '',
         data_inicio_planejada: atividade.data_inicio_planejada ? atividade.data_inicio_planejada.substring(0, 10) : '',
         data_fim_planejada: atividade.data_fim_planejada ? atividade.data_fim_planejada.substring(0, 10) : '',
@@ -108,6 +109,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                         <Row label="Modelo de Operação" value={MODELO_OPERACAO_LABEL[atividade.modelo_operacao] || atividade.modelo_operacao} />
                         <Row label="Responsável" value={atividade.responsavel} />
                         <Row label="Gestor" value={atividade.gestor} />
+                        <Row label="Diretório da atividade" value={atividade.diretorio_url} />
                         <Row label="Prazo" value={`${fmtData(atividade.data_inicio_planejada)} → ${fmtData(atividade.data_fim_planejada)}`} />
                     </div>
                 </div>
@@ -214,6 +216,16 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                 <Field label="Gestor">
                     <input className={inputClass} value={form.gestor} onChange={e => setForm(f => ({ ...f, gestor: e.target.value }))} placeholder="Vai na coluna GESTOR da planilha de faturamento" />
                 </Field>
+                <div className="md:col-span-2">
+                    <Field label="Diretório da atividade no servidor">
+                        <input
+                            className={inputClass}
+                            value={form.diretorio_url}
+                            onChange={e => setForm(f => ({ ...f, diretorio_url: e.target.value }))}
+                            placeholder="Ex.: \\servidor\ENGENHARIA\OBRAS\IMPLANTAÇÃO\SITE"
+                        />
+                    </Field>
+                </div>
                 <Field label="Início Planejado"><input type="date" className={inputClass} value={form.data_inicio_planejada} onChange={e => setForm(f => ({ ...f, data_inicio_planejada: e.target.value }))} /></Field>
                 <Field label="Fim Planejado"><input type="date" className={inputClass} value={form.data_fim_planejada} onChange={e => setForm(f => ({ ...f, data_fim_planejada: e.target.value }))} /></Field>
                 <div className="md:col-span-2">

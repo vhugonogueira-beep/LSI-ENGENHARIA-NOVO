@@ -1,5 +1,7 @@
 import ExcelJS from 'exceljs';
 import { prisma } from '../server';
+import { composeEmailForUser, type EmailUserContext } from './email-signature.service';
+import { resolveEmailRouting } from './email-routing.service';
 
 // Faturamento parcial por linha da PO (Blueprint LSI, seções 26-30). A Highline libera
 // percentuais por linha — 40% do material e 40% do serviço, por exemplo — e o saldo
@@ -181,13 +183,13 @@ function escapeHtml(v: string): string {
     return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoes?: { cliente?: string; competencia?: string }) {
+export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoes: { cliente?: string; competencia?: string } | undefined, usuario: EmailUserContext) {
     const registros = await prisma.faturamentoLinha.findMany({
-        where: { id: { in: faturamentoLinhaIds } },
+        where: { id: { in: faturamentoLinhaIds }, linha: { po: { tenant_id: usuario.tenantId } } },
         include: {
             linha: {
                 include: {
-                    po: { include: { atividade: { select: { sharing: true, estado: true, municipio: true, id_site_sharing: true } } } },
+                    po: { include: { atividade: { select: { codigo: true, tipo_demanda: true, sharing: true, estado: true, municipio: true, id_site_sharing: true } } } },
                 },
             },
         },
@@ -218,7 +220,12 @@ export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoe
         ];
     });
 
-    const assunto = `[${cliente.toUpperCase()}] FATURAMENTO ENGENHARIA - ${competencia}`;
+    const origens = [...new Set(registros.map(r => r.linha.po.atividade?.tipo_demanda).filter(Boolean))];
+    const origem = origens.length === 1
+        ? (origens[0] === 'IMPLANTACAO' ? 'IMPLANTAÇÃO' : origens[0] === 'OPERACAO' ? 'OPERAÇÕES' : 'ENGENHARIA')
+        : 'ENGENHARIA';
+    const sites = [...new Set(registros.map(r => r.linha.site || r.linha.po.atividade?.id_site_sharing || r.linha.po.atividade?.codigo).filter(Boolean))];
+    const assunto = `[${origem}] FATURAMENTO | ${sites.slice(0, 3).join(' / ') || cliente.toUpperCase()} | ${competencia}`;
 
     const corpoTexto = [
         'Boa tarde!',
@@ -250,10 +257,16 @@ Peço, por gentileza, que considere a tabela abaixo para o devido prosseguimento
 </table>
 <p style="margin-top:14px">Total: <strong>${fmtMoeda(total)}</strong> em ${registros.length} linha(s).</p>`;
 
+    const composto = await composeEmailForUser(corpoHtml, usuario, 'preview');
+    const routing = await resolveEmailRouting(usuario.tenantId, 'BILLING');
     return {
         assunto,
+        para: routing.para.join('; '),
+        cc: routing.cc.join('; '),
+        routing_pendente: routing.pendente,
+        responsavel: { nome: usuario.nome || usuario.email, email: usuario.email },
         corpo_texto: corpoTexto,
-        corpo_html: corpoHtml,
+        corpo_html: composto.html,
         total,
         total_linhas: registros.length,
         colunas: COLUNAS,
@@ -286,9 +299,9 @@ const COLUNAS_PLANILHA: { titulo: string; largura: number; preenchida: boolean }
     { titulo: 'DATA RECEBIMENTO', largura: 14, preenchida: false },
 ];
 
-export async function gerarPlanilhaFaturamento(faturamentoLinhaIds: string[], opcoes?: { cliente?: string; competencia?: string }) {
+export async function gerarPlanilhaFaturamento(faturamentoLinhaIds: string[], opcoes: { cliente?: string; competencia?: string } | undefined, tenantId: string) {
     const registros = await prisma.faturamentoLinha.findMany({
-        where: { id: { in: faturamentoLinhaIds } },
+        where: { id: { in: faturamentoLinhaIds }, linha: { po: { tenant_id: tenantId } } },
         include: {
             linha: {
                 include: {

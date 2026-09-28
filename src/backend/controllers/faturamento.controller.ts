@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximoCodigo } from '../services/codigo-sequencial.service';
 import { avaliarMarcosFaturamento, gerarPlanilhaFaturamento } from '../services/faturamento.service';
 
 async function getTenantId(req: Request): Promise<string> {
@@ -112,10 +113,6 @@ export async function createAceite(req: Request, res: Response) {
 
 // ─── Fila de Faturamento / Start Faturamento (Blueprint LSI, seção 28-29) ─────
 
-function gerarCodigoFaturamento(seq: number): string {
-    const ano = new Date().getFullYear();
-    return `FAT-${ano}-${String(seq).padStart(3, '0')}`;
-}
 
 // Botão "Start Faturamento LS": consolida atividades liberadas, calcula o valor a
 // incluir via motor de regras (quando configurado) e abre o lote no financeiro.
@@ -150,11 +147,10 @@ export async function startFaturamento(req: Request, res: Response) {
         }
         const valorTotal = itens.reduce((s, i) => s + i.valor_incluido, 0);
 
-        const count = await prisma.faturamento.count({ where: { tenant_id } });
         const faturamento = await prisma.faturamento.create({
             data: {
                 tenant_id,
-                codigo: gerarCodigoFaturamento(count + 1),
+                codigo: await proximoCodigo(prisma.faturamento, 'FAT'),
                 valor_total: Math.round(valorTotal * 100) / 100,
                 planilha_gerada: true,
                 enviado_por: (req as any).user?.email || null,

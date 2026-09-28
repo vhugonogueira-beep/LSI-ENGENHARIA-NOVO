@@ -1,9 +1,10 @@
 import { Fragment, useState, useEffect, useCallback } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import {
-    STATUS_OPERACIONAL, STATUS_COMERCIAL, STATUS_DOCUMENTAL, STATUS_FINANCEIRO, STATUS_FATURAMENTO,
+    STATUS_COMERCIAL, STATUS_DOCUMENTAL, STATUS_FINANCEIRO, STATUS_FATURAMENTO,
     StatusPill,
 } from './constants';
+import StatusOperacionalControl from './StatusOperacionalControl';
 import TabIdentificacao from './TabIdentificacao';
 import TabComercial from './TabComercial';
 import TabCotacaoLs from './TabCotacaoLs';
@@ -168,7 +169,11 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                         )}
                     </div>
                     <div className="flex flex-wrap gap-2 justify-end max-w-md">
-                        <StatusPill status={atividade.status_operacional} map={STATUS_OPERACIONAL} />
+                        <StatusOperacionalControl
+                            atividadeId={atividade.id}
+                            status={atividade.status_operacional}
+                            onSaved={load}
+                        />
                         <StatusPill status={atividade.status_comercial} map={STATUS_COMERCIAL} />
                         <StatusPill status={atividade.status_documental} map={STATUS_DOCUMENTAL} />
                         <StatusPill status={atividade.status_financeiro} map={STATUS_FINANCEIRO} />
@@ -185,11 +190,16 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                         )}
                         <button
                             onClick={() => setActiveTab(t.id)}
-                            className={`px-3.5 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${activeTab === t.id
-                                    ? 'border-primary text-foreground'
+                            // O realce ao passar o mouse usa o mesmo azul da sidebar
+                            // (rgba(0,102,255,0.07)): a aba e o item de menu são a
+                            // mesma ação — escolher onde se está —, então respondem
+                            // do mesmo jeito. A aba ativa leva o tom mais forte para
+                            // continuar distinta de uma aba só apontada pelo mouse.
+                            className={`px-3.5 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px rounded-t-lg transition-colors ${activeTab === t.id
+                                    ? 'border-primary bg-primary/10 text-foreground'
                                     : t.secondary
-                                        ? 'border-transparent text-muted-foreground/60 hover:text-muted-foreground'
-                                        : 'border-transparent text-muted-foreground hover:text-foreground'
+                                        ? 'border-transparent text-muted-foreground/60 hover:bg-primary/[0.07] hover:text-muted-foreground'
+                                        : 'border-transparent text-muted-foreground hover:bg-primary/[0.07] hover:text-foreground'
                                 }`}
                         >
                             {t.label}

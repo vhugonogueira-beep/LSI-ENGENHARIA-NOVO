@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximoStatusAutomatico } from '../services/status-atividade.service';
 import { gerarCronogramaHtml } from '../services/cronograma-doc.service';
 
 async function getTenantId(req: Request): Promise<string> {
@@ -37,6 +38,27 @@ async function sincronizarAvancoFisico(atividade_id: string) {
             });
         }
     }
+
+    // Mesma regra que `execucao.controller.ts` aplica ao salvar um registro de
+    // execução: avanço físico > 0 significa obra em andamento.
+    //
+    // Ela precisa existir aqui porque em Implantação (MEDIANTE_APROVACAO) não
+    // há aba de Execução — `buildTabs()` só a oferece nos modelos de Operação.
+    // Sem isto o cronograma atualizava o avanço direto no registro e pulava a
+    // lógica de status: o estado EM_EXECUCAO era inalcançável nesse fluxo.
+    if (media > 0) {
+        const atividade = await prisma.atividade.findUnique({
+            where: { id: atividade_id },
+            select: { status_operacional: true },
+        });
+        const novo = proximoStatusAutomatico(atividade?.status_operacional, 'EM_EXECUCAO');
+        if (novo) {
+            await prisma.atividade.update({
+                where: { id: atividade_id },
+                data: { status_operacional: novo },
+            });
+        }
+    }
 }
 
 // Itens de cronograma (Blueprint LSI, seção 17) — cadastrados ao longo do planejamento
@@ -63,6 +85,7 @@ export async function createCronogramaItem(req: Request, res: Response) {
                 responsavel: responsavel || null,
                 data_inicio: data_inicio ? new Date(data_inicio) : null,
                 data_fim: data_fim ? new Date(data_fim) : null,
+                data_fim_baseline: data_fim ? new Date(data_fim) : null,
                 duracao_dias: duracao_dias != null ? parseInt(duracao_dias) : null,
                 prioridade: prioridade || 'MEDIA',
                 predecessor_id: predecessor_id || null,
@@ -77,10 +100,72 @@ export async function createCronogramaItem(req: Request, res: Response) {
     }
 }
 
+/**
+ * Meia-noite UTC do dia de HOJE no calendário local.
+ *
+ * As datas de cronograma são gravadas como meia-noite UTC e exibidas em UTC
+ * (ver `fmtData` em constants.tsx) — é a convenção do projeto para data sem
+ * hora. A comparação precisa acontecer nesse mesmo referencial, senão o fuso
+ * (UTC−3) joga a data um dia para trás e uma etapa marcada para amanhã vira
+ * "hoje às 21h", já vencida.
+ *
+ * E o corte é o INÍCIO de hoje, não o fim: a etapa vence quando o dia previsto
+ * termina, então quem vence hoje só entra na fila amanhã.
+ */
+function inicioDeHojeUTC(): Date {
+    const agora = new Date();
+    return new Date(Date.UTC(agora.getFullYear(), agora.getMonth(), agora.getDate()));
+}
+
+/**
+ * Marca como ATRASADO o que passou da data prevista sem ter sido concluído.
+ *
+ * Roda na listagem, e não num job agendado, porque assim é sempre verdade no
+ * momento em que alguém olha — não existe janela em que a tela mostre um estado
+ * que o calendário já desmentiu. É idempotente: quem já está ATRASADO não é
+ * tocado de novo.
+ *
+ * Marcar o atraso NÃO mexe no progresso. O calendário levanta a pergunta; quem
+ * responde é a pessoa, pela conferência de etapas vencidas.
+ */
+async function marcarEtapasVencidas(atividade_id: string) {
+    const corte = inicioDeHojeUTC();
+
+    await prisma.cronogramaItem.updateMany({
+        where: {
+            atividade_id,
+            data_fim: { lt: corte },
+            status: { in: ['PENDENTE', 'EM_ANDAMENTO'] },
+        },
+        data: { status: 'ATRASADO' },
+    });
+
+    // E o caminho de volta: ATRASADO é derivado da data, não um carimbo
+    // permanente. Replanejar para uma data futura devolve a etapa ao estado
+    // real — senão ela ficaria vermelha para sempre, mesmo dentro do prazo
+    // novo. O histórico do atraso vive em `data_fim_baseline` e
+    // `replanejamentos`, que ninguém apaga.
+    const reprogramadas = await prisma.cronogramaItem.findMany({
+        where: {
+            atividade_id,
+            status: 'ATRASADO',
+            OR: [{ data_fim: { gte: corte } }, { data_fim: null }],
+        },
+        select: { id: true, progresso_percentual: true },
+    });
+    for (const item of reprogramadas) {
+        await prisma.cronogramaItem.update({
+            where: { id: item.id },
+            data: { status: item.progresso_percentual > 0 ? 'EM_ANDAMENTO' : 'PENDENTE' },
+        });
+    }
+}
+
 export async function listCronogramaItens(req: Request, res: Response) {
     try {
         const { atividade_id } = req.query;
         if (!atividade_id) return res.status(400).json({ error: 'atividade_id é obrigatório' });
+        await marcarEtapasVencidas(atividade_id as string);
         const itens = await prisma.cronogramaItem.findMany({
             where: { atividade_id: atividade_id as string },
             orderBy: { ordem: 'asc' },
@@ -104,6 +189,28 @@ export async function updateCronogramaItem(req: Request, res: Response) {
             ? parseFloat(body.progresso_percentual)
             : (novoStatus === 'CONCLUIDO' && existing.status !== 'CONCLUIDO' ? 100 : existing.progresso_percentual);
 
+        // ── Conferência de etapas vencidas ──────────────────────────────────
+        // A baseline é gravada uma única vez, na primeira previsão que a etapa
+        // teve. Sem isso, empurrar a data apagaria o atraso: o sistema passaria
+        // a achar que a nova data sempre foi a combinada.
+        const novaDataFim = body.data_fim !== undefined
+            ? (body.data_fim ? new Date(body.data_fim) : null)
+            : existing.data_fim;
+        const baseline = existing.data_fim_baseline ?? existing.data_fim ?? novaDataFim;
+
+        // Replanejamento = a previsão de término mudou para outra data.
+        const adiou = Boolean(
+            body.data_fim !== undefined && novaDataFim && existing.data_fim
+            && novaDataFim.getTime() !== existing.data_fim.getTime(),
+        );
+
+        // Concluir sem informar a data real assume a prevista — é o padrão que
+        // a conferência oferece, e a pessoa pode trocar.
+        const concluiuAgoraItem = novoStatus === 'CONCLUIDO' && existing.status !== 'CONCLUIDO';
+        const dataFimReal = body.data_fim_real !== undefined
+            ? (body.data_fim_real ? new Date(body.data_fim_real) : null)
+            : (concluiuAgoraItem && !existing.data_fim_real ? (existing.data_fim ?? new Date()) : existing.data_fim_real);
+
         const item = await prisma.cronogramaItem.update({
             where: { id },
             data: {
@@ -120,6 +227,13 @@ export async function updateCronogramaItem(req: Request, res: Response) {
                 prioridade: body.prioridade ?? existing.prioridade,
                 predecessor_id: body.predecessor_id !== undefined ? body.predecessor_id : existing.predecessor_id,
                 observacoes: body.observacoes !== undefined ? body.observacoes : existing.observacoes,
+                data_fim_baseline: baseline,
+                data_inicio_real: body.data_inicio_real !== undefined
+                    ? (body.data_inicio_real ? new Date(body.data_inicio_real) : null)
+                    : existing.data_inicio_real,
+                data_fim_real: dataFimReal,
+                replanejamentos: adiou ? existing.replanejamentos + 1 : existing.replanejamentos,
+                motivo_atraso: body.motivo_atraso !== undefined ? body.motivo_atraso : existing.motivo_atraso,
             },
         });
 
@@ -141,10 +255,17 @@ export async function updateCronogramaItem(req: Request, res: Response) {
             } else if (jaExiste.status !== 'APC_LIBERADO') {
                 await prisma.aPC.update({ where: { id: jaExiste.id }, data: { status: 'APC_LIBERADO' } });
             }
-            await prisma.atividade.update({
+            const atv = await prisma.atividade.findUnique({
                 where: { id: item.atividade_id },
-                data: { status_operacional: 'APC_LIBERADO' },
+                select: { status_operacional: true },
             });
+            const novo = proximoStatusAutomatico(atv?.status_operacional, 'EM_EXECUCAO');
+            if (novo) {
+                await prisma.atividade.update({
+                    where: { id: item.atividade_id },
+                    data: { status_operacional: novo },
+                });
+            }
         }
         if (concluiuAgora && CATEGORIAS_RFI.includes(item.categoria)) {
             await prisma.rFI.create({
@@ -373,7 +494,12 @@ export async function startCronograma(req: Request, res: Response) {
         const atividade = await prisma.atividade.findUnique({ where: { id: atividade_id } });
         if (!atividade) return res.status(404).json({ error: 'Atividade não encontrada' });
 
-        if (!['APC_LIBERADO', 'EM_EXECUCAO', 'CONCLUIDA'].includes(atividade.status_operacional)) {
+        // O gate é o documento de APC, não o status da atividade: desde que
+        // `APC_LIBERADO` deixou de ser uma fase da atividade, quem guarda a
+        // liberação é o registro de APC.
+        const apcLiberado = await prisma.aPC.findFirst({ where: { atividade_id, status: 'APC_LIBERADO' } });
+        const jaAndando = ['EM_EXECUCAO', 'CONCLUIDA'].includes(atividade.status_operacional);
+        if (!apcLiberado && !jaAndando) {
             return res.status(400).json({ error: 'APC ainda não foi liberado para esta atividade' });
         }
 

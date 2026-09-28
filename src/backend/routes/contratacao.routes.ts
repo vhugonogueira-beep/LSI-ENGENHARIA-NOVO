@@ -12,24 +12,31 @@ import {
     gerarEmailPagamento,
     baixarEmailPagamentoEml,
     cancelarSolicitacaoPagamento,
+    editarContratacao,
+    removerContratacao,
+    historicoContratacao,
 } from '../controllers/contratacao.controller';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 
 router.get('/', listContratacoes);
 router.get('/:id', getContratacao);
 router.post('/', createContratacao);
-router.post('/parcelas/:parcelaId/solicitar-pagamento', solicitarPagamento);
+router.post('/parcelas/:parcelaId/solicitar-pagamento', requireAuth, solicitarPagamento);
 router.post('/parcelas/:parcelaId/cancelar-solicitacao', cancelarSolicitacaoPagamento);
 // E-mail de programação de pagamento no template corporativo da LS Office.
-router.post('/parcelas/:parcelaId/email', gerarEmailPagamento);
+router.post('/parcelas/:parcelaId/email', requireAuth, gerarEmailPagamento);
 // .eml para abrir no Outlook ja pronto para envio
-router.get('/parcelas/:parcelaId/email.eml', baixarEmailPagamentoEml);
+router.get('/parcelas/:parcelaId/email.eml', requireAuth, baixarEmailPagamentoEml);
 router.put('/parcelas/:parcelaId/status', atualizarStatusParcela);
 // O valor a pagar é editável mesmo com condição de pagamento definida.
 router.put('/parcelas/:parcelaId', editarParcela);
 router.delete('/parcelas/:parcelaId', removerParcela);
 router.post('/:id/parcelas', adicionarParcela);
+router.get('/:id/historico', historicoContratacao);
+router.put('/:id', editarContratacao);
+router.delete('/:id', removerContratacao);
 router.get('/financeiro/:atividade_id', getFinanceiroAtividade);
 
 export default router;
