@@ -2,6 +2,8 @@
 import Sidebar from "../components/Sidebar";
 import Atividades from "./Atividades";
 import Configuracoes from "./Configuracoes";
+import MeuPerfil from "./MeuPerfil";
+import Clientes from "./Clientes";
 import DashboardFinanceiro from "./DashboardFinanceiro";
 import ControlePagamentos from "./ControlePagamentos";
 import PessoasPrestadores from "./PessoasPrestadores";
@@ -14,6 +16,8 @@ import { calcBudgetTotals, calcItemTotal, calcItemFinancials, roundCurrency, typ
 import { calcLegacyBudgetItemTotals, calcLegacyBudgetTotals, hydrateLegacyBudget, isLegacyBudget } from "../budget/legacyBudgetMath";
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import * as XLSX from "xlsx";
+// Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
+import { T, TMenu, tema, aplicarTema } from '../theme';
 
 function normalizeHistoricBudgetEntry(budget) {
   return isLegacyBudget(budget) ? hydrateLegacyBudget(budget) : budget;
@@ -48,9 +52,9 @@ const LoginScreen = ({ onLogin }) => {
   };
 
   const T = {
-    bg0: "#0B0F14", bg1: "#0F141C", bg2: "#121821", bg3: "#18202C", bg4: "#1F2937",
-    brBase: "rgba(255,255,255,0.08)", blue: "#3B82F6", txPri: "#F0F4FA", txSec: "#B4C5D8", txMut: "#7C94B0",
-    red: "#EF4444", green: "#22C55E",
+    bg0: "#0A1422", bg1: "#0E1A2B", bg2: "#122238", bg3: "#182B43", bg4: "#203651",
+    brBase: "#2B4059", blue: "#1768D5", txPri: "#EAF1FA", txSec: "#A6B7CC", txMut: "#8497AE",
+    red: "#f87171", green: "#34d399",
   };
 
   return (
@@ -65,7 +69,7 @@ const LoginScreen = ({ onLogin }) => {
       <div style={{
         position: "absolute", top: "20%", left: "50%", transform: "translateX(-50%)",
         width: 500, height: 500, borderRadius: "50%",
-        background: "radial-gradient(circle, #3b82f610 0%, transparent 70%)",
+        background: "radial-gradient(circle, #1768D510 0%, transparent 70%)",
         pointerEvents: "none"
       }} />
 
@@ -75,7 +79,7 @@ const LoginScreen = ({ onLogin }) => {
           width: 80, height: 80, borderRadius: 18, overflow: "hidden",
           margin: "0 auto 16px",
           border: `1px solid ${T.brBase}`,
-          boxShadow: "0 0 40px #3b82f620",
+          boxShadow: "0 0 40px #1768D520",
         }}>
           <img src={LOGO_B64} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="LSI" />
         </div>
@@ -155,12 +159,12 @@ const LoginScreen = ({ onLogin }) => {
           disabled={loading}
           style={{
             width: "100%", padding: "13px", borderRadius: 10, border: "none",
-            background: loading ? T.bg3 : "linear-gradient(135deg,#1d4ed8,#3b82f6)",
+            background: loading ? T.bg3 : "linear-gradient(135deg,#0F4EA3,#1768D5)",
             color: loading ? T.txMut : "#fff",
             fontSize: 14, fontWeight: 700, cursor: loading ? "default" : "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
             transition: "all 0.15s",
-            boxShadow: loading ? "none" : "0 4px 20px #3b82f640",
+            boxShadow: loading ? "none" : "0 4px 20px #1768D540",
           }}>
           {loading ? (
             <>
@@ -246,7 +250,7 @@ const ETAPAS_POR_TIPO = {
     { nome: "Compras e Logística de Obra", grupo: "Compras", cor: "#34d399" },
     { nome: "Solicitação de Energia", grupo: "Energia", cor: "#34d399" },
     { nome: "Ligação de Energia Definitiva", grupo: "Energia", cor: "#fbbf24" },
-    { nome: "Execução de Obra Civil", grupo: "Civil", cor: "#3b82f6" },
+    { nome: "Execução de Obra Civil", grupo: "Civil", cor: "#1768D5" },
     { nome: "Montagem dos Metálicos", grupo: "Civil", cor: "#a78bfa" },
     { nome: "RFI", grupo: "Civil", cor: "#5a6a82" },
   ],
@@ -258,7 +262,7 @@ const ETAPAS_POR_TIPO = {
     { nome: "Serviços Preliminares / Terraplenagem", grupo: "Civil", cor: "#fb923c" },
     { nome: "Fundação", grupo: "Civil", cor: "#f87171" },
     { nome: "Estrutura Metálica", grupo: "Civil", cor: "#a78bfa" },
-    { nome: "Obra Civil BTS", grupo: "Civil", cor: "#3b82f6" },
+    { nome: "Obra Civil BTS", grupo: "Civil", cor: "#1768D5" },
     { nome: "Instalação Elétrica", grupo: "Elétrica", cor: "#fbbf24" },
     { nome: "Ligação de Energia Definitiva", grupo: "Energia", cor: "#fbbf24" },
     { nome: "Montagem dos Metálicos", grupo: "Civil", cor: "#a78bfa" },
@@ -269,7 +273,7 @@ const ETAPAS_POR_TIPO = {
   obra_bts: [
     { nome: "Aceite do Projeto", grupo: "Aceite", cor: "#34d399" },
     { nome: "Compras e Logística de Obra", grupo: "Compras", cor: "#34d399" },
-    { nome: "Fundação e Civil", grupo: "Civil", cor: "#3b82f6" },
+    { nome: "Fundação e Civil", grupo: "Civil", cor: "#1768D5" },
     { nome: "Montagem Metálica", grupo: "Civil", cor: "#a78bfa" },
     { nome: "RFI", grupo: "Civil", cor: "#5a6a82" },
   ],
@@ -277,7 +281,7 @@ const ETAPAS_POR_TIPO = {
     { nome: "Aceite do Projeto", grupo: "Aceite", cor: "#34d399" },
     { nome: "Compras e Logística", grupo: "Compras", cor: "#34d399" },
     { nome: "Vistoria Técnica", grupo: "Projeto", cor: "#67e8f9" },
-    { nome: "Adequação de Infra Existente", grupo: "Civil", cor: "#3b82f6" },
+    { nome: "Adequação de Infra Existente", grupo: "Civil", cor: "#1768D5" },
     { nome: "Instalação de Equipamentos", grupo: "Telecom", cor: "#a78bfa" },
     { nome: "Configuração / Integração", grupo: "Telecom", cor: "#fbbf24" },
     { nome: "Testes e Comissionamento", grupo: "Telecom", cor: "#67e8f9" },
@@ -286,13 +290,13 @@ const ETAPAS_POR_TIPO = {
   manutencao_geral: [
     { nome: "Abertura de OS", grupo: "OS", cor: "#67e8f9" },
     { nome: "Diagnóstico / Vistoria", grupo: "Execução", cor: "#fbbf24" },
-    { nome: "Execução / Reparo", grupo: "Execução", cor: "#3b82f6" },
+    { nome: "Execução / Reparo", grupo: "Execução", cor: "#1768D5" },
     { nome: "Testes Pós-Serviço", grupo: "Execução", cor: "#a78bfa" },
     { nome: "Encerramento de OS", grupo: "OS", cor: "#34d399" },
   ],
   custom: [
     { nome: "Aceite do Projeto", grupo: "Aceite", cor: "#34d399" },
-    { nome: "Execução", grupo: "Execução", cor: "#3b82f6" },
+    { nome: "Execução", grupo: "Execução", cor: "#1768D5" },
     { nome: "Entrega / RFI", grupo: "Entrega", cor: "#5a6a82" },
   ],
 };
@@ -311,12 +315,12 @@ const ETAPAS_PADRAO = [
   { nome: "Solicitação de Energia", grupo: "Energia", cor: "#34d399", progresso: 0, responsavel: "", inicio: "", fim: "" },
   { nome: "Ligação de Energia Definitiva", grupo: "Energia", cor: "#fbbf24", progresso: 0, responsavel: "", inicio: "", fim: "" },
   { nome: "Início de Obra Civil", grupo: "Civil", cor: "#34d399", progresso: 0, responsavel: "", inicio: "", fim: "" },
-  { nome: "Execução de Obra Civil", grupo: "Civil", cor: "#3b82f6", progresso: 0, responsavel: "", inicio: "", fim: "" },
+  { nome: "Execução de Obra Civil", grupo: "Civil", cor: "#1768D5", progresso: 0, responsavel: "", inicio: "", fim: "" },
   { nome: "Montagem dos Metálicos", grupo: "Civil", cor: "#a78bfa", progresso: 0, responsavel: "", inicio: "", fim: "" },
   { nome: "RFI", grupo: "Civil", cor: "#5a6a82", progresso: 0, responsavel: "", inicio: "", fim: "" },
 ];
 const makeEtapas = () => ETAPAS_PADRAO.map((e, i) => ({ ...e, id: `et_pad_${i}_${Date.now()}` }));
-const ETAPA_FORM_INIT = { nome: "", grupo: "", responsavel: "", inicio: "", fim: "", progresso: 0, cor: "#3b82f6" };
+const ETAPA_FORM_INIT = { nome: "", grupo: "", responsavel: "", inicio: "", fim: "", progresso: 0, cor: "#1768D5" };
 
 const PROJETOS_INIT = [
   {
@@ -350,7 +354,7 @@ const PROJETOS_INIT = [
       { id: "et_p1_2", nome: "Solicitação de Energia", grupo: "Energia", cor: "#34d399", progresso: 100, responsavel: "Luan", inicio: "16/01/26", fim: "20/01/26" },
       { id: "et_p1_3", nome: "Ligação de Energia Definitiva", grupo: "Energia", cor: "#fbbf24", progresso: 25, responsavel: "Luan", inicio: "20/01/26", fim: "27/01/26" },
       { id: "et_p1_4", nome: "Início de Obra Civil", grupo: "Civil", cor: "#34d399", progresso: 100, responsavel: "Luan", inicio: "14/01/26", fim: "20/08/35" },
-      { id: "et_p1_5", nome: "Execução de Obra Civil", grupo: "Civil", cor: "#3b82f6", progresso: 57, responsavel: "Luan", inicio: "14/01/26", fim: "27/01/26" },
+      { id: "et_p1_5", nome: "Execução de Obra Civil", grupo: "Civil", cor: "#1768D5", progresso: 57, responsavel: "Luan", inicio: "14/01/26", fim: "27/01/26" },
       { id: "et_p1_6", nome: "Montagem dos Metálicos", grupo: "Civil", cor: "#a78bfa", progresso: 0, responsavel: "Luan", inicio: "26/01/26", fim: "27/01/26" },
       { id: "et_p1_7", nome: "RFI", grupo: "Civil", cor: "#5a6a82", progresso: 0, responsavel: "Luan", inicio: "27/01/26", fim: "27/01/26" },
     ],
@@ -385,7 +389,7 @@ const PROJETOS_INIT = [
 ];
 
 const AREAS = [
-  { id: "implantacao", label: "Implantação", icon: "🔧", desc: "Construção civil, estrutura metálica, fundação, elétrica e SPDA.", color: "#3b82f6", gradient: "linear-gradient(135deg,#1e3a5f,#1d4ed8)", lpu: "LPU ADEQUAÇÃO", hasLPU: true },
+  { id: "implantacao", label: "Implantação", icon: "🔧", desc: "Construção civil, estrutura metálica, fundação, elétrica e SPDA.", color: "#1768D5", gradient: "linear-gradient(135deg,#1e3a5f,#0F4EA3)", lpu: "LPU ADEQUAÇÃO", hasLPU: true },
   { id: "operacao", label: "Operação", icon: "⚙️", desc: "Manutenção preventiva, corretiva e operação de sites.", color: "#34d399", gradient: "linear-gradient(135deg,#064e3b,#059669)", lpu: "LPU OPERAÇÃO", hasLPU: false },
   { id: "aquisicao", label: "Aquisição", icon: "📋", desc: "Processos de aquisição de área, SAR e contratos.", color: "#f59e0b", gradient: "linear-gradient(135deg,#78350f,#d97706)", lpu: "LPU AQUISIÇÃO", hasLPU: false },
   { id: "licenciamento", label: "Licenciamento", icon: "📜", desc: "Processos de licenciamento urbanístico e ambiental.", color: "#a78bfa", gradient: "linear-gradient(135deg,#3b0764,#7c3aed)", lpu: "LPU LICENCIAMENTO", hasLPU: false },
@@ -445,18 +449,6 @@ const getProjectEndDate = (project) => {
 const fmt = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const pct = (a, b) => b > 0 ? Math.min(100, Math.round((a / b) * 100)) : 0;
 
-const T = {
-  bg0: "#07090f", bg1: "#0e1117", bg2: "#13181f", bg3: "#1a2030", bg4: "#222a3a",
-  bgHover: "rgba(59,130,246,0.10)", bgSidebar: "#0e1117",
-  brSub: "#1e2840", brBase: "#2d3a52", brStrong: "#3d5070",
-  txPri: "#f0f4fa", txSec: "#b4c5d8", txMut: "#7c94b0", txDis: "#506480",
-  blue: "#3b82f6", blueD: "#1d4ed8", blueL: "#93c5fd",
-  green: "#34d399", greenD: "#0d9e74",
-  amber: "#fbbf24", amberD: "#d97706",
-  red: "#f87171", redD: "#dc2626",
-  purple: "#a78bfa", cyan: "#67e8f9", orange: "#fb923c", indigo: "#6366f1",
-  gradBlue: "linear-gradient(90deg, #2563EB, #3B82F6)",
-};
 
 const ST_COLOR = {
   "Prospectando": T.purple, "Planejado": T.txMut, "Em Andamento": T.blue,
@@ -535,7 +527,7 @@ class ErrorBoundary extends React.Component {
         <h2>⚠️ Erro no componente App</h2>
         <pre style={{ whiteSpace: "pre-wrap", fontSize: 14 }}>{String(this.state.error)}</pre>
         <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, color: "#9aa5bb", marginTop: 20 }}>{this.state.error?.stack}</pre>
-        <button onClick={() => window.location.reload()} style={{ marginTop: 20, padding: "10px 20px", background: "#3b82f6", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Recarregar</button>
+        <button onClick={() => window.location.reload()} style={{ marginTop: 20, padding: "10px 20px", background: "#1768D5", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Recarregar</button>
       </div>);
     }
     return this.props.children;
@@ -1667,19 +1659,26 @@ ${row("Forma Pgto", pagtoInfo)}`;
     boxShadow: `0 8px 24px ${c}08, 0 2px 8px rgba(15,23,42,0.04)`,
   });
 
-  const iconBox = (c: string, active = false) => ({
+  // `menu` = caixa de icone dentro do menu lateral. No item ativo o fundo ja e
+  // azul solido, entao a caixa some e o icone fica branco; fora do menu o
+  // comportamento antigo (veu da cor de acento) e preservado.
+  const caixaIcone = (p: typeof T, menu = false) => (c: string, active = false) => ({
     width: 28,
     height: 28,
     borderRadius: 8,
-    background: active ? `${c}15` : T.bg1,
-    border: `1px solid ${active ? `${c}40` : T.brBase}`,
+    background: active ? (menu ? "transparent" : `${c}15`) : p.bg1,
+    border: `1px solid ${active ? (menu ? "transparent" : `${c}40`) : p.brBase}`,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-    color: active ? c : T.txSec,
+    color: active ? (menu ? "#FFFFFF" : c) : p.txSec,
     transition: "all 0.2s",
   });
+  const iconBox = caixaIcone(T);
+  // O menu lateral e marinho nos dois temas: usa a paleta propria, senao no
+  // tema claro o texto quase preto cairia sobre o fundo marinho.
+  const iconBoxMenu = caixaIcone(TMenu, true);
 
   // Badge de status premium: pill shape + dot indicator
   const StatusBadge = ({ status, color = null }) => {
@@ -1698,7 +1697,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         <div style={{ width: 3, height: 36, borderRadius: 2, background: `linear-gradient(180deg, ${color}, ${color}60)`, flexShrink: 0, marginTop: 2 }} />
         <div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: T.txPri, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: T.titulo, letterSpacing: "-0.01em", display: "flex", alignItems: "center", gap: 8 }}>
             <span>{icon}</span> {title}
           </div>
           {subtitle && <div style={{ fontSize: 12, color: T.txSec, marginTop: 4 }}>{subtitle}</div>}
@@ -1789,6 +1788,32 @@ ${row("Forma Pgto", pagtoInfo)}`;
           ))}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Alternador de tema. A paleta e resolvida no carregamento do modulo,
+              entao trocar de tema recarrega a pagina — ver src/frontend/theme.ts. */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 2, padding: 2,
+            borderRadius: 9, background: T.bg1, border: `1px solid ${T.brBase}`,
+          }}>
+            {([["claro", "☀", "Claro"], ["escuro", "☾", "Escuro"]] as const).map(([id, icone, rotulo]) => (
+              <button
+                key={id}
+                type="button"
+                title={`Tema ${rotulo.toLowerCase()}`}
+                aria-pressed={tema === id}
+                onClick={() => tema !== id && aplicarTema(id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "5px 10px", borderRadius: 7, border: "none", cursor: "pointer",
+                  fontSize: 11.5, fontWeight: 700,
+                  background: tema === id ? T.blue : "transparent",
+                  color: tema === id ? "#fff" : T.txMut,
+                  transition: "all 0.15s",
+                }}
+              >
+                <span style={{ fontSize: 12 }}>{icone}</span>{rotulo}
+              </button>
+            ))}
+          </div>
           <IconButton title="Buscar" icon="🔍" />
           <IconButton title="Alertas" icon="🔔" />
           <IconButton title="Atualizar" icon="⟳" />
@@ -4336,7 +4361,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     <button onClick={addDespesa}
                       style={{
                         ...S.btn, flex: 3, padding: 11, fontSize: 13,
-                        background: isNF ? "linear-gradient(135deg,#1d4ed8,#3b82f6)" : isPag ? "linear-gradient(135deg,#d97706,#f59e0b)" : "linear-gradient(135deg,#b45309,#f59e0b)",
+                        background: isNF ? "linear-gradient(135deg,#0F4EA3,#1768D5)" : isPag ? "linear-gradient(135deg,#d97706,#f59e0b)" : "linear-gradient(135deg,#b45309,#f59e0b)",
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8
                       }}>
                       {isNF ? "✓ Registrar NF Paga & Gerar E-mail (.msg)" : isPag ? "💸 Registrar Pagamento & Gerar E-mail (.msg)" : "🧾 Lançar Despesa & Gerar E-mail (.msg)"}
@@ -7617,7 +7642,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
         exportarBackup={exportarBackup} importarBackup={importarBackup}
         user={user} onLogout={onLogout}
         onAbrirConfiguracoes={() => setTab("configuracoes")}
-        T={T} iconBox={iconBox} LOGO_B64={LOGO_B64}
+        onAbrirPerfil={() => setTab("perfil")}
+        T={TMenu} iconBox={iconBoxMenu} LOGO_B64={LOGO_B64}
       />
       <div className="scroll-min" style={{ 
         flex: 1, 
@@ -7633,6 +7659,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {tab === "demandas" && <Atividades vistaInicial="kanban" />}
         {tab === "atividades" && <Atividades />}
         {tab === "configuracoes" && <Configuracoes />}
+        {tab === "perfil" && <MeuPerfil />}
         {tab === "pagamentos" && <ControlePagamentos />}
         {/* Controladoria sobre o modelo real. A TabDashboard() antiga somava
             `ls_projetos` do localStorage — cadastro paralelo ao banco. */}
@@ -7643,7 +7670,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {tab === "fornecedores" && <PessoasPrestadores initialTab="fornecedores" />}
         {tab === "funcionarios" && <PessoasPrestadores initialTab="funcionarios" />}
         {tab === "relatorios" && TabRelatorios()}
-        {tab === "clientes" && TabClientes()}
+        {tab === "clientes" && <Clientes />}
         {tab === "faturamento" && <FaturamentoReal />}
         {tab === "pvhighline" && TabPVHighline()}
         {tab === "resumo" && TabResumo()}

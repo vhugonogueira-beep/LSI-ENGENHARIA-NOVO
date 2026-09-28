@@ -16,10 +16,17 @@ outputs/
 generated.pdf
 
 # Banco de dados local (contém dados sensíveis)
-prisma/dev.db
-prisma/dev.db-journal
+# O glob cobre qualquer dump solto na pasta, não só o dev.db — um backup
+# nomeado à mão já ficou fora do ignore e quase entrou num commit.
+prisma/*.db
+prisma/*.db-journal
 prisma/backups/
 
 # Logs de servidor
 ls-backend.log
 ls-frontend.log
+.claude/settings.local.json
+
+# E-mails gerados (.eml) — carregam CPF, chave PIX, dados bancarios do
+# favorecido e a assinatura pessoal de quem gerou. Nao entram no repositorio.
+*.eml

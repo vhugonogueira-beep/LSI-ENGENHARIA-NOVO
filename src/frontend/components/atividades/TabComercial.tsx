@@ -368,7 +368,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
 
 function DecisaoBadge({ decisao }: { decisao: string }) {
     const colorMap: Record<string, string> = {
-        PENDENTE: '#94a3b8', ACEITA: '#22c55e', RECUSADA: '#ef4444', NOVA_CONTRAPROPOSTA: '#f59e0b', ANALISE_INTERNA: '#3b82f6',
+        PENDENTE: '#94a3b8', ACEITA: '#22c55e', RECUSADA: '#ef4444', NOVA_CONTRAPROPOSTA: '#f59e0b', ANALISE_INTERNA: '#1768D5',
     };
     const color = colorMap[decisao] || '#94a3b8';
     return <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${color}22`, color }}>{decisao.replace(/_/g, ' ')}</span>;

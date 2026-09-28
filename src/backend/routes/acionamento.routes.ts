@@ -6,6 +6,8 @@ import {
     updateAcionamento,
     deleteAcionamento,
     criarAtividadeDoAcionamento,
+    agruparAtividades,
+    financeiroDoProjeto,
 } from '../controllers/acionamento.controller';
 
 const router = Router();
@@ -16,5 +18,7 @@ router.post('/', createAcionamento);
 router.put('/:id', updateAcionamento);
 router.delete('/:id', deleteAcionamento);
 router.post('/:id/atividades', criarAtividadeDoAcionamento);
+router.put('/:id/atividades', agruparAtividades);
+router.get('/:id/financeiro', financeiroDoProjeto);
 
 export default router;

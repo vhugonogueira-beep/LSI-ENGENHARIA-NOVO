@@ -6,6 +6,8 @@ import {
   FinancialPaymentCard,
   type FinancialAction,
 } from "../components/financeiro/FinancialCards";
+// Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
+import { T } from '../theme';
 
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Controle de Pagamentos â€” a fila Ãºnica do que a LS Office deve pagar.
@@ -18,13 +20,6 @@ import {
 // ciclo e o que a controladoria cobra depois.
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-const T = {
-  bg1: "#0e1117", bg2: "#13181f", bg3: "#1a2030",
-  brSub: "#1e2840", brBase: "#2d3a52",
-  txPri: "#f0f4fa", txSec: "#b4c5d8", txMut: "#7c94b0", txDis: "#506480",
-  blue: "#3b82f6", green: "#34d399", amber: "#fbbf24", red: "#f87171",
-  purple: "#a78bfa", cyan: "#67e8f9",
-};
 
 const S = {
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "14px 16px" } as React.CSSProperties,
@@ -48,15 +43,20 @@ interface Linha {
   data_prevista: string | null;
   data_pagamento: string | null;
   comprovante_url: string | null;
+  /** Comprovante em qualquer um dos dois lugares: campo antigo ou anexo. */
+  tem_comprovante: boolean;
   atividade: { id: string; codigo: string; titulo: string; site: string | null } | null;
   banco: string | null; agencia: string | null; conta: string | null; pix: string | null;
   solicitado_em: string | null;
   forma_pagamento: string | null;
   cartao: string | null;
   formalizacao_posterior: boolean;
+  processo_tipo: string;
   fatura_referencia: string | null;
   processo_id: string | null;
   deposito_numero: number | null;
+  /** REE-2026-0041 / ADT-2026-0007. Parcela de contrato ainda vem nula. */
+  referencia: string | null;
 }
 
 const moeda = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -202,9 +202,9 @@ export default function ControlePagamentos() {
     return linhas.filter(l => {
       if (filtro === "A_PAGAR" && PAGOS.includes(l.status)) return false;
       if (filtro === "PAGOS" && !PAGOS.includes(l.status)) return false;
-      if (filtro === "SEM_COMPROVANTE" && !(PAGOS.includes(l.status) && !l.comprovante_url)) return false;
+      if (filtro === "SEM_COMPROVANTE" && !(PAGOS.includes(l.status) && !l.tem_comprovante)) return false;
       if (!termo) return true;
-      return `${l.favorecido} ${l.descricao} ${l.forma_pagamento || ""} ${l.cartao || ""} ${l.fatura_referencia || ""} ${l.atividade?.codigo || ""} ${l.atividade?.site || ""}`
+      return `${l.referencia || ""} ${l.favorecido} ${l.descricao} ${l.forma_pagamento || ""} ${l.cartao || ""} ${l.fatura_referencia || ""} ${l.atividade?.codigo || ""} ${l.atividade?.site || ""}`
         .toLocaleLowerCase("pt-BR").includes(termo);
     });
   }, [linhas, filtro, busca]);
@@ -258,6 +258,11 @@ export default function ControlePagamentos() {
           <Kpi rotulo="Pago" valor={moeda(resumo.pago)} cor={T.green} />
           <Kpi rotulo="Total" valor={moeda(resumo.total)} cor={T.blue} />
           <Kpi rotulo="Pagos sem comprovante" valor={String(resumo.semComprovante)} cor={resumo.semComprovante > 0 ? T.red : T.txMut} />
+          {/* Formalizações não entram em "A pagar": o dinheiro já saiu. O que
+              falta nelas é documento, e isso tem indicador próprio. */}
+          {resumo.formalizacoesPendentesDocumento > 0 && (
+            <Kpi rotulo="Formalizações sem documento" valor={String(resumo.formalizacoesPendentesDocumento)} cor={T.amber} />
+          )}
         </div>
       )}
 
@@ -286,8 +291,11 @@ export default function ControlePagamentos() {
               {documento && <div className="px-1 text-[10px] text-muted-foreground">Documento: {documento}</div>}
               {pagamentos.map(l => {
                 const pago = PAGOS.includes(l.status);
-                const faltaComprovante = pago && !l.comprovante_url;
+                const faltaComprovante = pago && !l.tem_comprovante;
+                // A referencia vem primeiro: e por ela que o financeiro
+                // identifica o lancamento no extrato e no e-mail.
                 const contexto = [
+                  l.referencia,
                   l.descricao,
                   l.atividade?.codigo,
                   l.atividade?.site,
@@ -349,7 +357,7 @@ export default function ControlePagamentos() {
                       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
                         <span className="font-semibold" style={{ color: corOrigem(l.origem) }}>{ORIGEM_LABEL[l.origem]}</span>
                         {l.documento && <span>{l.documento}</span>}
-                        {l.formalizacao_posterior && <span className="text-amber-400">Compra já realizada · formalização sem novo pagamento{l.fatura_referencia ? ` · Fatura ${l.fatura_referencia}` : ""}</span>}
+                        {(l.processo_tipo === 'PAYMENT_FORMALIZATION' || l.formalizacao_posterior) && <span className="text-amber-400">Pagamento já realizado · formalização documental, sem novo pagamento{l.fatura_referencia ? ` · ${l.fatura_referencia}` : ""}</span>}
                       </div>
                     </FinancialPaymentCard>
                   </div>

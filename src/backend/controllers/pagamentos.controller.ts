@@ -11,29 +11,24 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { prisma } from '../server';
+import { sincronizarResumoPagamentos } from './reembolso.controller';
+import { aplicarComprovanteRecebido } from '../services/payment-attachment.service';
 
 const PASTA_COMPROVANTES = path.resolve(process.cwd(), 'storage', 'comprovantes');
 
+import { isDesembolsoPendente } from '../services/payment-domain.service';
+
 const PAGOS = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
 
-async function sincronizarCabecalhoDepositos(reembolsoId: string) {
-    const pagamentos = await prisma.reembolsoPagamento.findMany({ where: { reembolso_id: reembolsoId }, orderBy: { numero: 'asc' } });
-    if (!pagamentos.length) return;
-    const todosPagos = pagamentos.every(p => PAGOS.includes(p.status));
-    await prisma.reembolso.update({
-        where: { id: reembolsoId },
-        data: {
-            status: todosPagos
-                ? (pagamentos.every(p => p.status === 'CONFERIDO') ? 'CONFERIDO'
-                    : pagamentos.every(p => Boolean(p.comprovante_url)) ? 'COMPROVANTE_RECEBIDO' : 'PAGO')
-                : pagamentos.some(p => p.status !== 'PENDENTE') ? 'AGUARDANDO_PAGAMENTO' : 'PENDENTE',
-            comprovante_url: pagamentos.length === 1 ? pagamentos[0].comprovante_url : null,
-            data_pagamento: todosPagos
-                ? pagamentos.map(p => p.data_pagamento).filter(Boolean).sort((a, b) => (b?.getTime() || 0) - (a?.getTime() || 0))[0] || null
-                : null,
-        },
-    });
-}
+// A sincronização do cabeçalho do reembolso mora em reembolso.controller.ts.
+//
+// Havia aqui uma cópia dela. As duas calculavam o mesmo status pelas mesmas
+// regras, mas só a original zerava `valor_adiantado`, `data_solicitacao` e
+// `data_prevista` quando o último depósito saía — então marcar um depósito como
+// pago pela tela de Controle de Pagamentos deixava o cabeçalho num estado
+// diferente do que a mesma ação deixava pela aba da atividade. Duas cópias de
+// uma regra de negócio divergem em silêncio; agora é uma só.
+
 
 export interface LinhaPagamento {
     id: string;
@@ -56,9 +51,22 @@ export interface LinhaPagamento {
     forma_pagamento: string | null;
     cartao: string | null;
     formalizacao_posterior: boolean;
+    processo_tipo: string;
     fatura_referencia: string | null;
     processo_id: string | null;
     deposito_numero: number | null;
+    /** Referencia humana do lancamento (REE-2026-0041). Parcelas de contrato
+     *  ainda nao tem uma propria e vem nulas. */
+    referencia: string | null;
+    /**
+     * Se existe comprovante, venha ele de onde vier.
+     *
+     * O comprovante mora em dois lugares: no campo antigo `comprovante_url`, que
+     * esta tela ainda grava, e em `PaymentAttachment`, que a aba da atividade
+     * usa. Filtrar por `comprovante_url` sozinho marcava como "sem comprovante"
+     * um pagamento cujo comprovante fora anexado pela outra tela.
+     */
+    tem_comprovante: boolean;
 }
 
 /** Fila consolidada. Filtros: ?status=, ?atividade_id=, ?somente_pendentes=1 */
@@ -106,6 +114,17 @@ export async function listPagamentos(req: Request, res: Response) {
             orderBy: [{ data_prevista: 'asc' }, { created_at: 'asc' }],
         });
 
+        // Uma consulta só para os dois tipos de dono; o Map evita N+1.
+        const comprovantesAnexados = await prisma.paymentAttachment.findMany({
+            where: { tipo: 'COMPROVANTE_PAGAMENTO' },
+            select: { parcela_id: true, reembolso_pagamento_id: true },
+        });
+        const comDocumento = new Set<string>();
+        for (const a of comprovantesAnexados) {
+            if (a.parcela_id) comDocumento.add(a.parcela_id);
+            if (a.reembolso_pagamento_id) comDocumento.add(a.reembolso_pagamento_id);
+        }
+
         const linhas: LinhaPagamento[] = [
             ...parcelas.map(p => ({
                 id: p.id,
@@ -120,6 +139,7 @@ export async function listPagamentos(req: Request, res: Response) {
                 data_prevista: p.data_prevista ? p.data_prevista.toISOString() : null,
                 data_pagamento: p.data_pagamento ? p.data_pagamento.toISOString() : null,
                 comprovante_url: p.comprovante_url,
+                tem_comprovante: Boolean(p.comprovante_url) || comDocumento.has(p.id),
                 atividade: p.contratacao.atividade
                     ? {
                         id: p.contratacao.atividade.id,
@@ -138,9 +158,11 @@ export async function listPagamentos(req: Request, res: Response) {
                 cartao: p.cartao_bandeira && p.cartao_final
                     ? `${p.cartao_bandeira} •••• ${p.cartao_final}${p.cartao_apelido ? ` — ${p.cartao_apelido}` : ''}` : null,
                 formalizacao_posterior: p.formalizacao_posterior,
+                processo_tipo: p.processo_tipo || (p.formalizacao_posterior ? 'PAYMENT_FORMALIZATION' : 'PAYMENT_REQUEST'),
                 fatura_referencia: p.fatura_referencia,
                 processo_id: null,
                 deposito_numero: null,
+                referencia: null,
             })),
             ...reembolsos.flatMap(r => {
                 const registros: any[] = r.pagamentos.length ? r.pagamentos : [{
@@ -156,6 +178,7 @@ export async function listPagamentos(req: Request, res: Response) {
                     // informacao efetivamente usada na epoca.
                     id: pg.id,
                     origem: (r.natureza === 'ADIANTAMENTO' ? 'ADIANTAMENTO' : 'REEMBOLSO') as 'ADIANTAMENTO' | 'REEMBOLSO',
+                    referencia: r.codigo,
                     favorecido: r.favorecido_nome,
                     documento: r.cpf_cnpj,
                     descricao: r.motivo || r.despesas.map(d => d.descricao).slice(0, 2).join(' · ') || (r.natureza === 'ADIANTAMENTO' ? 'Adiantamento de viagem' : 'Reembolso de despesas'),
@@ -166,6 +189,7 @@ export async function listPagamentos(req: Request, res: Response) {
                     data_prevista: pg.data_prevista ? pg.data_prevista.toISOString() : null,
                     data_pagamento: pg.data_pagamento ? pg.data_pagamento.toISOString() : null,
                     comprovante_url: pg.comprovante_url,
+                    tem_comprovante: Boolean(pg.comprovante_url) || comDocumento.has(pg.id),
                     atividade: r.atividade
                         ? { id: r.atividade.id, codigo: r.atividade.codigo, titulo: r.atividade.titulo, site: r.atividade.id_site_sharing }
                         : null,
@@ -185,6 +209,7 @@ export async function listPagamentos(req: Request, res: Response) {
                     forma_pagamento: pg.forma_pagamento || r.forma_pagamento || (r.pix_chave || r.supplier?.pix || r.funcionario?.pix_chave ? 'PIX' : 'TED'),
                     cartao: null,
                     formalizacao_posterior: false,
+                    processo_tipo: 'PAYMENT_REQUEST',
                     fatura_referencia: null,
                     processo_id: r.id,
                     deposito_numero: pg.numero,
@@ -203,9 +228,14 @@ export async function listPagamentos(req: Request, res: Response) {
             linhas,
             resumo: {
                 total: total(() => true),
-                aPagar: total(l => !PAGOS.includes(l.status)),
-                pago: total(l => PAGOS.includes(l.status)),
-                semComprovante: linhas.filter(l => PAGOS.includes(l.status) && !l.comprovante_url).length,
+                // "A pagar" é caixa a sair. Formalização é gasto já realizado:
+                // entra em "pago" e aparece à parte como pendência documental.
+                aPagar: total(l => isDesembolsoPendente(l, PAGOS)),
+                pago: total(l => !isDesembolsoPendente(l, PAGOS)),
+                formalizacoesPendentesDocumento: linhas.filter(
+                    l => l.processo_tipo === 'PAYMENT_FORMALIZATION' && !PAGOS.includes(l.status),
+                ).length,
+                semComprovante: linhas.filter(l => PAGOS.includes(l.status) && !l.tem_comprovante).length,
                 quantidade: linhas.length,
             },
         });
@@ -250,19 +280,12 @@ export async function anexarComprovante(req: Request, res: Response) {
 
         if (!url) return res.status(400).json({ error: 'Envie o arquivo ou uma URL do comprovante' });
 
-        // Anexar comprovante fecha o ciclo: quem já estava pago passa a
-        // "comprovante recebido"; quem não estava, passa a pago.
+        // Anexar comprovante fecha o ciclo. A regra mora em
+        // payment-attachment.service.ts, e é a mesma que a faixa Documentos usa:
+        // duas cópias divergiriam em silêncio.
         if (origem.toUpperCase() === 'PARCELA') {
-            const atual = await prisma.parcelaPagamento.findUnique({ where: { id } });
-            if (!atual) return res.status(404).json({ error: 'Parcela não encontrada' });
-            const parcela = await prisma.parcelaPagamento.update({
-                where: { id },
-                data: {
-                    comprovante_url: url,
-                    status: atual.status === 'CONFERIDO' ? 'CONFERIDO' : 'COMPROVANTE_RECEBIDO',
-                    data_pagamento: atual.data_pagamento || new Date(),
-                },
-            });
+            const parcela = await aplicarComprovanteRecebido('PARCELA', id, url);
+            if (!parcela) return res.status(404).json({ error: 'Parcela não encontrada' });
             return res.json(parcela);
         }
 
@@ -276,7 +299,7 @@ export async function anexarComprovante(req: Request, res: Response) {
                     data_pagamento: atual.data_pagamento || new Date(),
                 },
             });
-            await sincronizarCabecalhoDepositos(atual.reembolso_id);
+            await sincronizarResumoPagamentos(atual.reembolso_id);
             return res.json(pagamento);
         }
 
@@ -323,7 +346,7 @@ export async function removerComprovante(req: Request, res: Response) {
         }
         if (origem.toUpperCase() === 'DEPOSITO') {
             const deposito = await prisma.reembolsoPagamento.update({ where: { id }, data: { comprovante_url: null, status: 'PAGO' } });
-            await sincronizarCabecalhoDepositos(deposito.reembolso_id);
+            await sincronizarResumoPagamentos(deposito.reembolso_id);
             return res.json(deposito);
         }
         res.json(await prisma.reembolso.update({ where: { id }, data: { comprovante_url: null } }));

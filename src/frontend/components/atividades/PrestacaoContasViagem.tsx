@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Calculator, Copy, Download, FileArchive, FileCheck2, FileSpreadsheet, Mail, Paperclip, Plus, Trash2, X } from 'lucide-react';
+import { Calculator, Copy, Download, FileArchive, FileSpreadsheet, Mail, Plus, Trash2, X } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { fmtData, fmtMoeda } from './constants';
 import PagamentoStatusSelect from './PagamentoStatusSelect';
 import PrestacaoConsolidadaPanel from './PrestacaoConsolidadaPanel';
 import { GhostButton, PrimaryButton, inputClass } from './ui';
-import { FinancialAttachments, FinancialBeneficiaryCard, FinancialPaymentCard, type FinancialAction } from '../financeiro/FinancialCards';
+import { FinancialActionMenu, FinancialAttachments, FinancialBeneficiaryCard, FinancialPaymentCard, type FinancialAction } from '../financeiro/FinancialCards';
+import PaymentAttachments from '../financeiro/PaymentAttachments';
+import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 
 const FORMA_LABEL: Record<string, string> = { PIX: 'PIX', TED: 'Transferência bancária', BOLETO: 'Boleto', DINHEIRO: 'Dinheiro' };
 const PAGOS = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
@@ -30,9 +32,15 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [anexando, setAnexando] = useState<string | null>(null);
-  const comprovanteRef = useRef<HTMLInputElement>(null);
+  // Edição do cabeçalho do processo, no próprio cartão do favorecido.
+  const [editandoProcesso, setEditandoProcesso] = useState<{ id: string; favorecido_nome: string; motivo: string } | null>(null);
+  // Rateio do adiantamento de projeto: cada linha diz quanto, em qual site e
+  // para qual prestador. É por aqui que o dinheiro desce do projeto para a obra.
+  const [rateio, setRateio] = useState<{ processoId: string; linhas: any[] } | null>(null);
+  const [atividadesDoProjeto, setAtividadesDoProjeto] = useState<any[]>([]);
+  const [prestadores, setPrestadores] = useState<{ funcionarios: any[]; suppliers: any[] }>({ funcionarios: [], suppliers: [] });
+
   const memoriaRef = useRef<HTMLInputElement>(null);
-  const alvoComprovanteRef = useRef<any | null>(null);
   const alvoMemoriaRef = useRef<any | null>(null);
 
   const carregar = async () => {
@@ -41,6 +49,59 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
     setItens(Array.isArray(d) ? d : []);
   };
   useEffect(() => { carregar(); }, [atividade?.id, refreshKey]);
+
+  /** Abre o rateio de um adiantamento de projeto. */
+  const abrirRateio = async (processo: any) => {
+    setErro('');
+    try {
+      const [fin, fun, sup] = await Promise.all([
+        fetch(`/api/acionamentos/${processo.acionamento.id}/financeiro`),
+        fetch('/api/funcionarios'),
+        fetch('/api/suppliers?limit=200'),
+      ]);
+      setAtividadesDoProjeto(fin.ok ? (await fin.json()).atividades || [] : []);
+      setPrestadores({
+        funcionarios: fun.ok ? await fun.json() : [],
+        suppliers: sup.ok ? ((await sup.json()).items || []) : [],
+      });
+      setRateio({
+        processoId: processo.id,
+        linhas: (processo.despesas || []).length
+          ? processo.despesas.map((d: any) => ({
+            data: d.data ? String(d.data).slice(0, 10) : '',
+            descricao: d.descricao || '', valor: String(d.valor), categoria: d.categoria || 'OUTROS',
+            atividade_id: d.atividade_id || '',
+            // Um campo só na tela para os dois tipos de prestador; a origem vai
+            // no prefixo e o payload separa na hora de salvar.
+            prestador: d.funcionario_id ? `f:${d.funcionario_id}` : d.supplier_id ? `s:${d.supplier_id}` : '',
+          }))
+          : [{ data: hojeLocal(), descricao: '', valor: '', categoria: 'SERVICO', atividade_id: '', prestador: '' }],
+      });
+    } catch (e: any) { setErro(e.message); }
+  };
+
+  const salvarRateio = async () => {
+    if (!rateio) return;
+    setSalvando(true); setErro('');
+    try {
+      const despesas = rateio.linhas
+        .filter(l => l.descricao || Number(String(l.valor).replace(',', '.')))
+        .map(l => ({
+          data: l.data || null, descricao: l.descricao, categoria: l.categoria,
+          valor: Number(String(l.valor).replace(',', '.')),
+          atividade_id: l.atividade_id || null,
+          funcionario_id: l.prestador.startsWith('f:') ? l.prestador.slice(2) : null,
+          supplier_id: l.prestador.startsWith('s:') ? l.prestador.slice(2) : null,
+        }));
+      const r = await fetch(`/api/reembolsos/${rateio.processoId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ despesas }),
+      });
+      if (!r.ok) throw new Error((await r.json()).error || 'Erro ao salvar o rateio');
+      setRateio(null);
+      await carregar();
+    } catch (e: any) { setErro(e.message); }
+    finally { setSalvando(false); }
+  };
 
   const abrirEditor = (processo: any, pagamento?: any) => {
     setErro('');
@@ -73,6 +134,51 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
     const r = await fetch(`/api/reembolsos/pagamentos/${pagamento.id}/status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
     if (!r.ok) { setErro((await r.json()).error || 'Erro ao alterar status'); return; } await carregar();
   };
+  /**
+   * Devolve o depósito para PENDENTE, desfazendo a solicitação.
+   *
+   * O cartão de contratação já tinha "Excluir solicitação"; o de reembolso não
+   * tinha equivalente, e a única saída era excluir o depósito inteiro — que
+   * apaga um dado que ainda serve.
+   */
+  const cancelarSolicitacaoDeposito = async (pagamento: any) => {
+    if (!confirm(`Cancelar a solicitação do depósito ${pagamento.numero}?
+
+O depósito continua no processo e volta para PENDENTE.`)) return;
+    setErro('');
+    const r = await fetch(`/api/reembolsos/pagamentos/${pagamento.id}/status`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'PENDENTE' }),
+    });
+    if (!r.ok) { setErro((await r.json()).error || 'Erro ao cancelar a solicitação'); return; }
+    await carregar();
+  };
+
+  /** Edita o cabeçalho: favorecido, motivo e dados bancários. */
+  const salvarProcesso = async (id: string, dados: Record<string, unknown>) => {
+    setErro('');
+    const r = await fetch(`/api/reembolsos/${id}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados),
+    });
+    if (!r.ok) { setErro((await r.json()).error || 'Erro ao salvar'); return; }
+    setEditandoProcesso(null);
+    await carregar();
+  };
+
+  /** Exclui o processo inteiro. O backend recusa se houver depósito pago. */
+  const excluirProcesso = async (processo: any) => {
+    const rotulo = processo.natureza === 'ADIANTAMENTO' ? 'adiantamento' : 'reembolso';
+    const quantos = (processo.pagamentos || []).length;
+    if (!confirm(`Excluir o ${rotulo} ${processo.codigo || ''} de ${processo.favorecido_nome}?
+
+${quantos ? `Saem junto os ${quantos} depósito(s) e os arquivos anexados.` : 'O registro ainda não tem depósitos.'}
+Esta ação não pode ser desfeita.`)) return;
+    setErro('');
+    const r = await fetch(`/api/reembolsos/${processo.id}`, { method: 'DELETE' });
+    if (!r.ok) { setErro((await r.json()).error || 'Erro ao excluir'); return; }
+    await carregar();
+  };
+
   const excluirPagamento = async (pagamento: any) => {
     if (!confirm(`Excluir o depósito ${pagamento.numero}?`)) return;
     const r = await fetch(`/api/reembolsos/pagamentos/${pagamento.id}`, { method: 'DELETE' });
@@ -82,20 +188,21 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
   const gerarEmail = async (processo: any, pagamento: any) => {
     setErro(''); setEmail(null); setEmailContexto({ processo, pagamento });
     const cacheKey = Date.now();
-    const r = await fetch(`/api/reembolsos/${processo.id}/email?_=${cacheKey}`, { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pagamento_id: pagamento.id }) });
+    const r = await authFetch(`/api/reembolsos/${processo.id}/email?_=${cacheKey}`, { method: 'POST', cache: 'no-store', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ pagamento_id: pagamento.id }) });
     const d = await r.json(); if (!r.ok) { setErro(d.error || 'Erro ao gerar e-mail'); return; } setEmail({ ...d, cacheKey });
   };
-
-  const escolherComprovante = (processo: any, pagamento: any) => { alvoComprovanteRef.current = { processo, pagamento }; comprovanteRef.current?.click(); };
-  const anexarComprovante = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; const alvo = alvoComprovanteRef.current; e.target.value = '';
-    if (!file || !alvo) return; setAnexando(alvo.pagamento.id); setErro('');
+  const abrirEmailNoOutlook = async () => {
+    if (!emailContexto?.processo?.id || !emailContexto?.pagamento?.id) return;
     try {
-      const arquivo_base64 = await new Promise<string>((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result)); reader.onerror = () => reject(new Error('Não foi possível ler o comprovante')); reader.readAsDataURL(file); });
-      const r = await fetch(`/api/pagamentos/DEPOSITO/${alvo.pagamento.id}/comprovante`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ arquivo_base64 }) });
-      if (!r.ok) throw new Error((await r.json()).error || 'Erro ao anexar comprovante'); await carregar();
-    } catch (e: any) { setErro(e.message); } finally { setAnexando(null); }
+      await downloadAuthenticatedFile(`/api/reembolsos/${emailContexto.processo.id}/email.eml?pagamento_id=${emailContexto.pagamento.id}&_=${email?.cacheKey || Date.now()}`, 'PAGAMENTO.eml');
+    } catch (e: any) { setErro(e.message); }
   };
+
+  // O upload de comprovante por aqui foi removido: gravava em `comprovante_url`
+  // com storage próprio, paralelo à faixa Documentos, e era a origem da
+  // contradição entre "comprovante anexado" no cartão e "comprovante pendente"
+  // logo abaixo. O arquivo legado continua sendo exibido e removível.
+
   const removerComprovante = async (pagamento: any) => {
     if (!confirm('Remover o comprovante deste depósito?')) return;
     const r = await fetch(`/api/pagamentos/DEPOSITO/${pagamento.id}/comprovante`, { method: 'DELETE' });
@@ -122,7 +229,6 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
 
   if (!itens.length && !standalone) return null;
   return <section className={standalone ? 'p-5' : 'mt-5 border-t border-border pt-4'}>
-    <input ref={comprovanteRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={anexarComprovante}/>
     <input ref={memoriaRef} type="file" multiple className="hidden" onChange={anexarMemoria}/>
     <div className="flex items-center gap-2 mb-3"><Calculator size={17} className="text-sky-400"/><div><h3 className={standalone ? 'text-lg font-bold' : 'text-sm font-bold'}>Reembolsos, adiantamentos e prestação de contas</h3>{standalone && <p className="text-xs text-muted-foreground">Pagamentos, documentos de cálculo e prestações consolidadas.</p>}</div></div>
     {erro && <div className="mb-3 rounded bg-red-500/10 p-2 text-sm text-red-400">{erro}</div>}
@@ -130,7 +236,93 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
       const adiantamento = processo.natureza === 'ADIANTAMENTO';
       const arquivos = processo.arquivos || [];
       const total = (processo.pagamentos || []).reduce((s: number, p: any) => s + Number(p.valor || 0), 0) || Number(adiantamento ? processo.valor_adiantado : processo.valor_total);
-      return <FinancialBeneficiaryCard key={processo.id} name={processo.favorecido_nome} category={adiantamento ? 'Adiantamento' : 'Reembolso'} total={fmtMoeda(total)} totalLabel="Programado" status={<span className="rounded-full bg-sky-500/10 px-2.5 py-1 text-[10px] font-bold text-sky-400">{adiantamento ? 'ADIANTAMENTO' : 'REEMBOLSO'}</span>} headerActions={<GhostButton onClick={() => abrirEditor(processo)}><Plus size={13} className="inline mr-1"/>Adicionar depósito</GhostButton>}>
+      const edicaoProcesso = editandoProcesso?.id === processo.id ? editandoProcesso : null;
+      return <FinancialBeneficiaryCard key={processo.id} name={processo.favorecido_nome} category={processo.codigo || (adiantamento ? 'Adiantamento' : 'Reembolso')} total={fmtMoeda(total)} totalLabel="Programado" status={<span className="rounded-full bg-sky-500/10 px-2.5 py-1 text-[10px] font-bold text-sky-400">{adiantamento ? 'ADIANTAMENTO' : 'REEMBOLSO'}</span>} headerActions={<div className="flex items-center gap-2">
+        <GhostButton onClick={() => abrirEditor(processo)}><Plus size={13} className="inline mr-1"/>Adicionar depósito</GhostButton>
+        <FinancialActionMenu actions={[
+          ...(processo.acionamento ? [{ label: 'Ratear entre as atividades', onClick: () => abrirRateio(processo) }] : []),
+          { label: `Editar ${adiantamento ? 'adiantamento' : 'reembolso'}`, onClick: () => setEditandoProcesso({ id: processo.id, favorecido_nome: processo.favorecido_nome || '', motivo: processo.motivo || '' }) },
+          // Com depósito pago a exclusão esconderia dinheiro que saiu do caixa;
+          // o backend recusa, e aqui nem se oferece.
+          ...((processo.pagamentos || []).some((pg: any) => PAGOS.includes(pg.status))
+            ? []
+            : [{ label: `Excluir ${adiantamento ? 'adiantamento' : 'reembolso'}`, onClick: () => excluirProcesso(processo), tone: 'danger' as const }]),
+        ]}/>
+      </div>}>
+        {rateio && rateio.processoId === processo.id && (() => {
+          const emRateio = rateio;
+          const totalRateado = emRateio.linhas.reduce((t, l) => t + (Number(String(l.valor).replace(',', '.')) || 0), 0);
+          const teto = Number(processo.valor_adiantado || processo.valor_total || 0);
+          return <div className="mb-3 rounded-lg border border-primary/30 bg-primary/[0.04] p-3">
+            <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+              <strong className="text-xs">Rateio entre as atividades do projeto</strong>
+              <span className="text-muted-foreground">{processo.acionamento?.codigo} · {processo.acionamento?.titulo}</span>
+              <span className="ml-auto">
+                rateado <strong>{fmtMoeda(totalRateado)}</strong> de {fmtMoeda(teto)}
+                {teto - totalRateado > 0.009 && <span className="ml-2 rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-500">faltam {fmtMoeda(teto - totalRateado)}</span>}
+              </span>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[11px]">
+                <thead><tr className="text-left text-muted-foreground">
+                  <th className="p-1">Data</th><th className="p-1">Descrição</th>
+                  <th className="p-1">Site / Atividade</th><th className="p-1">Prestador</th>
+                  <th className="p-1 text-right">Valor</th><th></th>
+                </tr></thead>
+                <tbody>{emRateio.linhas.map((l, i) => {
+                  const troca = (campo: string, valor: string) => setRateio(v => v && ({ ...v, linhas: v.linhas.map((x, j) => j === i ? { ...x, [campo]: valor } : x) }));
+                  return <tr key={i} className="border-t border-border/60">
+                    <td className="p-1"><input type="date" className={`${inputClass} h-8 text-[11px]`} value={l.data} onChange={e => troca('data', e.target.value)}/></td>
+                    <td className="p-1"><input className={`${inputClass} h-8 text-[11px]`} value={l.descricao} onChange={e => troca('descricao', e.target.value)} placeholder="Ex.: diária do técnico"/></td>
+                    <td className="p-1">
+                      <select className={`${inputClass} h-8 text-[11px]`} value={l.atividade_id} onChange={e => troca('atividade_id', e.target.value)}>
+                        <option value="">— sem atividade —</option>
+                        {atividadesDoProjeto.map(a => <option key={a.id} value={a.id}>{a.site || a.codigo} · {a.titulo}</option>)}
+                      </select>
+                    </td>
+                    <td className="p-1">
+                      <select className={`${inputClass} h-8 text-[11px]`} value={l.prestador} onChange={e => troca('prestador', e.target.value)}>
+                        <option value="">— sem prestador —</option>
+                        <optgroup label="Funcionários LS">{prestadores.funcionarios.map(f => <option key={f.id} value={`f:${f.id}`}>{f.nome}</option>)}</optgroup>
+                        <optgroup label="Fornecedores">{prestadores.suppliers.map(f => <option key={f.id} value={`s:${f.id}`}>{f.nome}</option>)}</optgroup>
+                      </select>
+                    </td>
+                    <td className="p-1"><input type="number" step="0.01" className={`${inputClass} h-8 w-24 text-right text-[11px]`} value={l.valor} onChange={e => troca('valor', e.target.value)}/></td>
+                    <td className="p-1"><button className="px-1 text-red-400" onClick={() => setRateio(v => v && ({ ...v, linhas: v.linhas.filter((_, j) => j !== i) }))}><Trash2 size={13}/></button></td>
+                  </tr>;
+                })}</tbody>
+              </table>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <button onClick={() => setRateio(v => v && ({ ...v, linhas: [...v.linhas, { data: hojeLocal(), descricao: '', valor: '', categoria: 'SERVICO', atividade_id: '', prestador: '' }] }))}
+                className="text-[11px] font-semibold text-primary hover:underline">+ Adicionar linha</button>
+              <button onClick={() => setRateio(null)} className="ml-auto rounded-lg px-3 py-1.5 text-[11px] text-muted-foreground">Cancelar</button>
+              <button onClick={salvarRateio} disabled={salvando} className="rounded-lg bg-primary px-3 py-1.5 text-[11px] font-semibold text-primary-foreground disabled:opacity-60">
+                {salvando ? 'Salvando...' : 'Salvar rateio'}
+              </button>
+            </div>
+          </div>;
+        })()}
+        {edicaoProcesso && <div className="mb-3 rounded-lg border border-border bg-secondary/30 p-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="text-xs">
+              <span className="mb-1 block text-muted-foreground">Favorecido</span>
+              <input autoFocus className={`${inputClass} h-9 text-sm`} value={edicaoProcesso.favorecido_nome}
+                onChange={e => setEditandoProcesso(v => v && ({ ...v, favorecido_nome: e.target.value }))}/>
+            </label>
+            <label className="text-xs">
+              <span className="mb-1 block text-muted-foreground">{adiantamento ? 'Motivo do adiantamento' : 'Motivo do reembolso'}</span>
+              <input className={`${inputClass} h-9 text-sm`} value={edicaoProcesso.motivo}
+                onChange={e => setEditandoProcesso(v => v && ({ ...v, motivo: e.target.value }))}
+                placeholder="Descreva a despesa"/>
+            </label>
+          </div>
+          <div className="mt-3 flex justify-end gap-2">
+            <button onClick={() => setEditandoProcesso(null)} className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground">Cancelar</button>
+            <button onClick={() => salvarProcesso(processo.id, { favorecido_nome: edicaoProcesso.favorecido_nome, motivo: edicaoProcesso.motivo || null })}
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Salvar</button>
+          </div>
+        </div>}
         <div className="text-[11px] text-muted-foreground">{processo.atividade?.codigo ? `${processo.atividade.codigo} · ` : ''}{adiantamento ? (processo.destino || 'Destino não informado') : (processo.motivo || 'Reembolso de despesa')}</div>
         <FinancialAttachments count={arquivos.length} addAction={<button type="button" onClick={() => escolherMemoria(processo)} disabled={anexando === `memoria:${processo.id}`} className="text-[11px] font-semibold text-primary hover:underline disabled:opacity-50">{anexando === `memoria:${processo.id}` ? 'Enviando...' : 'Adicionar'}</button>}>
           {arquivos.map((arquivo: any) => {
@@ -145,12 +337,12 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
             { label: `Gerar e-mail de ${adiantamento ? 'adiantamento' : 'reembolso'}`, onClick: () => gerarEmail(processo, pagamento) },
             { label: 'Editar valor e dados', onClick: () => abrirEditor(processo, pagamento) },
             ...(pagamento.comprovante_url ? [{ label: 'Remover comprovante', onClick: () => removerComprovante(pagamento), tone: 'danger' as const }] : []),
+            ...(!PAGOS.includes(pagamento.status) && pagamento.status !== 'PENDENTE' ? [{ label: 'Cancelar solicitação', onClick: () => cancelarSolicitacaoDeposito(pagamento), tone: 'danger' as const }] : []),
             ...(!PAGOS.includes(pagamento.status) && !(pagamento.prestacoes || []).length ? [{ label: 'Excluir depósito', onClick: () => excluirPagamento(pagamento), tone: 'danger' as const }] : []),
           ];
-          const primaryAction = pagamento.comprovante_url
-            ? <a href={pagamento.comprovante_url} target="_blank" rel="noreferrer" className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/10"><FileCheck2 size={13} className="mr-1 inline"/>Ver comprovante</a>
-            : <GhostButton onClick={() => escolherComprovante(processo, pagamento)} disabled={anexando === pagamento.id}><Paperclip size={13} className="mr-1 inline"/>{anexando === pagamento.id ? 'Enviando...' : 'Adicionar comprovante'}</GhostButton>;
-          return <FinancialPaymentCard key={pagamento.id} title={`Depósito ${pagamento.numero}`} amount={fmtMoeda(pagamento.valor)} method={FORMA_LABEL[pagamento.forma_pagamento] || pagamento.forma_pagamento || 'Forma não informada'} context={(pagamento.prestacoes || []).length ? 'Prestação consolidada vinculada' : undefined} requestedAt={pagamento.data_solicitacao ? fmtData(pagamento.data_solicitacao) : undefined} expectedAt={pagamento.data_prevista ? fmtData(pagamento.data_prevista) : undefined} paidAt={pagamento.data_pagamento ? fmtData(pagamento.data_pagamento) : undefined} receipt={{ attached: Boolean(pagamento.comprovante_url) }} status={<PagamentoStatusSelect value={pagamento.status} onChange={status => mudarStatus(processo, pagamento, status)}/>} primaryAction={primaryAction} actions={actions}/>;
+          // Mesmo motivo da parcela: o anexo acontece só na faixa Documentos.
+          const primaryAction = null;
+          return <FinancialPaymentCard key={pagamento.id} title={`Depósito ${pagamento.numero}`} amount={fmtMoeda(pagamento.valor)} method={FORMA_LABEL[pagamento.forma_pagamento] || pagamento.forma_pagamento || 'Forma não informada'} context={(pagamento.prestacoes || []).length ? 'Prestação consolidada vinculada' : undefined} requestedAt={pagamento.data_solicitacao ? fmtData(pagamento.data_solicitacao) : undefined} expectedAt={pagamento.data_prevista ? fmtData(pagamento.data_prevista) : undefined} paidAt={pagamento.data_pagamento ? fmtData(pagamento.data_pagamento) : undefined} status={<PagamentoStatusSelect value={pagamento.status} onChange={status => mudarStatus(processo, pagamento, status)}/>} primaryAction={primaryAction} actions={actions}><PaymentAttachments ownerType="DEPOSITO" ownerId={pagamento.id} comprovanteLegado={pagamento.comprovante_url}/></FinancialPaymentCard>;
         })}
         {!(processo.pagamentos || []).length && <div className="rounded-lg border border-dashed border-border p-3 text-center text-xs text-amber-400">Este registro ainda não possui depósitos. Adicione o primeiro pagamento.</div>}
       </FinancialBeneficiaryCard>;
@@ -160,6 +352,6 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
 
     {editor && <div className="fixed inset-0 z-[2150] bg-black/75 flex items-center justify-center p-4"><div className="bg-card border border-border rounded-xl w-full max-w-lg p-5"><div className="flex justify-between mb-4"><div><h2 className="font-bold">{editor.pagamentoId ? `Editar depósito ${editor.numero}` : 'Adicionar depósito'}</h2><p className="text-xs text-muted-foreground mt-1">Cada depósito possui agendamento, status e comprovante próprios.</p></div><button onClick={() => setEditor(null)}><X/></button></div>{erro && <div className="mb-3 rounded border border-red-500/40 bg-red-500/10 p-2 text-xs text-red-400">{erro}</div>}<div className="grid grid-cols-2 gap-3"><label className="text-xs">Valor do depósito<input type="number" step="0.01" disabled={editor.bloqueiaValor} className={`${inputClass} mt-1`} value={editor.valor} onChange={e => setEditor({ ...editor, valor: e.target.value })}/></label><label className="text-xs">Forma de pagamento<select className={`${inputClass} mt-1`} value={editor.forma_pagamento} onChange={e => setEditor({ ...editor, forma_pagamento: e.target.value })}><option value="PIX">PIX</option><option value="TED">Transferência bancária</option><option value="BOLETO">Boleto</option><option value="DINHEIRO">Dinheiro</option></select></label><label className="text-xs">Data da solicitação<input type="date" className={`${inputClass} mt-1`} value={editor.data_solicitacao} onChange={e => setEditor({ ...editor, data_solicitacao: e.target.value })}/></label><label className="text-xs">Data prevista<input type="date" className={`${inputClass} mt-1`} value={editor.data_prevista} onChange={e => setEditor({ ...editor, data_prevista: e.target.value })}/></label><label className="text-xs col-span-2">Observações<input className={`${inputClass} mt-1`} value={editor.observacoes} onChange={e => setEditor({ ...editor, observacoes: e.target.value })}/></label></div><div className="flex justify-end gap-2 mt-5"><GhostButton onClick={() => setEditor(null)}>Cancelar</GhostButton><PrimaryButton onClick={salvarPagamento} disabled={salvando || !editor.valor}>{editor.pagamentoId ? 'Salvar' : 'Adicionar depósito'}</PrimaryButton></div></div></div>}
 
-    {email && <div className="fixed inset-0 z-[2200] bg-black/75 flex items-center justify-center p-4"><div className="bg-card border border-border rounded-xl w-full max-w-5xl max-h-[92vh] flex flex-col"><div className="p-4 border-b border-border flex justify-between gap-3"><div><h2 className="font-bold">E-mail financeiro · Depósito {emailContexto?.pagamento?.numero}</h2><p className="text-xs text-muted-foreground mt-1">{email.assunto}</p></div><button onClick={() => setEmail(null)}><X/></button></div><div className="flex-1 overflow-auto bg-[#F4F6F8] p-3"><iframe title="Prévia do e-mail" srcDoc={email.html} className="w-full bg-white border-0" style={{ height: 1400 }}/></div><div className="p-4 border-t border-border flex justify-end gap-2"><GhostButton onClick={() => setEmail(null)}>Fechar</GhostButton><a href={`/api/reembolsos/${emailContexto?.processo?.id}/email.eml?pagamento_id=${emailContexto?.pagamento?.id}&_=${email.cacheKey}`} className="h-9 px-3 border border-border bg-secondary text-sm font-semibold flex items-center gap-2"><Mail size={14}/>Abrir no Outlook</a><PrimaryButton onClick={async () => { await navigator.clipboard.writeText(email.html); setCopiado(true); setTimeout(() => setCopiado(false), 2000); }}><Copy size={14} className="inline mr-1"/>{copiado ? 'Copiado' : 'Copiar e-mail'}</PrimaryButton></div></div></div>}
+    {email && <div className="fixed inset-0 z-[2200] bg-black/75 flex items-center justify-center p-4"><div className="bg-card border border-border rounded-xl w-full max-w-5xl max-h-[92vh] flex flex-col"><div className="p-4 border-b border-border flex justify-between gap-3"><div><h2 className="font-bold">E-mail financeiro · Depósito {emailContexto?.pagamento?.numero}</h2><p className="text-xs text-muted-foreground mt-1">{email.assunto}</p><p className="text-xs text-muted-foreground mt-1"><span className="text-muted-foreground">Para:</span> <strong className="text-foreground">{email.para || '—'}</strong>{email.cc ? <> · <span>CC:</span> <strong className="text-foreground">{email.cc}</strong></> : null}{email.responsavel ? <> · <span>Responsável:</span> <strong className="text-foreground">{email.responsavel.nome}</strong></> : null}</p>{email.routing_pendente && <p className="mt-2 rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs text-amber-400">Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações → Comunicação.</p>}</div><button onClick={() => setEmail(null)}><X/></button></div><div className="flex-1 overflow-auto bg-[#F4F6F8] p-3"><iframe title="Prévia do e-mail" srcDoc={email.html} className="w-full bg-white border-0" style={{ height: 1400 }}/></div><div className="p-4 border-t border-border flex justify-end gap-2"><GhostButton onClick={() => setEmail(null)}>Fechar</GhostButton><button type="button" onClick={abrirEmailNoOutlook} className="h-9 px-3 border border-border bg-secondary text-sm font-semibold flex items-center gap-2"><Mail size={14}/>Abrir no Outlook</button><PrimaryButton onClick={async () => { await navigator.clipboard.writeText(email.html); setCopiado(true); setTimeout(() => setCopiado(false), 2000); }}><Copy size={14} className="inline mr-1"/>{copiado ? 'Copiado' : 'Copiar e-mail'}</PrimaryButton></div></div></div>}
   </section>;
 }

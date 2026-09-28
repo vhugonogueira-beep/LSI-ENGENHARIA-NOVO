@@ -1,1 +1,14 @@
-{"data":"ewogICJwZXJtaXNzaW9ucyI6IHsKICAgICJhbGxvdyI6IFsKICAgICAgIkJhc2godmVyY2VsIGxzOiopIgogICAgXQogIH0KfQo="}
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rm *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(xargs wc -l)",
+      "PowerShell(Get-Command node -ErrorAction SilentlyContinue)",
+      "PowerShell(node --version 2>&1)",
+      "PowerShell(python --version 2>&1)",
+      "PowerShell(python3 --version 2>&1)"
+    ]
+  }
+}

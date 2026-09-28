@@ -6,8 +6,8 @@ operação de sites para operadoras/compartilhadoras como Highline, IHS, Winity,
 ## Regra permanente
 
 **O sistema deve sempre ficar coerente com o "Blueprint LSI"** — a especificação funcional
-viva do produto, publicada como um Claude Artifact (peça o link ao usuário ou veja a memória
-`reference-blueprint-lsi.md` do Claude se disponível). Sempre que uma mudança de schema/fluxo
+viva do produto, publicada como Claude Artifact em
+https://claude.ai/code/artifact/8eebd04f-dc2e-4cb4-8752-05d444a7b4a8 . Sempre que uma mudança de schema/fluxo
 divergir do que o Blueprint documenta, ou vice-versa, sinalize a divergência e resolva-a —
 não deixe código e documentação IA descolarem.
 
@@ -70,6 +70,27 @@ correspondente antes de excluir.
 - `Atividade` tem **5 dimensões de status independentes** (não um status único):
   `status_operacional`, `status_comercial`, `status_documental`, `status_financeiro`,
   `status_faturamento`, cada uma com histórico em `AtividadeStatusHistorico` (campo `dimensao`).
+- **`status_operacional` tem fluxo fechado de cinco estados** — fonte única em
+  `src/backend/services/status-atividade.service.ts`, espelhada em `STATUS_OPERACIONAL`
+  (`constants.tsx`) e nas colunas do Pipeline (`KANBAN_ORDEM` em `Atividades.tsx`):
+
+      PLANEJAMENTO → AGUARDANDO_LIBERACAO → EM_EXECUCAO → CONCLUIDA
+                            ON_HOLD (transversal, fora da escala)
+
+  Regra de quem move o quê — **híbrida**, não "tudo automático" nem "tudo manual":
+  - automação alcança **somente** `EM_EXECUCAO` e `CONCLUIDA`, e só através de
+    `proximoStatusAutomatico()`, que **nunca regride** e **nunca tira ninguém de `ON_HOLD`**;
+  - `AGUARDANDO_LIBERACAO` e `ON_HOLD` são **exclusivamente manuais**: são espera por decisão
+    de terceiro e parada de obra, e não deixam rastro nenhum que uma regra consiga inferir.
+    A interface vive em `StatusOperacionalControl.tsx`, no cabeçalho do cockpit, e a
+    observação digitada ali é o único registro do *porquê*.
+  - `PUT /api/atividades/:id` recusa com 400 qualquer valor fora dos cinco.
+- **Não confundir com `APC.status`** (`AGUARDANDO_APC | APC_RECEBIDO | APC_VALIDADO |
+  APC_LIBERADO`): esse é o status do **documento** de APC e continua existindo. O que saiu foi
+  o estado `APC_LIBERADO` **da atividade** — era um gate ocupando lugar de fase, e fazia obra
+  parada e obra com 60% construído aparecerem iguais. Hoje liberar o APC leva direto a
+  `EM_EXECUCAO`, e quanto já foi feito quem diz é o avanço físico.
+  Migração de dados: `src/backend/scripts/migrar-status-atividade.ts`.
 - `tipo_demanda` é binário: `IMPLANTACAO` | `OPERACAO`. Quando `OPERACAO`, um `subtipo_demanda`
   (Manutenção/Adequação/Emergencial/Vistoria/Engenharia/Outro) qualifica sem mudar o fluxo.
 - `modelo_operacao` tem **3 valores reais** (não 2) — Blueprint LSI, seção 02, três trilhas:

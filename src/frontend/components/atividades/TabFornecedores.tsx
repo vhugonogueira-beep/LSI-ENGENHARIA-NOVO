@@ -6,6 +6,8 @@ import { fmtData, fmtMoeda } from './constants';
 import PrestacaoContasViagem from './PrestacaoContasViagem';
 import PagamentoStatusSelect from './PagamentoStatusSelect';
 import { FinancialActionMenu, FinancialAttachments, FinancialBeneficiaryCard, FinancialPaymentCard, type FinancialAction } from '../financeiro/FinancialCards';
+import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
+import PaymentAttachments from '../financeiro/PaymentAttachments';
 
 const CONTRATO_STATUS = ['GERADO', 'ENVIADO', 'ASSINADO'];
 const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIADO: 'Enviado', ASSINADO: 'Assinado' };
@@ -30,7 +32,7 @@ const FORM_INIT = {
     favorecido: '', finalidade: 'MAO_DE_OBRA', valor_contratado: '', percentual_entrada: '0', percentual_saldo: '100',
     gatilho_saldo: 'CONCLUSAO', observacoes: '', destino: '', data_inicio_viagem: '', data_fim_viagem: '',
     data_despesa: '', data_solicitacao: '', data_prevista: '', forma_pagamento: '', cartao_id: '',
-    formalizacao_posterior: false, data_compra_cartao: '', fatura_referencia: '',
+    processo_tipo: 'PAYMENT_REQUEST', formalizacao_posterior: false, data_pagamento_realizado: '', fatura_referencia: '',
 };
 const FORMA_LABEL: Record<string, string> = {
     PIX: 'PIX', TED: 'Transferência bancária', CARTAO_CREDITO: 'Cartão de crédito corporativo',
@@ -53,7 +55,6 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [form, setForm] = useState(FORM_INIT);
     const [erro, setErro] = useState('');
     const [salvando, setSalvando] = useState(false);
-    const [emailPreview, setEmailPreview] = useState<string | null>(null);
     // E-mail de programacao de pagamento no template corporativo, por parcela.
     const [emailPagamento, setEmailPagamento] = useState<any | null>(null);
     const [, setGerandoEmail] = useState<string | null>(null);
@@ -61,6 +62,12 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     // Edicao do valor da parcela: adiantar parte do saldo e comum, e o contrato
     // nao muda por isso. Parcela paga nao entra em edicao (o backend recusa).
     const [editandoParcela, setEditandoParcela] = useState<string | null>(null);
+    // Edição da contratação: guarda o id e os campos em edição, para o painel
+    // abrir dentro do próprio cartão do favorecido.
+    const [editandoContratacao, setEditandoContratacao] = useState<{ id: string; valor: string; observacoes: string; motivo: string } | null>(null);
+    // Motivo da alteração de valor da parcela e histórico aberto por contratação.
+    const [motivoParcela, setMotivoParcela] = useState('');
+    const [historico, setHistorico] = useState<{ id: string; itens: any[] } | null>(null);
     const [valorParcela, setValorParcela] = useState('');
     const [dividindo, setDividindo] = useState<string | null>(null);
     const [copiado, setCopiado] = useState('');
@@ -71,9 +78,6 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [anexandoContrato, setAnexandoContrato] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const contratoAlvoRef = useRef<string | null>(null);
-    const comprovanteInputRef = useRef<HTMLInputElement>(null);
-    const comprovanteAlvoRef = useRef<any | null>(null);
-    const [anexandoComprovante, setAnexandoComprovante] = useState<string | null>(null);
     const [showTemplateModal, setShowTemplateModal] = useState(false);
     const [template, setTemplate] = useState<{ id: string; corpo_html: string } | null>(null);
     const [templateDraft, setTemplateDraft] = useState('');
@@ -83,10 +87,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         setLoading(true);
         try {
             const [cR, sR, fR, eR] = await Promise.all([
-                fetch(`/api/contratacoes?atividade_id=${atividade.id}`),
-                fetch('/api/suppliers?limit=200'),
-                fetch('/api/funcionarios'),
-                fetch('/api/empresa'),
+                authFetch(`/api/contratacoes?atividade_id=${atividade.id}`),
+                authFetch('/api/suppliers?limit=200'),
+                authFetch('/api/funcionarios'),
+                authFetch('/api/empresa'),
             ]);
             setContratacoes(cR.ok ? await cR.json() : []);
             const sData = sR.ok ? await sR.json() : { items: [] };
@@ -166,8 +170,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     observacoes: form.observacoes || null,
                     forma_pagamento: form.forma_pagamento,
                     cartao_id: form.forma_pagamento === 'CARTAO_CREDITO' ? form.cartao_id : null,
-                    formalizacao_posterior: form.formalizacao_posterior,
-                    data_compra_cartao: form.formalizacao_posterior ? form.data_compra_cartao : null,
+                    processo_tipo: form.processo_tipo,
+                    formalizacao_posterior: form.processo_tipo === 'PAYMENT_FORMALIZATION',
+                    data_pagamento: form.processo_tipo === 'PAYMENT_FORMALIZATION' ? form.data_pagamento_realizado : null,
+                    data_compra_cartao: form.processo_tipo === 'PAYMENT_FORMALIZATION' && form.forma_pagamento === 'CARTAO_CREDITO' ? form.data_pagamento_realizado : null,
                     fatura_referencia: form.fatura_referencia || null,
                 }),
             });
@@ -200,7 +206,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         setErro('');
         try {
             const novaSolicitacao = programacao.statusAtual === 'PENDENTE';
-            const r = await fetch(novaSolicitacao
+            const r = await authFetch(novaSolicitacao
                 ? `/api/contratacoes/parcelas/${programacao.parcelaId}/solicitar-pagamento`
                 : `/api/contratacoes/parcelas/${programacao.parcelaId}`, {
                 method: novaSolicitacao ? 'POST' : 'PUT',
@@ -212,10 +218,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                 }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao programar pagamento');
-            const data = await r.json();
-            if (data.email_preview) setEmailPreview(data.email_preview);
+            await r.json();
             setProgramacao(null);
             await load();
+            if (novaSolicitacao) await gerarEmailPagamento(programacao.parcelaId);
         } catch (e: any) {
             setErro(e.message);
         }
@@ -232,6 +238,60 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         } catch (e: any) { setErro(e.message); }
     }
 
+    /**
+     * Exclui a parcela — a linha de pagamento em si, não só a solicitação.
+     *
+     * "Excluir solicitação" devolve a parcela para PENDENTE e ela continua no
+     * contrato; era a única exclusão disponível, e não dava conta de uma linha
+     * lançada errada. O backend recusa parcela já paga.
+     */
+    async function excluirParcela(p: any) {
+        if (!confirm(`Excluir o pagamento de ${fmtMoeda(p.valor)} (${p.tipo})?\n\nA linha sai do contrato e o valor volta para o saldo não alocado. Esta ação não pode ser desfeita.`)) return;
+        setErro('');
+        try {
+            const r = await fetch(`/api/contratacoes/parcelas/${p.id}`, { method: 'DELETE' });
+            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao excluir o pagamento');
+            await load();
+        } catch (e: any) { setErro(e.message); }
+    }
+
+    /** Exclui a contratação inteira: parcelas, contrato gerado e anexos. */
+    async function excluirContratacao(c: any) {
+        const nome = c.supplier?.nome || c.funcionario?.nome || 'este favorecido';
+        if (!confirm(`Excluir a contratação de ${nome} no valor de ${fmtMoeda(c.valor_contratado)}?\n\nSaem junto as ${(c.parcelas || []).length} parcela(s) e o contrato gerado. Esta ação não pode ser desfeita.`)) return;
+        setErro('');
+        try {
+            const r = await fetch(`/api/contratacoes/${c.id}`, { method: 'DELETE' });
+            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao excluir a contratação');
+            await load();
+        } catch (e: any) { setErro(e.message); }
+    }
+
+    /** Edita valor contratado e detalhamento sem recriar a contratação. */
+    async function salvarContratacao(id: string, dados: { valor_contratado?: number; observacoes?: string | null; motivo?: string | null }) {
+        setErro('');
+        try {
+            const r = await fetch(`/api/contratacoes/${id}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dados),
+            });
+            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao salvar a contratação');
+            setEditandoContratacao(null);
+            await load();
+        } catch (e: any) { setErro(e.message); }
+    }
+
+    /** Abre o histórico de alterações de valor da contratação e das parcelas. */
+    async function verHistorico(contratacaoId: string) {
+        if (historico?.id === contratacaoId) { setHistorico(null); return; }
+        setErro('');
+        try {
+            const r = await fetch(`/api/contratacoes/${contratacaoId}/historico`);
+            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao carregar o histórico');
+            setHistorico({ id: contratacaoId, itens: await r.json() });
+        } catch (e: any) { setErro(e.message); }
+    }
+
     async function salvarValorParcela(parcelaId: string) {
         const valor = Number(String(valorParcela).replace(',', '.'));
         if (!Number.isFinite(valor) || valor <= 0) { setErro('Informe um valor maior que zero'); return; }
@@ -239,7 +299,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         try {
             const r = await fetch(`/api/contratacoes/parcelas/${parcelaId}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ valor }),
+                body: JSON.stringify({ valor, motivo: motivoParcela.trim() || null }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao alterar a parcela');
             setEditandoParcela(null);
@@ -279,7 +339,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         setParcelaDoEmail(parcelaId);
         setErro('');
         try {
-            const r = await fetch(`/api/contratacoes/parcelas/${parcelaId}/email`, {
+            const r = await authFetch(`/api/contratacoes/parcelas/${parcelaId}/email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ link_diretorio: linkDiretorio || null }),
@@ -291,6 +351,14 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         } finally {
             setGerandoEmail(null);
         }
+    }
+
+    async function abrirEmailNoOutlook() {
+        if (!parcelaDoEmail) return;
+        try {
+            const query = linkDiretorio ? `?link_diretorio=${encodeURIComponent(linkDiretorio)}` : '';
+            await downloadAuthenticatedFile(`/api/contratacoes/parcelas/${parcelaDoEmail}/email.eml${query}`, 'PROGRAMACAO_PAGAMENTO.eml');
+        } catch (e: any) { setErro(e.message); }
     }
 
     /** Copia como HTML, para colar no Outlook/Gmail com a formatacao intacta. */
@@ -382,35 +450,11 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         } catch (e: any) { setErro(e.message); }
     }
 
-    function clicarAnexarComprovante(parcela: any) {
-        comprovanteAlvoRef.current = parcela;
-        comprovanteInputRef.current?.click();
-    }
-
-    async function onComprovanteSelecionado(e: React.ChangeEvent<HTMLInputElement>) {
-        const file = e.target.files?.[0];
-        const parcela = comprovanteAlvoRef.current;
-        e.target.value = '';
-        if (!file || !parcela) return;
-        setAnexandoComprovante(parcela.id);
-        setErro('');
-        try {
-            const arquivo_base64 = await new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(String(reader.result));
-                reader.onerror = () => reject(new Error('Não foi possível ler o comprovante'));
-                reader.readAsDataURL(file);
-            });
-            const r = await fetch(`/api/pagamentos/PARCELA/${parcela.id}/comprovante`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ arquivo_base64 }),
-            });
-            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao anexar comprovante');
-            await load();
-        } catch (e: any) { setErro(e.message); }
-        finally { setAnexandoComprovante(null); }
-    }
-
+    // O upload por aqui foi removido: gravava em `comprovante_url` com storage
+    // próprio, paralelo à faixa Documentos, e era a origem da contradição entre
+    // "comprovante anexado" no cartão e "comprovante pendente" logo abaixo.
+    // `removerComprovante` continua, porque o arquivo legado ainda existe em 9
+    // registros e precisa poder ser retirado.
     async function removerComprovante(parcela: any) {
         if (!confirm('Remover o comprovante anexado?')) return;
         const r = await fetch(`/api/pagamentos/PARCELA/${parcela.id}/comprovante`, { method: 'DELETE' });
@@ -481,7 +525,6 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         }>
             <ErrorBanner message={erro} />
             <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff,.doc,.docx" className="hidden" onChange={onArquivoSelecionado} />
-            <input ref={comprovanteInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={onComprovanteSelecionado} />
 
             {showForm && (
                 <div className="border border-border rounded-lg p-4 mb-4">
@@ -515,6 +558,19 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 {FINALIDADES.map(f => <option key={f} value={f}>{FINALIDADE_LABEL[f]}</option>)}
                             </select>
                         </Field>
+                        {!['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && <Field label="Processo financeiro">
+                            <select className={inputClass} value={form.processo_tipo} onChange={e => setForm(f => ({
+                                ...f,
+                                processo_tipo: e.target.value,
+                                formalizacao_posterior: e.target.value === 'PAYMENT_FORMALIZATION',
+                                percentual_entrada: e.target.value === 'PAYMENT_FORMALIZATION' ? '0' : f.percentual_entrada,
+                                percentual_saldo: e.target.value === 'PAYMENT_FORMALIZATION' ? '100' : f.percentual_saldo,
+                                data_pagamento_realizado: e.target.value === 'PAYMENT_FORMALIZATION' ? (f.data_pagamento_realizado || hojeLocal()) : '',
+                            }))}>
+                                <option value="PAYMENT_REQUEST">Solicitação de pagamento</option>
+                                <option value="PAYMENT_FORMALIZATION">Formalização de pagamento já realizado</option>
+                            </select>
+                        </Field>}
                         <Field label={form.finalidade === 'ADIANTAMENTO_VIAGEM' ? 'Valor do adiantamento (R$)' : form.finalidade === 'REEMBOLSO' ? 'Valor do reembolso (R$)' : 'Valor contratado (R$)'}>
                             <input type="number" step="0.01" className={inputClass} value={form.valor_contratado} onChange={e => setForm(f => ({ ...f, valor_contratado: e.target.value }))} />
                         </Field>
@@ -526,7 +582,16 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         </> : form.finalidade === 'REEMBOLSO' ? <>
                         <Field label="Data da despesa"><input type="date" className={inputClass} value={form.data_despesa} onChange={e => setForm(f => ({ ...f, data_despesa: e.target.value }))} /></Field>
                         <Field label="Motivo do reembolso"><input className={inputClass} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Descreva a despesa reembolsada" /></Field>
-                        </> : form.formalizacao_posterior ? null : <><Field label="Gatilho do Saldo">
+                        </> : form.processo_tipo === 'PAYMENT_FORMALIZATION' ? <>
+                            <Field label="Data do pagamento realizado"><input type="date" className={inputClass} value={form.data_pagamento_realizado} onChange={e => setForm(f => ({ ...f, data_pagamento_realizado: e.target.value }))}/></Field>
+                            <Field label="Referência (opcional)"><input className={inputClass} value={form.fatura_referencia} onChange={e => setForm(f => ({ ...f, fatura_referencia: e.target.value }))} placeholder="Ex.: fatura/cartão/pedido"/></Field>
+                            <Field label="Forma utilizada">
+                                <select className={inputClass} value={form.forma_pagamento} onChange={e => setForm(f => ({ ...f, forma_pagamento: e.target.value, cartao_id: e.target.value === 'CARTAO_CREDITO' ? (f.cartao_id || cartoes[0]?.id || '') : '' }))}>
+                                    <option value="">Selecione...</option><option value="PIX">PIX</option><option value="TED">Transferência bancária</option><option value="CARTAO_CREDITO">Cartão de crédito corporativo</option><option value="BOLETO">Boleto</option><option value="DINHEIRO">Dinheiro</option>
+                                </select>
+                            </Field>
+                            {form.forma_pagamento === 'CARTAO_CREDITO' && <Field label="Cartão corporativo"><select className={inputClass} value={form.cartao_id} onChange={e => setForm(f=>({...f,cartao_id:e.target.value}))}><option value="">Selecione...</option>{cartoes.map(c=><option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido?` · ${c.apelido}`:''}</option>)}</select></Field>}
+                        </> : <><Field label="Gatilho do Saldo">
                             <select className={inputClass} value={form.gatilho_saldo} onChange={e => setForm(f => ({ ...f, gatilho_saldo: e.target.value }))}>
                                 <option value="INICIO">Início</option>
                                 <option value="MARCO">Marco</option>
@@ -560,20 +625,16 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     {cartoes.map(c => <option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido ? ` · ${c.apelido}` : ''}</option>)}
                                 </select>
                             </Field>
-                            <label className="col-span-2 flex items-start gap-2 rounded-lg border border-border bg-secondary/30 p-3 text-xs">
-                                <input type="checkbox" className="mt-0.5" checked={form.formalizacao_posterior} onChange={e => setForm(f => ({
-                                    ...f, formalizacao_posterior: e.target.checked,
-                                    percentual_entrada: e.target.checked ? '0' : f.percentual_entrada,
-                                    percentual_saldo: e.target.checked ? '100' : f.percentual_saldo,
-                                    data_compra_cartao: e.target.checked ? (f.data_compra_cartao || hojeLocal()) : '',
-                                }))} />
-                                <span><strong>Compra já realizada no cartão</strong><br/><span className="text-muted-foreground">Registra e formaliza a compra sem solicitar nova transferência ao fornecedor. O desembolso ocorre na quitação da fatura.</span></span>
-                            </label>
-                            {form.formalizacao_posterior && <>
-                                <Field label="Data da compra"><input type="date" className={inputClass} value={form.data_compra_cartao} onChange={e => setForm(f => ({ ...f, data_compra_cartao: e.target.value }))}/></Field>
-                                <Field label="Referência da fatura (opcional)"><input className={inputClass} value={form.fatura_referencia} onChange={e => setForm(f => ({ ...f, fatura_referencia: e.target.value }))} placeholder="Ex.: VISA 09/2026"/></Field>
-                            </>}
                         </>}
+                        {/* O "Produto / Serviço" é código de catálogo: MAO_DE_OBRA serve
+                            para o serralheiro, o eletricista e o ajudante igualmente.
+                            Quem confere o pagamento precisa saber qual dos três foi, e
+                            é este campo que vai para o e-mail, logo abaixo da descrição. */}
+                        <Field label="Detalhamento do serviço">
+                            <input className={inputClass} value={form.observacoes}
+                                onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))}
+                                placeholder="Ex.: Serralheiro — fabricação e instalação de grades e portão de acesso" />
+                        </Field>
                         </>}
                         {['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && <>
                             <Field label="Data da solicitação"><input type="date" className={inputClass} value={form.data_solicitacao} onChange={e => setForm(f => ({ ...f, data_solicitacao: e.target.value }))}/></Field>
@@ -582,10 +643,46 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     </div>
                     <div className="flex justify-end gap-2 mt-3">
                         <GhostButton onClick={() => setShowForm(false)}>Cancelar</GhostButton>
-                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (form.formalizacao_posterior && !form.data_compra_cartao) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista))}>Registrar</PrimaryButton>
+                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (form.processo_tipo === 'PAYMENT_FORMALIZATION' && !form.data_pagamento_realizado) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista))}>{form.processo_tipo === 'PAYMENT_FORMALIZATION' ? 'Registrar formalização' : 'Registrar'}</PrimaryButton>
                     </div>
                 </div>
             )}
+
+            {/* Painel de custo da atividade.
+                O valor da atividade e o valor das contratações são grandezas
+                diferentes de propósito: `valor_contrato` é a RECEITA — o que a LS
+                fatura do cliente — e a contratação é o CUSTO — o que a LS paga ao
+                fornecedor. Igualar os dois zeraria a margem, que é justamente o
+                que a aba Resultado existe para medir.
+                O que faltava era o contrário: nada avisava quando o custo
+                contratado passava do orçado, nem quando passava da própria
+                receita. Contratar era um ato cego — e é aqui, na hora de
+                contratar, que o aviso serve. */}
+            {contratacoes.length > 0 && (() => {
+                const comprometido = contratacoes
+                    .filter((c: any) => c.status !== 'CANCELADA')
+                    .reduce((s: number, c: any) => s + Number(c.valor_contratado || 0), 0);
+                const orcado = Number(atividade.valor_orcado || 0);
+                const receita = Number(atividade.valor_contrato || 0);
+                const passouOrcado = orcado > 0 && comprometido > orcado;
+                const passouReceita = receita > 0 && comprometido > receita;
+                const semReferencia = orcado <= 0 && receita <= 0;
+                const tom = passouReceita
+                    ? 'border-destructive/40 bg-destructive/5 text-destructive'
+                    : passouOrcado || semReferencia
+                        ? 'border-amber-500/30 bg-amber-500/5 text-amber-500'
+                        : 'border-border bg-secondary/30 text-muted-foreground';
+                return (
+                    <div className={`mb-3 rounded-lg border px-3.5 py-2.5 text-[11px] ${tom}`}>
+                        <span className="font-semibold">Custo contratado {fmtMoeda(comprometido)}</span>
+                        {orcado > 0 && <span> · orçado {fmtMoeda(orcado)}</span>}
+                        {receita > 0 && <span> · receita {fmtMoeda(receita)}</span>}
+                        {passouReceita && <div className="mt-1 font-semibold">O custo contratado passou a receita da atividade em {fmtMoeda(comprometido - receita)}. Esta atividade está dando prejuízo.</div>}
+                        {!passouReceita && passouOrcado && <div className="mt-1 font-semibold">O custo contratado passou o orçado em {fmtMoeda(comprometido - orcado)}.</div>}
+                        {semReferencia && <div className="mt-1 font-semibold">A atividade não tem receita nem custo orçado preenchidos, então não há com o que comparar este custo.</div>}
+                    </div>
+                );
+            })()}
 
             {contratacoes.length === 0 ? (
                 <EmptyState text="Nenhum fornecedor contratado para esta atividade ainda." />
@@ -595,12 +692,22 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         const arquivos = c.contrato?.arquivos || [];
                         const alocado = (c.parcelas || []).reduce((s: number, p: any) => s + p.valor, 0);
                         const diferenca = Math.round((c.valor_contratado - alocado) * 100) / 100;
-                        const contratoActions: FinancialAction[] = !c.contrato
-                            ? [{ label: gerandoContrato === c.id ? 'Gerando contrato...' : 'Gerar contrato', onClick: () => gerarContrato(c.id), disabled: gerandoContrato === c.id }]
-                            : [
-                                { label: 'Ver / baixar contrato', href: `/api/contratos/${c.contrato.id}/export/html` },
-                                { label: anexandoContrato === c.contrato.id ? 'Enviando assinado...' : 'Anexar contrato assinado', onClick: () => clicarAnexarContrato(c.contrato.id), disabled: anexandoContrato === c.contrato.id },
-                            ];
+                        const edicao = editandoContratacao?.id === c.id ? editandoContratacao : null;
+                        const registros = historico && historico.id === c.id ? historico.itens : null;
+                        const temPagamento = (c.parcelas || []).some((p: any) => ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status));
+                        const contratoActions: FinancialAction[] = [
+                            ...(!c.contrato
+                                ? [{ label: gerandoContrato === c.id ? 'Gerando contrato...' : 'Gerar contrato', onClick: () => gerarContrato(c.id), disabled: gerandoContrato === c.id }]
+                                : [
+                                    { label: 'Ver / baixar contrato', href: `/api/contratos/${c.contrato.id}/export/html` },
+                                    { label: anexandoContrato === c.contrato.id ? 'Enviando assinado...' : 'Anexar contrato assinado', onClick: () => clicarAnexarContrato(c.contrato.id), disabled: anexandoContrato === c.contrato.id },
+                                ]),
+                            { label: historico?.id === c.id ? 'Ocultar histórico' : 'Histórico de alterações', onClick: () => verHistorico(c.id) },
+                            { label: 'Editar contratação', onClick: () => setEditandoContratacao({ id: c.id, valor: String(c.valor_contratado), observacoes: c.observacoes || '', motivo: '' }) },
+                            // Com pagamento efetuado a exclusão esconderia dinheiro que
+                            // saiu do caixa; o backend recusa, e aqui nem se oferece.
+                            ...(!temPagamento ? [{ label: 'Excluir contratação', onClick: () => excluirContratacao(c), tone: 'danger' as const }] : []),
+                        ];
                         return <FinancialBeneficiaryCard
                             key={c.id}
                             name={c.supplier?.nome || c.funcionario?.nome || 'Favorecido'}
@@ -609,17 +716,67 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             status={c.contrato && <select value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className="rounded border-0 px-2 py-1 text-[10px] font-bold" style={{ background: `${CONTRATO_STATUS_COLOR[c.contrato.status]}22`, color: CONTRATO_STATUS_COLOR[c.contrato.status] }}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>}
                             headerActions={<FinancialActionMenu actions={contratoActions}/>}
                         >
+                            {edicao && <div className="mb-3 rounded-lg border border-border bg-secondary/30 p-3">
+                                <div className="grid gap-3 md:grid-cols-[180px_1fr]">
+                                    <label className="text-xs">
+                                        <span className="mb-1 block text-muted-foreground">Valor contratado</span>
+                                        <input autoFocus type="number" step="0.01" min="0" className={`${inputClass} h-9 text-sm`}
+                                            value={edicao.valor}
+                                            onChange={e => setEditandoContratacao(v => v && ({ ...v, valor: e.target.value }))}/>
+                                    </label>
+                                    <label className="text-xs">
+                                        <span className="mb-1 block text-muted-foreground">Detalhamento do serviço</span>
+                                        <input className={`${inputClass} h-9 text-sm`}
+                                            value={edicao.observacoes}
+                                            onChange={e => setEditandoContratacao(v => v && ({ ...v, observacoes: e.target.value }))}
+                                            placeholder="Ex.: Serralheiro — fabricação e instalação de grades e portão"/>
+                                    </label>
+                                </div>
+                                <label className="mt-3 block text-xs">
+                                    <span className="mb-1 block text-muted-foreground">Motivo da alteração</span>
+                                    <input className={`${inputClass} h-9 text-sm`}
+                                        value={edicao.motivo}
+                                        onChange={e => setEditandoContratacao(v => v && ({ ...v, motivo: e.target.value }))}
+                                        placeholder="Ex.: escopo ampliado — total da atividade passou para R$ 3.500,00"/>
+                                </label>
+                                <div className="mt-3 flex justify-end gap-2">
+                                    <button onClick={() => setEditandoContratacao(null)} className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground">Cancelar</button>
+                                    <button onClick={() => salvarContratacao(c.id, {
+                                        valor_contratado: Number(String(edicao.valor).replace(',', '.')),
+                                        observacoes: edicao.observacoes.trim() || null,
+                                        motivo: edicao.motivo.trim() || null,
+                                    })} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Salvar</button>
+                                </div>
+                            </div>}
+                            {c.observacoes && !edicao && <div className="px-1 pb-2 text-[11px] text-muted-foreground">{c.observacoes}</div>}
+                            {registros && <div className="mb-3 rounded-lg border border-border bg-secondary/20 p-3">
+                                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Histórico de alterações</div>
+                                {registros.length === 0
+                                    ? <div className="text-[11px] text-muted-foreground">Nenhuma alteração registrada. O histórico passou a ser gravado agora; mudanças anteriores a isso não ficaram registradas.</div>
+                                    : <div className="flex flex-col gap-2">{registros.map((h: any) => (
+                                        <div key={h.id} className="border-l-2 border-border pl-2.5 text-[11px]">
+                                            <div className="text-muted-foreground">
+                                                {fmtData(h.criado_em)} · <strong className="text-foreground">{h.alvo}</strong>
+                                                {h.antes?.valor != null && h.depois?.valor != null && <> · {fmtMoeda(h.antes.valor)} → <strong className="text-foreground">{fmtMoeda(h.depois.valor)}</strong></>}
+                                                {h.antes?.valor_contratado != null && h.depois?.valor_contratado != null && <> · {fmtMoeda(h.antes.valor_contratado)} → <strong className="text-foreground">{fmtMoeda(h.depois.valor_contratado)}</strong></>}
+                                                {h.user_id && <> · {h.user_id}</>}
+                                            </div>
+                                            {h.motivo && <div className="mt-0.5 text-foreground">{h.motivo}</div>}
+                                        </div>
+                                    ))}</div>}
+                            </div>}
                             {Math.abs(diferenca) >= 0.01 && <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-400">Valor ainda não alocado em parcelas: <strong>{fmtMoeda(diferenca)}</strong></div>}
                             {c.contrato && <FinancialAttachments count={arquivos.length} label="Arquivos do contrato" addAction={<button type="button" onClick={() => clicarAnexarContrato(c.contrato.id)} className="text-[11px] font-semibold text-primary hover:underline">Adicionar</button>}>
                                 {arquivos.map((a: any) => <div key={a.id} className="flex items-center justify-between gap-2 rounded-md bg-secondary/30 px-2.5 py-2 text-xs"><a href={`/api/contratos/arquivos/${a.id}/download`} className="flex min-w-0 items-center gap-1.5 text-primary hover:underline"><Paperclip size={12}/><span className="truncate">{a.nome_original}</span></a><button type="button" onClick={() => removerArquivoContrato(a.id)} className="text-muted-foreground hover:text-destructive"><Trash2 size={12}/></button></div>)}
                             </FinancialAttachments>}
                             {(c.parcelas || []).map((p: any) => {
                                 const pago = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status);
+                                const formalizacao = p.processo_tipo === 'PAYMENT_FORMALIZATION' || p.formalizacao_posterior;
                                 const forma = p.forma_pagamento || c.supplier?.forma_pagamento || (c.funcionario?.pix_chave ? 'PIX' : 'TED');
                                 const actions: FinancialAction[] = [
-                                    { label: p.formalizacao_posterior ? 'Gerar e-mail de formalização' : 'Gerar e-mail de pagamento', onClick: () => gerarEmailPagamento(p.id) },
+                                    { label: formalizacao ? 'Gerar e-mail de formalização' : 'Gerar e-mail de pagamento', onClick: () => gerarEmailPagamento(p.id) },
                                     ...(!pago ? [
-                                        { label: 'Editar valor', onClick: () => { setEditandoParcela(p.id); setDividindo(null); setValorParcela(String(p.valor)); } },
+                                        { label: 'Editar valor', onClick: () => { setEditandoParcela(p.id); setDividindo(null); setValorParcela(String(p.valor)); setMotivoParcela(''); } },
                                         { label: 'Adiantar percentual', onClick: () => { setDividindo(p.id); setEditandoParcela(null); setValorParcela(''); } },
                                     ] : []),
                                     ...(p.tipo === 'PARCELA' && (c.parcelas || []).length > 1 && !pago ? [{ label: 'Desfazer adiantamento', onClick: () => desfazerAdiantamento(p), tone: 'danger' as const }] : []),
@@ -627,15 +784,28 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     ...(p.status !== 'PENDENTE' ? [{ label: 'Editar datas', onClick: () => abrirProgramacao(p) }] : []),
                                     ...(p.comprovante_url ? [{ label: 'Remover comprovante', onClick: () => removerComprovante(p), tone: 'danger' as const }] : []),
                                     ...(!['PENDENTE', 'PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status) ? [{ label: 'Excluir solicitação', onClick: () => cancelarSolicitacaoPagamento(p), tone: 'danger' as const }] : []),
+                                    // Excluir a LINHA, não só a solicitação: é o que
+                                    // resolve um pagamento lançado errado.
+                                    ...(!pago ? [{ label: 'Excluir pagamento', onClick: () => excluirParcela(p), tone: 'danger' as const }] : []),
                                 ];
-                                const primaryAction = p.status === 'PENDENTE'
+                                // O anexo acontece só na faixa Documentos, logo abaixo.
+                                // Havia aqui um segundo caminho de upload, com storage
+                                // próprio: anexar por ele não registrava na faixa, e o
+                                // cartão dizia "comprovante anexado" enquanto a faixa
+                                // dizia "pendente" sobre o mesmo pagamento.
+                                const primaryAction = formalizacao ? null : p.status === 'PENDENTE'
                                     ? <GhostButton onClick={() => abrirProgramacao(p)}>Solicitar pagamento</GhostButton>
-                                    : p.comprovante_url
-                                        ? <a href={p.comprovante_url} target="_blank" rel="noreferrer" className="rounded-lg border border-emerald-500/30 px-3 py-1.5 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-500/10">Ver comprovante</a>
-                                        : <GhostButton onClick={() => clicarAnexarComprovante(p)} disabled={anexandoComprovante === p.id}>{anexandoComprovante === p.id ? 'Enviando...' : 'Adicionar comprovante'}</GhostButton>;
-                                return <FinancialPaymentCard key={p.id} title={p.tipo} percentage={`${p.percentual}%`} amount={fmtMoeda(p.valor)} method={<>{FORMA_LABEL[forma] || forma}{p.cartao_bandeira && p.cartao_final ? ` · ${p.cartao_bandeira} •••• ${p.cartao_final}` : ''}</>} context={p.formalizacao_posterior ? `Compra formalizada${p.fatura_referencia ? ` · Fatura ${p.fatura_referencia}` : ''}` : undefined} requestedAt={p.data_solicitacao ? fmtData(p.data_solicitacao) : undefined} expectedAt={p.data_prevista ? fmtData(p.data_prevista) : undefined} paidAt={p.data_pagamento ? fmtData(p.data_pagamento) : undefined} receipt={{ attached: Boolean(p.comprovante_url) }} status={<PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)}/>} primaryAction={primaryAction} actions={actions}>
+                                    : null;
+                                return <FinancialPaymentCard key={p.id} title={formalizacao ? 'FORMALIZAÇÃO' : p.tipo} percentage={`${p.percentual}%`} amount={fmtMoeda(p.valor)} method={<>{FORMA_LABEL[forma] || forma}{p.cartao_bandeira && p.cartao_final ? ` · ${p.cartao_bandeira} •••• ${p.cartao_final}` : ''}</>} context={formalizacao ? `Pagamento já realizado · pendente de documentos${p.fatura_referencia ? ` · ${p.fatura_referencia}` : ''}` : undefined} requestedAt={p.data_solicitacao ? fmtData(p.data_solicitacao) : undefined} expectedAt={p.data_prevista ? fmtData(p.data_prevista) : undefined} paidAt={p.data_pagamento ? fmtData(p.data_pagamento) : undefined} status={<PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)}/>} primaryAction={primaryAction} actions={actions}>
+                                    <PaymentAttachments ownerType="PARCELA" ownerId={p.id} comprovanteLegado={p.comprovante_url} requiresFiscal={['CABO','METALICO','QTM','ETM','MATERIAL_CIVIL','MATERIAL_ELETRICO','EQUIPAMENTO'].includes(c.finalidade)} onChange={load}/>
                                     {dividindo === p.id && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2 text-xs"><span>Adiantar</span><input autoFocus type="number" step="1" min="0" max="100" className={`${inputClass} h-8 w-20 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setDividindo(null); if (e.key === 'Enter') dividirParcela(p.id, p.valor, c.valor_contratado); }}/><span>% = <strong className="text-emerald-500">{fmtMoeda(Math.round((c.valor_contratado * (Number(String(valorParcela).replace(',', '.')) || 0) / 100) * 100) / 100)}</strong></span>{[10,20,30,40,50].map(v => <button key={v} onClick={() => setValorParcela(String(v))} className="rounded border border-border px-2 py-1 text-[10px]">{v}%</button>)}<button onClick={() => dividirParcela(p.id, p.valor, c.valor_contratado)} className="font-semibold text-emerald-500">Aplicar</button><button onClick={() => setDividindo(null)} className="text-muted-foreground">Cancelar</button></div>}
-                                    {editandoParcela === p.id && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2 text-xs"><span>R$</span><input autoFocus type="number" step="0.01" min="0" className={`${inputClass} h-8 w-32 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setEditandoParcela(null); if (e.key === 'Enter') salvarValorParcela(p.id); }}/><button onClick={() => salvarValorParcela(p.id)} className="font-semibold text-emerald-500">Salvar</button><button onClick={() => setEditandoParcela(null)} className="text-muted-foreground">Cancelar</button></div>}
+                                    {editandoParcela === p.id && <div className="mt-3 rounded-lg border border-border bg-secondary/30 p-2 text-xs">
+                                        <div className="flex flex-wrap items-center gap-2"><span>R$</span><input autoFocus type="number" step="0.01" min="0" className={`${inputClass} h-8 w-32 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setEditandoParcela(null); if (e.key === 'Enter') salvarValorParcela(p.id); }}/><button onClick={() => salvarValorParcela(p.id)} className="font-semibold text-emerald-500">Salvar</button><button onClick={() => setEditandoParcela(null)} className="text-muted-foreground">Cancelar</button></div>
+                                        {/* Sem este campo, o motivo da mudança de valor não tinha
+                                            onde ser escrito — e quem escrevia em outro lugar não
+                                            achava o texto depois. */}
+                                        <input className={`${inputClass} mt-2 h-8 w-full text-xs`} value={motivoParcela} onChange={e => setMotivoParcela(e.target.value)} placeholder="Motivo da alteração (fica no histórico)"/>
+                                    </div>}
                                 </FinancialPaymentCard>;
                             })}
                         </FinancialBeneficiaryCard>;
@@ -707,11 +877,16 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 {emailPagamento.para && (
                                     <span><span className="text-muted-foreground">Para:</span> <strong>{emailPagamento.para}</strong></span>
                                 )}
+                                {emailPagamento.cc && <span><span className="text-muted-foreground">CC:</span> <strong>{emailPagamento.cc}</strong></span>}
+                                {emailPagamento.responsavel && <span><span className="text-muted-foreground">Responsável:</span> <strong>{emailPagamento.responsavel.nome}</strong></span>}
                                 <span><span className="text-muted-foreground">Favorecido:</span> <strong>{emailPagamento.resumo?.fornecedor}</strong></span>
                                 {emailPagamento.resumo?.razao_social && emailPagamento.resumo.razao_social !== emailPagamento.resumo.fornecedor && (
                                     <span><span className="text-muted-foreground">Razao social:</span> <strong>{emailPagamento.resumo.razao_social}</strong></span>
                                 )}
                             </div>
+                            {emailPagamento.anexos?.length > 0 && <div className="text-muted-foreground">Anexos reais no .eml: <strong className="text-foreground">{emailPagamento.anexos.map((a:any)=>a.nome).join('; ')}</strong></div>}
+                            {emailPagamento.resumo?.documentos_pendentes?.length > 0 && <div className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-amber-400">Formalização incompleta: {emailPagamento.resumo.documentos_pendentes.join(', ')}</div>}
+                            {emailPagamento.routing_pendente && <div className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-amber-400">Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações → Comunicação.</div>}
                             <div className="flex items-start gap-2">
                                 <span className="text-muted-foreground shrink-0 pt-0.5">Assunto:</span>
                                 <span className="font-mono text-[11px] break-all">{emailPagamento.assunto}</span>
@@ -746,13 +921,14 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
 
                         <div className="flex items-center justify-end gap-2 p-4 border-t border-border">
                             <GhostButton onClick={() => setEmailPagamento(null)}>Fechar</GhostButton>
-                            <a
-                                href={`/api/contratacoes/parcelas/${parcelaDoEmail}/email.eml${linkDiretorio ? `?link_diretorio=${encodeURIComponent(linkDiretorio)}` : ''}`}
+                            <button
+                                type="button"
+                                onClick={abrirEmailNoOutlook}
                                 className="h-9 px-3 border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2"
                                 title="Baixa um .eml — abrir no Outlook cria a mensagem pronta para enviar"
                             >
                                 <Mail size={15} /> Abrir no Outlook
-                            </a>
+                            </button>
                             <PrimaryButton onClick={() => copiarEmail(emailPagamento.html, emailPagamento.assunto)}>
                                 {copiado === 'corpo' ? 'Copiado' : 'Copiar e-mail'}
                             </PrimaryButton>
@@ -763,17 +939,6 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
 
             <PrestacaoContasViagem atividade={atividade} refreshKey={adiantamentoRefresh} />
 
-            {emailPreview && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9000] p-4" onClick={() => setEmailPreview(null)}>
-                    <div className="bg-card border border-border rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-sm font-bold mb-3">Solicitação de Pagamento gerada</h3>
-                        <pre className="text-xs whitespace-pre-wrap bg-secondary/40 rounded-lg p-3 font-mono">{emailPreview}</pre>
-                        <div className="flex justify-end mt-4">
-                            <GhostButton onClick={() => setEmailPreview(null)}>Fechar</GhostButton>
-                        </div>
-                    </div>
-                </div>
-            )}
         </Card>
     );
 }

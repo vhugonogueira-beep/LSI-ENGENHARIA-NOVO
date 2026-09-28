@@ -6,8 +6,8 @@ export const PAGAMENTO_STATUS = [
 const COR_STATUS: Record<string, string> = {
     PENDENTE: '#94a3b8',
     SOLICITADO: '#f59e0b',
-    ENVIADO_FINANCEIRO: '#3b82f6',
-    AGUARDANDO_PAGAMENTO: '#3b82f6',
+    ENVIADO_FINANCEIRO: '#1768D5',
+    AGUARDANDO_PAGAMENTO: '#1768D5',
     PAGO: '#22c55e',
     COMPROVANTE_RECEBIDO: '#22c55e',
     CONFERIDO: '#22d3ee',

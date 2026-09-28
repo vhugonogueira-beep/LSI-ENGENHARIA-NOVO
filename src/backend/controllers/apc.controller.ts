@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximoStatusAutomatico } from '../services/status-atividade.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -61,14 +62,16 @@ export async function updateAPCStatus(req: Request, res: Response) {
             data: { status, documento_url: documento_url !== undefined ? documento_url : undefined },
         });
 
-        // Ao liberar o APC, avança o status operacional apenas se a atividade ainda não
-        // começou a execução (não regride se já estiver EM_EXECUCAO ou CONCLUIDA).
+        // Liberar o APC libera a execução. Não existe mais um estado "APC
+        // liberado" na atividade: era um gate ocupando lugar de fase. Quanto já
+        // foi feito quem diz é o avanço físico, não o status.
         if (status === 'APC_LIBERADO') {
             const atividade = await prisma.atividade.findUnique({ where: { id: apc.atividade_id } });
-            if (atividade && ['PLANEJAMENTO', 'AGUARDANDO_APC'].includes(atividade.status_operacional)) {
+            const novo = proximoStatusAutomatico(atividade?.status_operacional, 'EM_EXECUCAO');
+            if (atividade && novo) {
                 await prisma.atividade.update({
                     where: { id: apc.atividade_id },
-                    data: { status_operacional: 'APC_LIBERADO' },
+                    data: { status_operacional: novo },
                 });
             }
         }

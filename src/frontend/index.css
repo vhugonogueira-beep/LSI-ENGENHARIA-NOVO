@@ -3,36 +3,93 @@
 @tailwind utilities;
 
 @layer base {
+  /* Paleta LS Office — modelo Executivo.
+     :root carrega o tema noturno, que e o tema em uso hoje e segue sendo o
+     padrao. O bloco [data-theme="light"] deixa a paleta diurna pronta na
+     camada de estilos; nada no sistema define esse atributo por enquanto. */
   :root {
-    --background: 225 36% 4%;
-    --foreground: 217 42% 96%;
+    --background: 215 55% 9%;          /* #0A1422 fundo da pagina */
+    --foreground: 214 62% 95%;         /* #EAF1FA texto principal */
 
-    --card: 215 24% 10%;
-    --card-foreground: 217 42% 96%;
+    --card: 215 51% 15%;               /* #122238 cartoes e superficies */
+    --card-foreground: 214 62% 95%;    /* #EAF1FA */
 
-    --popover: 224 30% 15%;
-    --popover-foreground: 217 42% 96%;
+    --popover: 213 47% 18%;            /* #182B43 areas elevadas */
+    --popover-foreground: 214 62% 95%; /* #EAF1FA */
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 217 42% 96%;
+    --primary: 216 100% 50%;           /* #0066FF azul principal */
+    --primary-foreground: 0 0% 100%;   /* #FFFFFF texto do botao */
 
-    --secondary: 220 24% 7%;
-    --secondary-foreground: 217 42% 96%;
+    --secondary: 213 47% 18%;          /* #182B43 campos */
+    --secondary-foreground: 214 62% 95%; /* #EAF1FA */
 
-    --muted: 224 30% 15%;
-    --muted-foreground: 216 22% 58%;
+    --muted: 213 47% 18%;              /* #182B43 */
+    --muted-foreground: 213 27% 73%;   /* #A6B7CC texto secundario */
 
-    --accent: 224 30% 15%;
-    --accent-foreground: 217 42% 96%;
+    --accent: 210 56% 22%;             /* #193958 linha selecionada */
+    --accent-foreground: 214 62% 95%;  /* #EAF1FA */
 
     --destructive: 0 91% 71%;
     --destructive-foreground: 213 29% 6%;
 
-    --border: 221 29% 23%;
-    --input: 221 29% 23%;
-    --ring: 217 91% 60%;
+    --border: 213 35% 26%;             /* #2B4059 bordas e divisorias */
+    --input: 213 35% 26%;              /* #2B4059 */
+    --ring: 215 100% 65%;              /* #4A96FF */
+
+    /* Papeis nomeados na paleta que ainda nao tinham token proprio. */
+    --sidebar: 214 61% 8%;             /* #081321 menu lateral */
+    --sidebar-foreground: 214 62% 95%; /* #EAF1FA texto claro no menu */
+    --header: 215 51% 11%;             /* #0E1A2B cabecalho */
+    --elevated: 213 47% 18%;           /* #182B43 campos e areas elevadas */
+    --link: 213 100% 74%;              /* #78B5FF */
+    --row-selected: 210 56% 22%;       /* #193958 */
+    --progress: 215 100% 65%;          /* #4A96FF */
+    --progress-track: 213 32% 24%;     /* #2A3C52 */
+    --titulo: 214 62% 95%;             /* #EAF1FA titulos */
 
     --radius: 0.5rem;
+  }
+
+  [data-theme="light"] {
+    --background: 210 63% 97%;         /* #F2F7FC fundo da pagina */
+    --foreground: 218 54% 20%;         /* #172B4D texto principal */
+
+    --card: 0 0% 100%;                 /* #FFFFFF cartoes e superficies */
+    --card-foreground: 218 54% 20%;    /* #172B4D */
+
+    --popover: 0 0% 100%;              /* #FFFFFF */
+    --popover-foreground: 218 54% 20%; /* #172B4D */
+
+    --primary: 216 100% 50%;           /* #0066FF azul principal */
+    --primary-foreground: 0 0% 100%;   /* #FFFFFF */
+
+    --secondary: 0 0% 100%;            /* #FFFFFF campos */
+    --secondary-foreground: 218 54% 20%; /* #172B4D */
+
+    --muted: 212 57% 95%;              /* #EDF3FA */
+    --muted-foreground: 213 25% 43%;   /* #526B89 texto secundario */
+
+    --accent: 214 100% 96%;            /* #EAF3FF fundo de selecao */
+    --accent-foreground: 218 54% 20%;  /* #172B4D */
+
+    /* Vermelho de tema claro: o tom do noturno nao tem contraste sobre branco. */
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 211 49% 91%;             /* #DCE7F3 bordas e divisorias */
+    --input: 211 49% 91%;              /* #DCE7F3 */
+    --ring: 216 100% 50%;              /* #0066FF */
+
+    /* O menu lateral permanece marinho tambem no tema claro, com texto claro. */
+    --sidebar: 211 74% 15%;            /* #0A2644 */
+    --sidebar-foreground: 213 63% 92%; /* #DCE8F7 */
+    --header: 0 0% 100%;               /* #FFFFFF */
+    --elevated: 0 0% 100%;             /* #FFFFFF */
+    --link: 216 100% 45%;              /* #005CE6 link sobre fundo claro */
+    --row-selected: 214 100% 96%;      /* #EAF3FF */
+    --progress: 216 100% 50%;          /* #0066FF */
+    --progress-track: 211 49% 91%;     /* #DCE7F3 */
+    --titulo: 226 69% 14%;             /* #0B173D titulos */
   }
 }
 
@@ -45,13 +102,23 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+  /* Uma familia unica em toda a interface. Inputs, selects, textareas e botoes
+     nao herdam font-family do body por padrao no navegador — dai o reset. */
   body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     @apply bg-background text-foreground;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     font-size: 14px;
     line-height: 1.5;
+  }
+  input, select, textarea, button, optgroup {
+    font-family: inherit;
+  }
+  /* Pesos reais carregados (400/500/600/700) — evita negrito sintetizado. */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
   }
 }
 

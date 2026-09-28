@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRight, Mail } from 'lucide-react';
 import { fmtMoeda, fmtData } from '../components/atividades/constants';
+import { authFetch, downloadAuthenticatedFile } from '../lib/authFetch';
 
 interface Atividade {
     id: string;
@@ -30,7 +31,7 @@ interface Faturamento {
 }
 
 const FATURAMENTO_STAGES = [
-    { id: 'ENVIADO_FINANCEIRO', label: 'Enviado ao Financeiro', color: '#3b82f6' },
+    { id: 'ENVIADO_FINANCEIRO', label: 'Enviado ao Financeiro', color: '#1768D5' },
     { id: 'EM_FATURAMENTO', label: 'Em Faturamento', color: '#f59e0b' },
     { id: 'NF_EMITIDA', label: 'NF Emitida', color: '#8b5cf6' },
     { id: 'FATURADO', label: 'Faturado', color: '#6366f1' },
@@ -83,7 +84,7 @@ export default function Faturamento() {
                     .reduce((s, l) => s + l.valor_pendente, 0),
                 linhasAguardando: linhas.filter(l => !l.autorizado && l.percentual_pendente > 0).length,
                 semPO: atividades.filter(a => !comPO.has(a.id)
-                    && ['EM_EXECUCAO', 'CONCLUIDA', 'APC_LIBERADO'].includes(a.status_operacional || '')),
+                    && ['EM_EXECUCAO', 'CONCLUIDA'].includes(a.status_operacional || '')),
             });
         } finally {
             setLoading(false);
@@ -179,7 +180,7 @@ export default function Faturamento() {
                 <KpiCard icon={<CheckCircle2 size={16} />} label="Autorizado a Faturar" value={fmtMoeda(resumo.aFaturar)} sub={`${resumo.linhasAFaturar} linha(s) de PO`} color="#22c55e" />
                 <KpiCard icon={<Wallet size={16} />} label="Aguardando Autorização" value={fmtMoeda(resumo.aguardandoAutorizacao)} sub={`${resumo.linhasAguardando} linha(s) sem OK`} color="#f59e0b" />
                 <KpiCard icon={<Receipt size={16} />} label="Sem PO Recebida" value={String(resumo.semPO.length)} sub="atividades em obra sem PO" color="#ef4444" />
-                <KpiCard icon={<Send size={16} />} label="Lotes em Aberto" value={String(lotesAbertos)} sub={`${lotes.length} lote(s) no total`} color="#3b82f6" />
+                <KpiCard icon={<Send size={16} />} label="Lotes em Aberto" value={String(lotesAbertos)} sub={`${lotes.length} lote(s) no total`} color="#1768D5" />
                 <KpiCard icon={<Receipt size={16} />} label="Valor a Receber" value={fmtMoeda(valorAReceber)} sub="soma dos lotes não recebidos" color="#8b5cf6" />
             </div>
 
@@ -417,7 +418,7 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
             const criados = await r.json();
             if (!r.ok) throw new Error(criados.error || 'Erro ao solicitar faturamento');
 
-            const er = await fetch('/api/pos/faturamento-linhas/email', {
+            const er = await authFetch('/api/pos/faturamento-linhas/email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ids: criados.map((c: any) => c.id) }),
@@ -658,7 +659,6 @@ function ModalCancelamento({ dados, onConfirmar, onFechar }: {
                     Linha {dados.linha.numero_linha} · {dados.linha.descricao} — remessa de {dados.fat.percentual}% ({fmtMoeda(dados.fat.valor)}).
                     O saldo volta a ficar disponível e o motivo fica registrado no histórico.
                 </p>
-
                 <label className="text-xs font-semibold text-muted-foreground">Motivo do cancelamento</label>
                 <textarea
                     rows={4}
@@ -716,6 +716,18 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
                     a formatação da tabela é preservada.
                 </p>
 
+                <div className="mb-3 grid gap-1 rounded-lg border border-border bg-secondary/30 p-3 text-xs">
+                    <div><span className="text-muted-foreground">Responsável:</span> <strong>{email.responsavel?.nome || '—'}</strong></div>
+                    <div><span className="text-muted-foreground">Para:</span> <strong>{email.para || '—'}</strong></div>
+                    <div><span className="text-muted-foreground">CC:</span> <strong>{email.cc || '—'}</strong></div>
+                    <div><span className="text-muted-foreground">Anexo:</span> planilha de faturamento (.xlsx)</div>
+                </div>
+                {email.routing_pendente && (
+                    <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
+                        Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações → Comunicação.
+                    </div>
+                )}
+
                 <div className="flex items-center gap-2 mb-3 flex-wrap">
                     <div className="flex-1 min-w-[240px] bg-secondary/40 border border-border rounded px-3 py-2 text-sm">{email.assunto}</div>
                     <button onClick={() => copiar('assunto')} className="text-xs font-semibold border border-border rounded px-3 py-2 hover:bg-secondary">
@@ -727,10 +739,11 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
                 </div>
 
                 {email.ids?.length > 0 && (
-                    <a href={`/api/pos/faturamento-linhas/planilha?ids=${email.ids.join(',')}`}
+                    <button type="button"
+                        onClick={() => downloadAuthenticatedFile(`/api/pos/faturamento-linhas/planilha?ids=${email.ids.join(',')}`, 'FATURAMENTO.xlsx')}
                         className="mb-4 inline-flex items-center gap-2 text-xs font-semibold bg-emerald-600 text-white rounded px-3 py-2 hover:bg-emerald-500">
                         <Download size={14} /> Baixar planilha (.xlsx) para anexar ao e-mail
-                    </a>
+                    </button>
                 )}
 
                 <div className="border border-border rounded-lg bg-white text-black p-4 overflow-x-auto">

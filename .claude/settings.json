@@ -1,1 +1,10 @@
-{"data":"ewogICJwZXJtaXNzaW9ucyI6IHsKICAgICJhbGxvdyI6IFsKICAgICAgIkJhc2godmVyY2VsIGxpbms6KikiLAogICAgICAiQmFzaCh2ZXJjZWwgLS1wcm9kKSIKICAgIF0KICB9Cn0K"}
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git add *)"
+    ]
+  }
+}

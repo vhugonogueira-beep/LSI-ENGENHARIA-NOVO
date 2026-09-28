@@ -5,11 +5,9 @@ import { Request, Response } from 'express';
 import { prisma } from '../server';
 
 async function getTenantId(req: Request): Promise<string> {
-    const doCorpo = (req.body?.tenant_id || req.query?.tenantId) as string | undefined;
-    if (doCorpo) return doCorpo;
-    const t = await prisma.tenant.findFirst();
-    if (!t) throw new Error('Nenhum tenant cadastrado');
-    return t.id;
+    const tenantId = (req as any).user?.tenantId as string | undefined;
+    if (!tenantId) throw new Error('Sessão sem empresa vinculada');
+    return tenantId;
 }
 
 const CAMPOS_EMPRESA = [
@@ -81,6 +79,7 @@ export class EmpresaController {
                 include: {
                     contas: { orderBy: [{ principal: 'desc' }, { banco: 'asc' }] },
                     cartoes: { orderBy: [{ ativo: 'desc' }, { bandeira: 'asc' }] },
+                    emailRoutingConfigs: { orderBy: { tipo: 'asc' } },
                 },
             });
             res.json(empresa);

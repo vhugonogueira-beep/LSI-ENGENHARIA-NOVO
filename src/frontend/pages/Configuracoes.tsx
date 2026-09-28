@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { authFetch } from "../lib/authFetch";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configurações — o cadastro da própria LS Office.
@@ -8,20 +9,41 @@ import React, { useState, useEffect, useCallback } from "react";
 // As contas de recebimento ficam aqui porque são dado da empresa, não da obra.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Esta tela nasceu com uma paleta própria em hex, herdada do monólito, e por
+// isso destoava das telas novas (Clientes, Meu Perfil) que usam os tokens do
+// tema. Os valores abaixo passaram a apontar para as mesmas CSS variables do
+// Tailwind (src/frontend/index.css), então card, borda, input e tipografia
+// ficam idênticos ao resto do sistema sem reescrever o JSX.
 const T = {
-  bg1: "#0e1117", bg2: "#13181f", bg3: "#1a2030",
-  brSub: "#1e2840", brBase: "#2d3a52",
-  txPri: "#f0f4fa", txSec: "#b4c5d8", txMut: "#7c94b0", txDis: "#506480",
-  blue: "#3b82f6", green: "#34d399", amber: "#fbbf24", red: "#f87171", purple: "#a78bfa",
+  bg1: "hsl(var(--background))",
+  bg2: "hsl(var(--card))",
+  bg3: "hsl(var(--secondary))",
+  brSub: "hsl(var(--border))",
+  brBase: "hsl(var(--border))",
+  txPri: "hsl(var(--foreground))",
+  txSec: "hsl(var(--muted-foreground))",
+  txMut: "hsl(var(--muted-foreground))",
+  txDis: "hsl(var(--muted-foreground))",
+  blue: "hsl(var(--primary))",
+  // Acentos semânticos: já são exatamente as cores emerald/amber/red/violet-400
+  // do Tailwind usadas nas outras telas.
+  green: "#34d399", amber: "#fbbf24", red: "#f87171", purple: "#a78bfa",
 };
 
+// Medidas alinhadas com as classes usadas nas telas em Tailwind: card
+// `rounded-xl` (12px), input/botão `rounded-lg` (8px) e altura `h-9` (36px).
 const S = {
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "16px 18px" } as React.CSSProperties,
-  input: { padding: "8px 10px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", width: "100%", boxSizing: "border-box" } as React.CSSProperties,
-  label: { fontSize: 9.5, color: T.txSec, display: "block", marginBottom: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" } as React.CSSProperties,
-  btn: { padding: "8px 15px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg1, cursor: "pointer", color: T.txPri, fontWeight: 700 } as React.CSSProperties,
-  btnBlue: { background: T.blue, color: "#fff", borderColor: T.blue } as React.CSSProperties,
+  input: { height: 36, padding: "0 12px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", width: "100%", boxSizing: "border-box" } as React.CSSProperties,
+  label: { fontSize: 10, color: T.txMut, display: "block", marginBottom: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" } as React.CSSProperties,
+  btn: { height: 36, padding: "0 16px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, cursor: "pointer", color: T.txPri, fontWeight: 700 } as React.CSSProperties,
+  btnBlue: { background: T.blue, color: "hsl(var(--primary-foreground))", borderColor: T.blue } as React.CSSProperties,
 };
+
+// S.input tem altura fixa de 36px para casar com o `h-9` das telas em Tailwind.
+// Textarea precisa crescer, então recompõe a altura e o padding vertical.
+const areaTexto = (minHeight: number): React.CSSProperties =>
+  ({ ...S.input, height: "auto", padding: "8px 12px", minHeight, resize: "vertical" });
 
 const REGIMES = [
   { id: "", rotulo: "— selecione —" },
@@ -39,13 +61,113 @@ interface Conta {
   observacoes: string | null;
 }
 
-interface Operadora {
-  id: string; nome: string; sigla: string | null; logo_url: string | null; ativa: boolean;
-}
+// Tipo mantido somente para leitura do componente legado abaixo. O cadastro de
+// operadoras não é mais exposto em Configurações; foi movido para Clientes.
+interface Operadora { id: string; nome: string; sigla: string | null; logo_url: string | null; ativa: boolean; }
 
 interface Cartao {
   id: string; bandeira: string; final: string; apelido: string | null; titular: string | null;
   limite: number | null; dia_fechamento: number | null; ativo: boolean;
+}
+
+const ROUTING_LABELS: Record<string, string> = {
+  PAYMENT_REQUEST: 'Solicitação de pagamento',
+  PAYMENT_FORMALIZATION: 'Formalização de pagamento',
+  BILLING: 'Faturamento',
+};
+
+/**
+ * Roteamento dos e-mails gerados pelo LSI.
+ *
+ * É aqui — e só aqui — que se define quem recebe cada tipo de e-mail. Não há
+ * destinatário embutido no código: um e-mail de pagamento indo para a pessoa
+ * errada é pior do que um "Para" vazio, então a prévia avisa em âmbar quando o
+ * perfil ainda não foi cadastrado. A assinatura continua sendo individual, em
+ * Meu Perfil, e não passa por esta tela.
+ */
+function ConfiguracaoComunicacao({ onError, notify }: { onError: (value: string) => void; notify: (value: string) => void }) {
+  const [perfis, setPerfis] = useState<any[]>([]);
+  const [salvando, setSalvando] = useState("");
+
+  useEffect(() => {
+    authFetch("/api/email-config/routing")
+      .then(async r => {
+        const body = await r.json();
+        if (!r.ok) throw new Error(body.error);
+        return body;
+      })
+      .then(setPerfis)
+      .catch(e => onError(e.message));
+  }, [onError]);
+
+  // O campo é texto livre separado por ponto e vírgula; o backend revalida e
+  // recusa endereço malformado na gravação.
+  const editar = (tipo: string, campo: "para" | "cc", valor: string) =>
+    setPerfis(atual => atual.map(item => item.tipo === tipo
+      ? { ...item, [campo]: valor.split(/[;,\n]/).map(v => v.trim()).filter(Boolean) }
+      : item));
+
+  async function salvar(item: any) {
+    setSalvando(item.tipo);
+    onError("");
+    const resposta = await authFetch(`/api/email-config/routing/${item.tipo}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ para: item.para, cc: item.cc }),
+    });
+    const body = await resposta.json();
+    setSalvando("");
+    if (!resposta.ok) return onError(body.error || "Erro ao salvar roteamento");
+
+    setPerfis(atual => atual.map(p => p.tipo === item.tipo ? { ...p, para: body.para, cc: body.cc } : p));
+    notify("Destinatários salvos.");
+  }
+
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <div style={S.card}>
+        <Titulo>Roteamento dos e-mails</Titulo>
+        <p style={{ color: T.txMut, fontSize: 11, lineHeight: 1.5, margin: 0 }}>
+          Cadastre vários destinatários em Para e CC, separados por ponto e vírgula.
+          A assinatura continua individual, em Meu Perfil.
+        </p>
+      </div>
+
+      {perfis.map(item => (
+        <div key={item.tipo} style={S.card}>
+          <Titulo>{ROUTING_LABELS[item.tipo] || item.tipo}</Titulo>
+          {item.para.length === 0 && (
+            <p style={{ color: T.amber, fontSize: 11, margin: "0 0 8px" }}>
+              Sem destinatário: os e-mails deste tipo saem com o campo Para vazio.
+            </p>
+          )}
+          <Grid cols="1fr 1fr auto">
+            <Campo rotulo="Para">
+              <textarea
+                style={areaTexto(64)}
+                value={(item.para || []).join("; ")}
+                onChange={e => editar(item.tipo, "para", e.target.value)}
+              />
+            </Campo>
+            <Campo rotulo="CC">
+              <textarea
+                style={areaTexto(64)}
+                value={(item.cc || []).join("; ")}
+                onChange={e => editar(item.tipo, "cc", e.target.value)}
+              />
+            </Campo>
+            <button
+              style={{ ...S.btn, ...S.btnBlue, height: 34, alignSelf: "end" }}
+              disabled={salvando === item.tipo}
+              onClick={() => salvar(item)}
+            >
+              {salvando === item.tipo ? "Salvando..." : "Salvar"}
+            </button>
+          </Grid>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 /** Máscara de exibição; o backend guarda só os dígitos. */
@@ -71,14 +193,13 @@ function lerArquivoComoDataUri(arquivo: File): Promise<string> {
   });
 }
 
-type Aba = "empresa" | "contas" | "cartoes" | "operadoras";
+type Aba = "empresa" | "contas" | "cartoes" | "comunicacao";
 
 export default function Configuracoes() {
   const [aba, setAba] = useState<Aba>("empresa");
   const [empresa, setEmpresa] = useState<any>(null);
   const [contas, setContas] = useState<Conta[]>([]);
   const [cartoes, setCartoes] = useState<Cartao[]>([]);
-  const [operadoras, setOperadoras] = useState<Operadora[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
@@ -89,12 +210,11 @@ export default function Configuracoes() {
   const carregar = useCallback(async () => {
     setCarregando(true);
     try {
-      const [re, ro] = await Promise.all([fetch("/api/empresa"), fetch("/api/empresa/operadoras")]);
+      const re = await authFetch("/api/empresa");
       const e = re.ok ? await re.json() : null;
       setEmpresa(e || { razao_social: "", aliquota_impostos: 0.2204 });
       setContas(e?.contas || []);
       setCartoes(e?.cartoes || []);
-      setOperadoras(ro.ok ? await ro.json() : []);
     } catch (ex: any) {
       setErro(ex.message);
     } finally {
@@ -109,7 +229,7 @@ export default function Configuracoes() {
   async function salvarEmpresa() {
     setSalvando(true); setErro("");
     try {
-      const r = await fetch("/api/empresa", {
+      const r = await authFetch("/api/empresa", {
         method: "PUT", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...empresa,
@@ -128,7 +248,7 @@ export default function Configuracoes() {
   async function salvarConta(c: Partial<Conta>, id?: string) {
     setErro("");
     try {
-      const r = await fetch(id ? `/api/empresa/contas/${id}` : "/api/empresa/contas", {
+      const r = await authFetch(id ? `/api/empresa/contas/${id}` : "/api/empresa/contas", {
         method: id ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(c),
       });
       if (!r.ok) throw new Error((await r.json()).error || "Erro ao salvar a conta");
@@ -139,7 +259,7 @@ export default function Configuracoes() {
 
   async function removerConta(c: Conta) {
     if (!confirm(`Remover a conta ${c.banco} ${c.agencia || ""}/${c.conta || ""}?`)) return;
-    await fetch(`/api/empresa/contas/${c.id}`, { method: "DELETE" });
+    await authFetch(`/api/empresa/contas/${c.id}`, { method: "DELETE" });
     await carregar();
     notify("Conta removida.");
   }
@@ -147,7 +267,7 @@ export default function Configuracoes() {
   async function salvarCartao(c: Partial<Cartao>, id?: string) {
     setErro("");
     try {
-      const r = await fetch(id ? `/api/empresa/cartoes/${id}` : "/api/empresa/cartoes", {
+      const r = await authFetch(id ? `/api/empresa/cartoes/${id}` : "/api/empresa/cartoes", {
         method: id ? "PUT" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(c),
       });
       if (!r.ok) throw new Error((await r.json()).error || "Erro ao salvar o cartão");
@@ -157,28 +277,9 @@ export default function Configuracoes() {
 
   async function removerCartao(c: Cartao) {
     if (!confirm(`Remover o cartão ${c.bandeira} final ${c.final}? O histórico dos pagamentos continuará preservado.`)) return;
-    const r = await fetch(`/api/empresa/cartoes/${c.id}`, { method: "DELETE" });
+    const r = await authFetch(`/api/empresa/cartoes/${c.id}`, { method: "DELETE" });
     if (!r.ok) { setErro((await r.json()).error || "Erro ao remover o cartão"); return; }
     await carregar(); notify("Cartão removido.");
-  }
-
-  async function salvarOperadora(o: Partial<Operadora>) {
-    setErro("");
-    try {
-      const r = await fetch("/api/empresa/operadoras", {
-        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(o),
-      });
-      if (!r.ok) throw new Error((await r.json()).error || "Erro ao salvar a operadora");
-      await carregar();
-      notify("Operadora salva.");
-    } catch (ex: any) { setErro(ex.message); }
-  }
-
-  async function removerOperadora(o: Operadora) {
-    if (!confirm(`Remover a operadora ${o.nome}?`)) return;
-    await fetch(`/api/empresa/operadoras/${o.id}`, { method: "DELETE" });
-    await carregar();
-    notify("Operadora removida.");
   }
 
   if (carregando) return <div style={{ padding: 40, color: T.txMut }}>Carregando configurações...</div>;
@@ -187,7 +288,7 @@ export default function Configuracoes() {
     { id: "empresa", rotulo: "🏢 Dados da empresa" },
     { id: "contas", rotulo: `🏦 Contas para recebimento (${contas.length})` },
     { id: "cartoes", rotulo: `💳 Cartões corporativos (${cartoes.length})` },
-    { id: "operadoras", rotulo: `📡 Operadoras (${operadoras.length})` },
+    { id: "comunicacao", rotulo: "✉ Comunicação" },
   ];
 
   return (
@@ -297,27 +398,8 @@ export default function Configuracoes() {
                 <img src={empresa.logo_url} alt="Logo" style={{ maxHeight: 44, maxWidth: 190, objectFit: "contain" }} />
               </div>
             )}
-            <div style={{ marginTop: 6, marginBottom: 10, paddingTop: 12, borderTop: `1px solid ${T.brSub}` }}>
-              <div style={{ fontSize: 11.5, fontWeight: 800, color: T.txPri, marginBottom: 3 }}>Quem assina os e-mails financeiros</div>
-              <div style={{ fontSize: 11, color: T.txMut, marginBottom: 10, lineHeight: 1.5 }}>
-                Sai na assinatura dos e-mails de programação de pagamento, reembolso e compra de material.
-                É sempre alguém da LS Office — nunca o gestor da contratante.
-              </div>
-              <Grid cols="1.4fr 1.2fr 1.6fr 1fr">
-                <Campo rotulo="Nome"><input style={S.input} value={empresa.solicitante_nome || ""} placeholder="ODILENE SILVA" onChange={e => campo("solicitante_nome", e.target.value)} /></Campo>
-                <Campo rotulo="Cargo"><input style={S.input} value={empresa.solicitante_cargo || ""} onChange={e => campo("solicitante_cargo", e.target.value)} /></Campo>
-                <Campo rotulo="E-mail"><input style={S.input} value={empresa.solicitante_email || ""} placeholder="om@lsoffice.com.br" onChange={e => campo("solicitante_email", e.target.value)} /></Campo>
-                <Campo rotulo="Telefone"><input style={S.input} value={empresa.solicitante_telefone || ""} onChange={e => campo("solicitante_telefone", e.target.value)} /></Campo>
-              </Grid>
-              <Campo rotulo="Destinatários da programação de pagamento" dica='Separe por ";" — é o formato que o Outlook aceita ao colar. Ex.: "NOME | LS OFFICE" <email@lsoffice.com.br>'>
-                <textarea style={{ ...S.input, minHeight: 54, resize: "vertical", fontFamily: "monospace", fontSize: 11 }}
-                  value={empresa.destinatarios_pagamento || ""}
-                  onChange={e => campo("destinatarios_pagamento", e.target.value)} />
-              </Campo>
-            </div>
-
             <Campo rotulo="Observações padrão da nota fiscal">
-              <textarea style={{ ...S.input, minHeight: 62, resize: "vertical" }} value={empresa.observacoes_nf || ""} onChange={e => campo("observacoes_nf", e.target.value)} />
+              <textarea style={areaTexto(62)} value={empresa.observacoes_nf || ""} onChange={e => campo("observacoes_nf", e.target.value)} />
             </Campo>
           </div>
 
@@ -337,9 +419,7 @@ export default function Configuracoes() {
         <ListaCartoes cartoes={cartoes} aoSalvar={salvarCartao} aoRemover={removerCartao} temEmpresa={!!empresa?.id} />
       )}
 
-      {aba === "operadoras" && (
-        <ListaOperadoras operadoras={operadoras} aoSalvar={salvarOperadora} aoRemover={removerOperadora} />
-      )}
+      {aba === "comunicacao" && <ConfiguracaoComunicacao onError={setErro} notify={notify}/>} 
     </div>
   );
 }
@@ -445,7 +525,7 @@ function ListaCartoes({ cartoes, aoSalvar, aoRemover, temEmpresa }: {
 
 // ─── Operadoras ──────────────────────────────────────────────────────────────
 
-function ListaOperadoras({ operadoras, aoSalvar, aoRemover }: {
+export function ListaOperadoras({ operadoras, aoSalvar, aoRemover }: {
   operadoras: Operadora[]; aoSalvar: (o: Partial<Operadora>) => void; aoRemover: (o: Operadora) => void;
 }) {
   const [nova, setNova] = useState<Partial<Operadora>>({});

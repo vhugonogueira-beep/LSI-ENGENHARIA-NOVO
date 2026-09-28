@@ -21,9 +21,11 @@ export function FinancialBeneficiaryCard({
   children: ReactNode;
 }) {
   return <article className="overflow-visible rounded-xl border border-border bg-card shadow-sm">
-    <header className="flex flex-col gap-3 border-b border-border/80 bg-secondary/20 px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+    {/* Faixa de cabecalho tingida e titulo em azul: e o que separa visualmente
+        um favorecido do proximo quando varios blocos de pagamento se empilham. */}
+    <header className="flex flex-col gap-3 border-b border-border bg-accent px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
       <div className="min-w-0">
-        <h3 className="truncate text-sm font-bold text-foreground">{name}</h3>
+        <h3 className="truncate text-sm font-bold text-[hsl(var(--link))]">{name}</h3>
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-muted-foreground">
           {category && <span className="font-medium uppercase tracking-wide">{category}</span>}
           {total !== undefined && <><span className="text-border">•</span><span>{totalLabel} <strong className="text-foreground">{total}</strong></span></>}

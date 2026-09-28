@@ -2,14 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 // Mesmos rótulos das telas de Atividades — evita a Visão Geral chamar o mesmo
 // status por outro nome.
 import { STATUS_OPERACIONAL } from '../components/atividades/constants';
+// Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
+import { T } from '../theme';
 
-const T = {
-  bg0: '#07090f', bg1: '#0e1117', bg2: '#13181f', bg3: '#1a2030',
-  brSub: '#1e2840', brBase: '#2d3a52',
-  txPri: '#f0f4fa', txSec: '#b4c5d8', txMut: '#7c94b0', txDis: '#506480',
-  blue: '#3b82f6', green: '#34d399', amber: '#fbbf24', red: '#f87171',
-  purple: '#a78bfa', indigo: '#6366f1', cyan: '#67e8f9',
-};
 
 function fmtMoeda(v?: number | null) {
   if (v == null || v === 0) return 'R$ 0';

@@ -8,7 +8,7 @@ import { fmtMoeda } from './constants';
 // PDF do vendor e o sistema lê número, valor, data, fornecedor e descrições do próprio
 // documento. A decisão de liberar para faturamento e o percentual a faturar acontecem na
 // tela de Faturamento (barra lateral), que cruza as POs anexadas com as atividades.
-const PO_STATUS_COLOR: Record<string, string> = { AGUARDANDO: '#94a3b8', RECEBIDA: '#f59e0b', VALIDADA: '#3b82f6', LIBERADA: '#22c55e' };
+const PO_STATUS_COLOR: Record<string, string> = { AGUARDANDO: '#94a3b8', RECEBIDA: '#f59e0b', VALIDADA: '#1768D5', LIBERADA: '#22c55e' };
 
 export default function TabFaturamento({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh: () => void }) {
     const [pos, setPos] = useState<any[]>([]);

@@ -1,123 +1,159 @@
-<!--
-  ===========================================================================
-  LS OFFICE — MODELO CORPORATIVO DE E-MAIL FINANCEIRO
-  ===========================================================================
-  Um único template para três modalidades:
-     PROGRAMACAO_PAGAMENTO · REEMBOLSO · COMPRA_MATERIAL
-
-  Estrutura em TABLE + CSS inline, para renderizar no Outlook Desktop.
-  Sem JavaScript, sem CSS externo, sem flex/grid como estrutura.
-
-  Blocos condicionais usam marcadores de linha, processados pelo renderizador
-  em email-corporativo.service.ts:
-     <!--#SE:NOME--> ... <!--#FIM:NOME-->
-  O bloco é removido inteiro quando a condição é falsa.
-
-  Paleta:
-     Azul principal  #123B6D   Azul escuro  #0B2342
-     Vermelho        #E30613   Cinza fundo  #F4F6F8
-     Cinza tabela    #F7F9FA   Cinza texto  #607080
-  ===========================================================================
--->
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;margin:0;padding:24px 12px;">
+<style>
+@media only screen and (max-width:480px) {
+  .pad { padding-left:20px !important; padding-right:20px !important; }
+  .col { display:block !important; width:100% !important; box-sizing:border-box !important; margin-bottom:12px !important; text-align:left !important; }
+  .col-last { margin-bottom:0 !important; }
+  .sp { display:none !important; width:0 !important; height:0 !important; font-size:0 !important; line-height:0 !important; }
+  .hdr-right { display:block !important; width:100% !important; box-sizing:border-box !important; text-align:left !important; padding-top:18px !important; }
+  .hdr-right table { margin-left:0 !important; }
+  .hero { font-size:30px !important; line-height:36px !important; }
+  .row-label, .row-value { display:block !important; width:100% !important; text-align:left !important; }
+  .row-label { padding-bottom:2px !important; }
+  .row-value { padding-bottom:12px !important; }
+}
+</style>
+<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">{{PREVIA_CAIXA_ENTRADA}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;margin:0;">
   <tr>
-    <td align="center" style="padding:0;">
+    <td align="center" style="padding:32px 12px;">
 
-      <table role="presentation" width="700" cellpadding="0" cellspacing="0" border="0" style="width:700px;max-width:700px;background-color:#FFFFFF;border-radius:6px;box-shadow:0 1px 4px rgba(11,35,66,0.10);">
+      <table role="presentation" width="960" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:960px;background-color:#FFFFFF;border:1px solid #E3E9F0;border-radius:16px;overflow:hidden;">
 
-        <!-- HEADER -->
         <tr>
-          <td style="background-color:#123B6D;padding:22px 28px;border-radius:6px 6px 0 0;">
+          <td bgcolor="#08213F" class="pad" style="background-color:#08213F;padding:28px 48px 22px 48px;">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td align="left" valign="middle" style="padding:0;">
-                  <img src="{{LOGO_LS_OFFICE}}" alt="LS Office - Serviços de Telecom e Construções" width="170" style="display:block;width:170px;max-width:170px;height:auto;border:0;">
+                <td class="col" width="52%" valign="middle" style="width:52%;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="100" valign="middle" style="padding-right:16px;">
+                        <img src="{{LOGO_LS_OFFICE}}" alt="LS Office" width="100" height="100" style="display:block;width:100px;height:100px;border:0;outline:none;text-decoration:none;">
+                      </td>
+                      <td valign="middle" style="font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;">
+                        <div style="font-size:23px;line-height:26px;font-weight:bold;color:#FFFFFF;letter-spacing:1.5px;">LS OFFICE</div>
+                        <div style="font-size:8px;line-height:13px;color:#7B93B4;letter-spacing:2.2px;padding-top:5px;">SERVIÇOS DE TELECOM E CONSTRUÇÕES</div>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
-                <td align="right" valign="middle" style="padding:0;">
-                  <span style="display:inline-block;background-color:#FFFFFF;color:#123B6D;font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;padding:7px 14px;border-radius:3px;">{{TIPO_SOLICITACAO_FORMATADO}}</span>
-                  <div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#AFC3DC;letter-spacing:1px;text-transform:uppercase;padding-top:7px;">Engenharia &bull; LS Office</div>
+                <!--#SE:RESUMO_PRAZO-->
+                <td class="hdr-right" width="48%" align="right" valign="middle" style="width:48%;">
+                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="right" style="margin-left:auto;">
+                    <tr>
+                      <td bgcolor="#0C2C51" align="right" style="background-color:#0C2C51;border:1px solid #1D4675;border-radius:10px;padding:11px 16px 12px 16px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;">
+                        <div style="font-size:8px;line-height:12px;font-weight:bold;color:#6E9AD4;letter-spacing:1.9px;">PAGAMENTO PREVISTO</div>
+                        <div style="font-size:18px;line-height:24px;font-weight:bold;color:#FFFFFF;letter-spacing:-0.3px;padding-top:4px;">{{RESUMO_PRAZO}}</div>
+                      </td>
+                    </tr>
+                  </table>
                 </td>
+                <!--#FIM:RESUMO_PRAZO-->
               </tr>
             </table>
-          </td>
-        </tr>
-        <tr><td style="background-color:#E30613;font-size:0;line-height:0;height:3px;">&nbsp;</td></tr>
-
-        <!-- INTRODUÇÃO -->
-        <tr>
-          <td style="padding:26px 28px 6px;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#2B3A4A;">
-            {{TEXTO_INTRODUCAO}}
-          </td>
-        </tr>
-
-        <!-- IDENTIFICAÇÃO DA DEMANDA -->
-        <tr>
-          <td style="padding:20px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#123B6D;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Identificação da demanda</div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:4px;">
-              {{LINHAS_IDENTIFICACAO}}
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+              <tr><td bgcolor="#173C64" height="1" style="background-color:#173C64;font-size:1px;line-height:1px;height:1px;mso-line-height-rule:exactly;">&#8203;</td></tr>
             </table>
-          </td>
-        </tr>
-
-        <!-- DADOS BANCÁRIOS -->
-        <!--#SE:BANCARIOS-->
-        <tr>
-          <td style="padding:22px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#E30613;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Dados para pagamento</div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:4px;">
-              {{LINHAS_BANCARIAS}}
-            </table>
-            <!--#SE:PIX-->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;background-color:#FDF2F2;border:2px solid #E30613;border-radius:4px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;">
               <tr>
-                <td style="padding:12px 16px;font-family:Arial,Helvetica,sans-serif;">
-                  <span style="font-size:10px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#E30613;">Chave PIX {{TIPO_PIX}}</span>
-                  <div style="font-size:17px;font-weight:bold;color:#E30613;padding-top:4px;word-break:break-all;">{{PIX}}</div>
-                </td>
+                <td style="font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:9px;line-height:14px;font-weight:bold;color:#5E9BEF;letter-spacing:2px;">FINANCEIRO&nbsp; /&nbsp; {{AREA_ORIGEM}}</td>
               </tr>
             </table>
-            <!--#FIM:PIX-->
           </td>
         </tr>
-        <!--#FIM:BANCARIOS-->
 
-        <!-- INFORMAÇÕES FINANCEIRAS -->
+        <tr><td bgcolor="#E2231A" height="3" style="background-color:#E2231A;font-size:3px;line-height:3px;height:3px;mso-line-height-rule:exactly;">&#8203;</td></tr>
+
+        <tr>
+          <td class="pad" style="padding:36px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;">
+            <h1 style="margin:0;font-size:28px;line-height:34px;font-weight:bold;color:#08213F;letter-spacing:-0.6px;">{{TIPO_SOLICITACAO_FORMATADO}}</h1>
+          </td>
+        </tr>
+
+        <tr>
+          <td class="pad" style="padding:14px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:15px;line-height:25px;color:#46566B;">{{TEXTO_INTRODUCAO}}</td>
+        </tr>
+
         <!--#SE:FINANCEIRO-->
         <tr>
-          <td style="padding:22px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#E30613;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Informações financeiras</div>
-
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:4px;">
-              {{LINHAS_FINANCEIRAS}}
-            </table>
-
-            <!-- VALOR EM DESTAQUE -->
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;background-color:#FDF2F2;border:2px solid #E30613;border-radius:4px;">
+          <td class="pad" style="padding:24px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td style="padding:16px 20px;font-family:Arial,Helvetica,sans-serif;">
-                  <div style="font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#E30613;">{{ROTULO_VALOR_DESTAQUE}}</div>
-                  <div style="font-size:26px;font-weight:bold;color:#E30613;padding-top:5px;">{{VALOR_PAGAMENTO}}</div>
+                <td class="col" width="33%" bgcolor="#1F6FE0" valign="top" style="width:33%;background-color:#1F6FE0;border-radius:12px;padding:18px 16px 20px 16px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;">
+                  <div style="font-size:9px;line-height:13px;font-weight:bold;color:#C4DCFF;letter-spacing:1.6px;text-transform:uppercase;">{{ROTULO_VALOR_DESTAQUE}}</div>
+                  <div class="hero" style="font-size:27px;line-height:33px;font-weight:bold;color:#FFFFFF;letter-spacing:-1px;padding-top:10px;">{{VALOR_PAGAMENTO}}</div>
+                  <div style="font-size:11px;line-height:16px;color:#BAD6FF;padding-top:6px;">{{VALOR_COMPLEMENTO}}</div>
                 </td>
-                <td width="6" style="background-color:#E30613;font-size:0;line-height:0;">&nbsp;</td>
+                <!--#SE:RESUMO_FAVORECIDO-->
+                <td class="sp" width="14" style="width:14px;font-size:1px;line-height:1px;mso-line-height-rule:exactly;">&#8203;</td>
+                <td class="col" width="33%" bgcolor="#EDF4FD" valign="top" style="width:33%;background-color:#EDF4FD;border-radius:12px;padding:18px 16px 20px 16px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;">
+                  <div style="font-size:9px;line-height:13px;font-weight:bold;color:#5F7FA8;letter-spacing:1.6px;">FAVORECIDO</div>
+                  <div style="font-size:15px;line-height:21px;font-weight:bold;color:#08213F;padding-top:10px;word-break:break-word;overflow-wrap:break-word;">{{RESUMO_FAVORECIDO}}</div>
+                  <div style="font-size:11px;line-height:16px;color:#7B93B4;padding-top:6px;">{{DOC_FAVORECIDO}}</div>
+                </td>
+                <!--#FIM:RESUMO_FAVORECIDO-->
+                <!--#SE:PIX-->
+                <td class="sp" width="14" style="width:14px;font-size:1px;line-height:1px;mso-line-height-rule:exactly;">&#8203;</td>
+                <td class="col col-last" width="33%" bgcolor="#08213F" valign="top" style="width:33%;background-color:#08213F;border-radius:12px;border-left:5px solid #E2231A;padding:18px 16px 20px 16px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;">
+                  <div style="font-size:9px;line-height:13px;font-weight:bold;color:#FF8A82;letter-spacing:1.6px;">CHAVE PIX</div>
+                  <div style="font-size:16px;line-height:22px;font-weight:bold;color:#FFFFFF;padding-top:10px;word-break:break-word;overflow-wrap:break-word;">{{PIX}}</div>
+                  <div style="font-size:11px;line-height:16px;color:#93ACCB;padding-top:6px;">{{TIPO_PIX}}{{RESUMO_PIX_INFO}}</div>
+                </td>
+                <!--#FIM:PIX-->
               </tr>
             </table>
           </td>
         </tr>
         <!--#FIM:FINANCEIRO-->
 
-        <!-- PAGAMENTO PARCIAL -->
+        <tr>
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">IDENTIFICAÇÃO DA DEMANDA</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:16px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid #EEF2F7;">
+              {{LINHAS_IDENTIFICACAO}}
+            </table>
+          </td>
+        </tr>
+
+        <!--#SE:BANCARIOS-->
+        <tr>
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">DADOS PARA PAGAMENTO</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:16px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid #EEF2F7;">
+              {{LINHAS_BANCARIAS}}
+            </table>
+            <div style="font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#8B99AB;padding-top:12px;">Dados sensíveis conferidos junto ao favorecido.</div>
+          </td>
+        </tr>
+        <!--#FIM:BANCARIOS-->
+
+        <!--#SE:CONDICOES-->
+        <tr>
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">CONDIÇÕES FINANCEIRAS</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:16px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid #EEF2F7;">
+              {{LINHAS_FINANCEIRAS}}
+            </table>
+          </td>
+        </tr>
+        <!--#FIM:CONDICOES-->
+
         <!--#SE:PARCIAL-->
         <tr>
-          <td style="padding:16px 28px 0;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;border:1px solid #E30613;border-radius:4px;">
+          <td class="pad" style="padding:22px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FDF6E7;border-radius:10px;">
               <tr>
-                <td style="padding:15px 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#2B3A4A;">
-                  <div style="font-size:11px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;color:#E30613;padding-bottom:6px;">Atenção</div>
-                  Favor considerar nesta programação somente o valor de <strong style="color:#0B2342;">{{VALOR_PAGAMENTO}}</strong>.<br>
-                  Saldo remanescente: <strong style="color:#0B2342;">{{SALDO}}</strong>.
+                <td width="4" bgcolor="#C08A12" style="width:4px;background-color:#C08A12;font-size:1px;line-height:1px;mso-line-height-rule:exactly;">&#8203;</td>
+                <td style="padding:18px 20px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#5A4A22;">
+                  <div style="font-size:9px;line-height:13px;font-weight:bold;color:#8A6410;letter-spacing:1.6px;padding-bottom:6px;">SALDO CONDICIONADO &mdash; NÃO PAGAR AGORA</div>
+                  Esta solicitação não encerra o processo. O saldo de <strong style="color:#08213F;">{{SALDO}}</strong> permanece retido e não deve ser incluído neste pagamento.
                   <!--#SE:CONDICAO_SALDO-->
-                  <br>O saldo deverá ser liberado somente após: <strong style="color:#0B2342;">{{CONDICAO_LIBERACAO_SALDO}}</strong>.
+                  <br>Liberação somente após: <strong style="color:#08213F;">{{CONDICAO_LIBERACAO_SALDO}}</strong>.
                   <!--#FIM:CONDICAO_SALDO-->
                 </td>
               </tr>
@@ -126,52 +162,55 @@
         </tr>
         <!--#FIM:PARCIAL-->
 
-        <!-- MATERIAIS -->
         <!--#SE:MATERIAIS-->
         <tr>
-          <td style="padding:22px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#123B6D;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Materiais solicitados</div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4EAF0;border-radius:4px;border-collapse:collapse;">
-              <tr style="background-color:#123B6D;">
-                <th align="left" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Item</th>
-                <th align="left" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Descrição</th>
-                <th align="right" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Qtd.</th>
-                <th align="left" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Un.</th>
-                <th align="right" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Valor unit.</th>
-                <th align="right" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Valor total</th>
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">MATERIAIS SOLICITADOS</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:16px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+              <tr>
+                <th align="left" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">ITEM</th>
+                <th align="left" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">DESCRIÇÃO</th>
+                <th align="right" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">QTD.</th>
+                <th align="left" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">UN.</th>
+                <th align="right" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">VALOR UNIT.</th>
+                <th align="right" style="padding:0 0 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">VALOR TOTAL</th>
               </tr>
               {{ITENS_MATERIAIS}}
             </table>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:8px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:10px;">
               {{TOTAIS_MATERIAIS}}
             </table>
           </td>
         </tr>
         <!--#FIM:MATERIAIS-->
 
-        <!-- ENTREGA -->
         <!--#SE:ENTREGA-->
         <tr>
-          <td style="padding:16px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#123B6D;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Entrega</div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:4px;">
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">ENTREGA</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:16px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid #EEF2F7;">
               {{LINHAS_ENTREGA}}
             </table>
           </td>
         </tr>
         <!--#FIM:ENTREGA-->
 
-        <!-- REEMBOLSO -->
         <!--#SE:REEMBOLSO-->
         <tr>
-          <td style="padding:22px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#123B6D;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Despesas</div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4EAF0;border-radius:4px;border-collapse:collapse;">
-              <tr style="background-color:#123B6D;">
-                <th align="left" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Data</th>
-                <th align="left" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Descrição</th>
-                <th align="left" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Categoria</th>
-                <th align="right" style="padding:9px 10px;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:bold;letter-spacing:0.6px;text-transform:uppercase;color:#FFFFFF;">Valor</th>
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">COMPOSIÇÃO DAS DESPESAS</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:16px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+              <tr>
+                <th align="left" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">DATA</th>
+                <th align="left" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">DESCRIÇÃO</th>
+                <th align="left" style="padding:0 8px 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">CATEGORIA</th>
+                <th align="right" style="padding:0 0 9px 0;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;font-weight:bold;color:#8B99AB;letter-spacing:1.2px;border-bottom:1px solid #EEF2F7;">VALOR</th>
               </tr>
               {{ITENS_REEMBOLSO}}
             </table>
@@ -179,78 +218,84 @@
         </tr>
         <!--#FIM:REEMBOLSO-->
 
-
-        <!-- DOCUMENTAÇÃO -->
         <!--#SE:DOCUMENTACAO-->
         <tr>
-          <td style="padding:22px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#123B6D;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Link das despesas:</div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:4px;">
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">ONDE ARQUIVAR</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:16px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-bottom:1px solid #EEF2F7;">
               {{LINHAS_DOCUMENTACAO}}
             </table>
           </td>
         </tr>
         <!--#FIM:DOCUMENTACAO-->
 
-        <!-- ANEXOS -->
-        <!--#SE:ANEXOS-->
-        <tr>
-          <td style="padding:18px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#123B6D;border-left:3px solid #E30613;padding-left:9px;margin-bottom:10px;">Documentos anexos</div>
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-              {{LISTA_ANEXOS}}
-            </table>
-          </td>
-        </tr>
-        <!--#FIM:ANEXOS-->
-
-        <!-- OBSERVAÇÕES -->
         <!--#SE:OBSERVACOES-->
         <tr>
-          <td style="padding:20px 28px 0;">
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:12px;font-weight:bold;letter-spacing:0.8px;text-transform:uppercase;color:#123B6D;border-left:3px solid #E30613;padding-left:9px;margin-bottom:8px;">Observações</div>
-            <div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#2B3A4A;background-color:#FFFFFF;border:1px solid #E4EAF0;border-radius:4px;padding:13px 16px;">{{OBSERVACOES}}</div>
-          </td>
+          <td class="pad" style="padding:38px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11.5px;line-height:16px;font-weight:bold;color:#1F6FE0;letter-spacing:2.2px;">OBSERVAÇÕES</td>
+        </tr>
+        <tr>
+          <td class="pad" style="padding:14px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:15px;line-height:25px;color:#46566B;">{{OBSERVACOES}}</td>
         </tr>
         <!--#FIM:OBSERVACOES-->
 
-        <!-- RODAPÉ OPERACIONAL -->
+        <!--#SE:ANEXOS-->
         <tr>
-          <td style="padding:22px 28px 0;font-family:Arial,Helvetica,sans-serif;font-size:12.5px;line-height:20px;color:#607080;">
-            {{TEXTO_OPERACIONAL}}
-          </td>
-        </tr>
-
-        <!-- ASSINATURA -->
-        <tr>
-          <td style="padding:22px 28px 26px;">
-            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top:1px solid #E4EAF0;">
+          <td class="pad" style="padding:30px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F6F9FC;border-radius:10px;">
               <tr>
-                <td style="padding-top:16px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#2B3A4A;">
-                  <strong style="color:#0B2342;font-size:14px;">{{NOME_SOLICITANTE}}</strong><br>
-                  <span style="color:#607080;">{{CARGO_SOLICITANTE}}</span>
-                  <!--#SE:CONTATO_SOLICITANTE-->
-                  <br><span style="color:#607080;font-size:12px;">{{CONTATO_SOLICITANTE}}</span>
-                  <!--#FIM:CONTATO_SOLICITANTE-->
+                <td style="padding:16px 20px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:14px;line-height:21px;color:#46566B;">
+                  <strong style="color:#08213F;">Anexo</strong>{{RESUMO_ANEXOS}}
+                  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="padding-top:6px;">
+                    {{LISTA_ANEXOS}}
+                  </table>
                 </td>
               </tr>
             </table>
           </td>
         </tr>
+        <!--#FIM:ANEXOS-->
+
+        <tr>
+          <td class="pad" style="padding:14px 48px 0 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F0F6FE;border-radius:10px;">
+              <tr>
+                <td width="4" bgcolor="#1F6FE0" style="width:4px;background-color:#1F6FE0;font-size:1px;line-height:1px;mso-line-height-rule:exactly;">&#8203;</td>
+                <td style="padding:20px 22px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:15px;line-height:24px;color:#173A63;">{{TEXTO_OPERACIONAL}}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ASSINATURA -->
+        <tr>
+          <td class="pad" style="padding:30px 48px 0 48px;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:14px;line-height:21px;color:#46566B;">
+            <strong style="color:#08213F;font-size:15px;">{{NOME_SOLICITANTE}}</strong><br>
+            <span style="color:#7B93B4;">{{CARGO_SOLICITANTE}}</span>
+            <!--#SE:CONTATO_SOLICITANTE-->
+            <br><span style="color:#7B93B4;font-size:13px;">{{CONTATO_SOLICITANTE}}</span>
+            <!--#FIM:CONTATO_SOLICITANTE-->
+          </td>
+        </tr>
 
         <!-- FOOTER -->
-        <tr><td style="background-color:#E30613;font-size:0;line-height:0;height:3px;">&nbsp;</td></tr>
+        <tr><td height="36" style="font-size:1px;line-height:36px;height:36px;mso-line-height-rule:exactly;">&#8203;</td></tr>
         <tr>
-          <td style="background-color:#0B2342;padding:18px 28px;border-radius:0 0 6px 6px;font-family:Arial,Helvetica,sans-serif;text-align:center;">
-            <div style="font-size:13px;font-weight:bold;letter-spacing:1.5px;color:#FFFFFF;">LS OFFICE</div>
-            <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#8FA8C4;padding-top:4px;">Serviços de Telecom e Construções</div>
-            <div style="font-size:10px;color:#63809F;padding-top:8px;">Controle Financeiro e Operacional</div>
+          <td bgcolor="#08213F" class="pad" style="background-color:#08213F;padding:22px 48px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td class="col" width="60%" valign="top" style="width:60%;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;color:#8AA1BF;letter-spacing:0.4px;">
+                  LS OFFICE &bull; Serviços de Telecom e Construções
+                  <div style="color:#5D7595;padding-top:2px;">{{RODAPE_REFERENCIA}}</div>
+                </td>
+                <td class="col col-last" width="40%" align="right" valign="top" style="width:40%;font-family:-apple-system,'Segoe UI',Roboto,Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;color:#5D7595;letter-spacing:0.4px;">Documento gerado pelo Financeiro</td>
+              </tr>
+            </table>
           </td>
         </tr>
 
       </table>
-
-      <div style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#8B9AAB;padding-top:12px;">{{RODAPE_REFERENCIA}}</div>
 
     </td>
   </tr>

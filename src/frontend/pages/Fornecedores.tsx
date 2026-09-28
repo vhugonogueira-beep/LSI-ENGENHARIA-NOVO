@@ -39,7 +39,7 @@ interface Supplier {
 
 const CATEGORIA_INFO: Record<string, { label: string; color: string; icon: string }> = {
     MATERIAL: { label: 'Material', color: '#22c55e', icon: '🏭' },
-    MAO_DE_OBRA: { label: 'Mão de Obra', color: '#3b82f6', icon: '👷' },
+    MAO_DE_OBRA: { label: 'Mão de Obra', color: '#1768D5', icon: '👷' },
     SERVICO: { label: 'Serviço', color: '#8b5cf6', icon: '🔧' },
     LOCACAO: { label: 'Locação', color: '#f59e0b', icon: '🚚' },
     EQUIPAMENTO: { label: 'Equipamento', color: '#06b6d4', icon: '⚙️' },
@@ -377,7 +377,7 @@ export function Fornecedores() {
                             />
 
                             {/* Condição de pagamento — agora dentro do próprio cadastro */}
-                            <div className="rounded-lg p-3.5 border" style={{ background: '#3b82f60d', borderColor: '#3b82f630' }}>
+                            <div className="rounded-lg p-3.5 border" style={{ background: '#1768D50d', borderColor: '#1768D530' }}>
                                 <div className="text-xs font-bold text-muted-foreground mb-2 tracking-wide flex items-center gap-1.5">
                                     <Wallet size={13} /> CONDIÇÃO DE PAGAMENTO PADRÃO
                                 </div>

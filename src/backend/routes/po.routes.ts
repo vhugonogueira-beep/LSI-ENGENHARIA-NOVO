@@ -11,6 +11,7 @@ import {
     deletePO, listLinhasDaPO, solicitarFaturamentoDeLinhas, atualizarFaturamentoLinha,
     cancelarLinhaFaturamento, gerarEmailDeFaturamento, autorizarLinha, baixarPlanilhaFaturamento,
 } from '../controllers/po.controller';
+import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
 const upload = multer({
@@ -44,8 +45,10 @@ router.get('/:id/linhas', listLinhasDaPO);
 // Faturamento parcial por linha da PO
 router.put('/linhas/:id/autorizacao', autorizarLinha);
 router.post('/faturamento-linhas', solicitarFaturamentoDeLinhas);
-router.post('/faturamento-linhas/email', gerarEmailDeFaturamento);
-router.get('/faturamento-linhas/planilha', baixarPlanilhaFaturamento);
+router.post('/faturamento-linhas/email', requireAuth, gerarEmailDeFaturamento);
+// A planilha carrega valores de faturamento por linha: exige token como as
+// demais rotas financeiras. O front baixa por downloadAuthenticatedFile.
+router.get('/faturamento-linhas/planilha', requireAuth, baixarPlanilhaFaturamento);
 router.put('/faturamento-linhas/:id', atualizarFaturamentoLinha);
 router.delete('/faturamento-linhas/:id', cancelarLinhaFaturamento);
 router.get('/arquivos/:arquivoId/download', downloadPOArquivo);

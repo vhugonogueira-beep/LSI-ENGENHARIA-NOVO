@@ -1,4 +1,6 @@
 import { useState, FormEvent } from 'react';
+// Paleta unica do sistema, com tema claro e escuro.
+import { T as T0 } from '../theme';
 
 interface LoginProps {
     onLogin: (token: string, user: { nome: string; email: string; role: string }) => void;
@@ -12,16 +14,16 @@ export default function Login({ onLogin }: LoginProps) {
     const [mostrarSenha, setMostrarSenha] = useState(false);
 
     const T = {
-        bg: '#0f1117',
-        card: '#1a1d27',
-        border: '#2a2d3a',
-        accent: '#3b82f6',
-        accentHover: '#2563eb',
-        tx: '#e2e8f0',
-        txSub: '#94a3b8',
-        inputBg: '#111827',
-        error: '#f87171',
-        success: '#34d399',
+        bg: T0.bg0,
+        card: T0.bg2,
+        border: T0.brBase,
+        accent: T0.blue,
+        accentHover: T0.blueD,
+        tx: T0.txPri,
+        txSub: T0.txSec,
+        inputBg: T0.bg3,
+        error: T0.red,
+        success: T0.green,
     };
 
     async function handleSubmit(e: FormEvent) {
@@ -81,7 +83,7 @@ export default function Login({ onLogin }: LoginProps) {
                         justifyContent: 'center',
                         width: 56,
                         height: 56,
-                        background: `linear-gradient(135deg, ${T.accent}, #6366f1)`,
+                        background: `linear-gradient(135deg, ${T.accent}, #1F4FA8)`,
                         borderRadius: 14,
                         marginBottom: 16,
                         fontSize: 26,
@@ -189,7 +191,7 @@ export default function Login({ onLogin }: LoginProps) {
                         style={{
                             width: '100%',
                             padding: '11px 0',
-                            background: carregando ? '#374151' : T.accent,
+                            background: carregando ? '#2B4059' : T.accent,
                             border: 'none',
                             borderRadius: 8,
                             color: '#fff',
@@ -220,8 +222,8 @@ export default function Login({ onLogin }: LoginProps) {
 
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
-                input::placeholder { color: #4b5563; }
-                input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #111827 inset !important; -webkit-text-fill-color: #e2e8f0 !important; }
+                input::placeholder { color: #64778E; }
+                input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #182B43 inset !important; -webkit-text-fill-color: #EAF1FA !important; }
             `}</style>
         </div>
     );

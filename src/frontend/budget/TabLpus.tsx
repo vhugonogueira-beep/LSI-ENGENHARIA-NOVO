@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { LpuTemplate } from "./types";
 import { lerTemplatesLocaisPendentes, marcarMigracaoConcluida } from "./lpuTemplates";
+// Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
+import { T } from '../theme';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bases (LPUs) — tela única, ligada ao banco.
@@ -18,12 +20,6 @@ import { lerTemplatesLocaisPendentes, marcarMigracaoConcluida } from "./lpuTempl
 // coluna "Valor" esconderia de qual dos conceitos ele é.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const T = {
-  bg0: "#07090f", bg1: "#0e1117", bg2: "#13181f", bg3: "#1a2030", bg4: "#222a3a",
-  brSub: "#1e2840", brBase: "#2d3a52", brStrong: "#3d5070",
-  txPri: "#f0f4fa", txSec: "#b4c5d8", txMut: "#7c94b0", txDis: "#506480",
-  blue: "#3b82f6", green: "#34d399", amber: "#fbbf24", red: "#f87171", purple: "#a78bfa", cyan: "#67e8f9"
-};
 
 const S = {
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "14px 16px", boxShadow: "0 6px 16px rgba(0, 0, 0, 0.35)" } as React.CSSProperties,

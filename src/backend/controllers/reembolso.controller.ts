@@ -5,14 +5,37 @@
 
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { proximaReferencia } from '../services/referencia-reembolso.service';
 import { gerarEmailCorporativo, DadosEmail } from '../services/email-corporativo.service';
+import { buildOutlookEml, composeEmailForUser } from '../services/email-signature.service';
 import { excluirArquivoReembolso, obterArquivoReembolso, salvarArquivoReembolso } from '../services/reembolso-arquivo.service';
+import { resolveEmailRouting } from '../services/email-routing.service';
+import { loadPaymentAttachment } from '../services/payment-attachment.service';
+import { nomearAnexo } from '../services/nomear-anexo.service';
+import fs from 'fs/promises';
 
 const CATEGORIAS = ['ALIMENTACAO', 'HOSPEDAGEM', 'COMBUSTIVEL', 'PEDAGIO', 'TRANSPORTE', 'MATERIAL', 'SERVICO', 'FRETE', 'OUTROS'];
 const STATUS = ['PENDENTE', 'SOLICITADO', 'ENVIADO_FINANCEIRO', 'AGUARDANDO_PAGAMENTO', 'PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO', 'CANCELADO'];
 const FORMAS_PAGAMENTO = ['PIX', 'TED', 'BOLETO', 'DINHEIRO'];
 
 const cent = (v: number) => Math.round(v * 100) / 100;
+
+/**
+ * Campos de rateio de uma linha de despesa: onde foi gasto e quem recebeu.
+ *
+ * É por aqui que o dinheiro do adiantamento de projeto desce para a obra. Sem a
+ * atividade, o custo fica parado no projeto e a margem da vistoria sai sem mão
+ * de obra. O prestador pode ser funcionário da LS ou fornecedor externo — no
+ * máximo um dos dois, como no resto do sistema.
+ */
+function camposDeRateio(d: any) {
+    const funcionario_id = d.funcionario_id || null;
+    const supplier_id = d.supplier_id || null;
+    if (funcionario_id && supplier_id) {
+        throw new Error(`A despesa "${d.descricao}" aponta para funcionário e fornecedor ao mesmo tempo`);
+    }
+    return { atividade_id: d.atividade_id || null, funcionario_id, supplier_id };
+}
 
 function somar(despesas: { valor: number }[]): number {
     return cent(despesas.reduce((s, d) => s + (Number(d.valor) || 0), 0));
@@ -47,10 +70,18 @@ export async function listReembolsos(req: Request, res: Response) {
         const itens = await prisma.reembolso.findMany({
             where: atividade_id ? { atividade_id } : {},
             include: {
-                despesas: { orderBy: { ordem: 'asc' } },
+                despesas: {
+                    orderBy: { ordem: 'asc' },
+                    include: {
+                        atividade: { select: { id: true, codigo: true, id_site_sharing: true } },
+                        funcionario: { select: { id: true, nome: true } },
+                        supplier: { select: { id: true, nome: true } },
+                    },
+                },
                 supplier: { select: { id: true, nome: true } },
                 funcionario: { select: { id: true, nome: true, cargo: true } },
                 atividade: { select: { id: true, codigo: true, titulo: true } },
+                acionamento: { select: { id: true, codigo: true, titulo: true } },
                 pagamentos: {
                     include: { prestacoes: { select: { prestacao_id: true } } },
                     orderBy: { numero: 'asc' },
@@ -73,10 +104,30 @@ export async function createReembolso(req: Request, res: Response) {
             valor_adiantado, destino, data_inicio_viagem, data_fim_viagem,
             data_solicitacao, data_prevista, forma_pagamento: formaInformada,
         } = req.body;
-        if (!atividade_id) return res.status(400).json({ error: 'Informe a atividade' });
+        // O processo nasce numa atividade OU num projeto (acionamento), nunca nos
+        // dois. O adiantamento de projeto existe para o dinheiro que cobre várias
+        // atividades — 25 vistorias pagas de uma vez — e só a prestação de contas
+        // dirá quanto coube a cada uma.
+        const acionamento_id = req.body.acionamento_id || null;
+        if (!atividade_id && !acionamento_id) {
+            return res.status(400).json({ error: 'Informe a atividade ou o projeto' });
+        }
+        if (atividade_id && acionamento_id) {
+            return res.status(400).json({ error: 'Informe a atividade ou o projeto, não os dois' });
+        }
 
-        const atividade = await prisma.atividade.findUnique({ where: { id: atividade_id } });
-        if (!atividade) return res.status(404).json({ error: 'Atividade não encontrada' });
+        const atividade = atividade_id
+            ? await prisma.atividade.findUnique({ where: { id: atividade_id } })
+            : null;
+        if (atividade_id && !atividade) return res.status(404).json({ error: 'Atividade não encontrada' });
+
+        const projeto = acionamento_id
+            ? await prisma.acionamento.findUnique({ where: { id: acionamento_id } })
+            : null;
+        if (acionamento_id && !projeto) return res.status(404).json({ error: 'Projeto não encontrado' });
+
+        // O tenant sai de quem existir dos dois.
+        const donoTenantId = atividade?.tenant_id || projeto!.tenant_id;
 
         // O favorecido pode ser um fornecedor cadastrado ou uma pessoa avulsa.
         let nome = String(favorecido_nome || '').trim();
@@ -123,8 +174,10 @@ export async function createReembolso(req: Request, res: Response) {
 
         const reembolso = await prisma.reembolso.create({
             data: {
-                tenant_id: atividade.tenant_id,
-                atividade_id,
+                codigo: await proximaReferencia(prisma, natureza),
+                tenant_id: donoTenantId,
+                atividade_id: atividade_id || null,
+                acionamento_id,
                 supplier_id: supplier_id || null,
                 funcionario_id: funcionario_id || null,
                 natureza,
@@ -162,6 +215,7 @@ export async function createReembolso(req: Request, res: Response) {
                         valor: cent(Number(d.valor)),
                         anexo_url: d.anexo_url || null,
                         ordem: i,
+                        ...camposDeRateio(d),
                     })),
                 },
             },
@@ -216,6 +270,28 @@ export async function updateReembolso(req: Request, res: Response) {
                 if (!d.descricao) return res.status(400).json({ error: 'Toda despesa precisa de descrição' });
                 if (!Number.isFinite(v) || v <= 0) return res.status(400).json({ error: `Valor inválido na despesa "${d.descricao}"` });
             }
+            // A linha de rateio só pode apontar para uma atividade DO PRÓPRIO
+            // processo: num adiantamento de projeto, para uma das atividades
+            // agrupadas nele; num reembolso de atividade, para ela mesma.
+            // Sem isto, o custo de uma vistoria da Oi poderia cair numa obra da
+            // Claro, e a margem das duas sairia errada sem ninguém notar.
+            const alvos = [...new Set(b.despesas.map((d: any) => d.atividade_id).filter(Boolean))] as string[];
+            if (alvos.length) {
+                const permitidas = atual.acionamento_id
+                    ? (await prisma.atividade.findMany({
+                        where: { acionamento_id: atual.acionamento_id }, select: { id: true },
+                    })).map(a => a.id)
+                    : (atual.atividade_id ? [atual.atividade_id] : []);
+                const forA = alvos.filter(id => !permitidas.includes(id));
+                if (forA.length) {
+                    return res.status(400).json({
+                        error: atual.acionamento_id
+                            ? 'Há despesa apontando para atividade que não pertence a este projeto'
+                            : 'Há despesa apontando para outra atividade; este processo é de uma atividade só',
+                    });
+                }
+            }
+
             await prisma.reembolsoDespesa.deleteMany({ where: { reembolso_id: atual.id } });
             dados.despesas = {
                 create: b.despesas.map((d: any, i: number) => ({
@@ -226,10 +302,23 @@ export async function updateReembolso(req: Request, res: Response) {
                     valor: cent(Number(d.valor)),
                     anexo_url: d.anexo_url || null,
                     ordem: i,
+                    ...camposDeRateio(d),
                 })),
             };
             dados.valor_total = somar(b.despesas);
-            if (atual.natureza === 'ADIANTAMENTO') dados.status_prestacao = 'EM_PREENCHIMENTO';
+            if (atual.natureza === 'ADIANTAMENTO') {
+                // Prestar contas de mais do que se recebeu é erro de digitação,
+                // não um reembolso extra: o saldo a reembolsar tem caminho
+                // próprio, e aceitar aqui esconderia o engano.
+                const recebido = cent(Number(atual.valor_adiantado) || 0);
+                const prestado = somar(b.despesas);
+                if (recebido > 0 && prestado > recebido) {
+                    return res.status(400).json({
+                        error: `As despesas somam ${moedaBR(prestado)} e o adiantamento foi de ${moedaBR(recebido)}. Confira os valores.`,
+                    });
+                }
+                dados.status_prestacao = 'EM_PREENCHIMENTO';
+            }
         }
 
         const atualizado = await prisma.reembolso.update({
@@ -243,7 +332,15 @@ export async function updateReembolso(req: Request, res: Response) {
     }
 }
 
-async function sincronizarResumoPagamentos(reembolsoId: string) {
+/** Estados em que o dinheiro já saiu do caixa. */
+export const PAGAMENTO_CONCLUIDO = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
+
+/** Para mensagens de erro: o valor precisa aparecer do jeito que o usuário lê. */
+function moedaBR(v: number): string {
+    return (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+export async function sincronizarResumoPagamentos(reembolsoId: string) {
     const r = await prisma.reembolso.findUnique({
         where: { id: reembolsoId },
         include: { pagamentos: { orderBy: { numero: 'asc' } } },
@@ -394,8 +491,14 @@ export async function atualizarStatusPagamentoReembolso(req: Request, res: Respo
         const pagamento = await prisma.reembolsoPagamento.update({
             where: { id: atual.id }, data: {
                 status,
-                data_solicitacao: status === 'SOLICITADO' ? (atual.data_solicitacao || new Date()) : undefined,
-                data_pagamento: concluido ? (atual.data_pagamento || new Date()) : undefined,
+                // Voltar para PENDENTE desfaz a solicitação: as datas do ciclo
+                // anterior têm de sair junto, senão o depósito fica "pendente"
+                // exibindo uma data de solicitação que não vale mais — que é
+                // como a parcela de contratação já se comporta ao cancelar.
+                data_solicitacao: status === 'PENDENTE' ? null
+                    : status === 'SOLICITADO' ? (atual.data_solicitacao || new Date()) : undefined,
+                data_pagamento: status === 'PENDENTE' ? null
+                    : concluido ? (atual.data_pagamento || new Date()) : undefined,
             },
         });
         await sincronizarResumoPagamentos(atual.reembolso_id);
@@ -526,13 +629,47 @@ export async function analisarPrestacaoContas(req: Request, res: Response) {
     }
 }
 
+/**
+ * Exclui o reembolso/adiantamento inteiro.
+ *
+ * O status do cabeçalho não bastava como guarda. Ele é derivado dos depósitos,
+ * e fica `AGUARDANDO_PAGAMENTO` enquanto um depósito já está `PAGO` — ou seja,
+ * dinheiro que saiu do caixa passava pela verificação. A conferência agora olha
+ * os depósitos, que é onde o pagamento de fato acontece.
+ *
+ * O vínculo com prestação de contas também precisa de guarda própria:
+ * `PrestacaoContasPagamento` aponta para o depósito sem `onDelete: Cascade`, e
+ * sem esta checagem o banco recusava com erro cru de chave estrangeira, sem
+ * dizer ao usuário o que estava errado.
+ */
 export async function deleteReembolso(req: Request, res: Response) {
     try {
-        const atual = await prisma.reembolso.findUnique({ where: { id: req.params.id } });
+        const atual = await prisma.reembolso.findUnique({
+            where: { id: req.params.id },
+            include: { pagamentos: { include: { prestacoes: true } } },
+        });
         if (!atual) return res.status(404).json({ error: 'Reembolso não encontrado' });
-        if (['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(atual.status)) {
-            return res.status(400).json({ error: 'Reembolso já pago não pode ser excluído; cancele com justificativa' });
+
+        const rotulo = atual.natureza === 'ADIANTAMENTO' ? 'adiantamento' : 'reembolso';
+        const pagos = atual.pagamentos.filter(p => PAGAMENTO_CONCLUIDO.includes(p.status));
+        if (pagos.length > 0) {
+            const total = pagos.reduce((soma, p) => soma + Number(p.valor || 0), 0);
+            return res.status(400).json({
+                error: `Este ${rotulo} já tem ${pagos.length} depósito(s) efetuados, somando ${moedaBR(total)}. Cancele em vez de excluir — apagar esconderia dinheiro que saiu do caixa.`,
+            });
         }
+        if (PAGAMENTO_CONCLUIDO.includes(atual.status)) {
+            return res.status(400).json({ error: `Este ${rotulo} já está ${atual.status} e não pode ser excluído; cancele com justificativa` });
+        }
+        const emPrestacao = atual.pagamentos.filter(p => p.prestacoes.length > 0);
+        if (emPrestacao.length > 0) {
+            return res.status(400).json({
+                error: `${emPrestacao.length} depósito(s) deste ${rotulo} estão vinculados a uma prestação de contas consolidada. Desvincule a prestação antes de excluir.`,
+            });
+        }
+
+        // Despesas, depósitos e arquivos saem por cascata do schema; as despesas
+        // continuam explícitas porque o registro é antigo e pode ter linha órfã.
         await prisma.reembolsoDespesa.deleteMany({ where: { reembolso_id: atual.id } });
         await prisma.reembolso.delete({ where: { id: atual.id } });
         res.json({ ok: true });
@@ -550,14 +687,36 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
                 despesas: { orderBy: { ordem: 'asc' } },
                 supplier: true,
                 funcionario: true,
-                pagamentos: { orderBy: { numero: 'asc' } },
+                pagamentos: { orderBy: { numero: 'asc' }, include: { anexos: true } },
+                arquivos: { orderBy: { created_at: 'asc' } },
                 atividade: { include: { contratante: { select: { nome: true } } } },
+                acionamento: { include: { contratante: { select: { nome: true } } } },
             },
         });
         if (!r) return res.status(404).json({ error: 'Reembolso não encontrado' });
+        const usuario = (req as any).user;
+        if (!usuario || r.tenant_id !== usuario.tenantId) return res.status(404).json({ error: 'Reembolso não encontrado' });
 
-        const empresa = await prisma.empresaConfig.findFirst();
-        const a = r.atividade;
+        const empresa = await prisma.empresaConfig.findUnique({ where: { tenant_id: usuario.tenantId } });
+        // O processo pode pertencer a uma atividade ou a um projeto. Os dois
+        // respondem às mesmas perguntas do e-mail — site, cliente, contratante,
+        // código —, então uma origem só alimenta o template.
+        const projeto = r.acionamento;
+        const a = r.atividade ?? {
+            codigo: projeto?.codigo ?? '',
+            titulo: projeto?.titulo ?? '',
+            id_site_sharing: projeto?.id_site_sharing ?? null,
+            id_site_operadora: projeto?.id_site_operadora ?? null,
+            // Um projeto agrupa vistorias de operadoras possivelmente diferentes;
+            // não se inventa uma.
+            operadora: null,
+            sharing: projeto?.contratante?.nome ?? '',
+            contratante: projeto?.contratante ?? null,
+            // O projeto não tem modelo de operação próprio: quem paga precisa
+            // saber que é OPERAÇÃO, que é o caso de todo lote de vistoria.
+            tipo_demanda: 'OPERACAO',
+            diretorio_url: null,
+        } as any;
         const adiantamento = r.natureza === 'ADIANTAMENTO';
         const pagamentoId = req.body?.pagamento_id || req.query?.pagamento_id;
         const pagamento = pagamentoId ? r.pagamentos.find(p => p.id === pagamentoId) : null;
@@ -588,6 +747,7 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
             nome_site: a.id_site_operadora || null,
             cliente: a.operadora || null,
             sharing: a.contratante?.nome || a.sharing,
+            tipo_demanda: a.tipo_demanda,
             area: null,
             responsavel_solicitacao: null,
             nome_colaborador: nomePagamento,
@@ -598,8 +758,17 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
             itens_reembolso: adiantamento ? [] : r.despesas.map(d => ({
                 data: d.data, descricao: d.descricao, categoria: d.categoria, valor: d.valor,
             })),
-            valor_total: valorPagamento,
+            // `valor_total` é o total do processo, e não o deste depósito — o
+            // template rotula esse campo como "Valor total contratado". Passar o
+            // valor do depósito aqui fazia um reembolso de R$ 325 sobre um
+            // serviço de R$ 650 sair como se o contratado fosse R$ 325, com
+            // saldo zerado: quem lê fecha o serviço como quitado.
+            valor_total: adiantamento ? Number(r.valor_adiantado || 0) : r.valor_total,
             valor_pagamento: valorPagamento,
+            // Já pago = depósitos anteriores a este; o saldo sai da subtração.
+            valor_pago: r.pagamentos
+                .filter(p => p.numero < (pagamento?.numero ?? Number.MAX_SAFE_INTEGER))
+                .reduce((soma, p) => soma + Number(p.valor || 0), 0),
             data_pagamento: pagamento?.data_prevista || r.data_prevista,
             favorecido: nomePagamento,
             cpf_cnpj_pagamento: documentoPagamento,
@@ -610,21 +779,35 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
             pix: pixPagamento,
             tipo_pix: tipoPixPagamento,
             forma_pagamento: pagamento?.forma_pagamento || r.forma_pagamento || (pixPagamento ? 'PIX' : 'TED'),
+            // O diretório pertence à atividade e indica ao financeiro onde os
+            // comprovantes, memória de cálculo e demais arquivos serão salvos.
+            // O override mantém a prévia/EML utilizável enquanto o cadastro da
+            // atividade ainda estiver sendo completado.
+            link_diretorio: req.body?.link_diretorio ?? a.diretorio_url ?? null,
             observacoes: req.body?.observacoes || null,
             anexos: [
                 (pagamento?.comprovante_url || r.comprovante_url) ? 'Comprovante do pagamento anexado ao sistema' : null,
                 !adiantamento && r.despesas.some(d => d.anexo_url) ? 'Comprovantes das despesas' : null,
+                ...r.arquivos.map(a => a.nome_original),
+                ...(pagamento?.anexos || []).map(a => a.nome_original),
             ].filter(Boolean) as string[],
-            // Assinatura institucional, igual ao e-mail de pagamento: quem envia
-            // acrescenta a propria assinatura no cliente de e-mail.
+            // Fallback institucional; o compositor global aplica a assinatura
+            // pessoal do usuario autenticado quando houver uma ativa.
             nome_solicitante: 'LS Office',
             cargo_solicitante: 'Engenharia',
             email_solicitante: null,
             telefone_solicitante: null,
-            referencia: `${adiantamento ? 'Adiantamento' : 'Reembolso'} ${r.id.slice(0, 8)}${pagamento ? ` · Depósito ${pagamento.numero}` : ''} · ${a.codigo} · gerado pelo LS Office ERP`,
+            // Lancamentos antigos ainda nao tem codigo; ate o backfill rodar eles
+            // caem no fragmento de UUID, que era o comportamento anterior.
+            referencia: `${r.codigo || `${adiantamento ? 'Adiantamento' : 'Reembolso'} ${r.id.slice(0, 8)}`}${pagamento ? ` · Depósito ${pagamento.numero}` : ''} · ${a.codigo} · gerado pelo LS Office ERP`,
         };
 
-        const { assunto, html } = gerarEmailCorporativo(dados);
+        const { assunto, html: htmlBase } = gerarEmailCorporativo(dados);
+        const { html } = await composeEmailForUser(htmlBase, usuario, 'preview');
+        const routing = await resolveEmailRouting(usuario.tenantId, 'PAYMENT_REQUEST', {
+            para: req.body?.para ?? req.body?.destinatario,
+            cc: req.body?.cc,
+        });
         // A previa sempre reflete os dados mestres atuais do favorecido. Impedir
         // cache evita que uma chave PIX corrigida seja substituida por uma
         // resposta antiga mantida pelo navegador ou por algum proxy local.
@@ -633,7 +816,14 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
         res.json({
             assunto,
             html,
-            para: empresa?.destinatarios_pagamento || empresa?.email_faturamento || 'financeiro@lsoffice.com.br',
+            para: routing.para.join('; '),
+            cc: routing.cc.join('; '),
+            routing_pendente: routing.pendente,
+            responsavel: { nome: usuario.nome || usuario.email, email: usuario.email },
+            anexos: [
+                ...r.arquivos.map(a => ({ origem: 'REEMBOLSO', id: a.id, nome: a.nome_original, tipo: a.tipo })),
+                ...(pagamento?.anexos || []).map(a => ({ origem: 'PAGAMENTO', id: a.id, nome: a.nome_original, tipo: a.tipo })),
+            ],
             valor_total: valorPagamento,
             resumo: {
                 natureza: r.natureza,
@@ -658,18 +848,36 @@ export async function baixarEmailReembolsoEml(req: Request, res: Response) {
             status: (codigo: number) => { captura.__status = codigo; return fake; },
         };
         await gerarEmailReembolso(
-            { ...req, body: { ...(req.body || {}), ...(req.query || {}) } } as Request,
+            { ...req, user: (req as any).user, body: { ...(req.body || {}), ...(req.query || {}) } } as unknown as Request,
             fake as unknown as Response,
         );
         if (captura.error) return res.status(captura.__status || 400).json({ error: captura.error });
 
-        const b64 = Buffer.from(captura.html, 'utf8').toString('base64');
-        const assuntoMime = `=?UTF-8?B?${Buffer.from(captura.assunto, 'utf8').toString('base64')}?=`;
-        const linhas = [
-            'MIME-Version: 1.0', 'X-Unsent: 1', captura.para ? `To: ${captura.para}` : 'To: ',
-            `Subject: ${assuntoMime}`, 'Content-Type: text/html; charset=UTF-8',
-            'Content-Transfer-Encoding: base64', '', ...(b64.match(/.{1,76}/g) || []), '',
-        ];
+        const usuario = (req as any).user;
+        const composto = await composeEmailForUser(captura.html, usuario, 'cid');
+        // O arquivo chega com o nome que o celular deu e é assim que ele cai na
+        // pasta do financeiro. Renomear na saída entrega algo já arquivável.
+        const contexto = {
+            site: captura.resumo?.site || null,
+            favorecido: captura.resumo?.favorecido || null,
+        };
+        const anexos = await Promise.all((captura.anexos || []).map(async (a: any) => {
+            if (a.origem === 'PAGAMENTO') {
+                const loaded = await loadPaymentAttachment(usuario.tenantId, a.id);
+                return {
+                    filename: nomearAnexo({ ...contexto, tipo: loaded.record.tipo, nomeOriginal: loaded.record.nome_original }),
+                    mimeType: loaded.record.mime_type,
+                    buffer: loaded.buffer,
+                };
+            }
+            const loaded = await obterArquivoReembolso(a.id);
+            return {
+                filename: nomearAnexo({ ...contexto, tipo: 'MEMORIA_CALCULO', nomeOriginal: loaded.arquivo.nome_original }),
+                mimeType: loaded.arquivo.mime_type,
+                buffer: await fs.readFile(loaded.caminho),
+            };
+        }));
+        const eml = buildOutlookEml({ assunto: captura.assunto, para: captura.para, cc: captura.cc, html: composto.html, signature: composto.signature, attachments: anexos });
         const prefixo = captura.resumo?.natureza === 'ADIANTAMENTO' ? 'ADIANTAMENTO' : 'REEMBOLSO';
         const favorecido = String(captura.resumo?.favorecido || 'FAVORECIDO')
             .normalize('NFD').replace(/[^\w]+/g, '_').toUpperCase().slice(0, 40);
@@ -677,7 +885,7 @@ export async function baixarEmailReembolsoEml(req: Request, res: Response) {
         res.setHeader('Content-Disposition', `attachment; filename="${prefixo}_${favorecido}.eml"`);
         res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
         res.setHeader('Pragma', 'no-cache');
-        res.send(linhas.join('\r\n'));
+        res.send(eml);
     } catch (e: any) {
         res.status(400).json({ error: e.message });
     }

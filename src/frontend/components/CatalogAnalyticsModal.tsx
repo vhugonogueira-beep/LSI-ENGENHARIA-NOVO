@@ -129,7 +129,7 @@ export function CatalogAnalyticsModal({ isOpen, onClose, itemKey, itemTitle }: a
                                             return null;
                                         }}
                                     />
-                                    <Scatter name="Preços" data={data.dataset} fill="#3B82F6" fillOpacity={0.6} />
+                                    <Scatter name="Preços" data={data.dataset} fill="#1768D5" fillOpacity={0.6} />
                                 </ScatterChart>
                             </ResponsiveContainer>
                         </div>

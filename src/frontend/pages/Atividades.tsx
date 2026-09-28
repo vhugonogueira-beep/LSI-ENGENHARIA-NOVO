@@ -47,8 +47,8 @@ const FORM_INIT = {
     responsavel: '', descricao: '',
 };
 
-const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_APC', 'APC_LIBERADO', 'EM_EXECUCAO', 'CONCLUIDA', 'PAUSADA'];
-const PO_STATUS_COLOR: Record<string, string> = { AGUARDANDO: '#94a3b8', RECEBIDA: '#f59e0b', VALIDADA: '#3b82f6', LIBERADA: '#22c55e' };
+const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_LIBERACAO', 'EM_EXECUCAO', 'CONCLUIDA', 'ON_HOLD'];
+const PO_STATUS_COLOR: Record<string, string> = { AGUARDANDO: '#94a3b8', RECEBIDA: '#f59e0b', VALIDADA: '#1768D5', LIBERADA: '#22c55e' };
 
 // `vistaInicial` existe para o item "Pipeline" da sidebar abrir esta mesma tela
 // em kanban — antes ele apontava para uma tela separada sobre o modelo Demanda,
@@ -57,7 +57,16 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [atividades, setAtividades] = useState<Atividade[]>([]);
     const [loading, setLoading] = useState(true);
     const [selecionadaId, setSelecionadaId] = useState<string | null>(null);
-    const [view, setView] = useState<'lista' | 'kanban'>(vistaInicial);
+    const [view, setView] = useState<'lista' | 'kanban' | 'projetos'>(vistaInicial);
+    // Projeto: vinte e cinco vistorias mandadas no mesmo orçamento são um
+    // pedido só. O agrupamento acontece sobre atividades JÁ lançadas, que é o
+    // caso real — elas já têm cronograma, pagamento e histórico.
+    const [projetos, setProjetos] = useState<any[]>([]);
+    const [selecionadas, setSelecionadas] = useState<string[]>([]);
+    const [agrupando, setAgrupando] = useState(false);
+    const [novoProjeto, setNovoProjeto] = useState('');
+    const [projetoAlvo, setProjetoAlvo] = useState('');
+    const [projetoAberto, setProjetoAberto] = useState<any | null>(null);
     const [search, setSearch] = useState('');
     const [documentFilter, setDocumentFilter] = useState('TODAS');
     const [showForm, setShowForm] = useState(false);
@@ -80,7 +89,59 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
         }
     }, []);
 
+    const carregarProjetos = useCallback(async () => {
+        try {
+            const r = await fetch('/api/acionamentos');
+            if (!r.ok) return;
+            const lista = await r.json();
+            // O consolidado de cada projeto vem do endpoint financeiro: é ele
+            // que sabe somar o rateado, que não existe na listagem simples.
+            const comNumeros = await Promise.all(lista.map(async (p: any) => {
+                const f = await fetch(`/api/acionamentos/${p.id}/financeiro`);
+                return f.ok ? { ...p, ...(await f.json()) } : p;
+            }));
+            setProjetos(comNumeros);
+        } catch { /* a tela de projetos apenas fica vazia */ }
+    }, []);
+
     useEffect(() => { load(); }, [load]);
+    useEffect(() => { if (view === 'projetos') carregarProjetos(); }, [view, carregarProjetos]);
+
+    /** Agrupa as atividades marcadas num projeto — novo ou existente. */
+    async function agruparSelecionadas() {
+        if (!selecionadas.length) return;
+        setErro('');
+        setAgrupando(true);
+        try {
+            let alvo = projetoAlvo;
+            if (!alvo) {
+                const titulo = novoProjeto.trim();
+                if (!titulo) { setErro('Dê um nome ao projeto ou escolha um existente'); return; }
+                const r = await fetch('/api/acionamentos', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ titulo }),
+                });
+                if (!r.ok) throw new Error((await r.json()).error || 'Erro ao criar o projeto');
+                alvo = (await r.json()).id;
+            }
+            // O endpoint recebe a lista FINAL do projeto: quem já estava e
+            // continua, mais as novas. Mandar só as novas tiraria as antigas.
+            const atual = projetos.find(p => p.id === alvo);
+            const jaNoProjeto = (atual?.atividades || []).map((a: any) => a.id);
+            const finais = [...new Set([...jaNoProjeto, ...selecionadas])];
+
+            const r2 = await fetch(`/api/acionamentos/${alvo}/atividades`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ atividade_ids: finais }),
+            });
+            if (!r2.ok) throw new Error((await r2.json()).error || 'Erro ao agrupar');
+            setSelecionadas([]);
+            setNovoProjeto('');
+            setProjetoAlvo('');
+            await Promise.all([load(), carregarProjetos()]);
+        } catch (e: any) { setErro(e.message); }
+        finally { setAgrupando(false); }
+    }
 
     // Excluir a atividade apaga toda a cadeia ligada a ela — por isso pede motivo e é
     // restrito a administrador (o backend confere de novo).
@@ -229,6 +290,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     <button onClick={() => setView('kanban')} className={`p-2 rounded-md ${view === 'kanban' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Kanban">
                         <LayoutGrid size={16} />
                     </button>
+                    <button onClick={() => setView('projetos')} className={`px-2.5 py-2 rounded-md text-[11px] font-semibold ${view === 'projetos' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Projetos — atividades agrupadas num orçamento só">
+                        Projetos
+                    </button>
                 </div>
             </div>
 
@@ -239,35 +303,66 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
             {loading ? (
                 <div className="text-center py-16 text-muted-foreground">Carregando atividades...</div>
             ) : view === 'lista' ? (
+                <>
+                {selecionadas.length > 0 && (
+                    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/[0.06] px-3.5 py-2.5">
+                        <span className="text-[13px] font-semibold">{selecionadas.length} atividade(s) selecionada(s)</span>
+                        <span className="text-[11px] text-muted-foreground">agrupar em</span>
+                        <select className="h-8 rounded-lg border border-border bg-background px-2 text-[12px]"
+                            value={projetoAlvo} onChange={e => setProjetoAlvo(e.target.value)}>
+                            <option value="">— novo projeto —</option>
+                            {projetos.map(p => <option key={p.id} value={p.id}>{p.codigo} · {p.titulo}</option>)}
+                        </select>
+                        {!projetoAlvo && (
+                            <input autoFocus className="h-8 w-72 rounded-lg border border-border bg-background px-2 text-[12px]"
+                                value={novoProjeto} onChange={e => setNovoProjeto(e.target.value)}
+                                placeholder="Nome do projeto — ex.: Vistoria de Energia OI"/>
+                        )}
+                        <button onClick={agruparSelecionadas} disabled={agrupando}
+                            className="h-8 rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground disabled:opacity-60">
+                            {agrupando ? 'Agrupando...' : 'Agrupar'}
+                        </button>
+                        <button onClick={() => setSelecionadas([])} className="h-8 px-2 text-[12px] text-muted-foreground">Cancelar</button>
+                    </div>
+                )}
                 <div className="bg-card border border-border rounded-xl overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-[13px]">
                         <thead>
                             <tr className="text-left text-[11px] text-muted-foreground bg-secondary/40 border-b border-border whitespace-nowrap">
-                                <th className="px-4 py-2.5 font-semibold">Site ID Sharing / Operadora</th>
-                                <th className="px-4 py-2.5 font-semibold">Cliente / Sharing</th>
-                                <th className="px-4 py-2.5 font-semibold">Operadora</th>
-                                <th className="px-4 py-2.5 font-semibold">Fornecedor</th>
-                                <th className="px-4 py-2.5 font-semibold">Gestor</th>
-                                <th className="px-4 py-2.5 font-semibold">PO</th>
-                                <th className="px-4 py-2.5 font-semibold">Status</th>
-                                <th className="px-4 py-2.5 font-semibold">Documentação</th>
-                                <th className="px-4 py-2.5 font-semibold text-right">Budget</th>
-                                <th className="px-4 py-2.5 font-semibold text-right">Custo</th>
-                                <th className="px-4 py-2.5 font-semibold text-right">Saldo</th>
-                                <th className="px-4 py-2.5 font-semibold">Avanço</th>
-                                <th className="px-4 py-2.5 font-semibold"></th>
+                                <th className="px-2 py-2.5 align-middle w-8">
+                                    <input type="checkbox" title="Selecionar todas as visíveis"
+                                        checked={filtradas.length > 0 && filtradas.every(a => selecionadas.includes(a.id))}
+                                        onChange={e => setSelecionadas(e.target.checked ? filtradas.map(a => a.id) : [])}/>
+                                </th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">Site ID Sharing / Operadora</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">Cliente / Sharing</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">Operadora</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">Fornecedor</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">Gestor</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">PO</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">Status</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold">Documentação</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold text-right">Budget</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold text-right">Custo</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold text-right">Saldo</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold min-w-[104px]">Avanço</th>
+                                <th className="px-2.5 py-2.5 align-middle font-semibold"></th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtradas.length === 0 && (
-                                <tr><td colSpan={13} className="text-center py-10 text-muted-foreground">Nenhuma atividade encontrada.</td></tr>
+                                <tr><td colSpan={14} className="text-center py-10 text-muted-foreground">Nenhuma atividade encontrada.</td></tr>
                             )}
                             {filtradas.map(a => {
                                 const opColor = OPERADORA_COLOR[a.operadora || ''] || '#94a3b8';
                                 const saldo = a.saldo ?? ((a.valor_contrato ?? 0) - (a.custo_pago ?? 0));
                                 return (
                                     <tr key={a.id} className="border-b border-border/60 last:border-0 hover:bg-secondary/20 transition-colors align-top">
-                                        <td className="px-4 py-3">
+                                        <td className="px-2 py-3 align-middle">
+                                            <input type="checkbox" checked={selecionadas.includes(a.id)}
+                                                onChange={e => setSelecionadas(v => e.target.checked ? [...v, a.id] : v.filter(id => id !== a.id))}/>
+                                        </td>
+                                        <td className="px-2.5 py-3 align-middle">
                                             <div className="font-bold text-primary">{a.id_site_sharing || '—'}</div>
                                             <div className="text-[11px] font-medium text-foreground/70">{a.id_site_operadora || '—'}</div>
                                             <div className="text-[11px] text-muted-foreground">{[normalizarUf(a.estado) || a.estado, a.municipio].filter(Boolean).join(' / ') || '—'}</div>
@@ -275,13 +370,13 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 {TIPOS_DEMANDA_LABEL[a.tipo_demanda] || a.tipo_demanda}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-3 font-semibold text-primary whitespace-nowrap">{a.sharing}</td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-2.5 py-3 align-middle font-semibold text-primary whitespace-nowrap">{a.sharing}</td>
+                                        <td className="px-2.5 py-3 align-middle">
                                             {a.operadora && <span className="text-xs font-bold" style={{ color: opColor }}>{a.operadora}</span>}
                                         </td>
-                                        <td className="px-4 py-3 text-xs">{a.fornecedor_principal || <span className="text-muted-foreground">—</span>}</td>
-                                        <td className="px-4 py-3 text-xs font-semibold whitespace-nowrap">{a.responsavel || '—'}</td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-2.5 py-3 align-middle text-xs">{a.fornecedor_principal || <span className="text-muted-foreground">—</span>}</td>
+                                        <td className="px-2.5 py-3 align-middle text-xs font-semibold whitespace-nowrap">{a.responsavel || '—'}</td>
+                                        <td className="px-2.5 py-3 align-middle">
                                             {a.po ? (
                                                 <span className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap" style={{ background: `${PO_STATUS_COLOR[a.po.status]}22`, color: PO_STATUS_COLOR[a.po.status] }}>
                                                     {a.po.numero || a.po.status}
@@ -293,30 +388,36 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 </button>
                                             )}
                                         </td>
-                                        <td className="px-4 py-3"><StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} /></td>
-                                        <td className="px-4 py-3 min-w-32">
+                                        <td className="px-2.5 py-3 align-middle"><StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} /></td>
+                                        <td className="px-2.5 py-3 align-middle min-w-[92px]">
                                             <div className="flex items-center justify-between gap-2 text-[11px] mb-1">
                                                 <span className={(a.documentos_correcao || 0) > 0 ? 'text-red-500 font-semibold' : 'text-muted-foreground'}>
                                                     {(a.documentos_correcao || 0) > 0 ? `${a.documentos_correcao} em correção` : `${a.documentos_ok || 0}/${a.documentos_total || 0}`}
                                                 </span>
                                                 <span className="font-semibold">{a.documentos_percentual || 0}%</span>
                                             </div>
-                                            <div className="h-1.5 bg-secondary overflow-hidden">
-                                                <div className={`h-full ${(a.documentos_correcao || 0) > 0 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${a.documentos_percentual || 0}%` }} />
+                                            <div className="h-2 rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
+                                                <div className={`h-full rounded-full ${(a.documentos_correcao || 0) > 0 ? 'bg-red-600' : 'bg-emerald-600'}`} style={{ width: `${Math.min(100, a.documentos_percentual || 0)}%` }} />
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 text-right font-semibold whitespace-nowrap">{fmtMoeda(a.valor_contrato)}</td>
-                                        <td className="px-4 py-3 text-right whitespace-nowrap" style={{ color: '#f59e0b' }}>{fmtMoeda(a.custo_pago)}</td>
-                                        <td className="px-4 py-3 text-right font-semibold whitespace-nowrap" style={{ color: saldo < 0 ? '#ef4444' : '#22c55e' }}>{fmtMoeda(saldo)}</td>
-                                        <td className="px-4 py-3 w-32">
+                                        <td className="px-2.5 py-3 align-middle text-right font-semibold whitespace-nowrap">{fmtMoeda(a.valor_contrato)}</td>
+                                        <td className="px-2.5 py-3 align-middle text-right whitespace-nowrap" style={{ color: '#f59e0b' }}>{fmtMoeda(a.custo_pago)}</td>
+                                        <td className="px-2.5 py-3 align-middle text-right font-semibold whitespace-nowrap" style={{ color: saldo < 0 ? '#ef4444' : '#22c55e' }}>{fmtMoeda(saldo)}</td>
+                                        <td className="px-2.5 py-3 align-middle w-32 min-w-[104px]">
+                                            {/* Verde ao chegar em 100%: a conclusao e a leitura mais
+                                                importante da coluna. O numero ao lado garante que a
+                                                informacao nao dependa so da cor. */}
                                             <div className="flex items-center gap-2">
-                                                <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
-                                                    <div className="h-full rounded-full bg-primary" style={{ width: `${a.avanco_percentual ?? 0}%` }} />
+                                                <div className="h-2 flex-1 min-w-[52px] rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
+                                                    <div
+                                                        className={`h-full rounded-full transition-[width] duration-300 ${(a.avanco_percentual ?? 0) >= 100 ? 'bg-emerald-600' : 'bg-primary'}`}
+                                                        style={{ width: `${Math.min(100, Math.max(0, a.avanco_percentual ?? 0))}%` }}
+                                                    />
                                                 </div>
-                                                <span className="text-[11px] text-muted-foreground w-8 text-right">{Math.round(a.avanco_percentual ?? 0)}%</span>
+                                                <span className="text-[11px] font-semibold text-foreground w-9 text-right tabular-nums">{Math.round(a.avanco_percentual ?? 0)}%</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-2.5 py-3 align-middle">
                                             <div className="flex items-center gap-2 justify-end">
                                                 <button onClick={() => setSelecionadaId(a.id)} className="text-xs font-semibold text-primary hover:underline whitespace-nowrap">Abrir →</button>
                                                 <button onClick={() => setExcluindo(a)} title="Excluir atividade"
@@ -330,6 +431,58 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             })}
                         </tbody>
                     </table>
+                </div>
+                </>
+            ) : view === 'projetos' ? (
+                <div className="flex flex-col gap-3">
+                    {projetos.length === 0 && (
+                        <div className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
+                            Nenhum projeto ainda. Na visão de Lista, marque as atividades e use <strong className="text-foreground">Agrupar</strong>.
+                        </div>
+                    )}
+                    {projetos.map(p => {
+                        const r = p.resumo || {};
+                        const aberto = projetoAberto?.id === p.id;
+                        return (
+                            <div key={p.id} className="rounded-xl border border-border bg-card overflow-hidden">
+                                <button onClick={() => setProjetoAberto(aberto ? null : p)}
+                                    className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-left hover:bg-primary/[0.04]">
+                                    <span className="font-mono text-[11px] text-muted-foreground">{p.codigo}</span>
+                                    <strong className="text-sm">{p.titulo}</strong>
+                                    <span className="text-[11px] text-muted-foreground">{r.atividades ?? (p.atividades?.length || 0)} atividade(s)</span>
+                                    <span className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+                                        <span className="text-muted-foreground">receita <strong className="text-foreground">{fmtMoeda(r.receita || 0)}</strong></span>
+                                        <span className="text-muted-foreground">contratado <strong className="text-foreground">{fmtMoeda(r.custo_comprometido || 0)}</strong></span>
+                                        <span className="text-muted-foreground">adiantado <strong className="text-foreground">{fmtMoeda(r.adiantado || 0)}</strong></span>
+                                        {/* Enquanto sobrar dinheiro sem dono, a margem por
+                                            atividade está incompleta — e é isso que o âmbar diz. */}
+                                        {(r.a_ratear || 0) > 0
+                                            ? <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-500">a ratear {fmtMoeda(r.a_ratear)}</span>
+                                            : (r.rateado || 0) > 0 && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-500">rateado {fmtMoeda(r.rateado)}</span>}
+                                    </span>
+                                </button>
+                                {aberto && (
+                                    <div className="border-t border-border">
+                                        {(p.atividades || []).map((a: any) => (
+                                            <button key={a.id} onClick={() => setSelecionadaId(a.id)}
+                                                className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2.5 text-left text-[12px] last:border-0 hover:bg-secondary/30">
+                                                <span className="font-mono text-[11px] text-primary">{a.codigo}</span>
+                                                <span>{a.titulo}</span>
+                                                {a.site && <span className="text-[11px] text-muted-foreground">{a.site}</span>}
+                                                <span className="ml-auto text-[11px] text-muted-foreground">
+                                                    contratado <strong className="text-foreground">{fmtMoeda(a.custo_comprometido || 0)}</strong>
+                                                    {(a.custo_rateado || 0) > 0 && <> · rateado <strong className="text-emerald-500">{fmtMoeda(a.custo_rateado)}</strong></>}
+                                                </span>
+                                            </button>
+                                        ))}
+                                        {(p.atividades || []).length === 0 && (
+                                            <div className="px-4 py-6 text-center text-[12px] text-muted-foreground">Projeto sem atividades. Agrupe pela visão de Lista.</div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             ) : (
                 <div className="flex gap-4 overflow-x-auto pb-4">
@@ -378,8 +531,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                         <span>Documentação {a.documentos_ok || 0}/{a.documentos_total || 0}</span>
                                                         <span>{a.documentos_percentual || 0}%</span>
                                                     </div>
-                                                    <div className="h-1.5 bg-background overflow-hidden">
-                                                        <div className={`h-full ${(a.documentos_correcao || 0) > 0 ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${a.documentos_percentual || 0}%` }} />
+                                                    <div className="h-2 rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
+                                                        <div className={`h-full rounded-full ${(a.documentos_correcao || 0) > 0 ? 'bg-red-600' : 'bg-emerald-600'}`} style={{ width: `${Math.min(100, a.documentos_percentual || 0)}%` }} />
                                                     </div>
                                                 </div>
                                             )}
