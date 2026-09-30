@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const API = process.env.API_URL || 'http://127.0.0.1:3001/api';
-const JWT_SECRET = process.env.JWT_SECRET || 'LSOfficeERP@2026#SuperSecretKey!';
+const JWT_SECRET = process.env.JWT_SECRET || '';
 
 async function run() {
     const atividade = await prisma.atividade.findFirst({
@@ -35,7 +36,8 @@ async function run() {
     if (!response.ok) throw new Error(email.error || `HTTP ${response.status}`);
 
     const origemEsperada = atividade.tipo_demanda === 'IMPLANTACAO' ? 'IMPLANTAÇÃO' : 'OPERAÇÕES';
-    if (!email.assunto?.includes(`· ${origemEsperada} |`)) {
+    // Assunto no modelo aprovado em 28/09: "[ORIGEM] REEMBOLSO | favorecido | site | cliente".
+    if (!email.assunto?.startsWith(`[${origemEsperada}]`)) {
         throw new Error(`Assunto não reflete ${atividade.tipo_demanda}: ${email.assunto}`);
     }
     if (!email.html?.includes(diretorioTeste)) {

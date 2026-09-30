@@ -17,3 +17,6 @@ A seção 23 do Blueprint documenta esta refatoração; as seções 05, 14 e 21 
 | Memória de cálculo | `ReembolsoArquivo` + storage | reembolsos | reembolsos | Preservado |
 | Assunto inteligente | `Atividade.tipo_demanda` | serviços de e-mail | prévias | Implementado |
 | Prestação consolidada | `PrestacaoContasConsolidada` | `/api/prestacoes-contas` | prestação de contas | Preservado |
+| Localidades IBGE | `municipios-ibge.json` + `utils/uf.ts` | `/api/localidades` | Fornecedores, Atividades, Clientes, Funcionários | Implementado 30/09; Blueprint v5 seção 24 |
+| Comprovante pendente | `ParcelaPagamento`/`ReembolsoPagamento` + `PaymentAttachment` | `/api/atividades/carteira` (`comprovantes_pendentes`) | Carteira de atividades | Implementado 30/09; Blueprint v5 seção 24 |
+| Controle de acesso | `User` + `UserPermissao` + `AprovacaoPagamento` | `/api/usuarios`, `/api/aprovacoes-pagamento`, `/api/auth/convite`; porteiro `controleDeAcesso` + política em `permissoes.service.ts` | Usuários e acessos, Aceitar convite, fila no Controle de Pagamentos | Backend e interface implementados 30/09 (`validar-controle-acesso.ts`, 48 OK); Blueprint v6 seção 10; detalhe em `docs/HANDOFF-CONTROLE-ACESSO.md` |

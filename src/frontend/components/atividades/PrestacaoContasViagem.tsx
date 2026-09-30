@@ -126,6 +126,8 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
       const url = editor.pagamentoId ? `/api/reembolsos/pagamentos/${editor.pagamentoId}` : `/api/reembolsos/${editor.processoId}/pagamentos`;
       const r = await fetch(url, { method: editor.pagamentoId ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editor) });
       const d = await r.json(); if (!r.ok) throw new Error(d.error || 'Erro ao salvar depósito');
+      // Acima do limite de quem pediu, o depósito fica PENDENTE e vai para aprovação.
+      if (d.aviso) alert(d.aviso);
       setEditor(null); await carregar();
     } catch (e: any) { setErro(e.message); } finally { setSalvando(false); }
   };

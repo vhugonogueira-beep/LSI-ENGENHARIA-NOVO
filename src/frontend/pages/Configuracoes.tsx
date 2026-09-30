@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "../lib/authFetch";
+import { useEhAdmin } from "../lib/permissoes";
+import UsuariosAcessos from "../components/configuracoes/UsuariosAcessos";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configurações — o cadastro da própria LS Office.
@@ -193,10 +195,11 @@ function lerArquivoComoDataUri(arquivo: File): Promise<string> {
   });
 }
 
-type Aba = "empresa" | "contas" | "cartoes" | "comunicacao";
+type Aba = "empresa" | "contas" | "cartoes" | "comunicacao" | "usuarios";
 
 export default function Configuracoes() {
   const [aba, setAba] = useState<Aba>("empresa");
+  const ehAdmin = useEhAdmin();
   const [empresa, setEmpresa] = useState<any>(null);
   const [contas, setContas] = useState<Conta[]>([]);
   const [cartoes, setCartoes] = useState<Cartao[]>([]);
@@ -289,6 +292,8 @@ export default function Configuracoes() {
     { id: "contas", rotulo: `🏦 Contas para recebimento (${contas.length})` },
     { id: "cartoes", rotulo: `💳 Cartões corporativos (${cartoes.length})` },
     { id: "comunicacao", rotulo: "✉ Comunicação" },
+    // Gestão de acesso é do administrador; os demais nem veem a aba.
+    ...(ehAdmin ? [{ id: "usuarios" as Aba, rotulo: "👥 Usuários e acessos" }] : []),
   ];
 
   return (
@@ -420,6 +425,7 @@ export default function Configuracoes() {
       )}
 
       {aba === "comunicacao" && <ConfiguracaoComunicacao onError={setErro} notify={notify}/>} 
+      {aba === "usuarios" && ehAdmin && <UsuariosAcessos />}
     </div>
   );
 }

@@ -67,11 +67,19 @@ export async function saveEmailRouting(tenantId: string, tipo: EmailRoutingType,
     return { ...config, para: to, cc: carbonCopy };
 }
 
-export async function resolveEmailRouting(tenantId: string, tipo: EmailRoutingType, overrides?: { para?: unknown; cc?: unknown }) {
+export async function resolveEmailRouting(tenantId: string, tipo: EmailRoutingType, overrides?: { para?: unknown; cc?: unknown }, usuarioId?: string | null) {
     const current = (await listEmailRouting(tenantId)).find(item => item.tipo === tipo)!;
     const para = overrides?.para === undefined ? current.para : normalizeRecipients(overrides.para);
+    let cc = overrides?.cc === undefined ? current.cc : normalizeRecipients(overrides.cc);
+    // CC pessoal de quem gera o e-mail (Meu Perfil), somado ao roteamento
+    // global — nunca repete quem já está no Para. Se a pessoa editou o CC na
+    // prévia, vale o que ela deixou.
+    if (usuarioId && overrides?.cc === undefined) {
+        const usuario = await prisma.user.findUnique({ where: { id: usuarioId }, select: { email_cc_padrao: true } });
+        cc = [...new Set([...cc, ...lenient(usuario?.email_cc_padrao)])].filter(email => !para.includes(email));
+    }
     // Não existe destinatário padrão embutido: um e-mail de pagamento que sai
     // para o endereço errado é pior do que um "Para" vazio. Em compensação,
     // quem gera a prévia precisa ser avisado de que falta cadastrar.
-    return { tipo, para, cc: overrides?.cc === undefined ? current.cc : normalizeRecipients(overrides.cc), pendente: para.length === 0 };
+    return { tipo, para, cc, pendente: para.length === 0 };
 }

@@ -114,9 +114,24 @@ model User {
   telefone   String?
   email      String  @unique
   senha_hash String
-  role       String // ADMIN, COMERCIAL, OPERACOES
+  role       String // ADMIN | USUARIO (COMERCIAL/OPERACOES: legado, tratados como USUARIO)
   ativo      Boolean @default(true)
   assinatura_email UserEmailSignature?
+
+  // Controle de acesso (ver src/backend/services/permissoes.service.ts)
+  status_acesso      String    @default("ATIVO") // CONVIDADO | ATIVO | SUSPENSO
+  convite_token_hash String?   // sha256 do token do link de convite/redefinição
+  convite_expira_em  DateTime?
+  ultimo_acesso_em   DateTime?
+  // Autonomia para pedir pagamento: NUNCA precisa de aprovação, SEMPRE precisa,
+  // ou só ACIMA_DO_LIMITE (limite_pagamento, em reais, por solicitação).
+  aprovacao_pagamento String  @default("NUNCA") // NUNCA | SEMPRE | ACIMA_DO_LIMITE
+  limite_pagamento    Float?
+  // Configuração de e-mail do próprio usuário, somada ao roteamento global.
+  email_cc_padrao     String? // lista separada por vírgula/;
+  permissoes          UserPermissao[]
+  aprovacoesSolicitadas AprovacaoPagamento[] @relation("AprovacaoSolicitante")
+  aprovacoesDecididas   AprovacaoPagamento[] @relation("AprovacaoDecisor")
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 }
@@ -1836,4 +1851,41 @@ model Qualificacao {
   @@index([tenant_id, tipo])
   @@index([funcionario_id])
   @@index([supplier_id])
+}
+
+
+// Permissão concedida a um usuário. A chave vem do catálogo fechado em
+// permissoes.service.ts; ADMIN tem todas implicitamente e não precisa de linhas.
+model UserPermissao {
+  id      String @id @default(uuid())
+  user_id String
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  chave   String
+
+  @@unique([user_id, chave])
+}
+
+// Pedido de aprovação de um pagamento feito por quem não tem autonomia para o
+// valor. Enquanto não for APROVADA, o pagamento fica PENDENTE e não gera
+// solicitação nem e-mail. A aprovação vale para o valor aprovado: se o valor
+// subir depois, é preciso aprovar de novo.
+model AprovacaoPagamento {
+  id             String    @id @default(uuid())
+  tenant_id      String
+  origem         String    // PARCELA | DEPOSITO | REEMBOLSO
+  registro_id    String    // ParcelaPagamento.id | ReembolsoPagamento.id | Reembolso.id
+  atividade_id   String?
+  descricao      String
+  valor          Float
+  status         String    @default("PENDENTE") // PENDENTE | APROVADA | RECUSADA
+  solicitante_id String
+  solicitante    User      @relation("AprovacaoSolicitante", fields: [solicitante_id], references: [id])
+  decisor_id     String?
+  decisor        User?     @relation("AprovacaoDecisor", fields: [decisor_id], references: [id])
+  motivo_decisao String?
+  decidido_em    DateTime?
+  created_at     DateTime  @default(now())
+
+  @@index([tenant_id, status])
+  @@index([registro_id, status])
 }

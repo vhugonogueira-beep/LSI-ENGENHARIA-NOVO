@@ -1,9 +1,10 @@
+import 'dotenv/config';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const API = process.env.API_URL || 'http://127.0.0.1:3001/api';
-const JWT_SECRET = process.env.JWT_SECRET || 'LSOfficeERP@2026#SuperSecretKey!';
+const JWT_SECRET = process.env.JWT_SECRET || '';
 
 function token(user: { id: string; tenant_id: string; email: string; nome: string; role: string }) {
     return jwt.sign({ userId: user.id, tenantId: user.tenant_id, email: user.email, nome: user.nome, role: user.role }, JWT_SECRET, { expiresIn: '5m' });
@@ -23,12 +24,22 @@ function htmlFromEml(eml: string): string {
 }
 
 async function run() {
-    const victor = await prisma.user.findFirst({ where: { email: { contains: 'victor.hugo' }, ativo: true } });
-    const noSignatureUser = await prisma.user.findFirst({ where: { ativo: true, assinatura_email: null, NOT: { id: victor?.id } } });
-    assert(victor, 'Usuário Victor Hugo não encontrado');
-    assert(noSignatureUser, 'Usuário sem assinatura não encontrado');
-    const existing = await prisma.userEmailSignature.findUnique({ where: { user_id: victor.id } });
-    assert(!existing, 'O teste não sobrescreve uma assinatura real já cadastrada');
+    // Dois usuários temporários: um recebe a assinatura de teste, o outro fica
+    // sem nenhuma. Antes o teste usava a conta do Victor e parava quando ele já
+    // tinha assinatura real — agora nenhuma conta real é tocada.
+    const tenant = await prisma.tenant.findFirst();
+    assert(tenant, 'Nenhum tenant cadastrado');
+    const sufixo = Date.now().toString(36);
+    const criarTemporario = (quem: string, role: string) => prisma.user.create({
+        data: {
+            tenant_id: tenant.id, nome: `Teste assinatura ${quem}`,
+            email: `teste-assinatura-${quem}-${sufixo}@lsoffice.invalid`,
+            senha_hash: 'sem-login', role, status_acesso: 'ATIVO',
+            permissoes: role === 'ADMIN' ? undefined : { create: [{ chave: 'pagamentos.solicitar' }, { chave: 'faturamento.gerenciar' }] },
+        },
+    });
+    const victor = await criarTemporario('com', 'ADMIN');
+    const noSignatureUser = await criarTemporario('sem', 'USUARIO');
 
     const victorToken = token(victor);
     const otherToken = token(noSignatureUser);
@@ -66,8 +77,10 @@ async function run() {
         const reimbursementPreview = await fetch(`${API}/reembolsos/${reimbursement.id}/email`, { method: 'POST', headers: headers(victorToken, true), body: JSON.stringify({ pagamento_id: reimbursement.pagamentos[0].id }) });
         const reimbursementMail = await reimbursementPreview.json() as any;
         assert(reimbursementPreview.ok && reimbursementMail.html?.includes('LSI:USER_EMAIL_SIGNATURE'), 'Preview de reembolso/adiantamento não incorporou a assinatura');
-        const origemEsperada = reimbursement.atividade.tipo_demanda === 'IMPLANTACAO' ? 'IMPLANTAÇÃO' : 'OPERAÇÕES';
-        assert(reimbursementMail.assunto?.includes(`· ${origemEsperada} |`), `Assunto não refletiu o tipo da atividade: esperado ${origemEsperada}`);
+        const origemEsperada = !reimbursement.atividade ? 'ENGENHARIA'
+            : reimbursement.atividade.tipo_demanda === 'IMPLANTACAO' ? 'IMPLANTAÇÃO' : 'OPERAÇÕES';
+        // Assunto no modelo aprovado em 28/09: "[ORIGEM] REEMBOLSO | favorecido | site | cliente".
+        assert(reimbursementMail.assunto?.startsWith(`[${origemEsperada}]`), `Assunto não refletiu o tipo da atividade: esperado ${origemEsperada}`);
         const reimbursementEml = await (await fetch(`${API}/reembolsos/${reimbursement.id}/email.eml?pagamento_id=${reimbursement.pagamentos[0].id}`, { headers: headers(victorToken) })).text();
         assert(reimbursementEml.includes('multipart/related') && reimbursementEml.includes('Content-ID: <lsi-user-email-signature-'), 'EML de reembolso/adiantamento não contém assinatura CID');
 
@@ -85,6 +98,10 @@ async function run() {
         console.log(JSON.stringify({ ok: true, invalidImageRejected: true, payment: true, reimbursement: reimbursement.natureza, outlookCid: true, noSignatureFallback: true, billing: Boolean(billing) }));
     } finally {
         await fetch(`${API}/profile/email-signature`, { method: 'DELETE', headers: headers(victorToken) }).catch(() => undefined);
+        const temporarios = [victor.id, noSignatureUser.id];
+        await prisma.userEmailSignature.deleteMany({ where: { user_id: { in: temporarios } } }).catch(() => undefined);
+        await prisma.auditLog.deleteMany({ where: { user_id: { in: temporarios } } }).catch(() => undefined);
+        await prisma.user.deleteMany({ where: { id: { in: temporarios } } });
         await prisma.$disconnect();
     }
 }

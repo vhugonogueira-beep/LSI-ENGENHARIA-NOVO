@@ -65,33 +65,33 @@ export const SUBTIPOS_OPERACAO_LABEL: Record<string, string> = {
 export const TIPOS_OBRA = ['BTS', 'COLLO', 'RETROFIT', 'REFORCO_EV_FUNDACAO', 'SLS', 'OUTROS'];
 export const TIPOS_SITE_HIGHLINE = ['BTS', 'Roof Top', 'Collo - BTS', 'Collo RT', 'Reforço'];
 export const UFS = [
-    { sigla: 'AC', nome: 'Acre' },
-    { sigla: 'AL', nome: 'Alagoas' },
-    { sigla: 'AP', nome: 'Amapá' },
-    { sigla: 'AM', nome: 'Amazonas' },
-    { sigla: 'BA', nome: 'Bahia' },
-    { sigla: 'CE', nome: 'Ceará' },
-    { sigla: 'DF', nome: 'Distrito Federal' },
-    { sigla: 'ES', nome: 'Espírito Santo' },
-    { sigla: 'GO', nome: 'Goiás' },
-    { sigla: 'MA', nome: 'Maranhão' },
-    { sigla: 'MT', nome: 'Mato Grosso' },
-    { sigla: 'MS', nome: 'Mato Grosso do Sul' },
-    { sigla: 'MG', nome: 'Minas Gerais' },
-    { sigla: 'PA', nome: 'Pará' },
-    { sigla: 'PB', nome: 'Paraíba' },
-    { sigla: 'PR', nome: 'Paraná' },
-    { sigla: 'PE', nome: 'Pernambuco' },
-    { sigla: 'PI', nome: 'Piauí' },
-    { sigla: 'RJ', nome: 'Rio de Janeiro' },
-    { sigla: 'RN', nome: 'Rio Grande do Norte' },
-    { sigla: 'RS', nome: 'Rio Grande do Sul' },
-    { sigla: 'RO', nome: 'Rondônia' },
-    { sigla: 'RR', nome: 'Roraima' },
-    { sigla: 'SC', nome: 'Santa Catarina' },
-    { sigla: 'SP', nome: 'São Paulo' },
-    { sigla: 'SE', nome: 'Sergipe' },
-    { sigla: 'TO', nome: 'Tocantins' },
+    { sigla: 'AC', nome: 'Acre', regiao: 'NORTE' },
+    { sigla: 'AL', nome: 'Alagoas', regiao: 'NORDESTE' },
+    { sigla: 'AP', nome: 'Amapá', regiao: 'NORTE' },
+    { sigla: 'AM', nome: 'Amazonas', regiao: 'NORTE' },
+    { sigla: 'BA', nome: 'Bahia', regiao: 'NORDESTE' },
+    { sigla: 'CE', nome: 'Ceará', regiao: 'NORDESTE' },
+    { sigla: 'DF', nome: 'Distrito Federal', regiao: 'CENTRO_OESTE' },
+    { sigla: 'ES', nome: 'Espírito Santo', regiao: 'SUDESTE' },
+    { sigla: 'GO', nome: 'Goiás', regiao: 'CENTRO_OESTE' },
+    { sigla: 'MA', nome: 'Maranhão', regiao: 'NORDESTE' },
+    { sigla: 'MT', nome: 'Mato Grosso', regiao: 'CENTRO_OESTE' },
+    { sigla: 'MS', nome: 'Mato Grosso do Sul', regiao: 'CENTRO_OESTE' },
+    { sigla: 'MG', nome: 'Minas Gerais', regiao: 'SUDESTE' },
+    { sigla: 'PA', nome: 'Pará', regiao: 'NORTE' },
+    { sigla: 'PB', nome: 'Paraíba', regiao: 'NORDESTE' },
+    { sigla: 'PR', nome: 'Paraná', regiao: 'SUL' },
+    { sigla: 'PE', nome: 'Pernambuco', regiao: 'NORDESTE' },
+    { sigla: 'PI', nome: 'Piauí', regiao: 'NORDESTE' },
+    { sigla: 'RJ', nome: 'Rio de Janeiro', regiao: 'SUDESTE' },
+    { sigla: 'RN', nome: 'Rio Grande do Norte', regiao: 'NORDESTE' },
+    { sigla: 'RS', nome: 'Rio Grande do Sul', regiao: 'SUL' },
+    { sigla: 'RO', nome: 'Rondônia', regiao: 'NORTE' },
+    { sigla: 'RR', nome: 'Roraima', regiao: 'NORTE' },
+    { sigla: 'SC', nome: 'Santa Catarina', regiao: 'SUL' },
+    { sigla: 'SP', nome: 'São Paulo', regiao: 'SUDESTE' },
+    { sigla: 'SE', nome: 'Sergipe', regiao: 'NORDESTE' },
+    { sigla: 'TO', nome: 'Tocantins', regiao: 'NORTE' },
 ] as const;
 
 function chaveUf(value: string): string {
@@ -108,6 +108,20 @@ export function normalizarUf(value?: string | null): string {
     const chave = chaveUf(value);
     return UFS.find(uf => uf.sigla === chave || chaveUf(uf.nome) === chave)?.sigla || '';
 }
+
+// Regiões do IBGE, na grafia que o cadastro de fornecedor já grava.
+export const REGIOES = ['NORTE', 'NORDESTE', 'CENTRO_OESTE', 'SUDESTE', 'SUL'] as const;
+export const REGIAO_LABEL: Record<string, string> = {
+    NACIONAL: 'Nacional', NORTE: 'Norte', NORDESTE: 'Nordeste', CENTRO_OESTE: 'Centro-Oeste', SUDESTE: 'Sudeste', SUL: 'Sul',
+};
+
+export function regiaoPorUf(value?: string | null): string {
+    const sigla = normalizarUf(value);
+    return UFS.find(uf => uf.sigla === sigla)?.regiao || '';
+}
+
+/** Mesma chave do backend: sem acento, caixa ou espaço duplo. */
+export const chaveTexto = chaveUf;
 // Compartilhadora/detentora (sharing) e operadora móvel são dimensões independentes —
 // a mesma confusão que existia no Controle de Obras legado ("Cliente/Sharing" x "Operadora").
 export const SHARINGS = ['HIGHLINE', 'IHS', 'WINITY', 'SBA', 'OUTROS'];

@@ -39,6 +39,11 @@ app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', message: 'LS Orçamento API is running' });
 });
 
+// Porteiro único: sessão obrigatória em /api (menos login, convite, health e
+// localidades) e permissão por ação — ver permissoes.service.ts.
+import { controleDeAcesso } from './middleware/auth.middleware';
+app.use('/api', (req, res, next) => { controleDeAcesso(req, res, next).catch(next); });
+
 import authRoutes from './routes/auth.routes';
 import profileRoutes from './routes/profile.routes';
 import budgetRoutes from './routes/budget.routes';
@@ -51,6 +56,9 @@ import pricebookRoutes from './routes/pricebook.routes';
 import empresaRoutes from './routes/empresa.routes';
 import funcionarioRoutes from './routes/funcionario.routes';
 import qualificacaoRoutes from './routes/qualificacao.routes';
+import localidadesRoutes from './routes/localidades.routes';
+import usuariosRoutes from './routes/usuarios.routes';
+import aprovacoesPagamentoRoutes from './routes/aprovacoes-pagamento.routes';
 import controladoriaRoutes from './routes/controladoria.routes';
 import reembolsoRoutes from './routes/reembolso.routes';
 import pagamentosRoutes from './routes/pagamentos.routes';
@@ -83,6 +91,9 @@ app.use('/api/pricebooks', pricebookRoutes);
 app.use('/api/empresa', empresaRoutes);
 app.use('/api/funcionarios', funcionarioRoutes);
 app.use('/api/qualificacoes', qualificacaoRoutes);
+app.use('/api/localidades', localidadesRoutes);
+app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/aprovacoes-pagamento', aprovacoesPagamentoRoutes);
 app.use('/api/controladoria', controladoriaRoutes);
 app.use('/api/reembolsos', reembolsoRoutes);
 app.use('/api/prestacoes-contas', prestacaoConsolidadaRoutes);

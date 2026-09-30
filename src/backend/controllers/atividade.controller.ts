@@ -6,6 +6,7 @@ import { gerarMatrizDocumental, recalcularStatusDocumental } from '../services/d
 import { normalizarUf } from '../utils/uf';
 import { removerArquivoDoDisco } from '../services/po-arquivo.service';
 import { sincronizarPendenciasAtividade } from '../services/sincronizacao-pendencias.service';
+import { calcularPendenciasAtividade, contarComprovantesPendentes } from '../services/pendencias-atividade.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -117,6 +118,8 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
             custoPagoPorAtividade.set(atvId, (custoPagoPorAtividade.get(atvId) || 0) + p2.valor);
         }
 
+        const comprovantesPendentes = await contarComprovantesPendentes(ids);
+
         const documentosPorAtividade = new Map<string, typeof documentos>();
         for (const documento of documentos) {
             documentosPorAtividade.set(documento.atividade_id, [
@@ -146,6 +149,7 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
                 documentos_pendentes: Math.max(docs.length - docsOk, 0),
                 documentos_correcao: docsCorrecao,
                 documentos_percentual: docs.length ? Math.round((docsOk / docs.length) * 100) : 0,
+                comprovantes_pendentes: comprovantesPendentes.get(a.id) || 0,
             };
         });
 
@@ -415,10 +419,11 @@ export async function updateAtividade(req: Request, res: Response) {
 export async function deleteAtividade(req: Request, res: Response) {
     try {
         const { id } = req.params;
-        const { motivo, autor } = req.body || {};
-        const usuario = autor || (req as any).user;
+        const { motivo } = req.body || {};
+        // Autor sempre da sessão: o corpo da requisição não decide quem é ADMIN.
+        const usuario = (req as any).user;
 
-        if (usuario?.role && usuario.role !== 'ADMIN') {
+        if (usuario?.role !== 'ADMIN') {
             return res.status(403).json({ error: 'Apenas administradores podem excluir uma atividade' });
         }
         if ((motivo || '').trim().length < 10) {
@@ -534,6 +539,17 @@ export async function getAtividadeStats(req: Request, res: Response) {
         ]);
 
         res.json({ porOperacional, porComercial, porFaturamento, porTipo, porSharing, totais });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+}
+
+/** GET /api/atividades/:id/pendencias — o que falta preencher, por aba do cockpit. */
+export async function getPendenciasAtividade(req: Request, res: Response) {
+    try {
+        const pendencias = await calcularPendenciasAtividade(req.params.id);
+        if (!pendencias) return res.status(404).json({ error: 'Atividade não encontrada' });
+        res.json(pendencias);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

@@ -3,9 +3,11 @@ import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, T
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, OPERADORA_COLOR, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
-    fmtMoeda, StatusPill,
+    REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
+import MunicipioInput from '../components/cadastros/MunicipioInput';
+import { useEhAdmin } from '../lib/permissoes';
 
 interface Atividade {
     id: string;
@@ -26,6 +28,9 @@ interface Atividade {
     id_site_sharing?: string | null;
     id_site_operadora?: string | null;
     responsavel?: string | null;
+    gestor?: string | null;
+    acionamento_id?: string | null;
+    data_fim_planejada?: string | null;
     // Campos da "Carteira" (GET /api/atividades/carteira) — Blueprint LSI
     fornecedor_principal?: string | null;
     po?: { id: string; numero?: string | null; status: string } | null;
@@ -38,6 +43,7 @@ interface Atividade {
     documentos_pendentes?: number;
     documentos_correcao?: number;
     documentos_percentual?: number;
+    comprovantes_pendentes?: number;
 }
 
 const FORM_INIT = {
@@ -48,6 +54,29 @@ const FORM_INIT = {
 };
 
 const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_LIBERACAO', 'EM_EXECUCAO', 'CONCLUIDA', 'ON_HOLD'];
+
+// Recortes rápidos da carteira. "Em aberto" é tudo que ainda não terminou,
+// inclusive o que está em ON_HOLD — obra parada continua sendo compromisso.
+const hojeISO = () => new Date().toISOString().slice(0, 10);
+const atrasada = (a: Atividade) => Boolean(a.data_fim_planejada) && a.status_operacional !== 'CONCLUIDA'
+    && String(a.data_fim_planejada).slice(0, 10) < hojeISO();
+const SITUACOES: { id: string; label: string; teste: (a: Atividade) => boolean }[] = [
+    { id: 'TODAS', label: 'Todas', teste: () => true },
+    { id: 'ABERTAS', label: 'Em aberto', teste: a => a.status_operacional !== 'CONCLUIDA' },
+    { id: 'EM_EXECUCAO', label: 'Em execução', teste: a => a.status_operacional === 'EM_EXECUCAO' },
+    { id: 'ATRASADAS', label: 'Atrasadas', teste: atrasada },
+    { id: 'ON_HOLD', label: 'On hold', teste: a => a.status_operacional === 'ON_HOLD' },
+    { id: 'SEM_PO', label: 'Sem PO', teste: a => !a.po && a.status_operacional !== 'CONCLUIDA' },
+    // Pagamento solicitado/pago sem comprovante anexado — independe do status da obra.
+    { id: 'COMPROVANTE_PENDENTE', label: 'Comprovante pendente', teste: a => (a.comprovantes_pendentes || 0) > 0 },
+    { id: 'CONCLUIDAS', label: 'Concluídas', teste: a => a.status_operacional === 'CONCLUIDA' },
+];
+const FILTROS_INIT = { situacao: 'TODAS', tipo: '', subtipo: '', uf: '', regiao: '', sharing: '', operadora: '', gestor: '' };
+const FILTROS_KEY = 'ls_atividades_filtros';
+
+function lerFiltros(): typeof FILTROS_INIT {
+    try { return { ...FILTROS_INIT, ...JSON.parse(localStorage.getItem(FILTROS_KEY) || '{}') }; } catch { return FILTROS_INIT; }
+}
 const PO_STATUS_COLOR: Record<string, string> = { AGUARDANDO: '#94a3b8', RECEBIDA: '#f59e0b', VALIDADA: '#1768D5', LIBERADA: '#22c55e' };
 
 // `vistaInicial` existe para o item "Pipeline" da sidebar abrir esta mesma tela
@@ -69,6 +98,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [projetoAberto, setProjetoAberto] = useState<any | null>(null);
     const [search, setSearch] = useState('');
     const [documentFilter, setDocumentFilter] = useState('TODAS');
+    // Excluir é só do administrador (o backend confere de novo).
+    const ehAdmin = useEhAdmin();
+    // Lembrado por usuário neste navegador: quem cuida só do Norte abre já no Norte.
+    const [filtros, setFiltros] = useState(lerFiltros);
+    useEffect(() => { try { localStorage.setItem(FILTROS_KEY, JSON.stringify(filtros)); } catch { /* sem storage, só não lembra */ } }, [filtros]);
+    const setFiltro = (campo: keyof typeof FILTROS_INIT, valor: string) => setFiltros(f => ({ ...f, [campo]: valor }));
     const [showForm, setShowForm] = useState(false);
     const [form, setForm] = useState(FORM_INIT);
     const [saving, setSaving] = useState(false);
@@ -241,17 +276,46 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
         );
     }
 
-    const filtradas = atividades.filter(a => {
-        const matchesSearch = a.titulo.toLowerCase().includes(search.toLowerCase())
-            || a.codigo.toLowerCase().includes(search.toLowerCase())
-            || (a.id_site_sharing || '').toLowerCase().includes(search.toLowerCase())
-            || (a.id_site_operadora || '').toLowerCase().includes(search.toLowerCase());
+    // Todos os filtros menos a situação — os contadores dos chips de situação
+    // saem daqui, para dizer quantas sobrariam ao clicar em cada um.
+    const situacaoAtual = SITUACOES.find(s => s.id === filtros.situacao) || SITUACOES[0];
+    const semSituacao = atividades.filter(a => {
+        const termo = search.toLowerCase();
+        const matchesSearch = a.titulo.toLowerCase().includes(termo)
+            || a.codigo.toLowerCase().includes(termo)
+            || (a.municipio || '').toLowerCase().includes(termo)
+            || (a.id_site_sharing || '').toLowerCase().includes(termo)
+            || (a.id_site_operadora || '').toLowerCase().includes(termo);
         const matchesDocuments = documentFilter === 'TODAS'
             || (documentFilter === 'PENDENTES' && (a.documentos_pendentes || 0) > 0)
             || (documentFilter === 'COMPLETAS' && (a.documentos_total || 0) > 0 && a.documentos_pendentes === 0)
             || (documentFilter === 'CORRECAO' && (a.documentos_correcao || 0) > 0);
-        return matchesSearch && matchesDocuments;
+        const uf = normalizarUf(a.estado);
+        return matchesSearch && matchesDocuments
+            && (!filtros.tipo || a.tipo_demanda === filtros.tipo)
+            && (!filtros.subtipo || a.subtipo_demanda === filtros.subtipo)
+            && (!filtros.uf || uf === filtros.uf)
+            && (!filtros.regiao || regiaoPorUf(uf) === filtros.regiao)
+            && (!filtros.sharing || a.sharing === filtros.sharing)
+            && (!filtros.operadora || a.operadora === filtros.operadora)
+            && (!filtros.gestor || (a.gestor || a.responsavel || '') === filtros.gestor);
     });
+    const filtradas = semSituacao.filter(situacaoAtual.teste);
+
+    // As listas dos filtros mostram só o que existe na carteira, com a contagem.
+    const contar = (valores: (string | null | undefined)[]) => {
+        const m = new Map<string, number>();
+        for (const v of valores) if (v) m.set(v, (m.get(v) || 0) + 1);
+        return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'));
+    };
+    const ufsNaCarteira = contar(atividades
+        .filter(a => !filtros.regiao || regiaoPorUf(a.estado) === filtros.regiao)
+        .map(a => normalizarUf(a.estado)));
+    const gestoresNaCarteira = contar(atividades.map(a => a.gestor || a.responsavel));
+    const filtrosAtivos = (Object.keys(FILTROS_INIT) as (keyof typeof FILTROS_INIT)[])
+        .filter(k => filtros[k] !== FILTROS_INIT[k]).length + (documentFilter !== 'TODAS' ? 1 : 0) + (search ? 1 : 0);
+    const limparFiltros = () => { setFiltros(FILTROS_INIT); setDocumentFilter('TODAS'); setSearch(''); };
+    const filtroSelect = 'h-8 rounded-lg border border-border bg-card px-2 text-xs';
 
     return (
         <div className="p-8 text-foreground">
@@ -295,6 +359,75 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     </button>
                 </div>
             </div>
+
+            {view !== 'projetos' && (
+                <div className="mb-5 space-y-2.5">
+                    {/* Situação: recortes rápidos, com quantas atividades cada um mostraria */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        {SITUACOES.map(s => {
+                            const total = semSituacao.filter(s.teste).length;
+                            const ativo = filtros.situacao === s.id;
+                            const alerta = (s.id === 'ATRASADAS' || s.id === 'COMPROVANTE_PENDENTE') && total > 0;
+                            return (
+                                <button key={s.id} onClick={() => setFiltro('situacao', s.id)}
+                                    className={`h-8 rounded-full border px-3 text-xs font-semibold transition-colors ${ativo
+                                        ? 'border-primary bg-primary text-primary-foreground'
+                                        : alerta ? 'border-amber-500/40 text-amber-500 hover:bg-amber-500/10'
+                                            : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                                    {s.label} <span className={ativo ? 'opacity-80' : 'opacity-60'}>{total}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                    {/* Recortes por tipo, lugar e responsável */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex gap-1 rounded-lg bg-secondary/40 p-0.5">
+                            {[['', 'Todos os tipos'], ...TIPOS_DEMANDA.map(t => [t, TIPOS_DEMANDA_LABEL[t] || t])].map(([id, label]) => (
+                                <button key={id} onClick={() => setFiltros(f => ({ ...f, tipo: id, subtipo: id === 'OPERACAO' ? f.subtipo : '' }))}
+                                    className={`h-7 rounded-md px-2.5 text-xs font-semibold ${filtros.tipo === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                        {filtros.tipo === 'OPERACAO' && (
+                            <select value={filtros.subtipo} onChange={e => setFiltro('subtipo', e.target.value)} className={filtroSelect}>
+                                <option value="">Todo subtipo</option>
+                                {SUBTIPOS_OPERACAO.map(s => <option key={s} value={s}>{SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
+                            </select>
+                        )}
+                        <select value={filtros.regiao} onChange={e => setFiltros(f => ({ ...f, regiao: e.target.value, uf: e.target.value && regiaoPorUf(f.uf) !== e.target.value ? '' : f.uf }))} className={filtroSelect}>
+                            <option value="">Toda região</option>
+                            {REGIOES.map(r => <option key={r} value={r}>{REGIAO_LABEL[r]}</option>)}
+                        </select>
+                        <select value={filtros.uf} onChange={e => setFiltro('uf', e.target.value)} className={filtroSelect}>
+                            <option value="">Toda UF</option>
+                            {ufsNaCarteira.map(([uf, n]) => <option key={uf} value={uf}>{uf} ({n})</option>)}
+                        </select>
+                        <select value={filtros.sharing} onChange={e => setFiltro('sharing', e.target.value)} className={filtroSelect}>
+                            <option value="">Todo sharing</option>
+                            {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <select value={filtros.operadora} onChange={e => setFiltro('operadora', e.target.value)} className={filtroSelect}>
+                            <option value="">Toda operadora</option>
+                            {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                        {gestoresNaCarteira.length > 0 && (
+                            <select value={filtros.gestor} onChange={e => setFiltro('gestor', e.target.value)} className={filtroSelect}>
+                                <option value="">Todo gestor</option>
+                                {gestoresNaCarteira.map(([g, n]) => <option key={g} value={g}>{g} ({n})</option>)}
+                            </select>
+                        )}
+                        <span className="ml-auto text-xs text-muted-foreground">
+                            {filtradas.length} de {atividades.length} atividade(s)
+                        </span>
+                        {filtrosAtivos > 0 && (
+                            <button onClick={limparFiltros} className="h-8 px-2 text-xs font-semibold text-primary hover:underline">
+                                Limpar filtros ({filtrosAtivos})
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {erro && !showForm && !poModalId && (
                 <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>
@@ -388,7 +521,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 </button>
                                             )}
                                         </td>
-                                        <td className="px-2.5 py-3 align-middle"><StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} /></td>
+                                        <td className="px-2.5 py-3 align-middle">
+                                            <StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} />
+                                            {(a.comprovantes_pendentes || 0) > 0 && (
+                                                <div className="mt-1 text-[10px] font-semibold text-amber-500" title="Pagamento solicitado ou pago sem comprovante anexado">
+                                                    {a.comprovantes_pendentes} comprovante(s) pendente(s)
+                                                </div>
+                                            )}
+                                        </td>
                                         <td className="px-2.5 py-3 align-middle min-w-[92px]">
                                             <div className="flex items-center justify-between gap-2 text-[11px] mb-1">
                                                 <span className={(a.documentos_correcao || 0) > 0 ? 'text-red-500 font-semibold' : 'text-muted-foreground'}>
@@ -420,10 +560,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         <td className="px-2.5 py-3 align-middle">
                                             <div className="flex items-center gap-2 justify-end">
                                                 <button onClick={() => setSelecionadaId(a.id)} className="text-xs font-semibold text-primary hover:underline whitespace-nowrap">Abrir →</button>
-                                                <button onClick={() => setExcluindo(a)} title="Excluir atividade"
-                                                    className="text-muted-foreground hover:text-destructive p-1">
-                                                    <Trash2 size={14} />
-                                                </button>
+                                                {ehAdmin && (
+                                                    <button onClick={() => setExcluindo(a)} title="Excluir atividade"
+                                                        className="text-muted-foreground hover:text-destructive p-1">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -664,7 +806,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <Field label={`UF${form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' ? ' *' : ''}`}>
                                     <select
                                         value={form.estado}
-                                        onChange={e => setForm(f => ({ ...f, estado: e.target.value }))}
+                                        onChange={e => setForm(f => ({ ...f, estado: e.target.value, municipio: e.target.value === f.estado ? f.municipio : '' }))}
                                         required={form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO'}
                                         className="input"
                                     >
@@ -673,17 +815,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     </select>
                                 </Field>
                                 <Field label="Município">
-                                    <input value={form.municipio} onChange={e => setForm(f => ({ ...f, municipio: e.target.value }))} className="input" />
+                                    <MunicipioInput uf={form.estado} value={form.municipio} className="input"
+                                        onChange={nome => setForm(f => ({ ...f, municipio: nome }))} />
                                 </Field>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <Field label="Valor de Contrato (R$)">
-                                    <input type="number" step="0.01" value={form.valor_contrato} onChange={e => setForm(f => ({ ...f, valor_contrato: e.target.value }))} className="input" />
-                                </Field>
-                                <Field label="Custo Orçado (R$)">
-                                    <input type="number" step="0.01" value={form.valor_orcado} onChange={e => setForm(f => ({ ...f, valor_orcado: e.target.value }))} className="input" />
-                                </Field>
-                            </div>
+                            {/* Valor de contrato e custo orçado não entram na abertura: nascem
+                                do orçamento/negociação e são editados depois, no cockpit. */}
                             <Field label="Responsável / Gestor">
                                 <input value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} className="input" />
                             </Field>

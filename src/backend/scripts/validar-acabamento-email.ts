@@ -141,7 +141,7 @@ for (const tipo of TIPOS) {
     // são texto de verdade, não pedaço de imagem.
     conferir('valor é texto real', visivel.includes('R$ 1.000,00'));
     if (tipo !== 'FORMALIZACAO_CARTAO') {
-        conferir('chave PIX é texto real', visivel.includes('(91) 98104-7902'));
+        conferir('chave PIX é texto real', visivel.includes('91981047902') && !visivel.includes('(91) 98104-7902'));
     }
     conferir('logo tem texto alternativo', /<img[^>]+alt="LS Office[^"]*"/.test(html));
 

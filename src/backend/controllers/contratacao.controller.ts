@@ -7,6 +7,8 @@ import { getPaymentPurpose, isDesembolsoPendente, normalizePaymentProcessType, v
 import { loadPaymentAttachment } from '../services/payment-attachment.service';
 import { nomearAnexo } from '../services/nomear-anexo.service';
 import { lerAlteracoes, registrarAlteracao } from '../services/registro-alteracao.service';
+import { autorizarSolicitacao } from '../services/aprovacao-pagamento.service';
+import { temPermissao } from '../services/permissoes.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -22,6 +24,19 @@ function round2(v: number): number {
 /** Para mensagens de erro: o valor precisa aparecer do jeito que o usuário lê. */
 function moedaBR(v: number): string {
     return (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+/**
+ * Confere se quem está logado pode tirar esta parcela de PENDENTE agora —
+ * autonomia pelo valor ou aprovação já concedida (aprovacao-pagamento.service).
+ */
+async function autorizarParcela(req: Request, parcela: { id: string; tipo: string; valor: number }, contratacao: any) {
+    const favorecido = contratacao.supplier?.nome || contratacao.funcionario?.nome || 'favorecido';
+    const codigo = contratacao.atividade?.codigo ? `${contratacao.atividade.codigo} · ` : '';
+    return autorizarSolicitacao((req as any).user, {
+        origem: 'PARCELA', registro_id: parcela.id, valor: parcela.valor, atividade_id: contratacao.atividade_id,
+        descricao: `${codigo}${favorecido.trim()} · parcela ${parcela.tipo.toLowerCase()} (${String(contratacao.finalidade || '').replace(/_/g, ' ').toLowerCase()})`,
+    });
 }
 
 function favorecidoDa(c: any) {
@@ -259,6 +274,8 @@ export async function solicitarPagamento(req: Request, res: Response) {
         if (!['PENDENTE'].includes(parcela.status)) {
             return res.status(400).json({ error: `Parcela já está em status ${parcela.status}; use a atualização de status para avançar` });
         }
+        const autorizacao = await autorizarParcela(req, parcela, parcela.contratacao);
+        if (!autorizacao.liberado) return res.status(autorizacao.status).json(autorizacao);
 
         const { atividade } = parcela.contratacao;
         const supplier = favorecidoDa(parcela.contratacao);
@@ -361,9 +378,17 @@ export async function atualizarStatusParcela(req: Request, res: Response) {
             return res.status(400).json({ error: `status inválido. Use um de: ${PARCELA_STATUS_ORDEM.join(', ')}` });
         }
 
-        const atual = await prisma.parcelaPagamento.findUnique({ where: { id: parcelaId }, include: { contratacao: true, anexos: true } });
+        const atual = await prisma.parcelaPagamento.findUnique({ where: { id: parcelaId }, include: { contratacao: { include: { supplier: true, funcionario: true, atividade: { select: { codigo: true } } } }, anexos: true } });
         if (!atual) return res.status(404).json({ error: 'Pagamento não encontrado' });
         const processo = normalizePaymentProcessType(atual.processo_tipo, atual.formalizacao_posterior);
+        // Dar baixa (pago, comprovante, conferido) é permissão própria, separada de solicitar.
+        if (['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(status) && !temPermissao((req as any).user, 'pagamentos.baixar')) {
+            return res.status(403).json({ error: 'Sem permissão para registrar pagamentos (Registrar pagamentos). Fale com o administrador.' });
+        }
+        if (processo === 'PAYMENT_REQUEST' && atual.status === 'PENDENTE' && status !== 'PENDENTE') {
+            const autorizacao = await autorizarParcela(req, atual, atual.contratacao);
+            if (!autorizacao.liberado) return res.status(autorizacao.status).json(autorizacao);
+        }
         if (processo === 'PAYMENT_FORMALIZATION' && ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(status)) {
             const validacao = validateFormalizationDocuments(atual.contratacao.finalidade, atual.anexos.map(a => a.tipo));
             if (!validacao.complete) return res.status(400).json({ error: `Formalização incompleta. Anexe: ${validacao.missing.join(', ')}` });
@@ -713,6 +738,11 @@ export async function gerarEmailPagamento(req: Request, res: Response) {
         const { atividade } = contratacao;
         const processoTipo = normalizePaymentProcessType(parcela.processo_tipo, parcela.formalizacao_posterior);
         const formalizacao = processoTipo === 'PAYMENT_FORMALIZATION';
+        // O e-mail É a solicitação ao financeiro: sem autonomia, não sai antes da aprovação.
+        if (!formalizacao && parcela.status === 'PENDENTE') {
+            const autorizacao = await autorizarParcela(req, parcela, contratacao);
+            if (!autorizacao.liberado) return res.status(autorizacao.status).json(autorizacao);
+        }
         const supplier = favorecidoDa(contratacao);
         const empresa = await prisma.empresaConfig.findUnique({ where: { tenant_id: usuario.tenantId }, include: { cartoes: { where: { ativo: true } } } });
         const formaPagamento = parcela.forma_pagamento || supplier.forma_pagamento;
@@ -821,7 +851,7 @@ export async function gerarEmailPagamento(req: Request, res: Response) {
         const routing = await resolveEmailRouting(usuario.tenantId, processoTipo, {
             para: req.body?.para ?? req.body?.destinatario,
             cc: req.body?.cc,
-        });
+        }, usuario.userId);
         const documentos = validateFormalizationDocuments(contratacao.finalidade, parcela.anexos.map(a => a.tipo));
         res.json({
             assunto,

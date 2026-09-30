@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Building2, ImageUp, Plus, Save, Search, X } from 'lucide-react';
 import { authFetch } from '../lib/authFetch';
+import MunicipioInput from '../components/cadastros/MunicipioInput';
+import { UFS, normalizarUf } from '../components/atividades/constants';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Clientes — cadastro mestre de clientes, sharings e operadoras.
@@ -171,11 +173,16 @@ export default function Clientes() {
           <Campo rotulo="Endereço">
             <input className={inputClass} value={form.endereco || ''} onChange={e => setForm({ ...form, endereco: e.target.value })} />
           </Campo>
-          <Campo rotulo="Cidade">
-            <input className={inputClass} value={form.cidade || ''} onChange={e => setForm({ ...form, cidade: e.target.value })} />
-          </Campo>
           <Campo rotulo="UF">
-            <input maxLength={2} className={inputClass} value={form.uf || ''} onChange={e => setForm({ ...form, uf: e.target.value.toUpperCase() })} />
+            <select className={inputClass} value={normalizarUf(form.uf) || ''}
+              onChange={e => setForm({ ...form, uf: e.target.value, cidade: e.target.value === normalizarUf(form.uf) ? form.cidade : '' })}>
+              <option value="">Selecione</option>
+              {UFS.map(uf => <option key={uf.sigla} value={uf.sigla}>{uf.sigla} — {uf.nome}</option>)}
+            </select>
+          </Campo>
+          <Campo rotulo="Cidade">
+            <MunicipioInput uf={normalizarUf(form.uf)} value={form.cidade || ''} className={inputClass}
+              onChange={nome => setForm({ ...form, cidade: nome })} />
           </Campo>
           <div className="flex items-end gap-2">
             <button

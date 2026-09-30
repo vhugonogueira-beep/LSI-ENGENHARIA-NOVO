@@ -13,12 +13,35 @@ import { resolveEmailRouting } from '../services/email-routing.service';
 import { loadPaymentAttachment } from '../services/payment-attachment.service';
 import { nomearAnexo } from '../services/nomear-anexo.service';
 import fs from 'fs/promises';
+import { autorizarSolicitacao } from '../services/aprovacao-pagamento.service';
+import { precisaAprovacao, temPermissao } from '../services/permissoes.service';
 
 const CATEGORIAS = ['ALIMENTACAO', 'HOSPEDAGEM', 'COMBUSTIVEL', 'PEDAGIO', 'TRANSPORTE', 'MATERIAL', 'SERVICO', 'FRETE', 'OUTROS'];
 const STATUS = ['PENDENTE', 'SOLICITADO', 'ENVIADO_FINANCEIRO', 'AGUARDANDO_PAGAMENTO', 'PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO', 'CANCELADO'];
 const FORMAS_PAGAMENTO = ['PIX', 'TED', 'BOLETO', 'DINHEIRO'];
 
 const cent = (v: number) => Math.round(v * 100) / 100;
+const CONCLUIDOS = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
+
+/**
+ * Confere se quem está logado pode tirar este depósito de PENDENTE agora —
+ * autonomia pelo valor ou aprovação já concedida (aprovacao-pagamento.service).
+ */
+function autorizarDeposito(
+    req: Request,
+    r: { codigo: string | null; natureza: string; favorecido_nome: string; atividade_id: string | null },
+    deposito: { id: string; numero: number | null; valor: number },
+    origem: 'DEPOSITO' | 'REEMBOLSO' = 'DEPOSITO',
+) {
+    const rotulo = `${r.natureza === 'ADIANTAMENTO' ? 'Adiantamento' : 'Reembolso'} ${r.codigo || ''} · ${String(r.favorecido_nome || '').trim()}`;
+    return autorizarSolicitacao((req as any).user, {
+        origem, registro_id: deposito.id, valor: deposito.valor, atividade_id: r.atividade_id,
+        descricao: deposito.numero ? `${rotulo} · depósito ${deposito.numero}` : rotulo,
+    });
+}
+
+const semBaixa = (req: Request) => !temPermissao((req as any).user, 'pagamentos.baixar');
+const ERRO_BAIXA = 'Sem permissão para registrar pagamentos (Registrar pagamentos). Fale com o administrador.';
 
 /**
  * Campos de rateio de uma linha de despesa: onde foi gasto e quem recebeu.
@@ -172,6 +195,12 @@ export async function createReembolso(req: Request, res: Response) {
             if (!Number.isFinite(v) || v <= 0) return res.status(400).json({ error: `Valor inválido na despesa "${d.descricao}"` });
         }
 
+        // Sem autonomia para o valor, nasce PENDENTE e o pedido vai para a fila de
+        // aprovação logo abaixo, em vez de sair como SOLICITADO.
+        const valorDeposito = natureza === 'ADIANTAMENTO' ? Number(valorAdiantado) : somar(linhas);
+        const aguardaAprovacao = Boolean(data_solicitacao) && precisaAprovacao((req as any).user, valorDeposito);
+        const solicitadoJa = Boolean(data_solicitacao) && !aguardaAprovacao;
+
         const reembolso = await prisma.reembolso.create({
             data: {
                 codigo: await proximaReferencia(prisma, natureza),
@@ -191,8 +220,8 @@ export async function createReembolso(req: Request, res: Response) {
                 data_inicio_viagem: natureza === 'ADIANTAMENTO' && data_inicio_viagem ? new Date(data_inicio_viagem) : null,
                 data_fim_viagem: natureza === 'ADIANTAMENTO' && data_fim_viagem ? new Date(data_fim_viagem) : null,
                 status_prestacao: natureza === 'ADIANTAMENTO' ? 'PENDENTE' : 'NAO_APLICAVEL',
-                status: data_solicitacao ? 'SOLICITADO' : 'PENDENTE',
-                data_solicitacao: data_solicitacao ? new Date(data_solicitacao) : null,
+                status: solicitadoJa ? 'SOLICITADO' : 'PENDENTE',
+                data_solicitacao: solicitadoJa ? new Date(data_solicitacao) : null,
                 data_prevista: data_prevista ? new Date(data_prevista) : null,
                 forma_pagamento: formaPagamento,
                 ...dadosBanco,
@@ -201,8 +230,8 @@ export async function createReembolso(req: Request, res: Response) {
                         numero: 1,
                         valor: natureza === 'ADIANTAMENTO' ? Number(valorAdiantado) : somar(linhas),
                         forma_pagamento: formaPagamento,
-                        status: data_solicitacao ? 'SOLICITADO' : 'PENDENTE',
-                        data_solicitacao: data_solicitacao ? new Date(data_solicitacao) : null,
+                        status: solicitadoJa ? 'SOLICITADO' : 'PENDENTE',
+                        data_solicitacao: solicitadoJa ? new Date(data_solicitacao) : null,
                         data_prevista: data_prevista ? new Date(data_prevista) : null,
                     }],
                 },
@@ -219,10 +248,15 @@ export async function createReembolso(req: Request, res: Response) {
                     })),
                 },
             },
-            include: { despesas: { orderBy: { ordem: 'asc' } } },
+            include: { despesas: { orderBy: { ordem: 'asc' } }, pagamentos: true },
         });
 
-        res.status(201).json(comTotais(reembolso));
+        let aviso: string | undefined;
+        if (aguardaAprovacao && reembolso.pagamentos[0]) {
+            const r = await autorizarDeposito(req, reembolso, reembolso.pagamentos[0]);
+            if (!r.liberado) aviso = r.error;
+        }
+        res.status(201).json({ ...comTotais(reembolso), aviso });
     } catch (e: any) {
         res.status(400).json({ error: e.message });
     }
@@ -400,17 +434,24 @@ export async function criarPagamentoReembolso(req: Request, res: Response) {
             }
         }
         const numero = Math.max(0, ...reembolso.pagamentos.map(p => p.numero)) + 1;
+        const aguardaAprovacao = Boolean(req.body.data_solicitacao) && precisaAprovacao((req as any).user, valor);
+        const solicitadoJa = Boolean(req.body.data_solicitacao) && !aguardaAprovacao;
         const pagamento = await prisma.reembolsoPagamento.create({
             data: {
                 reembolso_id: reembolso.id, numero, valor, forma_pagamento: forma,
-                status: req.body.data_solicitacao ? 'SOLICITADO' : 'PENDENTE',
-                data_solicitacao: req.body.data_solicitacao ? new Date(req.body.data_solicitacao) : null,
+                status: solicitadoJa ? 'SOLICITADO' : 'PENDENTE',
+                data_solicitacao: solicitadoJa ? new Date(req.body.data_solicitacao) : null,
                 data_prevista: req.body.data_prevista ? new Date(req.body.data_prevista) : null,
                 observacoes: req.body.observacoes || null,
             },
         });
         await sincronizarResumoPagamentos(reembolso.id);
-        res.status(201).json(pagamento);
+        let aviso: string | undefined;
+        if (aguardaAprovacao) {
+            const r = await autorizarDeposito(req, reembolso, pagamento);
+            if (!r.liberado) aviso = r.error;
+        }
+        res.status(201).json({ ...pagamento, aviso });
     } catch (e: any) { res.status(400).json({ error: e.message }); }
 }
 
@@ -460,7 +501,12 @@ export async function atualizarPagamentoReembolso(req: Request, res: Response) {
             if (req.body[campo] !== undefined) dados[campo] = req.body[campo] ? new Date(req.body[campo]) : null;
         }
         if (req.body.observacoes !== undefined) dados.observacoes = req.body.observacoes || null;
-        if (atual.status === 'PENDENTE' && dados.data_solicitacao) dados.status = 'SOLICITADO';
+        if (atual.status === 'PENDENTE' && dados.data_solicitacao) {
+            const r = await autorizarDeposito(req, atual.reembolso, { ...atual, valor: dados.valor ?? atual.valor });
+            if (!r.liberado) return res.status(r.status).json(r);
+            dados.status = 'SOLICITADO';
+        }
+        if (dados.data_pagamento && semBaixa(req)) return res.status(403).json({ error: ERRO_BAIXA });
         const pagamento = await prisma.$transaction(async tx => {
             if (novoTotalReembolso !== null) {
                 await tx.reembolso.update({
@@ -485,9 +531,14 @@ export async function atualizarStatusPagamentoReembolso(req: Request, res: Respo
     try {
         const status = String(req.body.status || '');
         if (!STATUS.includes(status) || status === 'CANCELADO') return res.status(400).json({ error: 'Status de depósito inválido' });
-        const atual = await prisma.reembolsoPagamento.findUnique({ where: { id: req.params.pagamentoId } });
+        const atual = await prisma.reembolsoPagamento.findUnique({ where: { id: req.params.pagamentoId }, include: { reembolso: true } });
         if (!atual) return res.status(404).json({ error: 'Depósito não encontrado' });
-        const concluido = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(status);
+        const concluido = CONCLUIDOS.includes(status);
+        if (concluido && semBaixa(req)) return res.status(403).json({ error: ERRO_BAIXA });
+        if (atual.status === 'PENDENTE' && status !== 'PENDENTE') {
+            const r = await autorizarDeposito(req, atual.reembolso, atual);
+            if (!r.liberado) return res.status(r.status).json(r);
+        }
         const pagamento = await prisma.reembolsoPagamento.update({
             where: { id: atual.id }, data: {
                 status,
@@ -550,7 +601,13 @@ export async function atualizarStatusReembolso(req: Request, res: Response) {
         }
         const atual = await prisma.reembolso.findUnique({ where: { id: req.params.id } });
         if (!atual) return res.status(404).json({ error: 'Reembolso não encontrado' });
-        const pagamentoConcluido = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(status);
+        const pagamentoConcluido = CONCLUIDOS.includes(status);
+        if (pagamentoConcluido && semBaixa(req)) return res.status(403).json({ error: ERRO_BAIXA });
+        if (atual.status === 'PENDENTE' && !['PENDENTE', 'CANCELADO'].includes(status)) {
+            const valor = atual.natureza === 'ADIANTAMENTO' ? Number(atual.valor_adiantado || 0) : atual.valor_total;
+            const r = await autorizarDeposito(req, atual, { id: atual.id, numero: null, valor }, 'REEMBOLSO');
+            if (!r.liberado) return res.status(r.status).json(r);
+        }
         res.json(await prisma.reembolso.update({
             where: { id: req.params.id },
             data: {
@@ -598,6 +655,7 @@ export async function enviarPrestacaoContas(req: Request, res: Response) {
 
 export async function analisarPrestacaoContas(req: Request, res: Response) {
     try {
+        if (semBaixa(req)) return res.status(403).json({ error: ERRO_BAIXA });
         const status = String(req.body.status || '');
         if (!['APROVADA', 'AJUSTES_SOLICITADOS'].includes(status)) {
             return res.status(400).json({ error: 'Use APROVADA ou AJUSTES_SOLICITADOS' });
@@ -722,6 +780,12 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
         const pagamento = pagamentoId ? r.pagamentos.find(p => p.id === pagamentoId) : null;
         if (pagamentoId && !pagamento) return res.status(404).json({ error: 'Depósito não encontrado neste processo' });
         const valorPagamento = pagamento?.valor ?? (adiantamento ? Number(r.valor_adiantado || 0) : r.valor_total);
+        // O e-mail É a solicitação ao financeiro: sem autonomia, não sai antes da aprovação.
+        const registroAlvo = pagamento || (!r.pagamentos.length ? { id: r.id, numero: null, valor: valorPagamento, status: r.status } : null);
+        if (registroAlvo && registroAlvo.status === 'PENDENTE') {
+            const autorizacao = await autorizarDeposito(req, r, registroAlvo, pagamento ? 'DEPOSITO' : 'REEMBOLSO');
+            if (!autorizacao.liberado) return res.status(autorizacao.status).json(autorizacao);
+        }
         // O registro financeiro preserva o snapshot historico, mas toda nova
         // geracao de e-mail deve consultar o cadastro mestre atual. Assim uma
         // correcao de PIX aparece mesmo quando o comprovante ja foi recebido.
@@ -807,7 +871,7 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
         const routing = await resolveEmailRouting(usuario.tenantId, 'PAYMENT_REQUEST', {
             para: req.body?.para ?? req.body?.destinatario,
             cc: req.body?.cc,
-        });
+        }, usuario.userId);
         // A previa sempre reflete os dados mestres atuais do favorecido. Impedir
         // cache evita que uma chave PIX corrigida seja substituida por uma
         // resposta antiga mantida pelo navegador ou por algum proxy local.
