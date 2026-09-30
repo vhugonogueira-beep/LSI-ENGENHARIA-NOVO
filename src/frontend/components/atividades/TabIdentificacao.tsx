@@ -6,6 +6,7 @@ import {
     TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
 } from './constants';
+import MunicipioInput from '../cadastros/MunicipioInput';
 
 export default function TabIdentificacao({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh: () => void }) {
     const [editing, setEditing] = useState(false);
@@ -206,12 +207,15 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                 <Field label="Site ID Operadora"><input className={inputClass} value={form.id_site_operadora} onChange={e => setForm(f => ({ ...f, id_site_operadora: e.target.value }))} /></Field>
                 <Field label="Contrato"><input className={inputClass} value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} /></Field>
                 <Field label={`UF${form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' ? ' *' : ''}`}>
-                    <select className={inputClass} value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value }))}>
+                    <select className={inputClass} value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value, municipio: e.target.value === f.estado ? f.municipio : '' }))}>
                         <option value="">— Selecione —</option>
                         {UFS.map(uf => <option key={uf.sigla} value={uf.sigla}>{uf.sigla} — {uf.nome}</option>)}
                     </select>
                 </Field>
-                <Field label="Município"><input className={inputClass} value={form.municipio} onChange={e => setForm(f => ({ ...f, municipio: e.target.value }))} /></Field>
+                <Field label="Município">
+                    <MunicipioInput uf={form.estado} value={form.municipio} className={inputClass}
+                        onChange={nome => setForm(f => ({ ...f, municipio: nome }))} />
+                </Field>
                 <Field label="Responsável"><input className={inputClass} value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} /></Field>
                 <Field label="Gestor">
                     <input className={inputClass} value={form.gestor} onChange={e => setForm(f => ({ ...f, gestor: e.target.value }))} placeholder="Vai na coluna GESTOR da planilha de faturamento" />

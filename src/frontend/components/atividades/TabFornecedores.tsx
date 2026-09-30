@@ -143,7 +143,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         }] : [],
                     }),
                 });
-                if (!r.ok) throw new Error((await r.json()).error || 'Erro ao criar adiantamento');
+                const criado = await r.json().catch(() => ({}));
+                if (!r.ok) throw new Error(criado.error || 'Erro ao criar adiantamento');
+                // Acima do limite de quem pediu, o processo nasce PENDENTE e vai para aprovação.
+                if (criado.aviso) alert(criado.aviso);
                 setForm(FORM_INIT); setShowForm(false); setAdiantamentoRefresh(v => v + 1);
             } catch (e: any) { setErro(e.message); } finally { setSalvando(false); }
             return;

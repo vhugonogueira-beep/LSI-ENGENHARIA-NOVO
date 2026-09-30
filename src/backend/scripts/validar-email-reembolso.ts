@@ -51,8 +51,8 @@ const texto = html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 const checagens: [string, boolean][] = [
     ['CPF mascarado (804.600.202-00)', texto.includes('804.600.202-00')],
     ['CPF cru não aparece', !texto.includes('80460020200')],
-    ['chave PIX mascarada ((91) 98104-7902)', texto.includes('(91) 98104-7902')],
-    ['chave PIX crua não aparece', !texto.includes('91981047902')],
+    ['chave PIX telefone só com dígitos', texto.includes('91981047902')],
+    ['sem parênteses/hífen na chave', !texto.includes('(91) 98104-7902')],
     ['tipo da chave por extenso', texto.toLowerCase().includes('chave do tipo telefone')],
     ['sem "N/A" no corpo', !/\bN\/A\b/i.test(texto)],
     ['sem linha de Agência', !texto.includes('AGÊNCIA')],

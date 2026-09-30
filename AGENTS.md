@@ -45,6 +45,15 @@ Esquecer de reiniciar já causou outage silenciosa (curl retornando `ECONNREFUSE
 Client naming gotcha: models com sigla toda maiúscula viram acessor com só a primeira letra
 minúscula — `APC` → `prisma.aPC`, `RFI` → `prisma.rFI`.
 
+## Controle de acesso — regra permanente
+
+Toda chamada a `/api` passa por `controleDeAcesso` (sessão obrigatória + permissão por
+ação). **Rota nova que altera dado precisa de uma regra em `POLITICA`**
+(`src/backend/services/permissoes.service.ts`); sem regra, só ADMIN passa. Nunca decida
+papel/autor pelo corpo da requisição: use `req.user`, que é relido do banco a cada
+chamada. Pagamento que sai de PENDENTE passa por `autorizarSolicitacao`. Detalhes em
+`docs/HANDOFF-CONTROLE-ACESSO.md`.
+
 ## Arquitetura — dois mundos de dados (histórico e cuidado)
 
 O protótipo original tinha telas legadas (Controle de Obras/Kanban, Fornecedores, Faturamento,

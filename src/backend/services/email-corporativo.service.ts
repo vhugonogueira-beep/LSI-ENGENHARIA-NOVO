@@ -219,21 +219,23 @@ function mascararDocumento(valor: any): string | null {
 }
 
 /**
- * Chave PIX legível. O formato depende do tipo: telefone e documento ganham
- * máscara; e-mail e chave aleatória saem como estão, porque qualquer
- * formatação inventada ali quebraria a chave.
+ * Chave PIX como vai ser usada. Telefone sai só com dígitos (DDD + número,
+ * sem parênteses nem hífen), que é o que se cola direto no app do banco;
+ * documento ganha máscara; e-mail e chave aleatória saem como estão, porque
+ * qualquer formatação inventada ali quebraria a chave.
  */
 function mascararChavePix(chave: any, tipo?: string | null): string | null {
     if (!temValor(chave)) return null;
     const bruto = String(chave).trim();
     const t = String(tipo || '').toUpperCase();
-    const n = bruto.replace(/\D/g, '');
-    // Sem tipo cadastrado, só arrisca a máscara de telefone quando a chave é
-    // puro dígito com 10 ou 11 casas — e-mail e chave aleatória nunca são.
+    let n = bruto.replace(/\D/g, '');
+    // Sem tipo cadastrado, só trata como telefone quando a chave é puro
+    // dígito com 10 ou 11 casas — e-mail e chave aleatória nunca são.
     const soDigitos = /^\d+$/.test(bruto.replace(/[\s()+-]/g, ''));
     if (t === 'TELEFONE' || (!t && soDigitos && (n.length === 10 || n.length === 11))) {
-        if (n.length === 11) return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
-        if (n.length === 10) return `(${n.slice(0, 2)}) ${n.slice(2, 6)}-${n.slice(6)}`;
+        // "+55 31 97185-5446" também vira DDD + número: o 55 é do país.
+        if ((n.length === 12 || n.length === 13) && n.startsWith('55')) n = n.slice(2);
+        if (n.length === 10 || n.length === 11) return n;
     }
     if (t === 'CPF' || t === 'CNPJ') return mascararDocumento(bruto);
     return bruto;

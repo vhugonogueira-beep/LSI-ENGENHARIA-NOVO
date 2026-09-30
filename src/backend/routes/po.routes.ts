@@ -1,7 +1,5 @@
-// ATENÇÃO: estas rotas ainda não passam pelo requireAuth — a API está aberta. O papel do
-// usuário (ADMIN) usado no cancelamento de faturamento chega pelo corpo da requisição,
-// vindo da interface, então é um controle de UI, não de segurança. Ligar o requireAuth
-// aqui (e o envio do token no front) é o passo que falta para valer como restrição real.
+// Autenticação e permissão: controleDeAcesso (middleware global) + política em
+// permissoes.service.ts. O papel ADMIN do cancelamento vem da sessão, não do corpo.
 import { NextFunction, Request, Response, Router } from 'express';
 import multer from 'multer';
 import {

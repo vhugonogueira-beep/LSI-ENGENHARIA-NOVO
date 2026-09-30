@@ -3,6 +3,7 @@ import type { JwtPayload } from '../services/auth.service';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../server';
 import { hashPassword } from '../services/auth.service';
+import { normalizeRecipients } from '../services/email-routing.service';
 import {
     getEmailSignatureMetadata,
     loadEmailSignature,
@@ -17,6 +18,7 @@ function currentUser(req: Request): JwtPayload {
 const profileSelect = {
     id: true, nome: true, nome_exibicao: true, cargo: true, telefone: true,
     email: true, role: true, tenant_id: true, ativo: true,
+    email_cc_padrao: true, aprovacao_pagamento: true, limite_pagamento: true,
 } as const;
 
 export async function getMyProfile(req: Request, res: Response) {
@@ -31,6 +33,9 @@ export async function updateMyProfile(req: Request, res: Response) {
     try {
         const nome = String(req.body.nome || '').trim();
         if (!nome) return res.status(400).json({ error: 'Informe o nome completo' });
+        // CC pessoal: cópia que a própria pessoa quer em todo e-mail que gera.
+        // Papel, permissões e regra de aprovação NÃO passam por aqui — são do admin.
+        const cc = req.body.email_cc_padrao === undefined ? undefined : normalizeRecipients(req.body.email_cc_padrao).join('; ') || null;
         const user = await prisma.user.update({
             where: { id: currentUser(req).userId },
             data: {
@@ -38,6 +43,7 @@ export async function updateMyProfile(req: Request, res: Response) {
                 nome_exibicao: String(req.body.nome_exibicao || '').trim() || null,
                 cargo: String(req.body.cargo || '').trim() || null,
                 telefone: String(req.body.telefone || '').trim() || null,
+                email_cc_padrao: cc,
             },
             select: profileSelect,
         });

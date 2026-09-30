@@ -887,3 +887,84 @@ outro (`ATV-2026-003` → `ATV-2026-008`, "Reparo sistema Indoor").
 reproduzindo o caso real de ponta a ponta: códigos únicos, agrupar e desagrupar
 sem apagar atividade, as três recusas, e o custo caindo na vistoria certa. Cria
 os próprios registros e apaga tudo no fim.
+
+## 30/09/2026 — Localidades IBGE, filtros da carteira e ramo de atividade
+
+### Base IBGE única
+
+A base `src/backend/data/municipios-ibge.json` (5.571 municípios) já existia, mas
+só o cadastro de funcionário a usava, por uma rota dentro de qualificações.
+Agora ela é servida por `localidades.service.ts`:
+
+- `GET /api/localidades/ufs` — sigla, nome, região e nº de municípios;
+- `GET /api/localidades/municipios?uf=AM&q=labrea` — busca sem acento/caixa.
+
+`/api/qualificacoes/municipios` continua respondendo por compatibilidade.
+
+No front, `components/cadastros/MunicipioInput.tsx` é o campo único de município:
+sugere pela UF escolhida, troca pelo nome oficial ao sair do campo e **não recusa**
+valor fora da base (há cadastro antigo em texto livre) — só o sinaliza em âmbar.
+Trocar a UF limpa o município. Usado em Fornecedores, Nova Atividade,
+Identificação da atividade e Clientes (onde a UF deixou de ser texto livre).
+Funcionários passaram a buscar a lista pela mesma função com cache.
+
+`constants.tsx` ganhou `regiao` em cada UF, `REGIOES`, `REGIAO_LABEL` e
+`regiaoPorUf()`. No fornecedor, a **região de atuação** acompanha a UF enquanto
+ninguém a escolheu à mão; `NACIONAL` e valores antigos ("PA e MA") são preservados.
+
+### Filtros da carteira de atividades
+
+- Situação em chips com contagem: Todas, Em aberto (tudo que não está
+  CONCLUIDA, inclusive ON_HOLD), Em execução, Atrasadas (`data_fim_planejada`
+  vencida e não concluída), On hold, Sem PO, **Comprovante pendente**, Concluídas.
+- Tipo (Implantação/Operação, com subtipo quando Operação), Região, UF, Sharing,
+  Operadora e Gestor — as listas só mostram o que existe na carteira.
+- Filtros valem para lista e kanban e ficam lembrados no navegador
+  (`ls_atividades_filtros`, só conveniência por usuário).
+
+**Comprovante pendente** vem calculado da API: `GET /api/atividades/carteira`
+devolve `comprovantes_pendentes` (`contarComprovantesPendentes` no controller).
+Conta parcela de contratação e depósito de reembolso/adiantamento que já foi
+solicitado ou pago (status ≠ PENDENTE/cancelado) — e toda formalização — sem
+`comprovante_url` e sem `COMPROVANTE_PAGAMENTO` na faixa Documentos. É a mesma
+noção de `tem_comprovante` do Controle de Pagamentos; os números batem (13
+pagamentos em 9 atividades na base de 30/09). A linha da carteira mostra
+"N comprovante(s) pendente(s)" em âmbar abaixo do status. Reembolso de projeto
+(sem `atividade_id`) não entra: não tem atividade para ser apontado.
+
+### Ramo de atividade em Fornecedores e Funcionários
+
+- Fornecedores: chips por categoria (lista fechada, com contagem), lista de
+  especialidade — texto livre agrupado sem acento/caixa, exibindo a grafia mais
+  usada — e UF. A busca passou a achar também especialidade e nome fantasia.
+- Funcionários LS: chips por função e filtro por UF.
+
+### Pendência
+
+- Blueprint LSI atualizado em 30/09/2026 (v5, seção 24 — carteira, localidades, pendências por aba e PIX).
+
+### Pendências por aba do cockpit (30/09/2026)
+
+`pendencias-atividade.service.ts` calcula, sem gravar nada, o que falta em cada
+aba; `GET /api/atividades/:id/pendencias` devolve `{ [idDaAba]: [{ nivel, mensagem }] }`
+com os mesmos ids de `buildTabs()`. `ALERTA` conta no selo âmbar da aba; `AVISO`
+é contexto e só aparece no painel do topo da aba (ex.: qual pagamento está sem
+comprovante). O cockpit recalcula ao abrir, ao recarregar e a cada troca de aba.
+
+| Aba | Regras |
+|---|---|
+| Identificação | Site IDs, operadora, UF, município, cliente, responsável, gestor, datas previstas, diretório; subtipo (Operação) e tipo de site (Highline + Implantação); aviso se o município não está na base IBGE |
+| Orçamento / PV | sem orçamento; reprovado (alerta); rascunho (aviso) |
+| Custo / Cotação LS | sem orçamento ou orçamento sem itens |
+| Planejamento | (Implantação) sem cronograma, sem APC, APC não liberado (aviso); também recebe as regras de execução/RFI |
+| Documentação | matriz não gerada, obrigatórios pendentes, documentos em correção |
+| Execução | em execução sem registro de avanço ou sem data de início; executada sem data real de conclusão ou sem relatório |
+| Pagamentos | pagamentos solicitados sem comprovante (total + lista); sem contratação com a obra andando (aviso) |
+| PO & Faturamento | sem PO (alerta na Implantação ou concluída); PO sem número; sem PDF (aviso); concluída sem faturamento iniciado |
+| Resultado | sem valor de contrato ou sem custo orçado |
+
+`listarComprovantesPendentes` saiu do controller para este serviço e é a fonte
+única: a carteira (`comprovantes_pendentes`) e a aba Pagamentos usam a mesma regra.
+
+A abertura de atividade não pede mais valor de contrato nem custo orçado — eles
+nascem do orçamento/negociação; a aba Resultado alerta enquanto faltarem.

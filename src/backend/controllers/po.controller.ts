@@ -90,8 +90,9 @@ export async function deletePO(req: Request, res: Response) {
         });
         if (!po) return res.status(404).json({ error: 'PO não encontrada' });
 
-        const autor = req.body?.autor || (req as any).user;
-        if (autor?.role && autor.role !== 'ADMIN') {
+        // Autor sempre da sessão: o corpo da requisição não decide quem é ADMIN.
+        const autor = (req as any).user;
+        if (autor?.role !== 'ADMIN') {
             return res.status(403).json({ error: 'Apenas administradores podem excluir uma PO' });
         }
 
@@ -214,10 +215,9 @@ export async function atualizarFaturamentoLinha(req: Request, res: Response) {
 
 export async function cancelarLinhaFaturamento(req: Request, res: Response) {
     try {
-        const { motivo, autor } = req.body || {};
-        // Sem autenticação ligada nas rotas, o autor vem informado pela interface — ver
-        // a ressalva no topo de po.routes.ts.
-        res.json(await cancelarFaturamentoLinha(req.params.id, motivo, autor || (req as any).user));
+        const { motivo } = req.body || {};
+        // O autor vem da sessão (controleDeAcesso); o corpo não decide quem é ADMIN.
+        res.json(await cancelarFaturamentoLinha(req.params.id, motivo, (req as any).user));
     } catch (e: any) {
         res.status(400).json({ error: e.message });
     }

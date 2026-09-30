@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, UserRound } from 'lucide-react';
+import { KeyRound, ShieldCheck, UserRound } from 'lucide-react';
 import MinhaAssinaturaEmail from '../components/perfil/MinhaAssinaturaEmail';
 import { authFetch } from '../lib/authFetch';
+import { useSessao } from '../lib/permissoes';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Meu Perfil — o que pertence ao usuário, não à LS Office.
@@ -137,8 +138,18 @@ export default function MeuPerfil() {
                 <input className={`${inputClass} opacity-70`} value={perfil.email || ''} disabled />
               </Campo>
               <Campo rotulo="Perfil de acesso">
-                <input className={`${inputClass} opacity-70`} value={perfil.role || ''} disabled />
+                <input className={`${inputClass} opacity-70`} value={perfil.role === 'ADMIN' ? 'Administrador' : 'Usuário'} disabled />
               </Campo>
+
+              <div className="md:col-span-2">
+                <Campo rotulo="Sempre copiar nos e-mails que eu gerar (CC)">
+                  <input className={inputClass} value={perfil.email_cc_padrao || ''} placeholder="gestor@lsoffice.com.br; outro@lsoffice.com.br"
+                    onChange={e => setPerfil({ ...perfil, email_cc_padrao: e.target.value })} />
+                </Campo>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Somado aos destinatários de Configurações → Comunicação nas solicitações de pagamento, reembolso e faturamento.
+                </p>
+              </div>
 
               <div className="md:col-span-2">
                 <button className={botaoClass} onClick={salvarPerfil}>Salvar perfil</button>
@@ -147,6 +158,8 @@ export default function MeuPerfil() {
           )}
         </section>
       )}
+
+      {aba === 'acesso' && <MeuAcesso />}
 
       {aba === 'acesso' && (
         <section className="rounded-xl border border-border bg-card p-5">
@@ -171,6 +184,44 @@ export default function MeuPerfil() {
 
       {aba === 'assinatura' && <MinhaAssinaturaEmail />}
     </main>
+  );
+}
+
+// O que a pessoa pode fazer — só leitura; quem altera é o administrador.
+const ROTULO_PERMISSAO: Record<string, string> = {
+  'atividades.gerenciar': 'Atividades e projetos',
+  'orcamentos.gerenciar': 'Orçamentos',
+  'pagamentos.solicitar': 'Solicitar pagamentos e anexar comprovantes',
+  'pagamentos.baixar': 'Registrar pagamentos',
+  'pagamentos.aprovar': 'Aprovar pagamentos',
+  'faturamento.gerenciar': 'PO e faturamento',
+  'cadastros.gerenciar': 'Cadastros',
+  'configuracoes.gerenciar': 'Configurações',
+};
+
+function MeuAcesso() {
+  const sessao = useSessao();
+  if (!sessao) return null;
+  const admin = sessao.role === 'ADMIN';
+  const moeda = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const aprova = admin || sessao.permissoes.includes('pagamentos.aprovar');
+  const regra = aprova ? 'Você aprova pagamentos — suas solicitações não passam por aprovação.'
+    : sessao.aprovacao_pagamento === 'SEMPRE' ? 'Toda solicitação de pagamento sua passa por aprovação do administrador.'
+      : sessao.aprovacao_pagamento === 'ACIMA_DO_LIMITE' ? `Você solicita sozinho até ${moeda(sessao.limite_pagamento ?? 0)}; acima disso, vai para aprovação.`
+        : 'Você solicita pagamentos sem aprovação prévia.';
+  return (
+    <section className="rounded-xl border border-border bg-card p-5">
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold"><ShieldCheck size={16} />O que você pode fazer</h2>
+      <p className="mb-3 text-xs text-muted-foreground">Você vê o sistema inteiro. As ações abaixo foram liberadas pelo administrador.</p>
+      <div className="flex flex-wrap gap-1.5">
+        {admin
+          ? <span className="rounded-full bg-primary/15 px-2.5 py-1 text-[11px] font-bold text-primary">Administrador — todas as ações</span>
+          : sessao.permissoes.length
+            ? sessao.permissoes.map(p => <span key={p} className="rounded-full bg-secondary px-2.5 py-1 text-[11px] font-semibold">{ROTULO_PERMISSAO[p] || p}</span>)
+            : <span className="text-xs text-muted-foreground">Somente consulta.</span>}
+      </div>
+      {(admin || sessao.permissoes.includes('pagamentos.solicitar')) && <p className="mt-3 text-xs">{regra}</p>}
+    </section>
   );
 }
 

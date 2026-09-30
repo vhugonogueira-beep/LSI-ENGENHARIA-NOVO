@@ -45,8 +45,8 @@ for (const tipo of tipos) {
     const checagens: [string, boolean][] = [
         ['CNPJ mascarado', texto.includes('12.345.678/0001-99')],
         ['CNPJ cru fora', !texto.includes('12345678000199')],
-        ['chave PIX mascarada', texto.includes('(91) 98104-7902')],
-        ['chave PIX crua fora', !texto.includes('91981047902')],
+        ['chave PIX telefone só com dígitos', texto.includes('91981047902')],
+        ['sem parênteses/hífen na chave', !texto.includes('(91) 98104-7902')],
         ['sem "N/A"', !/\bN\/A\b/i.test(texto)],
         ['sem Agência', !texto.includes('AGÊNCIA')],
         ['saudação pela hora', /Bom dia!|Boa tarde!|Boa noite!/.test(texto)],

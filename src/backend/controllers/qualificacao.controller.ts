@@ -4,10 +4,7 @@
 
 import { Request, Response } from 'express';
 import { prisma } from '../server';
-// O tsconfig do backend não habilita imports JSON; require mantém a base IBGE
-// empacotada localmente, sem depender de internet durante o cadastro.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const municipios = require('../data/municipios-ibge.json');
+import { listarMunicipios } from '../services/localidades.service';
 
 /** Tipos que a LS controla, com a validade usual em meses (0 = sem vencimento). */
 export const TIPOS_QUALIFICACAO: Record<string, { rotulo: string; meses: number }> = {
@@ -130,11 +127,8 @@ export class QualificacaoController {
         }
     }
 
-    /** Municípios do IBGE, para o endereço não ser texto livre. */
+    /** Rota antiga, mantida por compatibilidade — a base vive em /api/localidades. */
     static municipios(req: Request, res: Response) {
-        const uf = String(req.query.uf || '').toUpperCase();
-        const lista = municipios as { c: string; n: string; u: string }[];
-        const filtrados = uf ? lista.filter(m => m.u === uf) : lista;
-        res.json(filtrados.map(m => ({ codigo_ibge: m.c, nome: m.n, uf: m.u })));
+        res.json(listarMunicipios(req.query.uf));
     }
 }

@@ -1,5 +1,5 @@
 import { Fragment, useState, useEffect, useCallback } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Info } from 'lucide-react';
 import {
     STATUS_COMERCIAL, STATUS_DOCUMENTAL, STATUS_FINANCEIRO, STATUS_FATURAMENTO,
     StatusPill,
@@ -14,6 +14,51 @@ import TabDocumentacao from './TabDocumentacao';
 import TabFornecedores from './TabFornecedores';
 import TabFaturamento from './TabFaturamento';
 import TabResultado from './TabResultado';
+
+interface Pendencia { nivel: 'ALERTA' | 'AVISO'; mensagem: string }
+type PendenciasPorAba = Record<string, Pendencia[]>;
+
+/**
+ * O que falta nesta aba. ALERTA é pendência de preenchimento e conta no selo;
+ * AVISO é contexto (ex.: qual pagamento está sem comprovante) e só aparece aqui.
+ */
+function PainelPendencias({ itens }: { itens: Pendencia[] }) {
+    const [aberto, setAberto] = useState(false);
+    if (!itens.length) return null;
+    const alertas = itens.filter(i => i.nivel === 'ALERTA');
+    const avisos = itens.filter(i => i.nivel === 'AVISO');
+    const visiveis = aberto ? avisos : avisos.slice(0, 4);
+    const temAlerta = alertas.length > 0;
+    return (
+        <div className={`mb-5 rounded-xl border px-4 py-3 text-sm ${temAlerta ? 'border-amber-500/40 bg-amber-500/[0.07]' : 'border-border bg-secondary/30'}`}>
+            <div className={`flex items-center gap-2 font-semibold ${temAlerta ? 'text-amber-500' : 'text-muted-foreground'}`}>
+                {temAlerta ? <AlertTriangle size={16} /> : <Info size={16} />}
+                {temAlerta
+                    ? `${alertas.length} ${alertas.length === 1 ? 'item pendente' : 'itens pendentes'} nesta aba`
+                    : 'Observações desta aba'}
+            </div>
+            {alertas.length > 0 && (
+                <ul className="mt-2 grid gap-x-6 gap-y-1 md:grid-cols-2">
+                    {alertas.map((a, i) => (
+                        <li key={i} className="flex gap-2 text-foreground"><span className="text-amber-500">•</span>{a.mensagem}</li>
+                    ))}
+                </ul>
+            )}
+            {avisos.length > 0 && (
+                <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
+                    {visiveis.map((a, i) => <li key={i}>– {a.mensagem}</li>)}
+                    {avisos.length > 4 && (
+                        <li>
+                            <button onClick={() => setAberto(v => !v)} className="font-semibold text-primary hover:underline">
+                                {aberto ? 'Mostrar menos' : `Ver mais ${avisos.length - 4}`}
+                            </button>
+                        </li>
+                    )}
+                </ul>
+            )}
+        </div>
+    );
+}
 
 export interface AtividadeDetalhe {
     id: string;
@@ -118,6 +163,16 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
     const [atividade, setAtividade] = useState<AtividadeDetalhe | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('identificacao');
+    const [pendencias, setPendencias] = useState<PendenciasPorAba>({});
+
+    // Recalcula ao abrir, a cada recarga e a cada troca de aba: várias abas
+    // gravam direto na API sem passar pelo onRefresh (ex.: anexar comprovante).
+    const carregarPendencias = useCallback(async () => {
+        try {
+            const r = await fetch(`/api/atividades/${atividadeId}/pendencias`);
+            if (r.ok) setPendencias(await r.json());
+        } catch { /* sem painel, a aba continua funcionando */ }
+    }, [atividadeId]);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -130,6 +185,7 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
     }, [atividadeId]);
 
     useEffect(() => { load(); }, [load]);
+    useEffect(() => { carregarPendencias(); }, [carregarPendencias, activeTab, atividade]);
 
     useEffect(() => {
         if (!atividade) return;
@@ -203,13 +259,23 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                                 }`}
                         >
                             {t.label}
+                            {(() => {
+                                const n = (pendencias[t.id] || []).filter(x => x.nivel === 'ALERTA').length;
+                                return n > 0 && (
+                                    <span title={`${n} pendência(s)`}
+                                        className="ml-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-black">
+                                        {n}
+                                    </span>
+                                );
+                            })()}
                         </button>
                     </Fragment>
                 ))}
             </div>
 
             <div>
-                {activeTab === 'identificacao' && <TabIdentificacao {...tabProps} />}
+                <PainelPendencias key={activeTab} itens={pendencias[activeTab] || []} />
+                {activeTab === 'identificacao' &&<TabIdentificacao {...tabProps} />}
                 {activeTab === 'comercial' && <TabComercial {...tabProps} />}
                 {activeTab === 'cotacao-ls' && <TabCotacaoLs {...tabProps} />}
                 {activeTab === 'planejamento' && isImplantacaoCompleta && <TabPlanejamento {...tabProps} />}

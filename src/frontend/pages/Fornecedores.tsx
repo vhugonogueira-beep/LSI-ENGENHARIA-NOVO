@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Building2, HardHat, Plus, Search, Pencil, Trash2, Wallet, X } from 'lucide-react';
 import DadosBancariosForm from '../components/cadastros/DadosBancariosForm';
+import MunicipioInput from '../components/cadastros/MunicipioInput';
+import { useEhAdmin } from '../lib/permissoes';
+import { UFS, REGIAO_LABEL, chaveTexto, normalizarUf, regiaoPorUf } from '../components/atividades/constants';
 
 interface CondicaoPagamento {
     id: string;
@@ -50,7 +53,6 @@ const CATEGORIA_INFO: Record<string, { label: string; color: string; icon: strin
     OUTROS: { label: 'Outros', color: '#94a3b8', icon: '📦' },
 };
 const CATEGORIAS_PRESTADOR = ['MAO_DE_OBRA', 'SERVICO', 'LOCACAO', 'EQUIPAMENTO', 'TRANSPORTE', 'ENGENHARIA', 'SONDAGEM', 'ANALISE', 'OUTROS'];
-const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
 const REGIOES = ['NACIONAL', 'NORTE', 'NORDESTE', 'CENTRO_OESTE', 'SUDESTE', 'SUL'];
 
 const FORM_INIT = {
@@ -69,6 +71,11 @@ export function Fornecedores() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [filtroModulo, setFiltroModulo] = useState<'TODOS' | 'MATERIAL' | 'PRESTADOR'>('TODOS');
+    // Ramo de atividade = categoria (lista fechada) + especialidade (tag livre).
+    const [filtroCategoria, setFiltroCategoria] = useState('');
+    const [filtroEspecialidade, setFiltroEspecialidade] = useState('');
+    const [filtroUf, setFiltroUf] = useState('');
+    const ehAdmin = useEhAdmin(); // desativar cadastro é só do administrador
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [form, setForm] = useState(FORM_INIT);
@@ -181,11 +188,45 @@ export function Fornecedores() {
         loadSuppliers();
     };
 
+    const noModulo = (s: Supplier) => filtroModulo === 'TODOS' || (filtroModulo === 'MATERIAL' ? s.categoria === 'MATERIAL' : s.categoria !== 'MATERIAL');
+    const ufDe = (s: Supplier) => normalizarUf(s.uf);
+
+    // Especialidade é texto livre: "Elétrica" e "eletrica" são o mesmo ramo.
+    // Agrupa pela chave sem acento e mostra a grafia mais usada.
+    const especialidades = useMemo(() => {
+        const grupos = new Map<string, { total: number; grafias: Map<string, number> }>();
+        for (const s of suppliers) {
+            const esp = s.especialidade?.trim();
+            if (!esp || !noModulo(s) || (filtroCategoria && (s.categoria || 'OUTROS') !== filtroCategoria)) continue;
+            const g = grupos.get(chaveTexto(esp)) || { total: 0, grafias: new Map<string, number>() };
+            g.total += 1;
+            g.grafias.set(esp, (g.grafias.get(esp) || 0) + 1);
+            grupos.set(chaveTexto(esp), g);
+        }
+        return [...grupos.entries()]
+            .map(([chave, g]) => ({ chave, total: g.total, rotulo: [...g.grafias.entries()].sort((a, b) => b[1] - a[1])[0][0] }))
+            .sort((a, b) => a.rotulo.localeCompare(b.rotulo, 'pt-BR'));
+    }, [suppliers, filtroModulo, filtroCategoria]);
+
+    const categoriasPresentes = useMemo(() => {
+        const cont = new Map<string, number>();
+        for (const s of suppliers) if (noModulo(s)) cont.set(s.categoria || 'OUTROS', (cont.get(s.categoria || 'OUTROS') || 0) + 1);
+        return Object.keys(CATEGORIA_INFO).filter(c => cont.has(c)).map(c => ({ id: c, total: cont.get(c)! }));
+    }, [suppliers, filtroModulo]);
+
+    const ufsPresentes = useMemo(() => [...new Set(suppliers.map(ufDe).filter(Boolean))].sort(), [suppliers]);
+
     const filtered = suppliers.filter(s => {
-        const matchSearch = s.nome.toLowerCase().includes(search.toLowerCase()) || (s.cnpj || '').includes(search) || (s.cpf || '').includes(search);
-        const matchModulo = filtroModulo === 'TODOS' || (filtroModulo === 'MATERIAL' ? s.categoria === 'MATERIAL' : s.categoria !== 'MATERIAL');
-        return matchSearch && matchModulo;
+        const termo = search.toLowerCase();
+        const matchSearch = s.nome.toLowerCase().includes(termo) || (s.nome_fantasia || '').toLowerCase().includes(termo)
+            || (s.especialidade || '').toLowerCase().includes(termo) || (s.cnpj || '').includes(search) || (s.cpf || '').includes(search);
+        const matchCategoria = !filtroCategoria || (s.categoria || 'OUTROS') === filtroCategoria;
+        const matchEspecialidade = !filtroEspecialidade || chaveTexto(s.especialidade || '') === filtroEspecialidade;
+        const matchUf = !filtroUf || ufDe(s) === filtroUf;
+        return matchSearch && noModulo(s) && matchCategoria && matchEspecialidade && matchUf;
     });
+    const temFiltro = Boolean(filtroCategoria || filtroEspecialidade || filtroUf || search);
+    const limparFiltros = () => { setFiltroCategoria(''); setFiltroEspecialidade(''); setFiltroUf(''); setSearch(''); };
 
     const isPF = form.tipo === 'PESSOA_FISICA';
     const isMaterial = form.categoria === 'MATERIAL';
@@ -209,12 +250,12 @@ export function Fornecedores() {
             <div className="flex gap-3 mb-5 flex-wrap items-center">
                 <div className="relative flex-1 min-w-[240px]">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                    <input type="text" placeholder="Buscar por nome, CNPJ ou CPF..." value={search} onChange={e => setSearch(e.target.value)}
+                    <input type="text" placeholder="Buscar por nome, especialidade, CNPJ ou CPF..." value={search} onChange={e => setSearch(e.target.value)}
                         className={`${inputCls} pl-10`} />
                 </div>
                 <div className="flex gap-1 bg-secondary/40 rounded-lg p-1">
                     {(['TODOS', 'MATERIAL', 'PRESTADOR'] as const).map(m => (
-                        <button key={m} onClick={() => setFiltroModulo(m)}
+                        <button key={m} onClick={() => { setFiltroModulo(m); setFiltroCategoria(''); setFiltroEspecialidade(''); }}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium ${filtroModulo === m ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                             {m === 'TODOS' ? 'Todos' : m === 'MATERIAL' ? '🏭 Material' : '👷 Prestadores'}
                         </button>
@@ -222,12 +263,46 @@ export function Fornecedores() {
                 </div>
             </div>
 
+            {/* Ramo de atividade: categoria em chips; especialidade e UF em listas */}
+            <div className="flex gap-2 mb-5 flex-wrap items-center">
+                <span className="text-xs font-semibold text-muted-foreground mr-1">Ramo</span>
+                <button onClick={() => { setFiltroCategoria(''); setFiltroEspecialidade(''); }}
+                    className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${!filtroCategoria ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                    Todos
+                </button>
+                {categoriasPresentes.map(c => {
+                    const info = CATEGORIA_INFO[c.id];
+                    const ativo = filtroCategoria === c.id;
+                    return (
+                        <button key={c.id} onClick={() => { setFiltroCategoria(ativo ? '' : c.id); setFiltroEspecialidade(''); }}
+                            className="px-2.5 py-1 rounded-full text-xs font-semibold border"
+                            style={ativo ? { background: info.color, borderColor: info.color, color: '#fff' } : { borderColor: `${info.color}55`, color: info.color }}>
+                            {info.label} <span className="opacity-70">{c.total}</span>
+                        </button>
+                    );
+                })}
+                <select value={filtroEspecialidade} onChange={e => setFiltroEspecialidade(e.target.value)}
+                    className="ml-auto h-8 rounded-lg border border-border bg-card px-2 text-xs">
+                    <option value="">Toda especialidade</option>
+                    {especialidades.map(e => <option key={e.chave} value={e.chave}>{e.rotulo} ({e.total})</option>)}
+                </select>
+                <select value={filtroUf} onChange={e => setFiltroUf(e.target.value)} className="h-8 rounded-lg border border-border bg-card px-2 text-xs">
+                    <option value="">Toda UF</option>
+                    {ufsPresentes.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                </select>
+                {temFiltro && (
+                    <button onClick={limparFiltros} className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
+                        Limpar · {filtered.length} resultado(s)
+                    </button>
+                )}
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {loading ? (
                     <div className="col-span-3 text-center py-12 text-muted-foreground">Carregando...</div>
                 ) : filtered.length === 0 ? (
                     <div className="col-span-3 text-center py-12 text-muted-foreground">
-                        {search ? 'Nenhum fornecedor encontrado.' : 'Nenhum fornecedor cadastrado. Clique em "Novo Cadastro" para começar.'}
+                        {temFiltro ? 'Nenhum cadastro com esses filtros.' : 'Nenhum fornecedor cadastrado. Clique em "Novo Cadastro" para começar.'}
                     </div>
                 ) : filtered.map(s => {
                     const ci = catInfo(s.categoria);
@@ -241,7 +316,7 @@ export function Fornecedores() {
                                 </div>
                                 <div className="flex gap-1 flex-shrink-0">
                                     <button onClick={() => openEdit(s)} className="p-1.5 rounded-md hover:bg-muted" title="Editar"><Pencil size={15} className="text-muted-foreground" /></button>
-                                    <button onClick={() => handleDelete(s.id, s.nome)} className="p-1.5 rounded-md hover:bg-red-500/10" title="Desativar"><Trash2 size={15} className="text-red-500" /></button>
+                                    {ehAdmin && <button onClick={() => handleDelete(s.id, s.nome)} className="p-1.5 rounded-md hover:bg-red-500/10" title="Desativar"><Trash2 size={15} className="text-red-500" /></button>}
                                 </div>
                             </div>
                             <div className="flex gap-1.5 flex-wrap mb-3">
@@ -253,7 +328,9 @@ export function Fornecedores() {
                                 {s.email && <p>✉ {s.email}</p>}
                                 {s.telefone && <p>☎ {s.telefone}</p>}
                                 {s.pix && <p>💳 PIX: {s.pix}</p>}
-                                {s.regiao && <p>📍 {s.regiao}</p>}
+                                {(s.cidade || s.uf || s.regiao) && (
+                                    <p>📍 {[s.cidade ? [s.cidade, ufDe(s)].filter(Boolean).join('/') : s.uf, s.regiao && (REGIAO_LABEL[s.regiao] || s.regiao)].filter(Boolean).join(' · ')}</p>
+                                )}
                             </div>
                             <div className="flex items-center gap-1.5 pt-2 border-t border-border text-xs font-medium" style={{ color: (s._condicoesCount || 0) > 0 ? '#22c55e' : undefined }}>
                                 <Wallet size={13} className={(s._condicoesCount || 0) > 0 ? '' : 'text-muted-foreground'} />
@@ -352,21 +429,33 @@ export function Fornecedores() {
                             </div>
                             <div className="grid grid-cols-3 gap-3">
                                 <div>
-                                    <label className={labelCls}>Cidade</label>
-                                    <input value={form.cidade} onChange={e => setForm(f => ({ ...f, cidade: e.target.value }))} className={inputCls} />
-                                </div>
-                                <div>
                                     <label className={labelCls}>UF</label>
-                                    <select value={form.uf} onChange={e => setForm(f => ({ ...f, uf: e.target.value }))} className={inputCls}>
+                                    <select value={form.uf} className={inputCls}
+                                        onChange={e => {
+                                            const uf = e.target.value;
+                                            // A região acompanha a UF enquanto ninguém a escolheu à mão
+                                            // (vazia ou igual à da UF anterior); NACIONAL é escolha e fica.
+                                            setForm(f => ({
+                                                ...f, uf,
+                                                cidade: uf === f.uf ? f.cidade : '',
+                                                regiao: !f.regiao || f.regiao === regiaoPorUf(f.uf) ? regiaoPorUf(uf) : f.regiao,
+                                            }));
+                                        }}>
                                         <option value="">Selecione</option>
-                                        {UFS.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                                        {UFS.map(uf => <option key={uf.sigla} value={uf.sigla}>{uf.sigla} — {uf.nome}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className={labelCls}>Região</label>
+                                    <label className={labelCls}>Cidade</label>
+                                    <MunicipioInput uf={form.uf} value={form.cidade} className={inputCls}
+                                        onChange={nome => setForm(f => ({ ...f, cidade: nome }))} />
+                                </div>
+                                <div>
+                                    <label className={labelCls}>Região de atuação</label>
                                     <select value={form.regiao} onChange={e => setForm(f => ({ ...f, regiao: e.target.value }))} className={inputCls}>
                                         <option value="">Selecione</option>
-                                        {REGIOES.map(regiao => <option key={regiao} value={regiao}>{regiao.replace('_', '-')}</option>)}
+                                        {REGIOES.map(regiao => <option key={regiao} value={regiao}>{REGIAO_LABEL[regiao] || regiao}</option>)}
+                                        {form.regiao && !REGIOES.includes(form.regiao) && <option value={form.regiao}>{form.regiao}</option>}
                                     </select>
                                 </div>
                             </div>

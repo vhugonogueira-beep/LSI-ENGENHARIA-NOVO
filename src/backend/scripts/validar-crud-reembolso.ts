@@ -10,6 +10,7 @@
  *
  *   npx tsx src/backend/scripts/validar-crud-reembolso.ts
  */
+import './_sessao-teste'; // toda rota de /api exige login desde 30/09/2026
 const API = process.env.API_URL || 'http://localhost:3001/api';
 
 let falhas = 0;

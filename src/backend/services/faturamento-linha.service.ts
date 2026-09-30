@@ -130,7 +130,7 @@ export async function definirAutorizacaoLinha(linhaId: string, autorizado: boole
 // Cancelar devolve o saldo à linha e desfaz algo que já foi comunicado ao cliente —
 // por isso exige justificativa e registra o autor. Restrito a administrador.
 export async function cancelarFaturamentoLinha(id: string, motivo: string, autor?: { nome?: string; email?: string; role?: string }) {
-    if (autor?.role && autor.role !== 'ADMIN') {
+    if (autor?.role !== 'ADMIN') {
         throw new Error('Apenas administradores podem cancelar um faturamento já solicitado');
     }
     const texto = (motivo || '').trim();
@@ -258,7 +258,7 @@ Peço, por gentileza, que considere a tabela abaixo para o devido prosseguimento
 <p style="margin-top:14px">Total: <strong>${fmtMoeda(total)}</strong> em ${registros.length} linha(s).</p>`;
 
     const composto = await composeEmailForUser(corpoHtml, usuario, 'preview');
-    const routing = await resolveEmailRouting(usuario.tenantId, 'BILLING');
+    const routing = await resolveEmailRouting(usuario.tenantId, 'BILLING', undefined, usuario.userId);
     return {
         assunto,
         para: routing.para.join('; '),

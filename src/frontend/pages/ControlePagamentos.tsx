@@ -8,17 +8,18 @@ import {
 } from "../components/financeiro/FinancialCards";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
+import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Controle de Pagamentos â€” a fila Ãºnica do que a LS Office deve pagar.
+// ─────────────────────────────────────────────────────────────────────────────
+// Controle de Pagamentos — a fila única do que a LS Office deve pagar.
 //
 // Junta parcelas de contrato com fornecedor e reembolsos de despesa adiantada.
-// SÃ£o tabelas diferentes no banco, mas uma obrigaÃ§Ã£o financeira sÃ³: separÃ¡-las
-// na tela faria alguÃ©m acompanhar metade e perder a outra de vista.
+// São tabelas diferentes no banco, mas uma obrigação financeira só: separá-las
+// na tela faria alguém acompanhar metade e perder a outra de vista.
 //
-// O comprovante Ã© anexado aqui, na mesma linha do pagamento â€” Ã© o que fecha o
+// O comprovante é anexado aqui, na mesma linha do pagamento — é o que fecha o
 // ciclo e o que a controladoria cobra depois.
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────────────────────────────────────────────────────────────────────
 
 
 const S = {
@@ -61,11 +62,11 @@ interface Linha {
 
 const moeda = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const dataCurta = (v: string | null) => {
-  if (!v) return "â€”";
+  if (!v) return "—";
   const data = new Date(v);
   return data.toLocaleDateString("pt-BR", v.includes("T00:00:00") ? { timeZone: "UTC" } : undefined);
 };
-const ORIGEM_LABEL: Record<Linha['origem'], string> = { PARCELA: 'CONTRATAÃ‡ÃƒO', REEMBOLSO: 'REEMBOLSO', ADIANTAMENTO: 'ADIANTAMENTO' };
+const ORIGEM_LABEL: Record<Linha['origem'], string> = { PARCELA: 'CONTRATAÇÃO', REEMBOLSO: 'REEMBOLSO', ADIANTAMENTO: 'ADIANTAMENTO' };
 const corOrigem = (origem: Linha['origem']) => origem === 'ADIANTAMENTO' ? T.cyan : origem === 'REEMBOLSO' ? T.purple : T.blue;
 const tipoLabel = (tipo: string) => tipo === 'ADIANTAMENTO_VIAGEM' ? 'Adiantamento de viagem' : tipo.replace(/_/g, ' ');
 
@@ -104,7 +105,7 @@ export default function ControlePagamentos() {
       const base64 = await new Promise<string>((ok, falha) => {
         const fr = new FileReader();
         fr.onload = () => ok(String(fr.result));
-        fr.onerror = () => falha(new Error("NÃ£o consegui ler o arquivo"));
+        fr.onerror = () => falha(new Error("Não consegui ler o arquivo"));
         fr.readAsDataURL(arquivo);
       });
       const origemApi = l.deposito_numero ? "DEPOSITO" : l.origem;
@@ -114,7 +115,7 @@ export default function ControlePagamentos() {
       });
       if (!r.ok) throw new Error((await r.json()).error || "Erro ao anexar");
       await carregar();
-      notify(`Comprovante anexado â€” ${l.favorecido}.`);
+      notify(`Comprovante anexado — ${l.favorecido}.`);
     } catch (e: any) { setErro(e.message); } finally { setEnviandoId(null); }
   }
 
@@ -180,8 +181,8 @@ export default function ControlePagamentos() {
   async function excluirSolicitacao(l: Linha) {
     const parcela = l.origem === "PARCELA";
     const texto = parcela
-      ? `Excluir a solicitaÃ§Ã£o de ${moeda(l.valor)}? A parcela continuarÃ¡ no contrato como PENDENTE.`
-      : `Excluir o depÃ³sito de ${moeda(l.valor)}?`;
+      ? `Excluir a solicitação de ${moeda(l.valor)}? A parcela continuará no contrato como PENDENTE.`
+      : `Excluir o depósito de ${moeda(l.valor)}?`;
     if (!confirm(texto)) return;
     try {
       const url = parcela
@@ -190,10 +191,10 @@ export default function ControlePagamentos() {
       const r = await fetch(url, {
         method: parcela ? "POST" : "DELETE",
         headers: parcela ? { "Content-Type": "application/json" } : undefined,
-        body: parcela ? JSON.stringify({ motivo_cancelamento: "SolicitaÃ§Ã£o excluÃ­da no Controle de Pagamentos" }) : undefined,
+        body: parcela ? JSON.stringify({ motivo_cancelamento: "Solicitação excluída no Controle de Pagamentos" }) : undefined,
       });
-      if (!r.ok) throw new Error((await r.json()).error || "Erro ao excluir a solicitaÃ§Ã£o");
-      await carregar(); notify(parcela ? "SolicitaÃ§Ã£o cancelada; parcela devolvida para pendente." : "DepÃ³sito excluÃ­do.");
+      if (!r.ok) throw new Error((await r.json()).error || "Erro ao excluir a solicitação");
+      await carregar(); notify(parcela ? "Solicitação cancelada; parcela devolvida para pendente." : "Depósito excluído.");
     } catch (e: any) { setErro(e.message); }
   }
 
@@ -229,7 +230,7 @@ export default function ControlePagamentos() {
 
   const seletorModulo = <div style={{ display: "flex", gap: 8, borderBottom: `1px solid ${T.brBase}`, padding: "0 22px" }}>
     <button onClick={() => setModulo("PAGAMENTOS")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PAGAMENTOS" ? `2px solid ${T.blue}` : "2px solid transparent", borderRadius: 0, color: modulo === "PAGAMENTOS" ? T.blue : T.txMut }}>Pagamentos</button>
-    <button onClick={() => setModulo("PRESTACOES")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PRESTACOES" ? `2px solid ${T.cyan}` : "2px solid transparent", borderRadius: 0, color: modulo === "PRESTACOES" ? T.cyan : T.txMut }}>PrestaÃ§Ãµes de contas</button>
+    <button onClick={() => setModulo("PRESTACOES")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PRESTACOES" ? `2px solid ${T.cyan}` : "2px solid transparent", borderRadius: 0, color: modulo === "PRESTACOES" ? T.cyan : T.txMut }}>Prestações de contas</button>
   </div>;
 
   if (modulo === "PRESTACOES") return <div>{seletorModulo}<PrestacaoContasViagem standalone /></div>;
@@ -241,14 +242,16 @@ export default function ControlePagamentos() {
       <div>
         <h1 style={{ fontSize: 20, fontWeight: 800, color: T.txPri, margin: 0 }}>Controle de Pagamentos</h1>
         <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0" }}>
-          Parcelas de contrato e reembolsos na mesma fila. O comprovante Ã© anexado na prÃ³pria linha.
+          Parcelas de contrato e reembolsos na mesma fila. O comprovante é anexado na própria linha.
         </p>
       </div>
+
+      <FilaAprovacoes onDecidido={carregar} />
 
       {erro && (
         <div style={{ ...S.card, borderColor: T.red + "66", background: T.red + "12", color: "#fca5a5", fontSize: 12, display: "flex", justifyContent: "space-between" }}>
           <span>{erro}</span>
-          <button onClick={() => setErro("")} style={{ background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontWeight: 700 }}>âœ•</button>
+          <button onClick={() => setErro("")} style={{ background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontWeight: 700 }}>✕</button>
         </div>
       )}
 
@@ -377,15 +380,15 @@ export default function ControlePagamentos() {
       </div>
       {editando && <div style={{ position: "fixed", inset: 0, zIndex: 9500, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setEditando(null)}>
         <div style={{ ...S.card, width: "100%", maxWidth: 480, padding: 20 }} onClick={e => e.stopPropagation()}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 16 }}><div><h2 style={{ margin: 0, color: T.txPri, fontSize: 16 }}>Editar pagamento solicitado</h2><p style={{ margin: "4px 0 0", color: T.txMut, fontSize: 11 }}>{editando.linha.favorecido}</p></div><button onClick={() => setEditando(null)} style={{ ...S.btn, padding: "4px 8px" }}>âœ•</button></div>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 16 }}><div><h2 style={{ margin: 0, color: T.txPri, fontSize: 16 }}>Editar pagamento solicitado</h2><p style={{ margin: "4px 0 0", color: T.txMut, fontSize: 11 }}>{editando.linha.favorecido}</p></div><button onClick={() => setEditando(null)} style={{ ...S.btn, padding: "4px 8px" }}>✕</button></div>
           {erro && <div style={{ marginBottom: 12, padding: "8px 10px", border: `1px solid ${T.red}66`, borderRadius: 7, background: `${T.red}12`, color: T.red, fontSize: 11 }}>{erro}</div>}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <label style={{ color: T.txSec, fontSize: 11 }}>Valor<input type="number" min="0.01" step="0.01" value={editando.valor} onChange={e => setEditando({ ...editando, valor: e.target.value })} style={{ ...S.input, display: "block", width: "100%", marginTop: 5 }}/></label>
             <span/>
-            <label style={{ color: T.txSec, fontSize: 11 }}>Data da solicitaÃ§Ã£o<input type="date" value={editando.data_solicitacao} onChange={e => setEditando({ ...editando, data_solicitacao: e.target.value })} style={{ ...S.input, display: "block", width: "100%", marginTop: 5 }}/></label>
+            <label style={{ color: T.txSec, fontSize: 11 }}>Data da solicitação<input type="date" value={editando.data_solicitacao} onChange={e => setEditando({ ...editando, data_solicitacao: e.target.value })} style={{ ...S.input, display: "block", width: "100%", marginTop: 5 }}/></label>
             <label style={{ color: T.txSec, fontSize: 11 }}>Data prevista<input type="date" value={editando.data_prevista} onChange={e => setEditando({ ...editando, data_prevista: e.target.value })} style={{ ...S.input, display: "block", width: "100%", marginTop: 5 }}/></label>
           </div>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}><button onClick={() => setEditando(null)} style={S.btn}>Cancelar</button><button onClick={salvarEdicao} style={{ ...S.btn, ...S.btnBlue }}>Salvar alteraÃ§Ãµes</button></div>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 18 }}><button onClick={() => setEditando(null)} style={S.btn}>Cancelar</button><button onClick={salvarEdicao} style={{ ...S.btn, ...S.btnBlue }}>Salvar alterações</button></div>
         </div>
       </div>}
     </div></div>
