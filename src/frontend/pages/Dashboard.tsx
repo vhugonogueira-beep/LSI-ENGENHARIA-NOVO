@@ -5,6 +5,8 @@ import { Layers, PencilLine, Send, CheckCircle2, Banknote, Play, Trophy, Plus } 
 import { STATUS_OPERACIONAL } from '../components/atividades/constants';
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
+// Cor com significado (docs/DESIGN-SYSTEM.md): cada KPI e cada status tem a sua.
+import { TOM_SHARING, TOM_STATUS, hexTom, tomDe, type Tom } from '../lib/cores';
 
 
 // Ausência não tem cor nem número: zero sai como "—" (docs/DESIGN-SYSTEM.md).
@@ -19,11 +21,11 @@ function fmtData(d?: string | null) {
 }
 
 const STATUS_ORCAMENTO: Record<string, { label: string; color: string }> = {
-  RASCUNHO:  { label: 'Rascunho',  color: T.txMut  },
-  ENVIADO:   { label: 'Enviado',   color: T.blue   },
-  APROVADO:  { label: 'Aprovado',  color: T.green  },
-  REPROVADO: { label: 'Reprovado', color: T.red    },
-  REVISAO:   { label: 'Revisão',   color: T.amber  },
+  RASCUNHO:  { label: 'Rascunho',  color: hexTom('slate') },
+  ENVIADO:   { label: 'Enviado',   color: hexTom('blue')  },
+  APROVADO:  { label: 'Aprovado',  color: hexTom('green') },
+  REPROVADO: { label: 'Reprovado', color: T.red           },
+  REVISAO:   { label: 'Revisão',   color: hexTom('amber') },
 };
 
 interface DashboardProps {
@@ -106,11 +108,11 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
         <h2 style={secaoStyle}>Orçamentos das atividades</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
           {[
-            { label: 'Total',            value: totalOrc,               icon: <Layers size={16} aria-hidden /> },
-            { label: 'Rascunhos',        value: rascunhos,              icon: <PencilLine size={16} aria-hidden /> },
-            { label: 'Enviados',         value: enviados,               icon: <Send size={16} aria-hidden /> },
-            { label: 'Aprovados',        value: aprovados,              icon: <CheckCircle2 size={16} aria-hidden /> },
-            { label: 'Receita aprovada', value: fmtMoeda(receitaAprov), icon: <Banknote size={16} aria-hidden />, small: true },
+            { label: 'Total',            value: totalOrc,               tom: 'indigo' as Tom, icon: <Layers size={16} aria-hidden /> },
+            { label: 'Rascunhos',        value: rascunhos,              tom: 'slate' as Tom,  icon: <PencilLine size={16} aria-hidden /> },
+            { label: 'Enviados',         value: enviados,               tom: 'blue' as Tom,   icon: <Send size={16} aria-hidden /> },
+            { label: 'Aprovados',        value: aprovados,              tom: 'green' as Tom,  icon: <CheckCircle2 size={16} aria-hidden /> },
+            { label: 'Receita aprovada', value: fmtMoeda(receitaAprov), tom: 'green' as Tom,  icon: <Banknote size={16} aria-hidden />, small: true },
           ].map(k => (
             <KpiCard key={k.label} {...k} loading={loading} />
           ))}
@@ -122,10 +124,10 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
         <h2 style={{ ...secaoStyle, marginTop: 20 }}>Atividades</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           {[
-            { label: 'Total de atividades',          value: totalAtividades,             icon: <Layers size={16} aria-hidden /> },
-            { label: 'Em execução',                  value: emExecucao,                  icon: <Play size={16} aria-hidden /> },
-            { label: 'Valor contratado',             value: fmtMoeda(receitaAtividades), icon: <Banknote size={16} aria-hidden />, small: true },
-            { label: 'Sharing com mais atividades',  value: topSharing(porSharing),      icon: <Trophy size={16} aria-hidden />, small: true },
+            { label: 'Total de atividades',          value: totalAtividades,             tom: 'indigo' as Tom, icon: <Layers size={16} aria-hidden /> },
+            { label: 'Em execução',                  value: emExecucao,                  tom: 'blue' as Tom,   icon: <Play size={16} aria-hidden /> },
+            { label: 'Valor contratado',             value: fmtMoeda(receitaAtividades), tom: 'cyan' as Tom,   icon: <Banknote size={16} aria-hidden />, small: true },
+            { label: 'Sharing com mais atividades',  value: topSharing(porSharing),      tom: 'cyan' as Tom,   icon: <Trophy size={16} aria-hidden />, small: true },
           ].map(k => (
             <KpiCard key={k.label} {...k} loading={loading} />
           ))}
@@ -219,11 +221,13 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
                 const count = item?._count ?? 0;
                 const maxCount = Math.max(...porOperacional.map(s => s._count), 1);
                 const pct = Math.round((count / maxCount) * 100);
+                // Barra na cor do status — a mesma da pílula e do kanban.
+                const corStatus = hexTom(tomDe(TOM_STATUS, key, 'slate'));
                 return (
                   <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <div style={{ width: 80, fontSize: 11, color: count > 0 ? T.txSec : T.txMut, fontWeight: 600, flexShrink: 0 }}>{info.label}</div>
                     <div style={{ flex: 1, background: T.bg3, borderRadius: 4, height: 6, overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: info.color, borderRadius: 4, transition: 'width 0.4s ease' }} />
+                      <div style={{ width: `${pct}%`, height: '100%', background: corStatus, borderRadius: 4, transition: 'width 0.4s ease' }} />
                     </div>
                     <div style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 700, color: count > 0 ? T.txPri : T.txMut }}>{count > 0 ? count : '—'}</div>
                   </div>
@@ -240,15 +244,18 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
         <div style={{ marginTop: 20, background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: '16px 18px' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>Atividades por sharing</div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            {porSharing.map(s => (
-              <div key={s.sharing} style={{
-                background: T.bg3, border: `1px solid ${T.brBase}`, borderRadius: 10,
-                padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10,
-              }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: T.txPri }}>{s._count}</div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: T.txSec }}>{s.sharing}</div>
-              </div>
-            ))}
+            {porSharing.map(s => {
+              const cor = hexTom(tomDe(TOM_SHARING, s.sharing, 'slate'));
+              return (
+                <div key={s.sharing} style={{
+                  background: `${cor}14`, border: `1px solid ${cor}40`, borderLeft: `4px solid ${cor}`, borderRadius: 10,
+                  padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10,
+                }}>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: T.txPri }}>{s._count}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: cor }}>{s.sharing}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -257,15 +264,19 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
   );
 }
 
-function KpiCard({ label, value, icon, loading, small }: { label: string; value: any; icon: React.ReactNode; loading?: boolean; small?: boolean }) {
+function KpiCard({ label, value, icon, loading, small, tom = 'slate' }: { label: string; value: any; icon: React.ReactNode; loading?: boolean; small?: boolean; tom?: Tom }) {
   // Zero, vazio e "sem dado" aparecem como "—" em texto apagado.
   const vazio = value == null || value === 0 || value === '—';
+  const cor = hexTom(tom);
   return (
     <div style={{
-      background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12,
+      background: T.bg2, border: `1px solid ${T.brBase}`, borderTop: `2px solid ${cor}`, borderRadius: 12,
       padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
     }}>
-      <div style={{ color: T.txMut, flexShrink: 0, display: 'flex' }}>
+      <div style={{
+        color: cor, background: `${cor}1a`, flexShrink: 0, display: 'flex',
+        width: 34, height: 34, borderRadius: '50%', alignItems: 'center', justifyContent: 'center',
+      }}>
         {icon}
       </div>
       <div>

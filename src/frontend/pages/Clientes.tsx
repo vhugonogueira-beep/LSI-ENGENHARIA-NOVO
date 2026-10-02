@@ -3,6 +3,8 @@ import { Building2, ImageUp, Plus, Save, Search, X } from 'lucide-react';
 import { authFetch } from '../lib/authFetch';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { UFS, normalizarUf } from '../components/atividades/constants';
+import { CHIP, FAIXA, SOLIDO, TEXTO, TOM_MODULO, VEU, tomDe } from '../lib/cores';
+import type { Tom } from '../lib/cores';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Clientes — cadastro mestre de clientes, sharings e operadoras.
@@ -47,6 +49,8 @@ const TIPOS: { valor: string; rotulo: string }[] = [
   { valor: 'SHARING_OPERADORA', rotulo: 'Sharing e operadora' },
 ];
 const TIPO_ROTULO: Record<string, string> = Object.fromEntries(TIPOS.map(t => [t.valor, t.rotulo]));
+/** Tipo do cadastro: mesma cor no filtro, na pílula e na faixa do cartão. */
+const TOM_TIPO: Record<string, Tom> = { CLIENTE: 'indigo', SHARING: 'cyan', OPERADORA: 'violet', SHARING_OPERADORA: 'teal' };
 
 const inputClass = 'h-9 w-full rounded-lg border border-border bg-secondary px-3 text-xs text-foreground outline-none focus:border-primary';
 
@@ -128,11 +132,16 @@ export default function Clientes() {
 
   return (
     <main className="space-y-4 p-5">
-      <div>
-        <h1 className="text-xl font-bold text-[hsl(var(--titulo))]">Clientes</h1>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Cadastro mestre de clientes, sharings e operadoras. Os logos usados nos documentos passam a sair daqui.
-        </p>
+      <div className="flex items-center gap-3">
+        <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${VEU[TOM_MODULO.clientes]} ${TEXTO[TOM_MODULO.clientes]}`}>
+          <Building2 size={20} aria-hidden />
+        </span>
+        <div>
+          <h1 className="text-xl font-bold text-[hsl(var(--titulo))]">Clientes</h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Cadastro mestre de clientes, sharings e operadoras. Os logos usados nos documentos passam a sair daqui.
+          </p>
+        </div>
       </div>
 
       {erro && <div className="rounded-lg border border-crit/40 bg-crit/10 p-3 text-xs text-crit">{erro}</div>}
@@ -215,17 +224,23 @@ export default function Clientes() {
           )}
         </div>
         <div className="flex flex-wrap gap-1.5">
-          {[{ valor: 'TODOS', rotulo: 'Todos' }, ...TIPOS].map(t => (
-            <button
-              key={t.valor}
-              onClick={() => setFiltroTipo(t.valor)}
-              className={`h-9 rounded-lg border px-3 text-xs font-bold ${
-                filtroTipo === t.valor ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-muted-foreground'
-              }`}
-            >
-              {t.rotulo}
-            </button>
-          ))}
+          {[{ valor: 'TODOS', rotulo: 'Todos' }, ...TIPOS].map(t => {
+            const ativo = filtroTipo === t.valor;
+            const tom = tomDe(TOM_TIPO, t.valor);
+            const cls = t.valor === 'TODOS'
+              ? (ativo ? 'border border-primary bg-primary text-primary-foreground' : 'border border-border bg-card text-muted-foreground')
+              : (ativo ? `border border-transparent ${SOLIDO[tom]} text-background` : CHIP[tom]);
+            return (
+              <button
+                key={t.valor}
+                aria-pressed={ativo}
+                onClick={() => setFiltroTipo(t.valor)}
+                className={`h-9 rounded-lg px-3 text-xs font-bold ${cls}`}
+              >
+                {t.rotulo}
+              </button>
+            );
+          })}
         </div>
         {inativos > 0 && (
           <label className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs">
@@ -246,7 +261,7 @@ export default function Clientes() {
             // um cadastro desligado que parece ativo volta a ser usado por engano.
             <article
               key={item.id}
-              className={`rounded-lg border bg-card p-4 ${item.ativo ? 'border-border' : 'border-border/50 opacity-60'}`}
+              className={`rounded-lg border border-l-4 ${FAIXA[tomDe(TOM_TIPO, item.tipo)]} bg-card p-4 ${item.ativo ? 'border-border' : 'border-border/50 opacity-60'}`}
             >
               <div className="flex gap-3">
                 <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg bg-white p-2">
@@ -263,8 +278,10 @@ export default function Clientes() {
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 text-[11px] font-semibold text-primary">
-                    {TIPO_ROTULO[item.tipo] || item.tipo}
+                  <div className="mt-1">
+                    <span className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${CHIP[tomDe(TOM_TIPO, item.tipo)]}`}>
+                      {TIPO_ROTULO[item.tipo] || item.tipo}
+                    </span>
                   </div>
                   <div className="mt-1 truncate text-[11px] text-muted-foreground">
                     {item.razao_social || (item.cnpj ? <span className="font-id">{item.cnpj}</span> : 'Sem dados fiscais')}

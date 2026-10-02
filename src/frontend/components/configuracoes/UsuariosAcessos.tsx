@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Copy, KeyRound, Mail, Pencil, Plus, ShieldCheck, UserX, UserCheck, X } from 'lucide-react';
+import { CHIP, FAIXA, SOLIDO, TOM_MODULO, tomDe, type Tom } from '../../lib/cores';
 
 // Usuários e acessos — só para o administrador (o backend confere de novo).
 //
@@ -31,7 +32,10 @@ const APROVACAO_LABEL: Record<string, string> = {
     SEMPRE: 'Toda solicitação passa por aprovação',
     ACIMA_DO_LIMITE: 'Aprovação acima de um limite',
 };
-const STATUS_COR: Record<string, string> = { ATIVO: 'text-ok bg-ok/10', CONVIDADO: 'text-warn bg-warn/10', SUSPENSO: 'text-crit bg-crit/10' };
+const STATUS_COR: Record<string, string> = { ATIVO: CHIP.green, CONVIDADO: CHIP.amber, SUSPENSO: CHIP.rose };
+/** Grupo da permissão (prefixo da chave) → cor do módulo correspondente. */
+const TOM_GRUPO_PERMISSAO: Record<string, Tom> = { ...TOM_MODULO, orcamentos: 'amber', cadastros: 'teal' };
+const tomPermissao = (chave: string) => tomDe(TOM_GRUPO_PERMISSAO, chave.split('.')[0], 'slate');
 const STATUS_ROTULO: Record<string, string> = { ATIVO: 'Ativo', CONVIDADO: 'Convidado', SUSPENSO: 'Suspenso' };
 const moeda = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const dataHora = (v: string | null) => v ? new Date(v).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
@@ -233,9 +237,9 @@ export default function UsuariosAcessos() {
                                     </div>
                                     <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                                         {catalogo.permissoes.map(p => (
-                                            <label key={p.chave} className={`flex cursor-pointer gap-2.5 rounded-lg border p-2.5 ${form.permissoes.includes(p.chave) ? 'border-primary/50 bg-primary/[0.06]' : 'border-border'}`}>
+                                            <label key={p.chave} className={`flex cursor-pointer gap-2.5 rounded-lg border border-l-4 ${FAIXA[tomPermissao(p.chave)]} p-2.5 ${form.permissoes.includes(p.chave) ? 'border-primary/50 bg-primary/[0.06]' : 'border-border'}`}>
                                                 <input type="checkbox" className="mt-0.5" checked={form.permissoes.includes(p.chave)} onChange={() => alternar(p.chave)} />
-                                                <span><span className="block text-[13px] font-semibold">{p.rotulo}</span><span className="block text-[11px] text-muted-foreground">{p.descricao}</span></span>
+                                                <span><span className="flex items-center gap-1.5 text-[13px] font-semibold"><span aria-hidden className={`h-2 w-2 shrink-0 rounded-full ${SOLIDO[tomPermissao(p.chave)]}`} />{p.rotulo}</span><span className="block text-[11px] text-muted-foreground">{p.descricao}</span></span>
                                             </label>
                                         ))}
                                     </div>

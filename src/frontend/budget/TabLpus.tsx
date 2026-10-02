@@ -4,6 +4,8 @@ import { lerTemplatesLocaisPendentes, marcarMigracaoConcluida } from "./lpuTempl
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
 import { useEhAdmin } from '../lib/permissoes';
+import { TOM_AREA, TOM_MODULO, hexTom } from '../lib/cores';
+import type { Tom } from '../lib/cores';
 import { AlertTriangle, Check, Library, Pencil, Plus, Star, Trash2, X } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -41,19 +43,19 @@ const NATUREZA: Record<string, { grupo: string; curto: string; cor: string; expl
   PV_CLIENTE: {
     grupo: "PV do Cliente",
     curto: "Preço ao cliente",
-    cor: T.cyan,
+    cor: hexTom("cyan"),
     explica: "Itens oficiais do cliente — código, descrição, categoria e unidade exatamente como estão no documento dele — com o preço que a LS Office COBRA desse cliente por item. É esta base que alimenta a composição da PV dentro da Atividade.",
   },
   LPU_LS_OFFICE: {
     grupo: "LPU LS Office Geral",
     curto: "Custo LS",
-    cor: T.green,
+    cor: hexTom("green"),
     explica: "A LPU padrão da LS Office. Valor venda é o que a LS pratica na venda; custo LS é o que ela paga na compra. A diferença entre os dois é a margem do item.",
   },
   FORNECEDOR: {
     grupo: "LPUs de Fornecedor",
     curto: "Fornecedor",
-    cor: T.purple,
+    cor: hexTom("violet"),
     explica: "Preço que um fornecedor específico cobra da LS Office. Usado na contratação e na comparação de custo.",
   },
 };
@@ -62,10 +64,20 @@ const natureza = (o: string) => NATUREZA[o] || NATUREZA.FORNECEDOR;
 
 // Área da base (PriceBook.tipo). Vazio = serve às duas.
 const AREAS = [
-  { id: "IMPLANTACAO", rotulo: "Implantação", cor: T.blue },
-  { id: "OPERACAO", rotulo: "Operação", cor: T.amber },
-  { id: "", rotulo: "Serve às duas áreas", cor: T.txMut },
+  { id: "IMPLANTACAO", rotulo: "Implantação", cor: hexTom(TOM_AREA.IMPLANTACAO) },
+  { id: "OPERACAO", rotulo: "Operação", cor: hexTom(TOM_AREA.OPERACAO) },
+  { id: "", rotulo: "Serve às duas áreas", cor: hexTom("slate") },
 ];
+
+/** Cor estável por categoria (hash do nome) — só para facilitar a leitura da tabela; o nome sempre aparece. */
+const TONS_CATEGORIA: Tom[] = ["indigo", "blue", "cyan", "teal", "green", "amber", "orange", "rose", "violet", "slate"];
+const corCategoria = (nome: string) => {
+  let h = 0;
+  for (const ch of nome.trim().toUpperCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return hexTom(TONS_CATEGORIA[h % TONS_CATEGORIA.length]);
+};
+const AMBAR = hexTom("amber");
+const COR_MODULO = hexTom(TOM_MODULO.lpus);
 
 interface Base {
   id: string;
@@ -461,15 +473,18 @@ export default function TabLpus() {
         {/* ── Lista de bases, agrupada por natureza ── */}
         <div style={{ ...S.card, width: 264, display: "flex", flexDirection: "column", gap: 10, padding: 14, overflow: "hidden", flexShrink: 0 }}>
           <h3 style={{ margin: 0, fontSize: 13, color: T.txPri, display: "flex", alignItems: "center", gap: 8 }}>
-            <Library size={15} aria-hidden style={{ color: T.txMut }} /> Bases e LPUs
+            <Library size={15} aria-hidden style={{ color: COR_MODULO }} /> Bases e LPUs
           </h3>
           <div className="scroll-min" style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 13 }}>
             {carregandoBases && <div style={{ color: T.txMut, fontSize: 12 }}>Carregando...</div>}
             {grupos.map(g => (
               <div key={g.id || "AMBAS"}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: T.txPri, marginBottom: 6, borderBottom: `1px solid ${T.brSub}`, paddingBottom: 4, display: "flex", justifyContent: "space-between", gap: 8 }}>
-                  <span>{g.rotulo}</span>
-                  <span style={{ color: T.txMut, fontWeight: 500 }}>{g.total}</span>
+                <div style={{ fontSize: 12, fontWeight: 700, color: g.cor, marginBottom: 6, borderBottom: `2px solid ${g.cor}55`, paddingBottom: 4, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: g.cor, flexShrink: 0 }} />
+                    {g.rotulo}
+                  </span>
+                  <span style={{ color: g.cor, background: g.cor + "1a", borderRadius: 999, padding: "0 7px", fontWeight: 600, fontSize: 11 }}>{g.total}</span>
                 </div>
                 {g.clientes.map(c => (
                   <div key={c.nome} style={{ marginBottom: 8 }}>
@@ -483,13 +498,13 @@ export default function TabLpus() {
                           padding: "7px 10px", borderRadius: 8, fontSize: 12,
                           background: ativa ? nat.cor + "22" : T.bg3,
                           border: `1px solid ${ativa ? nat.cor : T.brSub}`,
-                          borderLeft: `3px solid ${nat.cor}`,
+                          borderLeft: `4px solid ${nat.cor}`,
                           color: ativa ? T.txPri : T.txSec, fontWeight: ativa ? 700 : 500,
                         }}>
                           <div style={{ lineHeight: 1.3, display: "flex", alignItems: "flex-start", gap: 5 }}>
                             {b.padrao && (
                               <span title="Padrão para este cliente e área" style={{ display: "inline-flex", marginTop: 1 }}>
-                                <Star size={13} aria-label="Padrão para este cliente e área" style={{ color: T.amber, fill: T.amber, flexShrink: 0 }} />
+                                <Star size={13} aria-label="Padrão para este cliente e área" style={{ color: AMBAR, fill: AMBAR, flexShrink: 0 }} />
                               </span>
                             )}
                             <span>{b.nome_lpu}</span>
@@ -508,7 +523,7 @@ export default function TabLpus() {
             ))}
             {bases.length > 0 && (
               <div style={{ fontSize: 11, color: T.txDis, lineHeight: 1.5 }}>
-                <Star size={12} aria-hidden style={{ color: T.amber, fill: T.amber, verticalAlign: "-2px", marginRight: 4 }} />
+                <Star size={12} aria-hidden style={{ color: AMBAR, fill: AMBAR, verticalAlign: "-2px", marginRight: 4 }} />
                 Padrão do cliente na área. A atividade usa a base do seu cliente; sem ela, a genérica da área.
               </div>
             )}
@@ -524,6 +539,9 @@ export default function TabLpus() {
               <div style={{ ...S.card, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "12px 16px" }}>
                 <div style={{ minWidth: 280, flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
+                    <span aria-hidden style={{ width: 32, height: 32, borderRadius: 8, background: COR_MODULO + "1f", color: COR_MODULO, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Library size={17} />
+                    </span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>{base.nome_lpu}</span>
                     <span style={{ fontSize: 11, fontWeight: 600, color: natureza(base.origem).cor, border: `1px solid ${natureza(base.origem).cor}66`, background: natureza(base.origem).cor + "1a", borderRadius: 20, padding: "2px 9px" }}>
                       {natureza(base.origem).grupo}
@@ -559,10 +577,10 @@ export default function TabLpus() {
                         <option value="FORNECEDOR">Fornecedor</option>
                       </select>
                     </label>
-                    <label style={{ fontSize: 11, color: base.padrao ? T.amber : T.txMut, display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}
+                    <label style={{ fontSize: 11, color: base.padrao ? AMBAR : T.txMut, display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}
                       title="A atividade usa a base padrão quando há mais de uma para o mesmo cliente e área">
                       <input type="checkbox" checked={!!base.padrao} onChange={e => classificar({ padrao: e.target.checked })} />
-                      <Star size={13} aria-hidden style={{ color: base.padrao ? T.amber : T.txMut, fill: base.padrao ? T.amber : "none" }} />
+                      <Star size={13} aria-hidden style={{ color: base.padrao ? AMBAR : T.txMut, fill: base.padrao ? AMBAR : "none" }} />
                       Padrão para este cliente e área
                     </label>
                   </div>
@@ -759,7 +777,12 @@ export default function TabLpus() {
                                   <input list="categorias-pv" value={rascunho.subtipo || ""} onChange={e => setRascunho({ ...rascunho, subtipo: e.target.value })}
                                     onKeyDown={teclas(item)} style={{ ...S.input, padding: "5px 6px", fontSize: 11 }} />
                                 </>
-                              ) : (item.subtipo || "—")}
+                              ) : item.subtipo ? (
+                                <span style={{ display: "inline-flex", alignItems: "baseline", gap: 6 }}>
+                                  <span aria-hidden style={{ width: 7, height: 7, borderRadius: 999, background: corCategoria(item.subtipo), flexShrink: 0, alignSelf: "center" }} />
+                                  {item.subtipo}
+                                </span>
+                              ) : "—"}
                             </td>
                             <td style={{ ...td(), color: T.txMut }}>
                               {editando ? (

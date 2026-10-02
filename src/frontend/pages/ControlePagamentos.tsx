@@ -9,7 +9,9 @@ import {
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
 import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
-import { X } from "lucide-react";
+import { CreditCard, X } from "lucide-react";
+// Cor com significado (docs/DESIGN-SYSTEM.md): origem, KPI e módulo.
+import { CHIP, FAIXA, TOM_MODULO, hexTom, type Tom } from "../lib/cores";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Controle de Pagamentos — a fila única do que a LS Office deve pagar.
@@ -68,6 +70,9 @@ const dataCurta = (v: string | null) => {
   return data.toLocaleDateString("pt-BR", v.includes("T00:00:00") ? { timeZone: "UTC" } : undefined);
 };
 const ORIGEM_LABEL: Record<Linha['origem'], string> = { PARCELA: 'Contratação', REEMBOLSO: 'Reembolso', ADIANTAMENTO: 'Adiantamento' };
+/** Cor de cada origem: a faixa do cartão e a etiqueta dizem de onde vem o pagamento. */
+const ORIGEM_TOM: Record<Linha['origem'], Tom> = { PARCELA: 'blue', REEMBOLSO: 'violet', ADIANTAMENTO: 'orange' };
+const TOM_PAGINA = hexTom(TOM_MODULO.pagamentos);
 /** Código do banco (TIPO_DO_X) em frase: "Tipo do x". */
 const emFrase = (v: string) => { const t = v.replace(/_/g, ' ').toLocaleLowerCase('pt-BR'); return t.charAt(0).toLocaleUpperCase('pt-BR') + t.slice(1); };
 const tipoLabel = (tipo: string) => tipo === 'ADIANTAMENTO_VIAGEM' ? 'Adiantamento de viagem' : emFrase(tipo);
@@ -243,11 +248,17 @@ export default function ControlePagamentos() {
     <div>{seletorModulo}<div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14 }}>
       {toast && <div role="status" style={{ position: "fixed", bottom: 20, right: 20, background: T.bg2, color: T.txPri, border: `1px solid ${T.green}`, borderLeft: `3px solid ${T.green}`, padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 600, fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.18)" }}>{toast}</div>}
 
-      <div>
-        <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Controle de Pagamentos</h1>
-        <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0" }}>
-          Parcelas de contrato e reembolsos na mesma fila. O comprovante é anexado na própria linha.
-        </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <span aria-hidden="true" style={{
+          width: 38, height: 38, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+          background: `${TOM_PAGINA}1f`, color: TOM_PAGINA, border: `1px solid ${TOM_PAGINA}40`,
+        }}><CreditCard size={18} /></span>
+        <div>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Controle de Pagamentos</h1>
+          <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0" }}>
+            Parcelas de contrato e reembolsos na mesma fila. O comprovante é anexado na própria linha.
+          </p>
+        </div>
       </div>
 
       <FilaAprovacoes onDecidido={carregar} />
@@ -261,14 +272,14 @@ export default function ControlePagamentos() {
 
       {resumo && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12 }}>
-          <Kpi rotulo="A pagar" valor={resumo.aPagar ? moeda(resumo.aPagar) : null} />
-          <Kpi rotulo="Pago" valor={resumo.pago ? moeda(resumo.pago) : null} />
-          <Kpi rotulo="Total" valor={resumo.total ? moeda(resumo.total) : null} />
-          <Kpi rotulo="Pagos sem comprovante" valor={resumo.semComprovante > 0 ? String(resumo.semComprovante) : null} alerta={resumo.semComprovante > 0 ? T.red : undefined} />
+          <Kpi tom="amber" rotulo="A pagar" valor={resumo.aPagar ? moeda(resumo.aPagar) : null} />
+          <Kpi tom="green" rotulo="Pago" valor={resumo.pago ? moeda(resumo.pago) : null} />
+          <Kpi tom="indigo" rotulo="Total" valor={resumo.total ? moeda(resumo.total) : null} />
+          <Kpi tom={resumo.semComprovante > 0 ? "rose" : "slate"} rotulo="Pagos sem comprovante" valor={resumo.semComprovante > 0 ? String(resumo.semComprovante) : null} alerta={resumo.semComprovante > 0 ? T.red : undefined} />
           {/* Formalizações não entram em "A pagar": o dinheiro já saiu. O que
               falta nelas é documento, e isso tem indicador próprio. */}
           {resumo.formalizacoesPendentesDocumento > 0 && (
-            <Kpi rotulo="Formalizações sem documento" valor={String(resumo.formalizacoesPendentesDocumento)} alerta={T.amber} />
+            <Kpi tom="amber" rotulo="Formalizações sem documento" valor={String(resumo.formalizacoesPendentesDocumento)} alerta={T.amber} />
           )}
         </div>
       )}
@@ -361,9 +372,10 @@ export default function ControlePagamentos() {
                       status={<PagamentoStatusSelect value={l.status} onChange={status => mudarStatus(l, status)} />}
                       primaryAction={acaoPrincipal}
                       actions={acoes}
+                      stripe={FAIXA[ORIGEM_TOM[l.origem]]}
                     >
                       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-                        <span className="font-semibold text-foreground">{ORIGEM_LABEL[l.origem]}</span>
+                        <span className={`rounded-full px-2 py-px font-semibold ${CHIP[ORIGEM_TOM[l.origem]]}`}>{ORIGEM_LABEL[l.origem]}</span>
                         {l.documento && <span className="font-id">{l.documento}</span>}
                         {(l.processo_tipo === 'PAYMENT_FORMALIZATION' || l.formalizacao_posterior) && <>
                           <span className="text-warn">Pagamento já realizado: formalização documental, sem novo pagamento</span>
@@ -404,11 +416,16 @@ export default function ControlePagamentos() {
 }
 
 
-/** Valor neutro; só ganha cor quando é alerta. Sem valor, "—" sem cor. */
-function Kpi({ rotulo, valor, alerta }: { rotulo: string; valor: string | null; alerta?: string }) {
+/** Cada KPI tem a sua cor (faixa no topo e ponto no rótulo); o valor só ganha
+ *  cor quando é alerta. Sem valor, "—" sem cor. */
+function Kpi({ rotulo, valor, alerta, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; tom?: Tom }) {
+  const cor = hexTom(tom);
   return (
-    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px" }}>
-      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{rotulo}</div>
+    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderTop: `2px solid ${cor}`, borderRadius: 10, padding: "11px 15px" }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+        <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }} />
+        {rotulo}
+      </div>
       <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
     </div>
   );

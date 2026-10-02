@@ -39,7 +39,7 @@ export function FinancialBeneficiaryCard({
 
 export function FinancialPaymentCard({
   title, percentage, amount, method, context, requestedAt, expectedAt, paidAt,
-  receipt, status, primaryAction, actions = [], children,
+  receipt, status, primaryAction, actions = [], children, stripe,
 }: {
   title: string;
   percentage?: ReactNode;
@@ -54,8 +54,10 @@ export function FinancialPaymentCard({
   primaryAction?: ReactNode;
   actions?: FinancialAction[];
   children?: ReactNode;
+  /** Faixa à esquerda na cor da origem — classe `FAIXA[tom]` de lib/cores.ts. */
+  stripe?: string;
 }) {
-  return <section className="rounded-xl border border-border/80 bg-background/45 px-3.5 py-3 transition-colors hover:border-border sm:px-4">
+  return <section className={`rounded-xl border border-border/80 bg-background/45 px-3.5 py-3 transition-colors hover:border-border sm:px-4 ${stripe ? `border-l-4 ${stripe}` : ''}`}>
     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">

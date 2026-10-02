@@ -54,6 +54,20 @@
     --crit: 0 91% 71%;                 /* #F87171 critico / atrasado */
     --info: 213 100% 74%;              /* #78B5FF informativo */
 
+    /* Paleta categorica: cada DIMENSAO do trabalho tem sua familia de cor
+       (status da obra, area, operadora, ramo, modulo) — ver lib/cores.ts.
+       Cor aqui e informacao, nunca enfeite. Tons claros para fundo escuro. */
+    --c-indigo: 234 89% 74%;            /* #818CF8 */
+    --c-blue: 213 94% 68%;              /* #60A5FA */
+    --c-cyan: 188 86% 53%;              /* #22D3EE */
+    --c-teal: 172 66% 50%;              /* #2DD4BF */
+    --c-green: 158 64% 52%;             /* #34D399 */
+    --c-amber: 43 96% 56%;              /* #FBBF24 */
+    --c-orange: 27 96% 61%;             /* #FB923C */
+    --c-rose: 351 95% 71%;              /* #FB7185 */
+    --c-violet: 255 92% 76%;            /* #A78BFA */
+    --c-slate: 215 20% 65%;             /* #94A3B8 */
+
     --radius: 0.5rem;
   }
 
@@ -103,6 +117,18 @@
     --warn: 36 76% 36%;                /* #A26B16 */
     --crit: 2 53% 49%;                 /* #C0413C */
     --info: 216 100% 45%;              /* #005CE6 */
+
+    /* Paleta categorica no claro: tons escurecidos para 4,5:1 sobre branco. */
+    --c-indigo: 243 75% 59%;            /* #4F46E5 */
+    --c-blue: 221 83% 53%;              /* #2563EB */
+    --c-cyan: 192 91% 36%;              /* #0891B2 */
+    --c-teal: 175 84% 32%;              /* #0D9488 */
+    --c-green: 161 94% 30%;             /* #059669 */
+    --c-amber: 26 90% 37%;              /* #B45309 */
+    --c-orange: 17 88% 40%;             /* #C2410C */
+    --c-rose: 347 77% 50%;              /* #E11D48 */
+    --c-violet: 262 83% 58%;            /* #7C3AED */
+    --c-slate: 215 16% 47%;             /* #64748B */
   }
 }
 

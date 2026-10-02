@@ -2,8 +2,10 @@ import { Fragment, useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, ArrowLeft, Info } from 'lucide-react';
 import {
     STATUS_COMERCIAL, STATUS_DOCUMENTAL, STATUS_FINANCEIRO, STATUS_FATURAMENTO,
-    StatusPill, TIPOS_DEMANDA_LABEL,
+    StatusPill,
 } from './constants';
+import { AreaChip, OperadoraChip, SharingNome } from './ui';
+import { FAIXA, SOLIDO, TEXTO, VEU, TOM_MODULO, TOM_STATUS, tomDe } from '../../lib/cores';
 import StatusOperacionalControl from './StatusOperacionalControl';
 import TabIdentificacao from './TabIdentificacao';
 import TabComercial from './TabComercial';
@@ -159,6 +161,9 @@ function buildTabs(modelo: string, sharing: string) {
     ];
 }
 
+// Aba ativa: véu e sublinhado na cor do módulo Atividades (azul).
+const TOM_ABA = TOM_MODULO.atividades;
+
 export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId: string; onBack: () => void }) {
     const [atividade, setAtividade] = useState<AtividadeDetalhe | null>(null);
     const [loading, setLoading] = useState(true);
@@ -212,7 +217,8 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                 <ArrowLeft size={16} aria-hidden /> Voltar para atividades
             </button>
 
-            <div className="bg-card border border-border rounded-xl p-5 mb-5">
+            {/* A faixa à esquerda é o status operacional: a mesma cor da linha na carteira. */}
+            <div className={`bg-card border border-border border-l-4 ${FAIXA[tomDe(TOM_STATUS, atividade.status_operacional)]} rounded-xl p-5 mb-5`}>
                 {/* Pendente primeiro: o cabeçalho abre dizendo o que falta e em
                     qual aba. Cada item leva direto para a aba. */}
                 {abasPendentes.length > 0 && (
@@ -234,22 +240,23 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                     <div>
                         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                             {atividade.id_site_sharing
-                                ? <span className="font-id text-2xl font-semibold">{atividade.id_site_sharing}</span>
+                                ? <span className={`font-id text-2xl font-semibold ${TEXTO[tomDe(TOM_STATUS, atividade.status_operacional)]}`}>{atividade.id_site_sharing}</span>
                                 : <span className="text-sm text-muted-foreground">Sem Site ID sharing</span>}
                             <span className="font-id text-xs text-muted-foreground">{atividade.codigo}</span>
                         </div>
                         <h1 className="text-lg font-semibold mt-1">{atividade.titulo}</h1>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1">
-                            <span>{atividade.sharing}</span>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground mt-1.5">
+                            <SharingNome sharing={atividade.sharing} />
+                            <OperadoraChip operadora={atividade.operadora} />
                             <span>
                                 Site operadora{' '}
                                 {atividade.id_site_operadora
                                     ? <span className="font-id text-foreground">{atividade.id_site_operadora}</span>
                                     : '—'}
                             </span>
-                            <span>
-                                {TIPOS_DEMANDA_LABEL[atividade.tipo_demanda] || atividade.tipo_demanda}
-                                {atividade.tipo_obra ? ` (${atividade.tipo_obra})` : ''}
+                            <span className="inline-flex items-center gap-1.5">
+                                <AreaChip tipo={atividade.tipo_demanda} />
+                                {atividade.tipo_obra && <span>{atividade.tipo_obra}</span>}
                             </span>
                         </div>
                         {atividade.acionamento && (
@@ -285,13 +292,15 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                             // mesma ação — escolher onde se está —, então respondem
                             // do mesmo jeito. A aba ativa leva o tom mais forte para
                             // continuar distinta de uma aba só apontada pelo mouse.
-                            className={`px-3.5 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px rounded-t-lg transition-colors ${activeTab === t.id
-                                    ? 'border-primary bg-primary/10 text-foreground'
+                            aria-current={activeTab === t.id ? 'page' : undefined}
+                            className={`relative px-3.5 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 -mb-px rounded-t-lg transition-colors ${activeTab === t.id
+                                    ? `border-transparent ${VEU[TOM_ABA]} text-foreground`
                                     : t.secondary
                                         ? 'border-transparent text-muted-foreground/60 hover:bg-primary/[0.07] hover:text-muted-foreground'
                                         : 'border-transparent text-muted-foreground hover:bg-primary/[0.07] hover:text-foreground'
                                 }`}
                         >
+                            {activeTab === t.id && <span className={`absolute inset-x-0 -bottom-0.5 h-0.5 rounded-full ${SOLIDO[TOM_ABA]}`} aria-hidden />}
                             {t.label}
                             {(() => {
                                 const n = alertasDaAba(t.id);

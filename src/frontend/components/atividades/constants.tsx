@@ -1,4 +1,5 @@
 import { tema } from '../../theme';
+import { CHIP, SOLIDO, TOM_STATUS, tomDe, type Tom } from '../../lib/cores';
 // Rótulos e cores dos status do Blueprint LSI — mantidos centralizados para
 // as telas de Atividades/Cockpit não divergirem entre si.
 
@@ -14,7 +15,9 @@ import { tema } from '../../theme';
  * On hold é roxo, não vermelho: uma obra parada por decisão não é um erro.
  */
 export const STATUS_OPERACIONAL: Record<string, { label: string; color: string }> = {
-    PLANEJAMENTO: { label: 'Planejamento', color: '#94a3b8' },
+    // Planejamento era cinza — e e o status de quase toda a carteira, que ficava
+    // inteira cinza. Agora cada fase tem a sua cor (lib/cores.ts, TOM_STATUS).
+    PLANEJAMENTO: { label: 'Planejamento', color: '#818cf8' },
     AGUARDANDO_LIBERACAO: { label: 'Aguardando liberação', color: '#f59e0b' },
     EM_EXECUCAO: { label: 'Em execução', color: '#1768D5' },
     CONCLUIDA: { label: 'Concluído', color: '#22c55e' },
@@ -126,7 +129,7 @@ export const chaveTexto = chaveUf;
 // a mesma confusão que existia no Controle de Obras legado ("Cliente/Sharing" x "Operadora").
 export const SHARINGS = ['HIGHLINE', 'IHS', 'WINITY', 'SBA', 'OUTROS'];
 export const OPERADORAS = ['VIVO', 'CLARO', 'TIM', 'OI', 'OUTROS'];
-export const OPERADORA_COLOR: Record<string, string> = { VIVO: '#818cf8', CLARO: '#ef4444', TIM: '#1768D5', OI: '#f59e0b', OUTROS: '#94a3b8' };
+export const OPERADORA_COLOR: Record<string, string> = { VIVO: '#a78bfa', CLARO: '#fb7185', TIM: '#60a5fa', OI: '#fbbf24', OUTROS: '#94a3b8' };
 // Blueprint LSI, seção 02 — três fluxos reais, não dois:
 // EXECUCAO_DIRETA = "Operação direta (Modelo 1)", sem aprovação prévia nenhuma.
 // EXECUCAO_COM_APROVACAO = "Operação com aprovação (Modelo 2 simplificado)": tem
@@ -203,17 +206,36 @@ const STATUS_TOM_CLARO: Record<string, string> = {
     '#22c55e': '#157839',  // verde  · sucesso
     '#ef4444': '#CC1111',  // vermelho · erro
     '#8b5cf6': '#763FF4',  // roxo
+    '#818cf8': '#4F46E5',  // indigo · planejamento
 };
 
-export function StatusPill({ status, map }: { status: string; map: Record<string, { label: string; color: string }> }) {
+// Cor de cada mapa de status traduzida para a família de lib/cores.ts, para a
+// pílula usar as mesmas classes (CHIP) que o resto do sistema.
+const TOM_POR_COR: Record<string, Tom> = {
+    '#94a3b8': 'slate', '#f59e0b': 'amber', '#1768d5': 'blue', '#22c55e': 'green',
+    '#ef4444': 'rose', '#8b5cf6': 'violet', '#818cf8': 'indigo',
+};
+
+export function StatusPill({ status, map, tom }: { status: string; map: Record<string, { label: string; color: string }>; tom?: Tom }) {
     const info = map[status] || { label: status, color: '#94a3b8' };
+    // Status operacional segue TOM_STATUS — a mesma cor da faixa, do kanban e da barra.
+    const t: Tom | undefined = tom
+        || (map === STATUS_OPERACIONAL ? tomDe(TOM_STATUS, status) : TOM_POR_COR[info.color.toLowerCase()]);
+    if (t) {
+        return (
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${CHIP[t]}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${SOLIDO[t]}`} aria-hidden />
+                {info.label}
+            </span>
+        );
+    }
     const cor = tema === 'claro' ? (STATUS_TOM_CLARO[info.color.toLowerCase()] || STATUS_TOM_CLARO[info.color] || info.color) : info.color;
     return (
         <span
             style={{ background: `${cor}22`, color: cor, border: `1px solid ${cor}55` }}
             className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap"
         >
-            <span className="w-1.5 h-1.5 rounded-full" style={{ background: cor }} />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: cor }} aria-hidden />
             {info.label}
         </span>
     );

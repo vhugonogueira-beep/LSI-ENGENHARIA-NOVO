@@ -1,10 +1,29 @@
-import { Bell, Building2, LayoutGrid, MapPin, Moon, RefreshCw, Search, Settings, Sun, type LucideIcon } from 'lucide-react';
+import {
+    BarChart3, Bell, Building2, ClipboardList, CreditCard, Folder, Handshake, Home, LayoutGrid, Library,
+    MapPin, Moon, Receipt, RefreshCw, Search, Settings, Sun, Target, TrendingUp, User, type LucideIcon,
+} from 'lucide-react';
 import { T, tema, aplicarTema } from '../theme';
+import { TOM_MODULO, hexTom, type Tom } from '../lib/cores';
+
+/** Ícone de cada módulo — o mesmo do menu lateral. */
+const ICONE_MODULO: Record<string, LucideIcon> = {
+    overview: Home, demandas: ClipboardList, dashboard: TrendingUp, historico: Folder, orcv2: Folder,
+    lpus: Library, atividades: Target, projetos: Target, controle: Target, fornecedores: Building2,
+    funcionarios: Building2, relatorios: BarChart3, faturamento: Receipt, pagamentos: CreditCard,
+    clientes: Handshake, perfil: User, configuracoes: Settings,
+};
 
 // Movido de SimuladorLPU.tsx (Fase 4 — extração do shell). Mesmo layout de antes;
 // os emojis de ícone viraram lucide-react e o que vinha da closure do App virou prop.
 
 export const TAB_LABELS: Record<string, string> = {
+    overview: "Visão Geral",
+    demandas: "Pipeline",
+    atividades: "Atividades",
+    pagamentos: "Controle de Pagamentos",
+    lpus: "Bases (LPUs)",
+    perfil: "Meu Perfil",
+    configuracoes: "Configurações",
     dashboard: "Dashboard Financeiro",
     orcv2: "Orçamento",
     orcamento: "Orçamento (LPU)",
@@ -54,8 +73,10 @@ const IconButton = ({ title, icon: Icone }: { title: string; icon: LucideIcon })
 
 export default function TopBar({ tab, user, obra, orcamentoSiteId, orcArea }: TopBarProps) {
     const tabLabel = TAB_LABELS[tab] || "Painel";
-    const pills: { icon: LucideIcon; label: string; color?: string }[] = [
-        { icon: LayoutGrid, label: tabLabel, color: T.txPri },
+    // Pílula do módulo atual: ícone do módulo na cor dele (TOM_MODULO).
+    const tomModulo: Tom | undefined = TOM_MODULO[tab];
+    const pills: { icon: LucideIcon; label: string; color?: string; tom?: Tom }[] = [
+        { icon: ICONE_MODULO[tab] || LayoutGrid, label: tabLabel, color: T.txPri, tom: tomModulo },
     ];
 
     if (tab === "controle" && obra) {
@@ -80,11 +101,19 @@ export default function TopBar({ tab, user, obra, orcamentoSiteId, orcArea }: To
                         <div key={i} style={{
                             display: "flex", alignItems: "center", gap: 8,
                             background: T.bg2, border: `1px solid ${T.brBase}`,
-                            padding: "6px 14px", borderRadius: 10,
+                            padding: i === 0 && p.tom ? "4px 14px 4px 6px" : "6px 14px", borderRadius: 10,
                             fontSize: 12, fontWeight: 700, color: p.color || T.txPri,
                             boxShadow: "0 4px 12px rgba(15, 23, 42, 0.04)",
                         }}>
-                            <Icone size={15} aria-hidden="true" style={{ opacity: 0.8 }} />
+                            {p.tom ? (
+                                <span aria-hidden="true" style={{
+                                    width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    background: `${hexTom(p.tom)}1f`, color: hexTom(p.tom),
+                                }}>
+                                    <Icone size={14} />
+                                </span>
+                            ) : <Icone size={15} aria-hidden="true" style={{ opacity: 0.8 }} />}
                             <span style={{ whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{p.label}</span>
                         </div>
                     );

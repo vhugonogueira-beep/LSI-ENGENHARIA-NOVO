@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { STATUS_OPERACIONAL, StatusPill } from './constants';
 import { T } from '../../theme';
+import { SOLIDO, VEU, TOM_STATUS, tomDe } from '../../lib/cores';
 
 /**
  * Controle manual do status operacional da atividade.
@@ -100,13 +101,11 @@ export default function StatusOperacionalControl({
                                 type="button"
                                 disabled={atual}
                                 onClick={() => setEscolhido(id)}
-                                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors disabled:cursor-default"
-                                style={{
-                                    background: marcado ? `${info.color}1F` : 'transparent',
-                                    color: atual ? T.txDis : T.txPri,
-                                }}
+                                aria-pressed={marcado}
+                                className={`flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors disabled:cursor-default ${marcado ? VEU[tomDe(TOM_STATUS, id)] : ''}`}
+                                style={{ color: atual ? T.txDis : T.txPri }}
                             >
-                                <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: info.color }} aria-hidden />
+                                <span className={`h-2 w-2 flex-shrink-0 rounded-full ${SOLIDO[tomDe(TOM_STATUS, id)]}`} aria-hidden />
                                 <span className="flex-1">{info.label}</span>
                                 {atual && <span className="text-[11px]" style={{ color: T.txDis }}>atual</span>}
                             </button>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, ShieldCheck, UserRound } from 'lucide-react';
+import { KeyRound, ShieldCheck, UserRound, Mail, type LucideIcon } from 'lucide-react';
+import { TEXTO, type Tom } from '../lib/cores';
 import MinhaAssinaturaEmail from '../components/perfil/MinhaAssinaturaEmail';
 import { authFetch } from '../lib/authFetch';
 import { useSessao } from '../lib/permissoes';
@@ -15,10 +16,11 @@ import { useSessao } from '../lib/permissoes';
 
 type Aba = 'dados' | 'acesso' | 'assinatura';
 
-const ABAS: { id: Aba; rotulo: string }[] = [
-  { id: 'dados', rotulo: 'Dados pessoais' },
-  { id: 'acesso', rotulo: 'Acesso e senha' },
-  { id: 'assinatura', rotulo: 'Assinatura de e-mail' },
+// Cada aba com o seu ícone e a sua cor (lib/cores.ts); a ativa segue azul de ação.
+const ABAS: { id: Aba; rotulo: string; icone: LucideIcon; tom: Tom }[] = [
+  { id: 'dados', rotulo: 'Dados pessoais', icone: UserRound, tom: 'blue' },
+  { id: 'acesso', rotulo: 'Acesso e senha', icone: KeyRound, tom: 'amber' },
+  { id: 'assinatura', rotulo: 'Assinatura de e-mail', icone: Mail, tom: 'cyan' },
 ];
 
 const inputClass = 'h-10 w-full rounded-lg border border-border bg-secondary px-3 text-sm text-foreground outline-none focus:border-primary';
@@ -98,15 +100,16 @@ export default function MeuPerfil() {
       )}
 
       <nav className="flex flex-wrap gap-2">
-        {ABAS.map(({ id, rotulo }) => (
+        {ABAS.map(({ id, rotulo, icone: Icone, tom }) => (
           <button
             key={id}
             onClick={() => setAba(id)}
             aria-pressed={aba === id}
-            className={`rounded-lg border px-4 py-2 text-xs font-bold ${
+            className={`inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-bold ${
               aba === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground'
             }`}
           >
+            <Icone size={14} aria-hidden className={aba === id ? '' : TEXTO[tom]} />
             {rotulo}
           </button>
         ))}

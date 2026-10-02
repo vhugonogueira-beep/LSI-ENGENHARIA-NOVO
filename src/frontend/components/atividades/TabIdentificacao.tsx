@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
-import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Row } from './ui';
+import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Row, AreaChip, OperadoraChip, SharingNome } from './ui';
 import {
     TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
@@ -92,14 +92,19 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
             <Card title="Identificação" action={<GhostButton onClick={() => setEditing(true)}><Pencil size={14} className="inline mr-1" aria-hidden />Editar</GhostButton>}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                     <div>
-                        <Row label="Cliente (sharing)" value={atividade.sharing} />
-                        <Row label="Operadora" value={atividade.operadora} />
+                        <Row label="Cliente (sharing)" value={atividade.sharing && <SharingNome sharing={atividade.sharing} />} />
+                        <Row label="Operadora" value={atividade.operadora && <OperadoraChip operadora={atividade.operadora} />} />
                         <Row label="Contratante" value={atividade.contratante?.nome} />
                         <Row label="Contrato" value={atividade.contrato} />
                         <Row label="Site ID sharing" value={atividade.id_site_sharing && <span className="font-id">{atividade.id_site_sharing}</span>} />
                         <Row label="Site ID operadora" value={atividade.id_site_operadora && <span className="font-id">{atividade.id_site_operadora}</span>} />
                         <Row label="UF e município" value={[normalizarUf(atividade.estado) || atividade.estado, atividade.municipio].filter(Boolean).join(' / ') || '—'} />
-                        <Row label="Tipo de demanda" value={`${TIPOS_DEMANDA_LABEL[atividade.tipo_demanda] || atividade.tipo_demanda}${atividade.subtipo_demanda ? ` (${SUBTIPOS_OPERACAO_LABEL[atividade.subtipo_demanda] || atividade.subtipo_demanda})` : ''}`} />
+                        <Row label="Tipo de demanda" value={
+                            <span className="inline-flex items-center gap-1.5">
+                                <AreaChip tipo={atividade.tipo_demanda} />
+                                {atividade.subtipo_demanda && <span>{SUBTIPOS_OPERACAO_LABEL[atividade.subtipo_demanda] || atividade.subtipo_demanda}</span>}
+                            </span>
+                        } />
                     </div>
                     <div>
                         <Row label="Tipo de obra" value={atividade.tipo_obra} />

@@ -4,6 +4,7 @@ import { useEhAdmin } from "../lib/permissoes";
 import UsuariosAcessos from "../components/configuracoes/UsuariosAcessos";
 import { T as TEMA } from "../theme";
 import { Building2, Landmark, CreditCard, Mail, Users, X, Plus } from "lucide-react";
+import { hexTom, type Tom } from "../lib/cores";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configurações — o cadastro da própria LS Office.
@@ -290,13 +291,14 @@ export default function Configuracoes() {
 
   if (carregando) return <div style={{ padding: 40, color: T.txMut }}>Carregando configurações...</div>;
 
-  const abas: { id: Aba; rotulo: string; icone: React.ReactNode }[] = [
-    { id: "empresa", rotulo: "Dados da empresa", icone: <Building2 size={14} aria-hidden /> },
-    { id: "contas", rotulo: `Contas para recebimento (${contas.length})`, icone: <Landmark size={14} aria-hidden /> },
-    { id: "cartoes", rotulo: `Cartões corporativos (${cartoes.length})`, icone: <CreditCard size={14} aria-hidden /> },
-    { id: "comunicacao", rotulo: "Comunicação", icone: <Mail size={14} aria-hidden /> },
+  // Cada aba tem a sua cor no ícone (lib/cores.ts); a aba ativa continua azul de ação.
+  const abas: { id: Aba; rotulo: string; icone: React.ReactNode; tom: Tom }[] = [
+    { id: "empresa", rotulo: "Dados da empresa", icone: <Building2 size={14} aria-hidden />, tom: "indigo" },
+    { id: "contas", rotulo: `Contas para recebimento (${contas.length})`, icone: <Landmark size={14} aria-hidden />, tom: "green" },
+    { id: "cartoes", rotulo: `Cartões corporativos (${cartoes.length})`, icone: <CreditCard size={14} aria-hidden />, tom: "orange" },
+    { id: "comunicacao", rotulo: "Comunicação", icone: <Mail size={14} aria-hidden />, tom: "cyan" },
     // Gestão de acesso é do administrador; os demais nem veem a aba.
-    ...(ehAdmin ? [{ id: "usuarios" as Aba, rotulo: "Usuários e acessos", icone: <Users size={14} aria-hidden /> }] : []),
+    ...(ehAdmin ? [{ id: "usuarios" as Aba, rotulo: "Usuários e acessos", icone: <Users size={14} aria-hidden />, tom: "violet" as Tom }] : []),
   ];
 
   return (
@@ -320,7 +322,7 @@ export default function Configuracoes() {
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {abas.map(a => (
-          <button key={a.id} onClick={() => setAba(a.id)} aria-pressed={aba === a.id} style={{ ...S.btn, ...(aba === a.id ? S.btnBlue : {}), display: "inline-flex", alignItems: "center", gap: 6 }}>{a.icone}{a.rotulo}</button>
+          <button key={a.id} onClick={() => setAba(a.id)} aria-pressed={aba === a.id} style={{ ...S.btn, ...(aba === a.id ? S.btnBlue : {}), display: "inline-flex", alignItems: "center", gap: 6 }}><span style={{ display: "inline-flex", color: aba === a.id ? "inherit" : hexTom(a.tom) }}>{a.icone}</span>{a.rotulo}</button>
         ))}
       </div>
 

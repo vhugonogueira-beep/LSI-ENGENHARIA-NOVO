@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
     REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
+import { AreaChip, OperadoraChip, SharingNome } from '../components/atividades/ui';
+import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_AREA, TOM_MODULO, tomDe, type Tom } from '../lib/cores';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { useEhAdmin } from '../lib/permissoes';
 
@@ -60,16 +62,16 @@ const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_LIBERACAO', 'EM_EXECUCAO', 'CO
 const hojeISO = () => new Date().toISOString().slice(0, 10);
 const atrasada = (a: Atividade) => Boolean(a.data_fim_planejada) && a.status_operacional !== 'CONCLUIDA'
     && String(a.data_fim_planejada).slice(0, 10) < hojeISO();
-const SITUACOES: { id: string; label: string; teste: (a: Atividade) => boolean }[] = [
+const SITUACOES: { id: string; label: string; teste: (a: Atividade) => boolean; tom?: Tom }[] = [
     { id: 'TODAS', label: 'Todas', teste: () => true },
-    { id: 'ABERTAS', label: 'Em aberto', teste: a => a.status_operacional !== 'CONCLUIDA' },
-    { id: 'EM_EXECUCAO', label: 'Em execução', teste: a => a.status_operacional === 'EM_EXECUCAO' },
-    { id: 'ATRASADAS', label: 'Atrasadas', teste: atrasada },
-    { id: 'ON_HOLD', label: 'On hold', teste: a => a.status_operacional === 'ON_HOLD' },
-    { id: 'SEM_PO', label: 'Sem PO', teste: a => !a.po && a.status_operacional !== 'CONCLUIDA' },
+    { id: 'ABERTAS', label: 'Em aberto', tom: 'indigo', teste: a => a.status_operacional !== 'CONCLUIDA' },
+    { id: 'EM_EXECUCAO', label: 'Em execução', tom: 'blue', teste: a => a.status_operacional === 'EM_EXECUCAO' },
+    { id: 'ATRASADAS', label: 'Atrasadas', tom: 'rose', teste: atrasada },
+    { id: 'ON_HOLD', label: 'On hold', tom: 'violet', teste: a => a.status_operacional === 'ON_HOLD' },
+    { id: 'SEM_PO', label: 'Sem PO', tom: 'amber', teste: a => !a.po && a.status_operacional !== 'CONCLUIDA' },
     // Pagamento solicitado/pago sem comprovante anexado — independe do status da obra.
-    { id: 'COMPROVANTE_PENDENTE', label: 'Comprovante pendente', teste: a => (a.comprovantes_pendentes || 0) > 0 },
-    { id: 'CONCLUIDAS', label: 'Concluídas', teste: a => a.status_operacional === 'CONCLUIDA' },
+    { id: 'COMPROVANTE_PENDENTE', label: 'Comprovante pendente', tom: 'amber', teste: a => (a.comprovantes_pendentes || 0) > 0 },
+    { id: 'CONCLUIDAS', label: 'Concluídas', tom: 'green', teste: a => a.status_operacional === 'CONCLUIDA' },
 ];
 const FILTROS_INIT = { situacao: 'TODAS', tipo: '', subtipo: '', uf: '', regiao: '', sharing: '', operadora: '', gestor: '' };
 const FILTROS_KEY = 'ls_atividades_filtros';
@@ -77,6 +79,8 @@ const FILTROS_KEY = 'ls_atividades_filtros';
 function lerFiltros(): typeof FILTROS_INIT {
     try { return { ...FILTROS_INIT, ...JSON.parse(localStorage.getItem(FILTROS_KEY) || '{}') }; } catch { return FILTROS_INIT; }
 }
+/** Tom do status operacional da atividade (faixa, pílula, kanban, barra). */
+const tomStatus = (status: string) => tomDe(TOM_STATUS, status);
 const PO_STATUS_TOM: Record<string, string> = { AGUARDANDO: 'text-muted-foreground', RECEBIDA: 'text-warn', VALIDADA: 'text-primary', LIBERADA: 'text-ok' };
 
 // `vistaInicial` existe para o item "Pipeline" da sidebar abrir esta mesma tela
@@ -320,9 +324,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     return (
         <div className="p-8 text-foreground">
             <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h2 className="text-3xl font-bold">Atividades</h2>
-                    <p className="text-muted-foreground mt-1">Centro operacional de implantação e operação</p>
+                <div className="flex items-center gap-3">
+                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${VEU[TOM_MODULO.atividades]} ${TEXTO[TOM_MODULO.atividades]}`} aria-hidden>
+                        <HardHat size={22} />
+                    </span>
+                    <div>
+                        <h2 className="text-3xl font-bold">Atividades</h2>
+                        <p className="text-muted-foreground mt-1">Centro operacional de implantação e operação</p>
+                    </div>
                 </div>
                 <button
                     onClick={() => { setForm(FORM_INIT); setErro(''); setShowForm(true); }}
@@ -367,14 +376,17 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         {SITUACOES.map(s => {
                             const total = semSituacao.filter(s.teste).length;
                             const ativo = filtros.situacao === s.id;
-                            const alerta = (s.id === 'ATRASADAS' || s.id === 'COMPROVANTE_PENDENTE') && total > 0;
+                            // Com contagem, cada recorte leva a cor do que significa:
+                            // tingido quando inativo, cheio quando escolhido.
+                            const tom = total > 0 ? s.tom : undefined;
+                            const estilo = tom
+                                ? (ativo ? `border border-transparent ${SOLIDO[tom]} text-background` : `${CHIP[tom]} hover:brightness-110`)
+                                : ativo ? 'border border-primary bg-primary text-primary-foreground'
+                                    : 'border border-border text-muted-foreground hover:text-foreground';
                             return (
                                 <button key={s.id} type="button" aria-pressed={ativo} onClick={() => setFiltro('situacao', s.id)}
-                                    className={`h-8 rounded-full border px-3 text-xs font-semibold transition-colors ${ativo
-                                        ? 'border-primary bg-primary text-primary-foreground'
-                                        : alerta ? 'border-warn/40 text-warn hover:bg-warn/10'
-                                            : 'border-border text-muted-foreground hover:text-foreground'}`}>
-                                    {s.label} <span className={`tabular-nums ${ativo ? 'opacity-80' : 'opacity-60'}`}>{total || '—'}</span>
+                                    className={`h-8 rounded-full px-3 text-xs font-semibold transition-colors ${estilo}`}>
+                                    {s.label} <span className={`tabular-nums ${ativo ? 'opacity-90' : 'opacity-70'}`}>{total || '—'}</span>
                                 </button>
                             );
                         })}
@@ -384,7 +396,10 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         <div className="flex gap-1 rounded-lg bg-secondary/40 p-0.5">
                             {[['', 'Todos os tipos'], ...TIPOS_DEMANDA.map(t => [t, TIPOS_DEMANDA_LABEL[t] || t])].map(([id, label]) => (
                                 <button key={id} onClick={() => setFiltros(f => ({ ...f, tipo: id, subtipo: id === 'OPERACAO' ? f.subtipo : '' }))}
-                                    className={`h-7 rounded-md px-2.5 text-xs font-semibold ${filtros.tipo === id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                                    aria-pressed={filtros.tipo === id}
+                                    className={`h-7 rounded-md px-2.5 text-xs font-semibold ${filtros.tipo === id
+                                        ? (id ? `${SOLIDO[tomDe(TOM_AREA, id)]} text-background` : 'bg-primary text-primary-foreground')
+                                        : id ? `${TEXTO[tomDe(TOM_AREA, id)]} hover:bg-secondary/60` : 'text-muted-foreground hover:text-foreground'}`}>
                                     {label}
                                 </button>
                             ))}
@@ -483,8 +498,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 const avanco = Math.min(100, Math.max(0, a.avanco_percentual ?? 0));
                                 const local = [normalizarUf(a.estado) || a.estado, a.municipio].filter(Boolean).join(' / ');
                                 const gestor = a.gestor || a.responsavel;
+                                const tom = tomStatus(a.status_operacional);
                                 return (
-                                    <tr key={a.id} className="border-b border-border/60 last:border-0 hover:bg-secondary/20 transition-colors">
+                                    <tr key={a.id} className={`border-b border-border/60 last:border-b-0 border-l-4 ${FAIXA[tom]} hover:bg-secondary/20 transition-colors`}>
                                         <td className="px-3 py-3 align-top">
                                             <input type="checkbox" checked={selecionadas.includes(a.id)}
                                                 aria-label={`Selecionar ${a.id_site_sharing || a.codigo}`}
@@ -499,14 +515,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}
                                                 <span className="font-id">{a.codigo}</span>
                                             </div>
-                                            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                                                <AreaChip tipo={a.tipo_demanda} />
                                                 {local && <span>{local}</span>}
-                                                <span>{TIPOS_DEMANDA_LABEL[a.tipo_demanda] || a.tipo_demanda}</span>
                                             </div>
                                         </td>
                                         <td className="px-3 py-3 align-top">
-                                            <div className="font-medium whitespace-nowrap">{a.sharing}</div>
-                                            <div className="text-xs text-muted-foreground">{a.operadora || '—'}</div>
+                                            <div className="whitespace-nowrap"><SharingNome sharing={a.sharing} /></div>
+                                            <div className="mt-1 text-xs">{a.operadora ? <OperadoraChip operadora={a.operadora} /> : <span className="text-muted-foreground">—</span>}</div>
                                             {gestor && <div className="mt-1 text-xs text-muted-foreground whitespace-nowrap">Gestor {gestor}</div>}
                                             {a.fornecedor_principal && <div className="text-xs text-muted-foreground">{a.fornecedor_principal}</div>}
                                         </td>
@@ -521,7 +537,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             {avanco > 0 ? (
                                                 <div className="flex items-center gap-2 pt-1">
                                                     <div className="h-1.5 flex-1 min-w-[52px] rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
-                                                        <div className={`h-full rounded-full ${avanco >= 100 ? 'bg-ok' : 'bg-primary'}`} style={{ width: `${avanco}%` }} />
+                                                        <div className={`h-full rounded-full ${SOLIDO[avanco >= 100 ? 'green' : tom]}`} style={{ width: `${avanco}%` }} />
                                                     </div>
                                                     <span className="text-xs font-medium w-9 text-right tabular-nums">{Math.round(avanco)}%</span>
                                                 </div>
@@ -563,10 +579,10 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         const r = p.resumo || {};
                         const aberto = projetoAberto?.id === p.id;
                         return (
-                            <div key={p.id} className="rounded-xl border border-border bg-card overflow-hidden">
+                            <div key={p.id} className={`rounded-xl border border-border border-l-4 ${FAIXA[TOM_MODULO.atividades]} bg-card overflow-hidden`}>
                                 <button onClick={() => setProjetoAberto(aberto ? null : p)}
                                     className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-left hover:bg-primary/[0.04]">
-                                    <span className="font-id text-xs text-muted-foreground">{p.codigo}</span>
+                                    <span className={`font-id text-xs ${TEXTO[TOM_MODULO.atividades]}`}>{p.codigo}</span>
                                     <strong className="text-sm">{p.titulo}</strong>
                                     <span className="text-[11px] text-muted-foreground">{r.atividades ?? (p.atividades?.length || 0)} atividade(s)</span>
                                     <span className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
@@ -582,18 +598,27 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 </button>
                                 {aberto && (
                                     <div className="border-t border-border">
-                                        {(p.atividades || []).map((a: any) => (
+                                        {(p.atividades || []).map((a: any) => {
+                                            // A listagem do projeto pode não trazer status/área; aí
+                                            // completa com a linha da carteira, se ela estiver lá.
+                                            const daCarteira = atividades.find(x => x.id === a.id);
+                                            const status: string | undefined = a.status_operacional || daCarteira?.status_operacional;
+                                            const area: string | undefined = a.tipo_demanda || daCarteira?.tipo_demanda;
+                                            return (
                                             <button key={a.id} onClick={() => setSelecionadaId(a.id)}
-                                                className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2.5 text-left text-xs last:border-0 hover:bg-secondary/30">
-                                                <span className="font-id text-xs text-primary">{a.codigo}</span>
+                                                className={`flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2.5 text-left text-xs last:border-b-0 hover:bg-secondary/30 ${status ? `border-l-4 ${FAIXA[tomStatus(status)]}` : ''}`}>
+                                                <span className={`font-id text-xs ${TEXTO[TOM_MODULO.atividades]}`}>{a.codigo}</span>
                                                 <span>{a.titulo}</span>
+                                                {status && <StatusPill status={status} map={STATUS_OPERACIONAL} />}
+                                                <AreaChip tipo={area} />
                                                 {a.site && <span className="font-id text-xs text-muted-foreground">{a.site}</span>}
                                                 <span className="ml-auto flex items-center gap-x-4 text-[11px] text-muted-foreground">
                                                     <span>Contratado <Valor v={a.custo_comprometido} /></span>
                                                     {(a.custo_rateado || 0) > 0 && <span>Rateado <Valor v={a.custo_rateado} /></span>}
                                                 </span>
                                             </button>
-                                        ))}
+                                            );
+                                        })}
                                         {(p.atividades || []).length === 0 && (
                                             <div className="px-4 py-6 text-center text-xs text-muted-foreground">Projeto sem atividades. Agrupe pela visão de Lista.</div>
                                         )}
@@ -608,20 +633,22 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     {KANBAN_ORDEM.map(statusId => {
                         const cards = filtradas.filter(a => a.status_operacional === statusId);
                         const info = STATUS_OPERACIONAL[statusId];
+                        const tom = tomStatus(statusId);
                         return (
                             <div key={statusId} className="min-w-[280px] w-[280px] flex-shrink-0 bg-card border border-border rounded-xl overflow-hidden">
-                                <div className="px-3.5 py-2.5 bg-secondary/60 border-b border-border flex items-center justify-between">
+                                <div className={`px-3.5 py-2.5 ${VEU[tom]} border-t-2 ${TOPO[tom]} border-b border-b-border flex items-center justify-between`}>
                                     <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full" style={{ background: info.color }} aria-hidden />
-                                        <span className="text-xs font-semibold text-foreground">{info.label}</span>
+                                        <span className={`w-2 h-2 rounded-full ${SOLIDO[tom]}`} aria-hidden />
+                                        <span className={`text-xs font-semibold ${TEXTO[tom]}`}>{info.label}</span>
                                     </div>
-                                    <span className={`text-xs font-medium tabular-nums ${cards.length ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                    <span className={`inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums ${cards.length ? CHIP[tom] : 'text-muted-foreground'}`}
+                                        title={`${cards.length} atividade(s)`}>
                                         {cards.length || '—'}
                                     </span>
                                 </div>
                                 <div className="p-2 flex flex-col gap-2 min-h-[100px]">
                                     {cards.length === 0 && (
-                                        <div className="text-center py-6 text-xs text-muted-foreground">Nenhuma atividade</div>
+                                        <div className="m-1 rounded-lg border border-dashed border-border/70 py-6 text-center text-xs text-muted-foreground/80">Nenhuma atividade</div>
                                     )}
                                     {cards.map(a => {
                                         const doc = Math.min(100, a.documentos_percentual || 0);
@@ -630,15 +657,18 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 key={a.id}
                                                 type="button"
                                                 onClick={() => setSelecionadaId(a.id)}
-                                                className="text-left bg-secondary/40 hover:bg-secondary/70 border border-border rounded-lg p-3 transition-colors"
+                                                className={`text-left bg-secondary/40 hover:bg-secondary/70 border border-border border-l-4 ${FAIXA[tom]} rounded-lg p-3 transition-colors`}
                                             >
                                                 {a.id_site_sharing
                                                     ? <div className="font-id text-base font-semibold leading-tight">{a.id_site_sharing}</div>
                                                     : <div className="text-sm text-muted-foreground">Sem Site ID</div>}
                                                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                                                     {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}
-                                                    <span>{a.sharing}</span>
-                                                    <span>{TIPOS_DEMANDA_LABEL[a.tipo_demanda] || a.tipo_demanda}</span>
+                                                    <SharingNome sharing={a.sharing} />
+                                                </div>
+                                                <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                                                    <AreaChip tipo={a.tipo_demanda} />
+                                                    <OperadoraChip operadora={a.operadora} />
                                                 </div>
                                                 <div className="mt-1.5 text-sm leading-snug">{a.titulo}</div>
                                                 <div className="mt-0.5 font-id text-[11px] text-muted-foreground">{a.codigo}</div>

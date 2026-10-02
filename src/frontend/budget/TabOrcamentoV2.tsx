@@ -5,11 +5,32 @@ import { carregarTemplatesDoBanco, findTemplate, templatesDeFallback } from "./l
 import { gerarPdfBudgetV2 } from "./gerarPdfV2";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
+import { TOM_MODULO, TOM_OPERADORA, TOM_SHARING, hexTom } from '../lib/cores';
 import { BarChart3, Blocks, Check, ClipboardList, Cog, FileText, HardHat, Link2, MapPin, NotebookPen, Package, Plus, Save, ShoppingCart, Wallet, Wrench, X } from "lucide-react";
 
 const MONO = "'IBM Plex Mono', ui-monospace, monospace";
 const iconeBtn: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 3, display: "inline-flex", alignItems: "center", borderRadius: 6 };
 const comIcone: React.CSSProperties = { display: "inline-flex", alignItems: "center", gap: 6 };
+
+/**
+ * Cor do sharing (lib/cores.ts): Highline ciano, IHS laranja, Winity violeta, SBA teal;
+ * operadoras pela cor da operadora. Procura cada palavra do id/nome ("ATC / SBA" → SBA).
+ */
+const corSharing = (...chaves: (string | null | undefined)[]) => {
+  for (const mapa of [TOM_SHARING, TOM_OPERADORA]) {
+    for (const chave of chaves) {
+      for (const t of String(chave || "").toUpperCase().split(/[^A-Z0-9]+/)) {
+        if (t && t !== "OUTROS" && mapa[t]) return hexTom(mapa[t]);
+      }
+    }
+  }
+  return hexTom("slate");
+};
+const COR_MODULO = hexTom(TOM_MODULO.orcv2);
+const caixaIcone = (tam: number): React.CSSProperties => ({
+  width: tam, height: tam, borderRadius: 8, background: COR_MODULO + "1f", color: COR_MODULO,
+  display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+});
 
 // Theme (original dark)
 
@@ -301,7 +322,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
   if (!activeBudget) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 16 }}>
-        <ClipboardList size={32} aria-hidden style={{ color: T.txMut }} />
+        <span aria-hidden style={caixaIcone(56)}><ClipboardList size={28} /></span>
         <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>Orçamentos multi-sharing</div>
         <div style={{ fontSize: 11, color: T.txMut, textAlign: "center", maxWidth: 400 }}>
           Crie orçamentos com múltiplos clientes de sharing, cada um com seu próprio template de LPU, BDI e parâmetros independentes.
@@ -318,6 +339,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
       {toast && <div style={{ padding: "4px 12px", fontSize: 11, color: T.green, background: T.green + "22", borderRadius: 6, textAlign: "center", border: `1px solid ${T.green}40`, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Check size={14} aria-hidden /> {toast}</div>}
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <span aria-hidden style={caixaIcone(28)}><ClipboardList size={15} /></span>
         <span style={{ fontSize: 13, fontWeight: 700, color: T.blue, fontFamily: MONO }}>{activeBudget.id}</span>
         <span style={{ fontSize: 11, padding: "1px 8px", borderRadius: 10, background: T.bg4, color: T.txMut, fontWeight: 600 }}>{activeBudget.status}</span>
         <span style={{ fontSize: 11, color: T.txMut }}>{activeBudget.data}</span>
@@ -556,16 +578,16 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
           <div style={S.card}>
             <div style={{ fontWeight: 700, color: T.txPri, fontSize: 13, marginBottom: 8, ...comIcone }}><Plus size={15} aria-hidden style={{ color: T.txMut }} /> Adicionar bloco de sharing</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {sharingClients.filter(c => c.ativo).map(c => (
+              {sharingClients.filter(c => c.ativo).map(c => { const cor = corSharing(c.id, c.sigla, c.nome); return (
                 <div key={c.id} style={{ display: "flex", gap: 3 }}>
-                  <button onClick={() => addSharingBlock(c.id, "implantacao")} title={`Adicionar bloco de implantação ${c.nome}`} style={{ ...S.ghost, ...comIcone, borderColor: c.cor + "60", color: c.cor, fontSize: 11 }}>
+                  <button onClick={() => addSharingBlock(c.id, "implantacao")} title={`Adicionar bloco de implantação ${c.nome}`} style={{ ...S.ghost, ...comIcone, borderColor: cor + "60", background: cor + "12", color: cor, fontSize: 11 }}>
                     <span style={{ fontWeight: 700 }}>{c.sigla}</span><span>Impl.</span>
                   </button>
-                  <button onClick={() => addSharingBlock(c.id, "manutencao")} title={`Adicionar bloco de manutenção ${c.nome}`} style={{ ...S.ghost, ...comIcone, borderColor: c.cor + "60", color: c.cor, fontSize: 11 }}>
+                  <button onClick={() => addSharingBlock(c.id, "manutencao")} title={`Adicionar bloco de manutenção ${c.nome}`} style={{ ...S.ghost, ...comIcone, borderColor: cor + "60", background: cor + "12", color: cor, fontSize: 11 }}>
                     <span style={{ fontWeight: 700 }}>{c.sigla}</span><span>Mant.</span>
                   </button>
                 </div>
-              ))}
+              ); })}
             </div>
           </div>
 
@@ -580,11 +602,12 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
               {activeBudget.blocos.map(bloco => {
                 const custo = calcBlocoCustoDireto(bloco);
                 const total = calcBlocoTotal(bloco);
+                const cor = corSharing(bloco.sharingId, bloco.sharingNome);
                 return (
-                  <div key={bloco.id} style={S.card}>
+                  <div key={bloco.id} style={{ ...S.card, borderLeft: `4px solid ${cor}` }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                       <div>
-                        <span style={{ fontSize: 11, fontWeight: 700, color: bloco.sharingCor }}>{bloco.sharingNome}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: cor, background: cor + "1a", border: `1px solid ${cor}4d`, borderRadius: 999, padding: "1px 8px" }}>{bloco.sharingNome}</span>
                         <span style={{ fontSize: 11, color: T.txMut, marginLeft: 8, ...comIcone, gap: 4, verticalAlign: "middle" }}>
                           {bloco.tipo === "implantacao" ? <Wrench size={14} aria-hidden /> : <Cog size={14} aria-hidden />}
                           {bloco.tipo === "implantacao" ? "Implantação" : "Manutenção"}
@@ -618,19 +641,20 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
         <div className="step-enter" style={{ display: "flex", gap: 8, flex: 1, overflow: "hidden" }}>
           {/* Block tabs (left) */}
           <div style={{ width: 160, flexShrink: 0, display: "flex", flexDirection: "column", gap: 3, overflowY: "auto" }}>
-            {activeBudget.blocos.map(bl => (
+            {activeBudget.blocos.map(bl => { const cor = corSharing(bl.sharingId, bl.sharingNome); return (
               <button key={bl.id} onClick={() => { setActiveBlockId(bl.id); setCatFilter("TODOS"); setSearchTerm(""); }}
+                aria-pressed={activeBlockId === bl.id}
                 style={{
                   ...S.ghost, textAlign: "left", fontSize: 11, padding: "6px 8px",
-                  borderLeft: `3px solid ${activeBlockId === bl.id ? bl.sharingCor : "transparent"}`,
-                  background: activeBlockId === bl.id ? bl.sharingCor + "18" : "transparent",
-                  color: activeBlockId === bl.id ? bl.sharingCor : T.txMut,
+                  borderLeft: `3px solid ${activeBlockId === bl.id ? cor : cor + "55"}`,
+                  background: activeBlockId === bl.id ? cor + "18" : "transparent",
+                  color: activeBlockId === bl.id ? cor : T.txMut,
                   fontWeight: activeBlockId === bl.id ? 700 : 400,
                 }}>
                 <div>{bl.sharingNome}</div>
                 <div style={{ fontSize: 11, opacity: 0.7, display: "flex", gap: 8 }}><span>{bl.tipo === "implantacao" ? "Implantação" : "Operação"}</span><span>{bl.itens.length} itens</span></div>
               </button>
-            ))}
+            ); })}
             <div style={{ height: 1, background: T.brSub, margin: "4px 0" }} />
             <div style={{ fontSize: 11, color: T.txMut, padding: "4px 8px" }}>
               <div>CAPEX <span style={{ color: T.txPri, fontWeight: 600 }}>{fmt(totals.totalCapex)}</span></div>
@@ -687,7 +711,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
               {/* Selected items */}
               <div style={{ ...S.card, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 700, fontSize: 12, color: activeBlock.sharingCor, ...comIcone }}>
+                  <span style={{ fontWeight: 700, fontSize: 12, color: corSharing(activeBlock.sharingId, activeBlock.sharingNome), ...comIcone }}>
                     <ShoppingCart size={14} aria-hidden /> {activeBlock.sharingNome} ({activeBlock.itens.length})
                   </span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: T.txPri }}>{fmt(calcBlocoTotal(activeBlock))}</span>
@@ -790,7 +814,12 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                   const total = calcBlocoTotal(bl);
                   return (
                     <tr key={bl.id} style={{ borderBottom: `1px solid ${T.brSub}` }}>
-                      <td style={{ padding: "4px 6px", fontWeight: 700, color: bl.sharingCor }}>{bl.sharingNome}</td>
+                      <td style={{ padding: "4px 6px", fontWeight: 700, color: corSharing(bl.sharingId, bl.sharingNome) }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: corSharing(bl.sharingId, bl.sharingNome), flexShrink: 0 }} />
+                          {bl.sharingNome}
+                        </span>
+                      </td>
                       <td style={{ padding: "4px 6px", color: T.txMut }}><span style={{ ...comIcone, gap: 4 }}>{bl.tipo === "implantacao" ? <Wrench size={14} aria-hidden /> : <Cog size={14} aria-hidden />}{bl.tipo === "implantacao" ? "Impl." : "Oper."}</span></td>
                       <td style={{ padding: "4px 6px", color: T.txSec }}>{fmt(custo)}</td>
                       <td style={{ padding: "4px 6px", color: T.txMut }}>
@@ -835,9 +864,9 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
 
           {/* Detalhamento por bloco */}
           {activeBudget.blocos.map(bl => (
-            <div key={bl.id} style={S.card}>
+            <div key={bl.id} style={{ ...S.card, borderLeft: `4px solid ${corSharing(bl.sharingId, bl.sharingNome)}` }}>
               <div style={{ fontSize: 12, marginBottom: 6, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
-                <span style={{ fontWeight: 700, color: bl.sharingCor }}>{bl.sharingNome}</span>
+                <span style={{ fontWeight: 700, color: corSharing(bl.sharingId, bl.sharingNome) }}>{bl.sharingNome}</span>
                 <span style={{ color: T.txSec }}>{bl.tipo === "implantacao" ? "Implantação" : "Operação"}</span>
                 <span style={{ color: T.txMut, fontSize: 11 }}>{bl.itens.length} itens</span>
               </div>

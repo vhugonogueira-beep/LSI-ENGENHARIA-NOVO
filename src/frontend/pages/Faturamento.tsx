@@ -3,6 +3,7 @@ import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRigh
 import { T } from '../theme';
 import { fmtMoeda, fmtData } from '../components/atividades/constants';
 import { authFetch, downloadAuthenticatedFile } from '../lib/authFetch';
+import { CHIP, FAIXA, SOLIDO, TEXTO, TOPO, VEU, TOM_SHARING, hexTom, tomDe, type Tom } from '../lib/cores';
 
 interface Atividade {
     id: string;
@@ -31,14 +32,15 @@ interface Faturamento {
     recebimentos?: { valor_recebido: number }[];
 }
 
-// Cor só para estado: em andamento é a cor de ação, espera do financeiro é
-// atenção e recebido é "em dia". Vem da paleta do tema (theme.ts).
+// Cada etapa tem a sua cor, numa escala que vai do frio ao "em dia":
+// Pronto índigo → Enviado azul → Em faturamento ciano → NF emitida violeta →
+// Faturado e Recebido verde (lib/cores.ts; docs/DESIGN-SYSTEM.md).
 const FATURAMENTO_STAGES = [
-    { id: 'ENVIADO_FINANCEIRO', label: 'Enviado ao financeiro', color: T.blue },
-    { id: 'EM_FATURAMENTO', label: 'Em faturamento', color: T.amber },
-    { id: 'NF_EMITIDA', label: 'NF emitida', color: T.blue },
-    { id: 'FATURADO', label: 'Faturado', color: T.blue },
-    { id: 'RECEBIDO', label: 'Recebido', color: T.green },
+    { id: 'ENVIADO_FINANCEIRO', label: 'Enviado ao financeiro', color: hexTom('blue') },
+    { id: 'EM_FATURAMENTO', label: 'Em faturamento', color: hexTom('cyan') },
+    { id: 'NF_EMITIDA', label: 'NF emitida', color: hexTom('violet') },
+    { id: 'FATURADO', label: 'Faturado', color: hexTom('green') },
+    { id: 'RECEBIDO', label: 'Recebido', color: hexTom('green') },
 ];
 /** Código do banco (TIPO_X) em frase: "Tipo x". */
 const emFrase = (v: string) => { const t = String(v || '').replace(/_/g, ' ').toLocaleLowerCase('pt-BR'); return t.charAt(0).toLocaleUpperCase('pt-BR') + t.slice(1); };
@@ -171,7 +173,9 @@ export default function Faturamento() {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-2xl font-bold flex items-center gap-3">
-                        <Receipt className="text-primary" size={24} aria-hidden />
+                        <span aria-hidden className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${VEU.green} ${TEXTO.green}`}>
+                            <Receipt size={20} />
+                        </span>
                         Faturamento
                     </h2>
                     <p className="text-muted-foreground mt-1">Fila real (Blueprint LSI) — motor de regras, Start Faturamento e planilha padrão</p>
@@ -182,11 +186,11 @@ export default function Faturamento() {
 
             {/* KPIs — o funil inteiro, das POs autorizadas às atividades ainda sem PO */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                <KpiCard icon={<CheckCircle2 size={16} aria-hidden />} label="Autorizado a faturar" value={resumo.aFaturar ? fmtMoeda(resumo.aFaturar) : null} sub={`${resumo.linhasAFaturar} linha(s) de PO`} />
-                <KpiCard icon={<Wallet size={16} aria-hidden />} label="Aguardando autorização" value={resumo.aguardandoAutorizacao ? fmtMoeda(resumo.aguardandoAutorizacao) : null} sub={`${resumo.linhasAguardando} linha(s) sem OK`} />
-                <KpiCard icon={<Receipt size={16} aria-hidden />} label="Sem PO recebida" value={resumo.semPO.length ? String(resumo.semPO.length) : null} sub="atividades em obra sem PO" alerta={resumo.semPO.length > 0 ? T.red : undefined} />
-                <KpiCard icon={<Send size={16} aria-hidden />} label="Lotes em aberto" value={lotesAbertos ? String(lotesAbertos) : null} sub={`${lotes.length} lote(s) no total`} />
-                <KpiCard icon={<Receipt size={16} aria-hidden />} label="Valor a receber" value={valorAReceber ? fmtMoeda(valorAReceber) : null} sub="soma dos lotes não recebidos" />
+                <KpiCard tom="indigo" icon={<CheckCircle2 size={16} aria-hidden />} label="Autorizado a faturar" value={resumo.aFaturar ? fmtMoeda(resumo.aFaturar) : null} sub={`${resumo.linhasAFaturar} linha(s) de PO`} />
+                <KpiCard tom="amber" icon={<Wallet size={16} aria-hidden />} label="Aguardando autorização" value={resumo.aguardandoAutorizacao ? fmtMoeda(resumo.aguardandoAutorizacao) : null} sub={`${resumo.linhasAguardando} linha(s) sem OK`} />
+                <KpiCard tom={resumo.semPO.length > 0 ? 'rose' : 'slate'} icon={<Receipt size={16} aria-hidden />} label="Sem PO recebida" value={resumo.semPO.length ? String(resumo.semPO.length) : null} sub="atividades em obra sem PO" alerta={resumo.semPO.length > 0 ? T.red : undefined} />
+                <KpiCard tom="blue" icon={<Send size={16} aria-hidden />} label="Lotes em aberto" value={lotesAbertos ? String(lotesAbertos) : null} sub={`${lotes.length} lote(s) no total`} />
+                <KpiCard tom="green" icon={<Receipt size={16} aria-hidden />} label="Valor a receber" value={valorAReceber ? fmtMoeda(valorAReceber) : null} sub="soma dos lotes não recebidos" />
             </div>
 
             {resumo.semPO.length > 0 && (
@@ -198,7 +202,7 @@ export default function Faturamento() {
                     <div className="flex flex-col gap-1.5">
                         {resumo.semPO.slice(0, 8).map(a => (
                             <div key={a.id} className="flex items-center gap-3 text-xs bg-secondary/30 border border-border rounded px-3 py-2">
-                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{a.sharing}</span>
+                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${CHIP[tomDe(TOM_SHARING, a.sharing)]}`}>{a.sharing}</span>
                                 {a.id_site_sharing && <span className="font-id text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
                                 <span className="flex-1 truncate font-medium">{a.titulo}</span>
                                 <span className="font-id text-muted-foreground">{a.codigo}</span>
@@ -218,7 +222,10 @@ export default function Faturamento() {
             {/* Fila de faturamento */}
             <div className="bg-card border border-border rounded-xl p-5 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold">Fila de faturamento (pronto para faturar)</h3>
+                    <h3 className="text-sm font-bold flex items-center gap-2">
+                        <span aria-hidden className={`h-2 w-2 rounded-full ${SOLIDO.indigo}`} />
+                        Fila de faturamento (pronto para faturar)
+                    </h3>
                     <button
                         onClick={startFaturamento}
                         disabled={selecionadas.size === 0 || starting}
@@ -232,9 +239,9 @@ export default function Faturamento() {
                 ) : (
                     <div className="flex flex-col gap-2">
                         {prontas.map(a => (
-                            <label key={a.id} className="flex items-center gap-3 bg-secondary/30 hover:bg-secondary/50 border border-border rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
+                            <label key={a.id} className={`flex items-center gap-3 bg-secondary/30 hover:bg-secondary/50 border border-border border-l-4 ${FAIXA.indigo} rounded-lg px-3 py-2.5 cursor-pointer transition-colors`}>
                                 <input type="checkbox" checked={selecionadas.has(a.id)} onChange={() => toggleSel(a.id)} className="accent-primary" />
-                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{a.sharing}</span>
+                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${CHIP[tomDe(TOM_SHARING, a.sharing)]}`}>{a.sharing}</span>
                                 {a.id_site_sharing && <span className="font-id text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
                                 <span className="flex-1 text-sm font-medium truncate">{a.titulo}</span>
                                 <span className="text-xs font-id text-muted-foreground">{a.codigo}</span>
@@ -772,12 +779,12 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
 }
 
 /** Valor neutro; cor só quando é alerta. Sem valor, "—" sem cor. */
-function KpiCard({ icon, label, value, sub, alerta }: { icon: React.ReactNode; label: string; value: string | null; sub: string; alerta?: string }) {
+function KpiCard({ icon, label, value, sub, alerta, tom = 'slate' }: { icon: React.ReactNode; label: string; value: string | null; sub: string; alerta?: string; tom?: Tom }) {
     return (
-        <div className="bg-card border border-border rounded-xl p-4" style={alerta ? { borderColor: `${alerta}66` } : undefined}>
+        <div className={`bg-card border border-border border-t-2 ${TOPO[tom]} rounded-xl p-4`} style={alerta ? { borderColor: `${alerta}66`, borderTopColor: alerta } : undefined}>
             <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-                <span className="text-muted-foreground">{icon}</span>
+                <span className={`flex h-7 w-7 items-center justify-center rounded-full ${VEU[tom]} ${TEXTO[tom]}`}>{icon}</span>
             </div>
             <div className={`text-xl font-bold ${value == null ? 'text-muted-foreground' : ''}`} style={value != null && alerta ? { color: alerta } : undefined}>{value ?? '—'}</div>
             <div className="text-xs text-muted-foreground mt-1">{sub}</div>

@@ -8,6 +8,7 @@ import DadosBancariosForm from '../components/cadastros/DadosBancariosForm';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { useEhAdmin } from '../lib/permissoes';
 import { UFS, REGIAO_LABEL, chaveTexto, normalizarUf, regiaoPorUf } from '../components/atividades/constants';
+import { CHIP, FAIXA, SOLIDO, TEXTO, TOM_MODULO, TOM_RAMO, VEU, tomDe } from '../lib/cores';
 
 interface CondicaoPagamento {
     id: string;
@@ -44,7 +45,7 @@ interface Supplier {
     _condicoesCount?: number;
 }
 
-// Categoria é rótulo, não estado: ícone + texto em pílula neutra, sem cor própria.
+// Categoria = ramo: cada ramo tem a sua cor (TOM_RAMO), igual em toda tela; a pílula sempre diz o nome.
 const CATEGORIA_INFO: Record<string, { label: string; icon: LucideIcon }> = {
     MATERIAL: { label: 'Material', icon: Factory },
     MAO_DE_OBRA: { label: 'Mão de obra', icon: HardHat },
@@ -242,7 +243,9 @@ export function Fornecedores() {
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h2 className="text-3xl font-bold flex items-center gap-3">
-                        <Building2 className="text-primary" size={28} />
+                        <span className={`inline-flex items-center justify-center w-11 h-11 rounded-lg ${VEU[TOM_MODULO.fornecedores]} ${TEXTO[TOM_MODULO.fornecedores]}`}>
+                            <Building2 size={24} aria-hidden />
+                        </span>
                         Fornecedores & Prestadores
                     </h2>
                     <p className="text-muted-foreground mt-1 flex flex-wrap gap-x-4">
@@ -262,14 +265,23 @@ export function Fornecedores() {
                         className={`${inputCls} pl-10`} />
                 </div>
                 <div className="flex gap-1 bg-secondary/40 rounded-lg p-1">
-                    {(['TODOS', 'MATERIAL', 'PRESTADOR'] as const).map(m => (
+                    {(['TODOS', 'MATERIAL', 'PRESTADOR'] as const).map(m => {
+                        // Material verde, Prestadores azul (cores dos ramos Material e Mão de obra).
+                        const tomM = m === 'MATERIAL' ? TOM_RAMO.MATERIAL : m === 'PRESTADOR' ? TOM_RAMO.MAO_DE_OBRA : null;
+                        const ativoM = filtroModulo === m;
+                        const clsM = ativoM
+                            ? (tomM ? `${SOLIDO[tomM]} text-background` : 'bg-primary text-primary-foreground')
+                            : (tomM ? `${TEXTO[tomM]} hover:bg-secondary` : 'text-muted-foreground hover:text-foreground');
+                        return (
                         <button key={m} onClick={() => { setFiltroModulo(m); setFiltroCategoria(''); setFiltroEspecialidade(''); }}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center gap-1.5 ${filtroModulo === m ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                            aria-pressed={ativoM}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center gap-1.5 ${clsM}`}>
                             {m === 'MATERIAL' && <Factory size={14} aria-hidden />}
                             {m === 'PRESTADOR' && <HardHat size={14} aria-hidden />}
                             {m === 'TODOS' ? 'Todos' : m === 'MATERIAL' ? 'Material' : 'Prestadores'}
                         </button>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
 
@@ -284,10 +296,11 @@ export function Fornecedores() {
                     const info = CATEGORIA_INFO[c.id];
                     const ativo = filtroCategoria === c.id;
                     const Icone = info.icon;
+                    const tomC = tomDe(TOM_RAMO, c.id);
                     return (
                         <button key={c.id} onClick={() => { setFiltroCategoria(ativo ? '' : c.id); setFiltroEspecialidade(''); }}
                             aria-pressed={ativo}
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 ${ativo ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 ${ativo ? `${SOLIDO[tomC]} text-background border border-transparent` : `${CHIP[tomC]} hover:brightness-110`}`}>
                             <Icone size={14} aria-hidden /> {info.label} <span className="opacity-70">{c.total}</span>
                         </button>
                     );
@@ -319,13 +332,17 @@ export function Fornecedores() {
                 ) : filtered.map(s => {
                     const ci = catInfo(s.categoria);
                     const IconeCat = ci.icon;
+                    const tomCat = tomDe(TOM_RAMO, s.categoria, 'slate');
                     const temCondicao = (s._condicoesCount || 0) > 0;
                     const local = s.cidade ? [s.cidade, ufDe(s)].filter(Boolean).join('/') : s.uf;
                     const regiao = s.regiao ? (REGIAO_LABEL[s.regiao] || s.regiao) : null;
                     return (
-                        <div key={s.id} className="bg-card text-foreground rounded-lg border border-border p-5 flex flex-col">
+                        <div key={s.id} className={`bg-card text-foreground rounded-lg border border-border border-l-4 ${FAIXA[tomCat]} p-5 flex flex-col`}>
                             <div className="flex items-start justify-between gap-2 mb-2">
-                                <div className="min-w-0">
+                                <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0 ${VEU[tomCat]} ${TEXTO[tomCat]}`}>
+                                    <IconeCat size={18} aria-hidden />
+                                </span>
+                                <div className="min-w-0 flex-1">
                                     <h3 className="font-semibold text-base truncate" title={s.nome}>{s.nome}</h3>
                                     {s.cnpj || s.cpf
                                         ? <p className="text-xs text-muted-foreground font-id">{s.cnpj || s.cpf}</p>
@@ -341,8 +358,8 @@ export function Fornecedores() {
                                 </div>
                             </div>
                             <div className="flex gap-1.5 flex-wrap mb-3">
-                                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border border-border text-foreground">
-                                    <IconeCat size={14} aria-hidden className="text-muted-foreground" /> {ci.label}
+                                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${CHIP[tomCat]}`}>
+                                    <IconeCat size={14} aria-hidden /> {ci.label}
                                 </span>
                                 {s.especialidade && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.especialidade}</span>}
                                 {s.tipo && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.tipo === 'PESSOA_FISICA' ? 'PF' : 'PJ'}</span>}

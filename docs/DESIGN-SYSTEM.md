@@ -16,24 +16,45 @@ tela é dizer **o que está pendente e qual o próximo passo**.
 - **Um só elemento marcante por tela.** No LSI, o identificador da obra (Site
   ID, código da atividade) é a âncora de cada linha. Todo o resto é disciplina.
 - **Ausência não tem cor.** Zero, vazio e "sem dado" aparecem como "—" em
-  `text-muted-foreground`. Cor só para estado real.
+  `text-muted-foreground`.
+- **Cor é informação.** Cada dimensão tem sua família de cor (seção Cor).
 
-## Cor
+## Cor — viva, mas sempre com significado
 
-| Papel | Tailwind | `T` (inline) | Quando |
-|---|---|---|---|
-| Marca / ação | `primary` | `T.blue` (#1768D5) | botão principal, link, item ativo |
-| Em dia / pago | `ok` | `T.green` | concluído, pago, aprovado |
-| Atenção | `warn` | `T.amber` | pendente, vence em breve |
-| Crítico | `crit` | `T.red` | atrasado, recusado, estouro, erro |
-| Informativo | `info` | `T.blueL` | dica, contagem neutra |
-| Texto | `foreground` / `muted-foreground` | `T.txPri` / `T.txMut` | |
-| Superfície | `background` / `card` / `secondary` / `border` | `T.bg0..bg3` / `T.brBase` | |
+Revisão de 02/10/2026: a primeira versão economizou cor demais e o sistema
+ficou neutro (a carteira inteira cinza, porque Planejamento era cinza). A regra
+agora é: **cada dimensão do trabalho tem a sua família de cor, e a mesma coisa
+tem a mesma cor em toda tela.** A cor vira atalho de leitura. Fonte única:
+`src/frontend/lib/cores.ts` (mapas `TOM_*` e classes `CHIP`, `TEXTO`,
+`SOLIDO`, `VEU`, `FAIXA`, `TOPO`; `hexTom()` para telas inline).
 
-`ok`, `warn`, `crit` e `info` acompanham o tema claro/escuro e aceitam opacidade
-(`bg-warn/10`, `border-crit/40`). **Nenhum hex novo no código.** Valor em
-dinheiro é neutro; ganha cor só quando é alerta (saldo negativo, custo acima do
-orçado, pagamento atrasado).
+| Dimensão | Cores |
+|---|---|
+| Status da obra | Planejamento índigo · Aguardando liberação âmbar · Em execução azul · Concluído verde · On hold violeta |
+| Área | Implantação azul · Operação teal |
+| Operadora | Vivo violeta · Claro rosa · TIM azul · Oi âmbar |
+| Sharing | Highline ciano · IHS laranja · Winity violeta · SBA teal |
+| Ramo do fornecedor | Material verde · Mão de obra azul · Serviço violeta · Transporte laranja · Locação âmbar … |
+| Módulo (menu e cabeçalho da página) | Atividades azul · Fornecedores teal · Pagamentos laranja · Faturamento verde · Orçamento/LPUs âmbar · Dashboards violeta/índigo · Clientes rosa |
+
+Onde a cor aparece: faixa à esquerda da linha/cartão (`border-l-4` + `FAIXA`),
+pílula (`CHIP`), cabeçalho de coluna (`VEU` + `TOPO`), barra de avanço
+(`SOLIDO`), caixa do ícone do módulo (`VEU` + `TEXTO`).
+
+Estado de alerta continua com os tokens próprios, que vencem a cor da
+dimensão quando há problema:
+
+| Papel | Tailwind | Quando |
+|---|---|---|
+| Marca / ação | `primary` (#1768D5) | botão principal, link, item ativo |
+| Em dia / pago | `ok` | concluído, pago, aprovado |
+| Atenção | `warn` | pendente, vence em breve |
+| Crítico | `crit` | atrasado, recusado, estouro, erro |
+| Informativo | `info` | dica |
+
+Continua valendo: **ausência não tem cor** (zero e vazio são "—" apagado),
+**nenhum hex novo no código** (use `lib/cores.ts`, os tokens ou `T`) e cor
+**não substitui texto** — toda pílula colorida diz o que é.
 
 ## Tipografia
 

@@ -1,5 +1,6 @@
 import React from 'react';
-import { fmtMoeda } from './constants';
+import { fmtMoeda, TIPOS_DEMANDA_LABEL } from './constants';
+import { CHIP, TEXTO, TOM_AREA, TOM_OPERADORA, TOM_SHARING, tomDe, type Tom } from '../../lib/cores';
 
 export function Card({ title, action, children }: { title?: string; action?: React.ReactNode; children: React.ReactNode }) {
     return (
@@ -76,4 +77,34 @@ export function Row({ label, value }: { label: string; value: React.ReactNode })
             <span className="text-sm font-medium text-right">{vazio(value) ? <Vazio /> : value}</span>
         </div>
     );
+}
+
+// ── Cor com significado (lib/cores.ts) ─────────────────────────────────────
+// A cor acompanha sempre o texto: a etiqueta diz o que é, a cor só acelera a leitura.
+
+/** Etiqueta tingida na cor de um tom. */
+export function Chip({ tom, children, title, className = '' }: { tom: Tom; children: React.ReactNode; title?: string; className?: string }) {
+    return (
+        <span title={title} className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold whitespace-nowrap ${CHIP[tom]} ${className}`}>
+            {children}
+        </span>
+    );
+}
+
+/** Área da demanda: Implantação azul, Operação teal. */
+export function AreaChip({ tipo }: { tipo?: string | null }) {
+    if (!tipo) return null;
+    return <Chip tom={tomDe(TOM_AREA, tipo)}>{TIPOS_DEMANDA_LABEL[tipo] || tipo}</Chip>;
+}
+
+/** Operadora móvel na cor de marca aproximada; sem operadora, nada. */
+export function OperadoraChip({ operadora }: { operadora?: string | null }) {
+    if (!operadora) return null;
+    return <Chip tom={tomDe(TOM_OPERADORA, operadora)} title="Operadora">{operadora}</Chip>;
+}
+
+/** Nome do sharing (detentora) na cor dele. */
+export function SharingNome({ sharing, className = '' }: { sharing?: string | null; className?: string }) {
+    if (!sharing) return <Vazio />;
+    return <span className={`font-semibold ${TEXTO[tomDe(TOM_SHARING, sharing)]} ${className}`}>{sharing}</span>;
 }

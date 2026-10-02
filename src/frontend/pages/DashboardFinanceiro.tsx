@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { STATUS_OPERACIONAL, STATUS_FATURAMENTO } from "../components/atividades/constants";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
+// Cor com significado (docs/DESIGN-SYSTEM.md): cada indicador tem a sua.
+import { TOM_SHARING, TOM_STATUS, hexTom, tomDe, type Tom } from '../lib/cores';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dashboard Financeiro — controladoria sobre o modelo real (Atividade,
@@ -100,31 +102,31 @@ export default function DashboardFinanceiro() {
       <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "16px 18px" }}>
         <h2 style={{ fontSize: 12, fontWeight: 600, color: T.txMut, margin: "0 0 14px" }}>Da receita bruta à margem</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 0 }}>
-          <Etapa rotulo="Receita bruta" valor={dados.receitaBruta} />
+          <Etapa tom="green" rotulo="Receita bruta" valor={dados.receitaBruta} />
           <Sinal>−</Sinal>
-          <Etapa rotulo="Impostos" valor={dados.impostos} />
+          <Etapa tom="slate" rotulo="Impostos" valor={dados.impostos} />
           <Sinal>=</Sinal>
-          <Etapa rotulo="Receita líquida" valor={dados.receitaLiquida} />
+          <Etapa tom="cyan" rotulo="Receita líquida" valor={dados.receitaLiquida} />
           <Sinal>−</Sinal>
-          <Etapa rotulo="Custo comprometido" valor={dados.custoComprometido} />
+          <Etapa tom="orange" rotulo="Custo comprometido" valor={dados.custoComprometido} />
           <Sinal>=</Sinal>
-          <Etapa rotulo="Resultado" valor={dados.resultadoProjetado} alerta={dados.resultadoProjetado < 0 ? T.red : undefined} destaque />
+          <Etapa tom="indigo" rotulo="Resultado" valor={dados.resultadoProjetado} alerta={dados.resultadoProjetado < 0 ? T.red : undefined} destaque />
         </div>
       </div>
 
       {/* Custo e caixa */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        <Kpi rotulo="Custo comprometido" valor={dados.custoComprometido ? moeda(dados.custoComprometido) : null} nota="contratado, pago ou não" />
-        <Kpi rotulo="Custo pago" valor={dados.custoPago ? moeda(dados.custoPago) : null} nota="já saiu do caixa" />
-        <Kpi rotulo="Custo a pagar" valor={dados.custoAPagar ? moeda(dados.custoAPagar) : null} nota="comprometido − pago" />
-        <Kpi rotulo="Margem projetada" valor={dados.margemProjetada ? pct(dados.margemProjetada) : null} alerta={dados.margemProjetada < 0 ? T.red : undefined} nota="sobre receita bruta" />
+        <Kpi tom="orange" rotulo="Custo comprometido" valor={dados.custoComprometido ? moeda(dados.custoComprometido) : null} nota="contratado, pago ou não" />
+        <Kpi tom="green" rotulo="Custo pago" valor={dados.custoPago ? moeda(dados.custoPago) : null} nota="já saiu do caixa" />
+        <Kpi tom="amber" rotulo="Custo a pagar" valor={dados.custoAPagar ? moeda(dados.custoAPagar) : null} nota="comprometido − pago" />
+        <Kpi tom="violet" rotulo="Margem projetada" valor={dados.margemProjetada ? pct(dados.margemProjetada) : null} alerta={dados.margemProjetada < 0 ? T.red : undefined} nota="sobre receita bruta" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        <Kpi rotulo="Faturado" valor={dados.faturado ? moeda(dados.faturado) : null} nota="linhas de PO faturadas" />
-        <Kpi rotulo="Recebido" valor={dados.recebido ? moeda(dados.recebido) : null} nota="baixa financeira" />
-        <Kpi rotulo="A receber" valor={dados.aReceber ? moeda(dados.aReceber) : null} nota="faturado − recebido" />
-        <Kpi rotulo="Atividades" valor={dados.contagem.total ? String(dados.contagem.total) : null} nota={nomeMes(dados.mes)} />
+        <Kpi tom="cyan" rotulo="Faturado" valor={dados.faturado ? moeda(dados.faturado) : null} nota="linhas de PO faturadas" />
+        <Kpi tom="green" rotulo="Recebido" valor={dados.recebido ? moeda(dados.recebido) : null} nota="baixa financeira" />
+        <Kpi tom="blue" rotulo="A receber" valor={dados.aReceber ? moeda(dados.aReceber) : null} nota="faturado − recebido" />
+        <Kpi tom="indigo" rotulo="Atividades" valor={dados.contagem.total ? String(dados.contagem.total) : null} nota={nomeMes(dados.mes)} />
       </div>
 
       {/* Por atividade */}
@@ -155,8 +157,8 @@ export default function DashboardFinanceiro() {
                   <tr key={a.id} style={{ borderTop: `1px solid ${T.brSub}` }}>
                     <td className="font-id" style={{ ...td(), fontWeight: 600, color: T.txSec }}>{a.codigo}</td>
                     <td style={{ ...td(), color: T.txPri }}>{a.titulo}</td>
-                    <td style={{ ...td(), color: T.txMut }}>{a.sharing}</td>
-                    <td style={td()}><Pill info={op} bruto={a.status_operacional} /></td>
+                    <td style={{ ...td(), color: a.sharing ? hexTom(tomDe(TOM_SHARING, a.sharing)) : T.txMut, fontWeight: 600 }}>{a.sharing || "—"}</td>
+                    <td style={td()}><Pill info={op} bruto={a.status_operacional} cor={hexTom(tomDe(TOM_STATUS, a.status_operacional))} /></td>
                     <td style={td()}><Pill info={fat} bruto={a.status_faturamento} /></td>
                     <td style={{ ...td(), textAlign: "right", color: a.receita > 0 ? T.txPri : T.txMut, fontWeight: 700 }}>
                       {a.receita > 0 ? moedaExata(a.receita) : "—"}
@@ -199,8 +201,8 @@ const th = (w?: number): React.CSSProperties =>
   ({ padding: "9px 10px", fontWeight: 600, fontSize: 12, ...(w ? { width: w } : {}) });
 const td = (): React.CSSProperties => ({ padding: "8px 10px", verticalAlign: "middle" });
 
-function Pill({ info, bruto }: { info?: { label: string; color: string }; bruto: string }) {
-  const cor = info?.color || T.txMut;
+function Pill({ info, bruto, cor: corTom }: { info?: { label: string; color: string }; bruto: string; cor?: string }) {
+  const cor = corTom || info?.color || T.txMut;
   return (
     <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: `${cor}1a`, color: cor, whiteSpace: "nowrap" }}>
       {info?.label || bruto}
@@ -209,10 +211,14 @@ function Pill({ info, bruto }: { info?: { label: string; color: string }; bruto:
 }
 
 // Valor neutro; só o resultado negativo ganha cor. Zero aparece como "—".
-function Etapa({ rotulo, valor, alerta, destaque }: { rotulo: string; valor: number; alerta?: string; destaque?: boolean }) {
+// O rótulo leva um ponto na cor da etapa, para casar com os KPIs abaixo.
+function Etapa({ rotulo, valor, alerta, destaque, tom = "slate" }: { rotulo: string; valor: number; alerta?: string; destaque?: boolean; tom?: Tom }) {
   return (
     <div style={{ minWidth: 150, padding: "2px 4px" }}>
-      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{rotulo}</div>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+        <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: hexTom(tom), flexShrink: 0 }} />
+        {rotulo}
+      </div>
       <div style={{ fontSize: destaque ? 24 : 18, fontWeight: 700, color: !valor ? T.txMut : alerta || T.txPri, marginTop: 3 }}>{valor ? moeda(valor) : "—"}</div>
     </div>
   );
@@ -222,10 +228,14 @@ function Sinal({ children }: { children: React.ReactNode }) {
   return <div style={{ color: T.txDis, fontSize: 15, padding: "18px 12px 0", fontWeight: 700 }}>{children}</div>;
 }
 
-function Kpi({ rotulo, valor, alerta, nota }: { rotulo: string; valor: string | null; alerta?: string; nota?: string }) {
+function Kpi({ rotulo, valor, alerta, nota, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; nota?: string; tom?: Tom }) {
+  const cor = hexTom(tom);
   return (
-    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px" }}>
-      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{rotulo}</div>
+    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderTop: `2px solid ${alerta || cor}`, borderRadius: 10, padding: "11px 15px" }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+        <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }} />
+        {rotulo}
+      </div>
       <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
       {nota && <div style={{ fontSize: 11, color: T.txDis, marginTop: 3 }}>{nota}</div>}
     </div>
