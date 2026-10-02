@@ -10,6 +10,7 @@ import { useEhAdmin } from '../lib/permissoes';
 import { UFS, REGIAO_LABEL, chaveTexto, normalizarUf, regiaoPorUf } from '../components/atividades/constants';
 import { CHIP, FAIXA, SOLIDO, TEXTO, TOM_MODULO, TOM_RAMO, VEU, tomDe } from '../lib/cores';
 import PageHeader from '../components/PageHeader';
+import { FiltroPainel, FiltroLinha, GradeSeletores, CAMPO, ALTERNADOR, SEGMENTO } from '../components/FiltroPainel';
 
 interface CondicaoPagamento {
     id: string;
@@ -252,63 +253,73 @@ export function Fornecedores() {
                     </button>
                 } />
 
-            <div className="flex gap-3 mb-5 flex-wrap items-center">
-                <div className="relative flex-1 min-w-[240px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                    <input type="text" placeholder="Buscar por nome, especialidade, CNPJ ou CPF..." value={search} onChange={e => setSearch(e.target.value)}
-                        className={`${inputCls} pl-10`} />
-                </div>
-                <div className="flex gap-1 bg-secondary/40 rounded-lg p-1">
-                    {(['TODOS', 'MATERIAL', 'PRESTADOR'] as const).map(m => {
-                        // Material verde, Prestadores azul (cores dos ramos Material e Mão de obra).
-                        const tomM = m === 'MATERIAL' ? TOM_RAMO.MATERIAL : m === 'PRESTADOR' ? TOM_RAMO.MAO_DE_OBRA : null;
-                        const ativoM = filtroModulo === m;
-                        const clsM = ativoM
-                            ? (tomM ? `${SOLIDO[tomM]} text-background` : 'bg-primary text-primary-foreground')
-                            : (tomM ? `${TEXTO[tomM]} hover:bg-secondary` : 'text-muted-foreground hover:text-foreground');
-                        return (
-                        <button key={m} onClick={() => { setFiltroModulo(m); setFiltroCategoria(''); setFiltroEspecialidade(''); }}
-                            aria-pressed={ativoM}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center gap-1.5 ${clsM}`}>
-                            {m === 'MATERIAL' && <Factory size={14} aria-hidden />}
-                            {m === 'PRESTADOR' && <HardHat size={14} aria-hidden />}
-                            {m === 'TODOS' ? 'Todos' : m === 'MATERIAL' ? 'Material' : 'Prestadores'}
-                        </button>
-                        );
-                    })}
-                </div>
-            </div>
+            <FiltroPainel>
+                <FiltroLinha rotulo="Buscar">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative min-w-[240px] flex-1">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} aria-hidden />
+                            <input type="text" placeholder="Buscar por nome, especialidade, CNPJ ou CPF..." aria-label="Buscar cadastros" value={search} onChange={e => setSearch(e.target.value)}
+                                className={`${CAMPO} w-full pl-9`} />
+                        </div>
+                        <div className={ALTERNADOR} role="group" aria-label="Módulo">
+                            {(['TODOS', 'MATERIAL', 'PRESTADOR'] as const).map(m => {
+                                // Material verde, Prestadores azul (cores dos ramos Material e Mão de obra).
+                                const tomM = m === 'MATERIAL' ? TOM_RAMO.MATERIAL : m === 'PRESTADOR' ? TOM_RAMO.MAO_DE_OBRA : null;
+                                const ativoM = filtroModulo === m;
+                                const clsM = ativoM
+                                    ? (tomM ? `${SOLIDO[tomM]} text-background` : 'bg-primary text-primary-foreground')
+                                    : (tomM ? `${TEXTO[tomM]} hover:bg-secondary` : 'text-muted-foreground hover:text-foreground');
+                                return (
+                                <button key={m} onClick={() => { setFiltroModulo(m); setFiltroCategoria(''); setFiltroEspecialidade(''); }}
+                                    aria-pressed={ativoM}
+                                    className={`${SEGMENTO} ${clsM}`}>
+                                    {m === 'MATERIAL' && <Factory size={14} aria-hidden />}
+                                    {m === 'PRESTADOR' && <HardHat size={14} aria-hidden />}
+                                    {m === 'TODOS' ? 'Todos' : m === 'MATERIAL' ? 'Material' : 'Prestadores'}
+                                </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </FiltroLinha>
 
-            {/* Ramo de atividade: categoria em chips; especialidade e UF em listas */}
-            <div className="flex gap-2 mb-5 flex-wrap items-center">
-                <span className="text-xs font-semibold text-muted-foreground mr-1">Ramo</span>
-                <button onClick={() => { setFiltroCategoria(''); setFiltroEspecialidade(''); }}
-                    className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${!filtroCategoria ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
-                    Todos
-                </button>
-                {categoriasPresentes.map(c => {
-                    const info = CATEGORIA_INFO[c.id];
-                    const ativo = filtroCategoria === c.id;
-                    const Icone = info.icon;
-                    const tomC = tomDe(TOM_RAMO, c.id);
-                    return (
-                        <button key={c.id} onClick={() => { setFiltroCategoria(ativo ? '' : c.id); setFiltroEspecialidade(''); }}
-                            aria-pressed={ativo}
-                            className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 ${ativo ? `${SOLIDO[tomC]} text-background border border-transparent` : `${CHIP[tomC]} hover:brightness-110`}`}>
-                            <Icone size={14} aria-hidden /> {info.label} <span className="opacity-70">{c.total}</span>
+                {/* Ramo de atividade: categoria em chips; especialidade e UF em listas */}
+                <FiltroLinha rotulo="Ramo">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <button onClick={() => { setFiltroCategoria(''); setFiltroEspecialidade(''); }}
+                            aria-pressed={!filtroCategoria}
+                            className={`inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold leading-none ${!filtroCategoria ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                            Todos
                         </button>
-                    );
-                })}
-                <select value={filtroEspecialidade} onChange={e => setFiltroEspecialidade(e.target.value)}
-                    className="h-8 rounded-lg border border-border bg-card px-2 text-xs">
-                    <option value="">Toda especialidade</option>
-                    {especialidades.map(e => <option key={e.chave} value={e.chave}>{e.rotulo} ({e.total})</option>)}
-                </select>
-                <select value={filtroUf} onChange={e => setFiltroUf(e.target.value)} className="h-8 rounded-lg border border-border bg-card px-2 text-xs">
-                    <option value="">Toda UF</option>
-                    {ufsPresentes.map(uf => <option key={uf} value={uf}>{uf}</option>)}
-                </select>
-            </div>
+                        {categoriasPresentes.map(c => {
+                            const info = CATEGORIA_INFO[c.id];
+                            const ativo = filtroCategoria === c.id;
+                            const Icone = info.icon;
+                            const tomC = tomDe(TOM_RAMO, c.id);
+                            return (
+                                <button key={c.id} onClick={() => { setFiltroCategoria(ativo ? '' : c.id); setFiltroEspecialidade(''); }}
+                                    aria-pressed={ativo}
+                                    className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold leading-none ${ativo ? `${SOLIDO[tomC]} text-background border border-transparent` : `${CHIP[tomC]} hover:brightness-110`}`}>
+                                    <Icone size={14} aria-hidden /> {info.label} <span className="tabular-nums opacity-70">{c.total}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </FiltroLinha>
+
+                <FiltroLinha rotulo="Especialidade e UF">
+                    <GradeSeletores>
+                        <select value={filtroEspecialidade} onChange={e => setFiltroEspecialidade(e.target.value)} aria-label="Especialidade" className={`${CAMPO} w-full`}>
+                            <option value="">Toda especialidade</option>
+                            {especialidades.map(e => <option key={e.chave} value={e.chave}>{e.rotulo} ({e.total})</option>)}
+                        </select>
+                        <select value={filtroUf} onChange={e => setFiltroUf(e.target.value)} aria-label="UF" className={`${CAMPO} w-full`}>
+                            <option value="">Toda UF</option>
+                            {ufsPresentes.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                        </select>
+                    </GradeSeletores>
+                </FiltroLinha>
+            </FiltroPainel>
 
             {/* Contagem e limpeza presas à grade que descrevem. */}
             <div className="mb-2 flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">

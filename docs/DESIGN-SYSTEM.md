@@ -118,7 +118,14 @@ largo.
 
 - **O conteúdo acompanha a largura da tela** (decisão do Victor, 02/10/2026):
   sem largura máxima. Quem distribui o espaço são as colunas em % das tabelas
-  e as grades de colunas iguais. Barras de filtro ficam **centralizadas**.
+  e as grades de colunas iguais.
+- **Filtros em painel de grade, alinhado à esquerda** (`components/FiltroPainel.tsx`;
+  a versão centralizada foi testada e recusada): coluna fixa de rótulos de
+  112px, todo controle começa na mesma vertical; altura única de 36px para
+  campo, seletor e alternador; seletores em colunas de largura igual.
+- **Primeira linha de cada célula com 28px** (`flex h-7 items-center`): Site ID,
+  cliente, status, avanço, saldo e ações ficam na mesma altura; botões de
+  linha também h-7.
 - **Cabeçalho único** `components/PageHeader.tsx`: ícone na cor do módulo,
   título 24px, descrição 13px, ações à direita na altura do título. Margem
   da página: 32px.

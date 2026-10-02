@@ -3,8 +3,9 @@ import { Building2, Handshake, ImageUp, Plus, Save, Search, X } from 'lucide-rea
 import { authFetch } from '../lib/authFetch';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { UFS, normalizarUf } from '../components/atividades/constants';
-import { CHIP, FAIXA, SOLIDO, TOM_MODULO, tomDe } from '../lib/cores';
+import { CHIP, FAIXA, SOLIDO, TEXTO, TOM_MODULO, tomDe } from '../lib/cores';
 import PageHeader from '../components/PageHeader';
+import { FiltroPainel, FiltroLinha, CAMPO, ALTERNADOR, SEGMENTO } from '../components/FiltroPainel';
 import type { Tom } from '../lib/cores';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -200,47 +201,55 @@ export default function Clientes() {
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[220px] flex-1">
-          <Search size={14} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            className={`${inputClass} pl-9 pr-8`}
-            placeholder="Buscar por nome, razão social, sigla ou CNPJ..."
-            value={busca}
-            onChange={e => setBusca(e.target.value)}
-          />
-          {busca && (
-            <button onClick={() => setBusca('')} aria-label="Limpar busca" title="Limpar busca" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X size={14} aria-hidden />
-            </button>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {[{ valor: 'TODOS', rotulo: 'Todos' }, ...TIPOS].map(t => {
-            const ativo = filtroTipo === t.valor;
-            const tom = tomDe(TOM_TIPO, t.valor);
-            const cls = t.valor === 'TODOS'
-              ? (ativo ? 'border border-primary bg-primary text-primary-foreground' : 'border border-border bg-card text-muted-foreground')
-              : (ativo ? `border border-transparent ${SOLIDO[tom]} text-background` : CHIP[tom]);
-            return (
-              <button
-                key={t.valor}
-                aria-pressed={ativo}
-                onClick={() => setFiltroTipo(t.valor)}
-                className={`h-9 rounded-lg px-3 text-xs font-bold ${cls}`}
-              >
-                {t.rotulo}
+      <FiltroPainel>
+        <FiltroLinha rotulo="Buscar">
+          <div className="relative min-w-[240px] flex-1">
+            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input
+              className={`${CAMPO} w-full pl-9 pr-8`}
+              aria-label="Buscar clientes"
+              placeholder="Buscar por nome, razão social, sigla ou CNPJ..."
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+            />
+            {busca && (
+              <button onClick={() => setBusca('')} aria-label="Limpar busca" title="Limpar busca" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X size={14} aria-hidden />
               </button>
-            );
-          })}
-        </div>
-        {inativos > 0 && (
-          <label className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs">
-            <input type="checkbox" checked={mostrarInativos} onChange={e => setMostrarInativos(e.target.checked)} />
-            Mostrar inativos ({inativos})
-          </label>
-        )}
-      </div>
+            )}
+          </div>
+        </FiltroLinha>
+
+        <FiltroLinha rotulo="Tipo">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className={ALTERNADOR} role="group" aria-label="Tipo de cliente">
+              {[{ valor: 'TODOS', rotulo: 'Todos' }, ...TIPOS].map(t => {
+                const ativo = filtroTipo === t.valor;
+                const tom = tomDe(TOM_TIPO, t.valor);
+                const cls = t.valor === 'TODOS'
+                  ? (ativo ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground')
+                  : (ativo ? `${SOLIDO[tom]} text-background` : `${TEXTO[tom]} hover:bg-secondary/60`);
+                return (
+                  <button
+                    key={t.valor}
+                    aria-pressed={ativo}
+                    onClick={() => setFiltroTipo(t.valor)}
+                    className={`${SEGMENTO} ${cls}`}
+                  >
+                    {t.rotulo}
+                  </button>
+                );
+              })}
+            </div>
+            {inativos > 0 && (
+              <label className="flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-border bg-background/50 px-3 text-xs">
+                <input type="checkbox" checked={mostrarInativos} onChange={e => setMostrarInativos(e.target.checked)} />
+                Mostrar inativos ({inativos})
+              </label>
+            )}
+          </div>
+        </FiltroLinha>
+      </FiltroPainel>
 
       {/* Contagem presa à grade que descreve. */}
       <div className="!mb-2 px-1 text-xs text-muted-foreground">

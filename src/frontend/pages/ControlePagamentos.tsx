@@ -10,9 +10,10 @@ import {
 import { T } from '../theme';
 import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
 import PageHeader from "../components/PageHeader";
-import { CreditCard, X } from "lucide-react";
+import { CreditCard, Search, X } from "lucide-react";
 // Cor com significado (docs/DESIGN-SYSTEM.md): origem, KPI e módulo.
 import { CHIP, FAIXA, TOM_MODULO, hexTom, type Tom } from "../lib/cores";
+import { FiltroPainel, FiltroLinha, CAMPO, ALTERNADOR, SEGMENTO } from "../components/FiltroPainel";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Controle de Pagamentos — a fila única do que a LS Office deve pagar.
@@ -282,20 +283,33 @@ export default function ControlePagamentos() {
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por favorecido, atividade ou site..." aria-label="Buscar pagamentos"
-          style={{ ...S.input, flex: 1, minWidth: 220 }} />
-        {filtros.map(f => (
-          <button key={f.id} onClick={() => setFiltro(f.id)} aria-pressed={filtro === f.id} style={{ ...S.btn, ...(filtro === f.id ? S.btnBlue : {}) }}>{f.rotulo}</button>
-        ))}
+      {/* Painel, contagem e lista num bloco só: o gap da coluna não se soma ao mb-4 do painel. */}
+      <div>
+      <FiltroPainel>
+        <FiltroLinha rotulo="Buscar">
+          <div className="relative min-w-[240px] flex-1">
+            <Search size={16} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por favorecido, atividade ou site..." aria-label="Buscar pagamentos"
+              className={`${CAMPO} w-full pl-9`} />
+          </div>
+        </FiltroLinha>
+        <FiltroLinha rotulo="Mostrar">
+          <div className={ALTERNADOR} role="group" aria-label="Situação do pagamento">
+            {filtros.map(f => (
+              <button key={f.id} onClick={() => setFiltro(f.id)} aria-pressed={filtro === f.id}
+                className={`${SEGMENTO} ${filtro === f.id ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{f.rotulo}</button>
+            ))}
+          </div>
+        </FiltroLinha>
+      </FiltroPainel>
+
+      {/* Contagem presa à lista que descreve, em cima dela. */}
+      <div className="mb-2 flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
+        <span><strong className="font-semibold tabular-nums text-foreground">{visiveis.length}</strong> de {linhas.length} pagamento(s) · {grupos.length} favorecido(s)</span>
+        <span className="text-[11px]">Anexar o comprovante marca o pagamento como concluído.</span>
       </div>
 
       <div className="space-y-4">
-        {/* Contagem presa à lista que descreve, em cima dela. */}
-        <div className="flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
-          <span><strong className="font-semibold tabular-nums text-foreground">{visiveis.length}</strong> de {linhas.length} pagamento(s) · {grupos.length} favorecido(s)</span>
-          <span className="text-[11px]">Anexar o comprovante marca o pagamento como concluído.</span>
-        </div>
         {grupos.map(([favorecido, pagamentos]) => {
           const totalGrupo = pagamentos.reduce((soma, pagamento) => soma + pagamento.valor, 0);
           const categorias = Array.from(new Set(pagamentos.map(pagamento => ORIGEM_LABEL[pagamento.origem]))).join(", ");
@@ -397,6 +411,7 @@ export default function ControlePagamentos() {
             {linhas.length === 0 ? "Nenhum pagamento cadastrado ainda." : "Nenhum pagamento neste filtro."}
           </div>
         )}
+      </div>
       </div>
       {editando && <div style={{ position: "fixed", inset: 0, zIndex: 9500, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setEditando(null)}>
         <div style={{ ...S.card, width: "100%", maxWidth: 480, padding: 20 }} onClick={e => e.stopPropagation()}>

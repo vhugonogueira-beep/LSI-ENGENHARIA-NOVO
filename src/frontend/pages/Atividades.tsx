@@ -7,6 +7,7 @@ import {
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
 import PageHeader from '../components/PageHeader';
+import { FiltroPainel, FiltroLinha, GradeSeletores, CAMPO, ALTERNADOR, SEGMENTO } from '../components/FiltroPainel';
 import { AreaChip, OperadoraChip, SharingNome } from '../components/atividades/ui';
 import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_AREA, TOM_MODULO, tomDe, type Tom } from '../lib/cores';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
@@ -320,7 +321,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const filtrosAtivos = (Object.keys(FILTROS_INIT) as (keyof typeof FILTROS_INIT)[])
         .filter(k => filtros[k] !== FILTROS_INIT[k]).length + (documentFilter !== 'TODAS' ? 1 : 0) + (search ? 1 : 0);
     const limparFiltros = () => { setFiltros(FILTROS_INIT); setDocumentFilter('TODAS'); setSearch(''); };
-    const filtroSelect = 'h-8 rounded-lg border border-border bg-card px-2 text-xs';
 
     return (
         <div className="p-8 text-foreground">
@@ -335,102 +335,109 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     </button>
                 } />
 
-            <div className="flex items-center gap-3 mb-5">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} aria-hidden />
-                    <input
-                        type="text" placeholder="Buscar por código, título ou site..." aria-label="Buscar atividades"
-                        value={search} onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
-                    />
-                </div>
-                <select value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} aria-label="Filtrar por documentação" className="h-10 px-3 border border-border rounded-lg bg-card text-sm">
-                    <option value="TODAS">Toda documentação</option>
-                    <option value="PENDENTES">Com pendências</option>
-                    <option value="COMPLETAS">Documentação completa</option>
-                    <option value="CORRECAO">Necessita correção</option>
-                </select>
-                <div className="flex gap-1 bg-secondary/40 rounded-lg p-1">
-                    <button onClick={() => setView('lista')} className={`p-2 rounded-md ${view === 'lista' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Ver em lista" aria-label="Ver em lista" aria-pressed={view === 'lista'}>
-                        <ListIcon size={16} aria-hidden />
-                    </button>
-                    <button onClick={() => setView('kanban')} className={`p-2 rounded-md ${view === 'kanban' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Ver em kanban" aria-label="Ver em kanban" aria-pressed={view === 'kanban'}>
-                        <LayoutGrid size={16} aria-hidden />
-                    </button>
-                    <button onClick={() => setView('projetos')} className={`px-2.5 py-2 rounded-md text-xs font-semibold ${view === 'projetos' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Projetos — atividades agrupadas num orçamento só" aria-pressed={view === 'projetos'}>
-                        Projetos
-                    </button>
-                </div>
-            </div>
-
-            {view !== 'projetos' && (
-                <div className="mb-5 space-y-2.5">
-                    {/* Situação: recortes rápidos, com quantas atividades cada um mostraria */}
-                    {/* Filtros centralizados na largura da página. */}
-                    <div className="flex flex-wrap items-center justify-center gap-1.5">
-                        {SITUACOES.map(s => {
-                            const total = semSituacao.filter(s.teste).length;
-                            const ativo = filtros.situacao === s.id;
-                            // Com contagem, cada recorte leva a cor do que significa:
-                            // tingido quando inativo, cheio quando escolhido.
-                            const tom = total > 0 ? s.tom : undefined;
-                            const estilo = tom
-                                ? (ativo ? `border border-transparent ${SOLIDO[tom]} text-background` : `${CHIP[tom]} hover:brightness-110`)
-                                : ativo ? 'border border-primary bg-primary text-primary-foreground'
-                                    : 'border border-border text-muted-foreground hover:text-foreground';
-                            return (
-                                <button key={s.id} type="button" aria-pressed={ativo} onClick={() => setFiltro('situacao', s.id)}
-                                    className={`inline-flex h-8 items-center justify-center gap-1 rounded-full px-3 text-xs font-semibold leading-none transition-colors ${estilo}`}>
-                                    {s.label} <span className={`tabular-nums ${ativo ? 'opacity-90' : 'opacity-70'}`}>{total || '—'}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                    {/* Recortes por tipo, lugar e responsável */}
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                        <div className="flex gap-1 rounded-lg bg-secondary/40 p-0.5">
-                            {[['', 'Todos os tipos'], ...TIPOS_DEMANDA.map(t => [t, TIPOS_DEMANDA_LABEL[t] || t])].map(([id, label]) => (
-                                <button key={id} onClick={() => setFiltros(f => ({ ...f, tipo: id, subtipo: id === 'OPERACAO' ? f.subtipo : '' }))}
-                                    aria-pressed={filtros.tipo === id}
-                                    className={`inline-flex h-7 items-center justify-center rounded-md px-2.5 text-xs font-semibold leading-none ${filtros.tipo === id
-                                        ? (id ? `${SOLIDO[tomDe(TOM_AREA, id)]} text-background` : 'bg-primary text-primary-foreground')
-                                        : id ? `${TEXTO[tomDe(TOM_AREA, id)]} hover:bg-secondary/60` : 'text-muted-foreground hover:text-foreground'}`}>
-                                    {label}
-                                </button>
-                            ))}
+            <FiltroPainel>
+                {/* Busca, documentação e modo de ver: a linha de comando da lista. */}
+                <FiltroLinha rotulo="Buscar">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="relative min-w-[240px] flex-1">
+                            <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} aria-hidden />
+                            <input
+                                type="text" placeholder="Código, título ou site" aria-label="Buscar atividades"
+                                value={search} onChange={e => setSearch(e.target.value)}
+                                className={`${CAMPO} w-full pl-9`}
+                            />
                         </div>
-                        {filtros.tipo === 'OPERACAO' && (
-                            <select value={filtros.subtipo} onChange={e => setFiltro('subtipo', e.target.value)} className={filtroSelect}>
-                                <option value="">Todo subtipo</option>
-                                {SUBTIPOS_OPERACAO.map(s => <option key={s} value={s}>{SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
+                        <select value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} aria-label="Filtrar por documentação" className={`${CAMPO} w-56`}>
+                            <option value="TODAS">Toda documentação</option>
+                            <option value="PENDENTES">Com pendências</option>
+                            <option value="COMPLETAS">Documentação completa</option>
+                            <option value="CORRECAO">Necessita correção</option>
+                        </select>
+                        <div className={ALTERNADOR} role="group" aria-label="Modo de visualização">
+                            <button onClick={() => setView('lista')} className={`${SEGMENTO} ${view === 'lista' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Ver em lista" aria-label="Ver em lista" aria-pressed={view === 'lista'}>
+                                <ListIcon size={15} aria-hidden /> Lista
+                            </button>
+                            <button onClick={() => setView('kanban')} className={`${SEGMENTO} ${view === 'kanban' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Ver em kanban" aria-label="Ver em kanban" aria-pressed={view === 'kanban'}>
+                                <LayoutGrid size={15} aria-hidden /> Kanban
+                            </button>
+                            <button onClick={() => setView('projetos')} className={`${SEGMENTO} ${view === 'projetos' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Projetos — atividades agrupadas num orçamento só" aria-pressed={view === 'projetos'}>
+                                <FolderPlus size={15} aria-hidden /> Projetos
+                            </button>
+                        </div>
+                    </div>
+                </FiltroLinha>
+
+                {view !== 'projetos' && (<>
+                    {/* Situação: recortes rápidos, com quantas atividades cada um mostraria.
+                        Com contagem, cada recorte leva a cor do que significa. */}
+                    <FiltroLinha rotulo="Situação">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            {SITUACOES.map(s => {
+                                const total = semSituacao.filter(s.teste).length;
+                                const ativo = filtros.situacao === s.id;
+                                const tom = total > 0 ? s.tom : undefined;
+                                const estilo = tom
+                                    ? (ativo ? `border border-transparent ${SOLIDO[tom]} text-background` : `${CHIP[tom]} hover:brightness-110`)
+                                    : ativo ? 'border border-primary bg-primary text-primary-foreground'
+                                        : 'border border-border text-muted-foreground hover:text-foreground';
+                                return (
+                                    <button key={s.id} type="button" aria-pressed={ativo} onClick={() => setFiltro('situacao', s.id)}
+                                        className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold leading-none transition-colors ${estilo}`}>
+                                        {s.label} <span className={`tabular-nums ${ativo ? 'opacity-90' : 'opacity-70'}`}>{total || '—'}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </FiltroLinha>
+
+                    <FiltroLinha rotulo="Tipo">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className={ALTERNADOR} role="group" aria-label="Tipo de demanda">
+                                {[['', 'Todos'], ...TIPOS_DEMANDA.map(t => [t, TIPOS_DEMANDA_LABEL[t] || t])].map(([id, label]) => (
+                                    <button key={id} onClick={() => setFiltros(f => ({ ...f, tipo: id, subtipo: id === 'OPERACAO' ? f.subtipo : '' }))}
+                                        aria-pressed={filtros.tipo === id}
+                                        className={`${SEGMENTO} ${filtros.tipo === id
+                                            ? (id ? `${SOLIDO[tomDe(TOM_AREA, id)]} text-background` : 'bg-primary text-primary-foreground')
+                                            : id ? `${TEXTO[tomDe(TOM_AREA, id)]} hover:bg-secondary/60` : 'text-muted-foreground hover:text-foreground'}`}>
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                            {filtros.tipo === 'OPERACAO' && (
+                                <select value={filtros.subtipo} onChange={e => setFiltro('subtipo', e.target.value)} aria-label="Subtipo da operação" className={`${CAMPO} w-56`}>
+                                    <option value="">Todo subtipo</option>
+                                    {SUBTIPOS_OPERACAO.map(s => <option key={s} value={s}>{SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
+                                </select>
+                            )}
+                        </div>
+                    </FiltroLinha>
+
+                    <FiltroLinha rotulo="Local e equipe">
+                        <GradeSeletores>
+                            <select value={filtros.regiao} onChange={e => setFiltros(f => ({ ...f, regiao: e.target.value, uf: e.target.value && regiaoPorUf(f.uf) !== e.target.value ? '' : f.uf }))} aria-label="Região" className={`${CAMPO} w-full`}>
+                                <option value="">Toda região</option>
+                                {REGIOES.map(r => <option key={r} value={r}>{REGIAO_LABEL[r]}</option>)}
                             </select>
-                        )}
-                        <select value={filtros.regiao} onChange={e => setFiltros(f => ({ ...f, regiao: e.target.value, uf: e.target.value && regiaoPorUf(f.uf) !== e.target.value ? '' : f.uf }))} className={filtroSelect}>
-                            <option value="">Toda região</option>
-                            {REGIOES.map(r => <option key={r} value={r}>{REGIAO_LABEL[r]}</option>)}
-                        </select>
-                        <select value={filtros.uf} onChange={e => setFiltro('uf', e.target.value)} className={filtroSelect}>
-                            <option value="">Toda UF</option>
-                            {ufsNaCarteira.map(([uf, n]) => <option key={uf} value={uf}>{uf} ({n})</option>)}
-                        </select>
-                        <select value={filtros.sharing} onChange={e => setFiltro('sharing', e.target.value)} className={filtroSelect}>
-                            <option value="">Todo sharing</option>
-                            {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                        <select value={filtros.operadora} onChange={e => setFiltro('operadora', e.target.value)} className={filtroSelect}>
-                            <option value="">Toda operadora</option>
-                            {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
-                        </select>
-                        {gestoresNaCarteira.length > 0 && (
-                            <select value={filtros.gestor} onChange={e => setFiltro('gestor', e.target.value)} className={filtroSelect}>
+                            <select value={filtros.uf} onChange={e => setFiltro('uf', e.target.value)} aria-label="UF" className={`${CAMPO} w-full`}>
+                                <option value="">Toda UF</option>
+                                {ufsNaCarteira.map(([uf, n]) => <option key={uf} value={uf}>{uf} ({n})</option>)}
+                            </select>
+                            <select value={filtros.sharing} onChange={e => setFiltro('sharing', e.target.value)} aria-label="Sharing" className={`${CAMPO} w-full`}>
+                                <option value="">Todo sharing</option>
+                                {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                            <select value={filtros.operadora} onChange={e => setFiltro('operadora', e.target.value)} aria-label="Operadora" className={`${CAMPO} w-full`}>
+                                <option value="">Toda operadora</option>
+                                {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                            </select>
+                            <select value={filtros.gestor} onChange={e => setFiltro('gestor', e.target.value)} aria-label="Gestor" className={`${CAMPO} w-full`} disabled={gestoresNaCarteira.length === 0}>
                                 <option value="">Todo gestor</option>
                                 {gestoresNaCarteira.map(([g, n]) => <option key={g} value={g}>{g} ({n})</option>)}
                             </select>
-                        )}
-
-                    </div>
-                </div>
-            )}
+                        </GradeSeletores>
+                    </FiltroLinha>
+                </>)}
+            </FiltroPainel>
 
             {erro && !showForm && !poModalId && (
                 <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>
@@ -509,16 +516,20 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 const tom = tomStatus(a.status_operacional);
                                 return (
                                     <tr key={a.id} className={`border-b border-border/60 last:border-b-0 border-l-4 ${FAIXA[tom]} hover:bg-secondary/20 transition-colors`}>
+                                        {/* Toda célula abre com uma linha de 28px (h-7): Site ID, cliente,
+                                            status, avanço, saldo e ações ficam na mesma altura. */}
                                         <td className="px-3 py-3 align-top">
-                                            <input type="checkbox" checked={selecionadas.includes(a.id)}
-                                                aria-label={`Selecionar ${a.id_site_sharing || a.codigo}`}
-                                                onChange={e => setSelecionadas(v => e.target.checked ? [...v, a.id] : v.filter(id => id !== a.id))}/>
+                                            <div className="flex h-7 items-center">
+                                                <input type="checkbox" checked={selecionadas.includes(a.id)}
+                                                    aria-label={`Selecionar ${a.id_site_sharing || a.codigo}`}
+                                                    onChange={e => setSelecionadas(v => e.target.checked ? [...v, a.id] : v.filter(id => id !== a.id))}/>
+                                            </div>
                                         </td>
                                         {/* O Site ID é a âncora da linha: é por ele que a obra é chamada. */}
                                         <td className="px-3 py-3 align-top">
                                             {a.id_site_sharing
-                                                ? <div className="font-id text-base font-semibold leading-tight text-foreground" title={a.titulo}>{a.id_site_sharing}</div>
-                                                : <div className="text-sm text-muted-foreground" title={a.titulo}>Sem Site ID</div>}
+                                                ? <div className="flex h-7 items-center font-id text-base font-semibold text-foreground" title={a.titulo}>{a.id_site_sharing}</div>
+                                                : <div className="flex h-7 items-center text-sm text-muted-foreground" title={a.titulo}>Sem Site ID</div>}
                                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                                                 {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}
                                                 <span className="font-id">{a.codigo}</span>
@@ -531,7 +542,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         <td className="px-3 py-3 align-top">
                                             {/* Sharing e operadora na mesma linha, como o Site ID ao lado:
                                                 a primeira linha de cada coluna é a que se lê de relance. */}
-                                            <div className="flex flex-wrap items-center gap-2 leading-tight">
+                                            <div className="flex h-7 items-center gap-2">
                                                 <SharingNome sharing={a.sharing} />
                                                 {a.operadora && <span className="text-xs"><OperadoraChip operadora={a.operadora} /></span>}
                                             </div>
@@ -539,7 +550,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             {gestor && <div className="mt-0.5 truncate text-xs text-muted-foreground" title={`Gestor ${gestor}`}>Gestor {gestor}</div>}
                                         </td>
                                         <td className="px-3 py-3 align-top">
-                                            <StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} />
+                                            <div className="flex h-7 items-center"><StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} /></div>
                                             <PendenciasDaLinha a={a} onAnexarPO={() => { setPoModalId(a.id); setPoForm({ numero: '', pdf_url: '' }); }} />
                                         </td>
                                         <td className="px-3 py-3 align-top">
@@ -547,27 +558,27 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 importante da coluna. O número ao lado garante que a
                                                 informação não dependa só da cor. */}
                                             {avanco > 0 ? (
-                                                <div className="flex items-center gap-2 pt-1">
+                                                <div className="flex h-7 items-center gap-2">
                                                     <div className="h-1.5 flex-1 min-w-[52px] rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
                                                         <div className={`h-full rounded-full ${SOLIDO[avanco >= 100 ? 'green' : tom]}`} style={{ width: `${avanco}%` }} />
                                                     </div>
                                                     <span className="text-xs font-medium w-9 text-right tabular-nums">{Math.round(avanco)}%</span>
                                                 </div>
-                                            ) : <span className="text-muted-foreground">—</span>}
+                                            ) : <div className="flex h-7 items-center text-muted-foreground">—</div>}
                                         </td>
                                         <td className="px-3 py-3 align-top text-right whitespace-nowrap">
-                                            <SaldoDaLinha a={a} />
+                                            <div className="flex h-7 items-center justify-end"><SaldoDaLinha a={a} /></div>
                                         </td>
                                         <td className="px-3 py-3 align-top">
-                                            <div className="flex items-center gap-1 justify-end">
+                                            <div className="flex h-7 items-center justify-end gap-1">
                                                 <button type="button" onClick={() => setSelecionadaId(a.id)}
-                                                    className="h-8 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary/60 whitespace-nowrap">
+                                                    className="inline-flex h-7 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary/60 whitespace-nowrap">
                                                     Abrir
                                                 </button>
                                                 {ehAdmin && (
                                                     <button type="button" onClick={() => setExcluindo(a)}
                                                         aria-label="Excluir atividade" title="Excluir atividade"
-                                                        className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                                                        className="h-7 w-7 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10">
                                                         <Trash2 size={14} aria-hidden />
                                                     </button>
                                                 )}
