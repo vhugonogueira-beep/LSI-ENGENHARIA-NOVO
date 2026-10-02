@@ -31,11 +31,12 @@ const APROVACAO_LABEL: Record<string, string> = {
     SEMPRE: 'Toda solicitação passa por aprovação',
     ACIMA_DO_LIMITE: 'Aprovação acima de um limite',
 };
-const STATUS_COR: Record<string, string> = { ATIVO: 'text-emerald-500 bg-emerald-500/10', CONVIDADO: 'text-amber-500 bg-amber-500/10', SUSPENSO: 'text-red-500 bg-red-500/10' };
+const STATUS_COR: Record<string, string> = { ATIVO: 'text-ok bg-ok/10', CONVIDADO: 'text-warn bg-warn/10', SUSPENSO: 'text-crit bg-crit/10' };
+const STATUS_ROTULO: Record<string, string> = { ATIVO: 'Ativo', CONVIDADO: 'Convidado', SUSPENSO: 'Suspenso' };
 const moeda = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const dataHora = (v: string | null) => v ? new Date(v).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '—';
 const campo = 'w-full rounded-lg border border-border bg-secondary/40 p-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30';
-const rotulo = 'mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground';
+const rotulo = 'mb-1 block text-xs font-semibold text-muted-foreground';
 
 async function pedir(url: string, init?: RequestInit) {
     const r = await fetch(url, { headers: { 'Content-Type': 'application/json' }, ...init });
@@ -139,7 +140,7 @@ export default function UsuariosAcessos() {
                     </p>
                 </div>
                 <button onClick={abrirNovo} className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-                    <Plus size={16} /> Novo usuário
+                    <Plus size={16} aria-hidden /> Novo usuário
                 </button>
             </div>
 
@@ -162,19 +163,19 @@ export default function UsuariosAcessos() {
                             <tr key={u.id} className={`border-b border-border last:border-0 ${u.status_acesso === 'SUSPENSO' ? 'opacity-55' : ''}`}>
                                 <td className="px-3 py-3 align-top">
                                     <div className="font-semibold">{u.nome}</div>
-                                    <div className="text-[11px] text-muted-foreground">{u.email}{u.cargo ? ` · ${u.cargo}` : ''}</div>
+                                    <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground"><span>{u.email}</span>{u.cargo && <span>{u.cargo}</span>}</div>
                                 </td>
                                 <td className="px-3 py-3 align-top">
-                                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${STATUS_COR[u.status_acesso] || ''}`}>{u.status_acesso}</span>
-                                    {u.role === 'ADMIN' && <span className="ml-1.5 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold text-primary">ADMIN</span>}
+                                    <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${STATUS_COR[u.status_acesso] || ''}`}>{STATUS_ROTULO[u.status_acesso] || u.status_acesso}</span>
+                                    {u.role === 'ADMIN' && <span className="ml-1.5 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-semibold text-primary">Administrador</span>}
                                     {u.status_acesso === 'CONVIDADO' && u.convite_expira_em && (
-                                        <div className="mt-1 text-[10px] text-muted-foreground">
+                                        <div className="mt-1 text-[11px] text-muted-foreground">
                                             {new Date(u.convite_expira_em) < new Date() ? 'convite vencido' : `convite até ${dataHora(u.convite_expira_em)}`}
                                         </div>
                                     )}
                                 </td>
                                 <td className="px-3 py-3 align-top text-[11px] text-muted-foreground">
-                                    {u.role === 'ADMIN' ? 'Tudo' : u.permissoes.length ? u.permissoes.map(nomePermissao).join(' · ') : 'Somente consulta'}
+                                    {u.role === 'ADMIN' ? 'Tudo' : u.permissoes.length ? u.permissoes.map(nomePermissao).join(', ') : 'Somente consulta'}
                                 </td>
                                 <td className="px-3 py-3 align-top text-[11px]">
                                     {u.role === 'ADMIN' || u.permissoes.includes('pagamentos.aprovar') ? 'Aprova pagamentos'
@@ -183,13 +184,13 @@ export default function UsuariosAcessos() {
                                 </td>
                                 <td className="px-3 py-3 align-top text-[11px] text-muted-foreground">{dataHora(u.ultimo_acesso_em)}</td>
                                 <td className="whitespace-nowrap px-3 py-3 text-right align-top">
-                                    <button title="Editar acesso" onClick={() => abrirEdicao(u)} className="p-1.5 text-muted-foreground hover:text-foreground"><Pencil size={15} /></button>
+                                    <button title="Editar acesso" aria-label={`Editar acesso de ${u.nome}`} onClick={() => abrirEdicao(u)} className="p-1.5 text-muted-foreground hover:text-foreground"><Pencil size={15} aria-hidden /></button>
                                     {u.status_acesso !== 'SUSPENSO' && (
-                                        <button title={u.status_acesso === 'CONVIDADO' ? 'Novo link de convite' : 'Link para redefinir senha'} onClick={() => novoLink(u)} className="p-1.5 text-muted-foreground hover:text-foreground"><KeyRound size={15} /></button>
+                                        <button title={u.status_acesso === 'CONVIDADO' ? 'Gerar novo link de convite' : 'Gerar link para redefinir senha'} aria-label={u.status_acesso === 'CONVIDADO' ? `Gerar novo link de convite para ${u.nome}` : `Gerar link para redefinir senha de ${u.nome}`} onClick={() => novoLink(u)} className="p-1.5 text-muted-foreground hover:text-foreground"><KeyRound size={15} aria-hidden /></button>
                                     )}
                                     {u.status_acesso === 'SUSPENSO'
-                                        ? <button title="Reativar" onClick={() => alterarStatus(u, 'ATIVO')} className="p-1.5 text-emerald-500"><UserCheck size={15} /></button>
-                                        : <button title="Suspender acesso" onClick={() => alterarStatus(u, 'SUSPENSO')} className="p-1.5 text-red-500"><UserX size={15} /></button>}
+                                        ? <button title="Reativar acesso" aria-label={`Reativar acesso de ${u.nome}`} onClick={() => alterarStatus(u, 'ATIVO')} className="p-1.5 text-ok"><UserCheck size={15} aria-hidden /></button>
+                                        : <button title="Suspender acesso" aria-label={`Suspender acesso de ${u.nome}`} onClick={() => alterarStatus(u, 'SUSPENSO')} className="p-1.5 text-crit"><UserX size={15} aria-hidden /></button>}
                                 </td>
                             </tr>
                         ))}
@@ -202,7 +203,7 @@ export default function UsuariosAcessos() {
                     <form onSubmit={salvar} className="max-h-[92vh] w-full max-w-3xl space-y-5 overflow-y-auto rounded-xl border border-border bg-card p-6">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-bold">{editando === 'novo' ? 'Novo usuário' : `Acesso de ${editando.nome}`}</h3>
-                            <button type="button" onClick={() => setEditando(null)} className="text-muted-foreground"><X size={20} /></button>
+                            <button type="button" onClick={() => setEditando(null)} aria-label="Fechar" title="Fechar" className="text-muted-foreground"><X size={20} aria-hidden /></button>
                         </div>
 
                         <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -216,7 +217,7 @@ export default function UsuariosAcessos() {
 
                         <section className="space-y-3 rounded-xl border border-border bg-secondary/20 p-4">
                             <div className="flex flex-wrap items-center justify-between gap-2">
-                                <h4 className="flex items-center gap-2 text-sm font-bold"><ShieldCheck size={16} /> O que pode fazer</h4>
+                                <h4 className="flex items-center gap-2 text-sm font-bold"><ShieldCheck size={16} aria-hidden /> O que pode fazer</h4>
                                 <label className="flex items-center gap-2 text-xs font-semibold">
                                     <input type="checkbox" checked={form.role === 'ADMIN'} onChange={e => setForm(f => ({ ...f, role: e.target.checked ? 'ADMIN' : 'USUARIO' }))} />
                                     Administrador (tudo, inclusive excluir e gerir usuários)
@@ -253,7 +254,7 @@ export default function UsuariosAcessos() {
                                 <h4 className="text-sm font-bold">Aprovação das solicitações de pagamento</h4>
                                 <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
                                     {Object.entries(APROVACAO_LABEL).map(([id, l]) => (
-                                        <label key={id} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 text-[12px] font-semibold ${form.aprovacao_pagamento === id ? 'border-primary/50 bg-primary/[0.06]' : 'border-border'}`}>
+                                        <label key={id} className={`flex cursor-pointer items-center gap-2 rounded-lg border p-2.5 text-xs font-semibold ${form.aprovacao_pagamento === id ? 'border-primary/50 bg-primary/[0.06]' : 'border-border'}`}>
                                             <input type="radio" name="aprovacao" checked={form.aprovacao_pagamento === id} onChange={() => setForm(f => ({ ...f, aprovacao_pagamento: id }))} />{l}
                                         </label>
                                     ))}
@@ -268,7 +269,7 @@ export default function UsuariosAcessos() {
                         )}
 
                         <section className="space-y-2 rounded-xl border border-border bg-secondary/20 p-4">
-                            <h4 className="flex items-center gap-2 text-sm font-bold"><Mail size={15} /> E-mails gerados por esta pessoa</h4>
+                            <h4 className="flex items-center gap-2 text-sm font-bold"><Mail size={15} aria-hidden /> E-mails gerados por esta pessoa</h4>
                             <label className="block"><span className={rotulo}>Sempre copiar (CC)</span>
                                 <input className={campo} value={form.email_cc_padrao} onChange={e => setForm(f => ({ ...f, email_cc_padrao: e.target.value }))} placeholder="gestor@lsoffice.com.br; outro@lsoffice.com.br" />
                             </label>
@@ -309,7 +310,7 @@ function LinkGerado({ usuario, url, expira, tipo, horas, onClose }: { usuario: U
             <div className="w-full max-w-xl space-y-4 rounded-xl border border-border bg-card p-6">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-bold">{convite ? 'Convite gerado' : 'Link de redefinição gerado'}</h3>
-                    <button onClick={onClose} className="text-muted-foreground"><X size={20} /></button>
+                    <button onClick={onClose} aria-label="Fechar" title="Fechar" className="text-muted-foreground"><X size={20} aria-hidden /></button>
                 </div>
                 <p className="text-sm text-muted-foreground">
                     Envie este link para <b className="text-foreground">{usuario.nome}</b> ({usuario.email}). Ele vale até{' '}
@@ -317,9 +318,9 @@ function LinkGerado({ usuario, url, expira, tipo, horas, onClose }: { usuario: U
                 </p>
                 <div className="break-all rounded-lg border border-border bg-secondary/40 p-3 font-mono text-xs">{url}</div>
                 <div className="flex flex-wrap justify-end gap-2">
-                    <button onClick={copiar} className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold"><Copy size={15} /> {copiado ? 'Copiado!' : 'Copiar link'}</button>
+                    <button onClick={copiar} className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold"><Copy size={15} aria-hidden /> {copiado ? 'Copiado!' : 'Copiar link'}</button>
                     <a href={`mailto:${usuario.email}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"><Mail size={15} /> Enviar pelo Outlook</a>
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"><Mail size={15} aria-hidden /> Enviar pelo Outlook</a>
                 </div>
             </div>
         </div>

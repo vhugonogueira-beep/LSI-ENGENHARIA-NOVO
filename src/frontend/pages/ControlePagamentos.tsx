@@ -9,6 +9,7 @@ import {
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
 import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
+import { X } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Controle de Pagamentos — a fila única do que a LS Office deve pagar.
@@ -25,7 +26,7 @@ import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
 const S = {
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "14px 16px" } as React.CSSProperties,
   input: { padding: "8px 10px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", boxSizing: "border-box" } as React.CSSProperties,
-  btn: { padding: "7px 13px", fontSize: 11.5, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg1, cursor: "pointer", color: T.txPri, fontWeight: 700 } as React.CSSProperties,
+  btn: { padding: "7px 13px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg1, cursor: "pointer", color: T.txPri, fontWeight: 700 } as React.CSSProperties,
   btnBlue: { background: T.blue, color: "#fff", borderColor: T.blue } as React.CSSProperties,
 };
 
@@ -66,9 +67,12 @@ const dataCurta = (v: string | null) => {
   const data = new Date(v);
   return data.toLocaleDateString("pt-BR", v.includes("T00:00:00") ? { timeZone: "UTC" } : undefined);
 };
-const ORIGEM_LABEL: Record<Linha['origem'], string> = { PARCELA: 'CONTRATAÇÃO', REEMBOLSO: 'REEMBOLSO', ADIANTAMENTO: 'ADIANTAMENTO' };
-const corOrigem = (origem: Linha['origem']) => origem === 'ADIANTAMENTO' ? T.cyan : origem === 'REEMBOLSO' ? T.purple : T.blue;
-const tipoLabel = (tipo: string) => tipo === 'ADIANTAMENTO_VIAGEM' ? 'Adiantamento de viagem' : tipo.replace(/_/g, ' ');
+const ORIGEM_LABEL: Record<Linha['origem'], string> = { PARCELA: 'Contratação', REEMBOLSO: 'Reembolso', ADIANTAMENTO: 'Adiantamento' };
+/** Código do banco (TIPO_DO_X) em frase: "Tipo do x". */
+const emFrase = (v: string) => { const t = v.replace(/_/g, ' ').toLocaleLowerCase('pt-BR'); return t.charAt(0).toLocaleUpperCase('pt-BR') + t.slice(1); };
+const tipoLabel = (tipo: string) => tipo === 'ADIANTAMENTO_VIAGEM' ? 'Adiantamento de viagem' : emFrase(tipo);
+const FORMA_LABEL: Record<string, string> = { PIX: 'PIX', TED: 'Transferência', CARTAO_CREDITO: 'Cartão de crédito' };
+const formaLabel = (forma: string | null) => !forma ? 'Forma não informada' : FORMA_LABEL[forma] || emFrase(forma);
 
 export default function ControlePagamentos() {
   const [modulo, setModulo] = useState<"PAGAMENTOS" | "PRESTACOES">("PAGAMENTOS");
@@ -230,17 +234,17 @@ export default function ControlePagamentos() {
 
   const seletorModulo = <div style={{ display: "flex", gap: 8, borderBottom: `1px solid ${T.brBase}`, padding: "0 22px" }}>
     <button onClick={() => setModulo("PAGAMENTOS")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PAGAMENTOS" ? `2px solid ${T.blue}` : "2px solid transparent", borderRadius: 0, color: modulo === "PAGAMENTOS" ? T.blue : T.txMut }}>Pagamentos</button>
-    <button onClick={() => setModulo("PRESTACOES")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PRESTACOES" ? `2px solid ${T.cyan}` : "2px solid transparent", borderRadius: 0, color: modulo === "PRESTACOES" ? T.cyan : T.txMut }}>Prestações de contas</button>
+    <button onClick={() => setModulo("PRESTACOES")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PRESTACOES" ? `2px solid ${T.blue}` : "2px solid transparent", borderRadius: 0, color: modulo === "PRESTACOES" ? T.blue : T.txMut }}>Prestações de contas</button>
   </div>;
 
   if (modulo === "PRESTACOES") return <div>{seletorModulo}<PrestacaoContasViagem standalone /></div>;
 
   return (
     <div>{seletorModulo}<div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14 }}>
-      {toast && <div style={{ position: "fixed", bottom: 20, right: 20, background: T.green, color: "#052e1b", padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 700, fontSize: 12 }}>{toast}</div>}
+      {toast && <div role="status" style={{ position: "fixed", bottom: 20, right: 20, background: T.bg2, color: T.txPri, border: `1px solid ${T.green}`, borderLeft: `3px solid ${T.green}`, padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 600, fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.18)" }}>{toast}</div>}
 
       <div>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: T.txPri, margin: 0 }}>Controle de Pagamentos</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Controle de Pagamentos</h1>
         <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0" }}>
           Parcelas de contrato e reembolsos na mesma fila. O comprovante é anexado na própria linha.
         </p>
@@ -249,38 +253,38 @@ export default function ControlePagamentos() {
       <FilaAprovacoes onDecidido={carregar} />
 
       {erro && (
-        <div style={{ ...S.card, borderColor: T.red + "66", background: T.red + "12", color: "#fca5a5", fontSize: 12, display: "flex", justifyContent: "space-between" }}>
+        <div role="alert" style={{ ...S.card, borderColor: T.red + "66", background: T.red + "12", color: T.red, fontSize: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>{erro}</span>
-          <button onClick={() => setErro("")} style={{ background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontWeight: 700 }}>✕</button>
+          <button onClick={() => setErro("")} aria-label="Fechar aviso" title="Fechar aviso" style={{ background: "none", border: "none", color: T.red, cursor: "pointer", display: "inline-flex", padding: 2 }}><X size={14} aria-hidden /></button>
         </div>
       )}
 
       {resumo && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12 }}>
-          <Kpi rotulo="A pagar" valor={moeda(resumo.aPagar)} cor={T.amber} />
-          <Kpi rotulo="Pago" valor={moeda(resumo.pago)} cor={T.green} />
-          <Kpi rotulo="Total" valor={moeda(resumo.total)} cor={T.blue} />
-          <Kpi rotulo="Pagos sem comprovante" valor={String(resumo.semComprovante)} cor={resumo.semComprovante > 0 ? T.red : T.txMut} />
+          <Kpi rotulo="A pagar" valor={resumo.aPagar ? moeda(resumo.aPagar) : null} />
+          <Kpi rotulo="Pago" valor={resumo.pago ? moeda(resumo.pago) : null} />
+          <Kpi rotulo="Total" valor={resumo.total ? moeda(resumo.total) : null} />
+          <Kpi rotulo="Pagos sem comprovante" valor={resumo.semComprovante > 0 ? String(resumo.semComprovante) : null} alerta={resumo.semComprovante > 0 ? T.red : undefined} />
           {/* Formalizações não entram em "A pagar": o dinheiro já saiu. O que
               falta nelas é documento, e isso tem indicador próprio. */}
           {resumo.formalizacoesPendentesDocumento > 0 && (
-            <Kpi rotulo="Formalizações sem documento" valor={String(resumo.formalizacoesPendentesDocumento)} cor={T.amber} />
+            <Kpi rotulo="Formalizações sem documento" valor={String(resumo.formalizacoesPendentesDocumento)} alerta={T.amber} />
           )}
         </div>
       )}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por favorecido, atividade ou site..."
+        <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por favorecido, atividade ou site..." aria-label="Buscar pagamentos"
           style={{ ...S.input, flex: 1, minWidth: 220 }} />
         {filtros.map(f => (
-          <button key={f.id} onClick={() => setFiltro(f.id)} style={{ ...S.btn, ...(filtro === f.id ? S.btnBlue : {}) }}>{f.rotulo}</button>
+          <button key={f.id} onClick={() => setFiltro(f.id)} aria-pressed={filtro === f.id} style={{ ...S.btn, ...(filtro === f.id ? S.btnBlue : {}) }}>{f.rotulo}</button>
         ))}
       </div>
 
       <div className="space-y-4">
         {grupos.map(([favorecido, pagamentos]) => {
           const totalGrupo = pagamentos.reduce((soma, pagamento) => soma + pagamento.valor, 0);
-          const categorias = Array.from(new Set(pagamentos.map(pagamento => ORIGEM_LABEL[pagamento.origem]))).join(" · ");
+          const categorias = Array.from(new Set(pagamentos.map(pagamento => ORIGEM_LABEL[pagamento.origem]))).join(", ");
           const documento = pagamentos.find(pagamento => pagamento.documento)?.documento;
           return (
             <FinancialBeneficiaryCard
@@ -289,25 +293,26 @@ export default function ControlePagamentos() {
               category={categorias}
               total={moeda(totalGrupo)}
               totalLabel="Total no filtro"
-              status={<span className="rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[10px] font-bold text-muted-foreground">{pagamentos.length} {pagamentos.length === 1 ? "pagamento" : "pagamentos"}</span>}
+              status={<span className="rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] font-bold text-muted-foreground">{pagamentos.length} {pagamentos.length === 1 ? "pagamento" : "pagamentos"}</span>}
             >
-              {documento && <div className="px-1 text-[10px] text-muted-foreground">Documento: {documento}</div>}
+              {documento && <div className="px-1 text-[11px] text-muted-foreground">Documento: <span className="font-id">{documento}</span></div>}
               {pagamentos.map(l => {
                 const pago = PAGOS.includes(l.status);
                 const faltaComprovante = pago && !l.tem_comprovante;
                 // A referencia vem primeiro: e por ela que o financeiro
                 // identifica o lancamento no extrato e no e-mail.
-                const contexto = [
-                  l.referencia,
-                  l.descricao,
-                  l.atividade?.codigo,
-                  l.atividade?.site,
-                ].filter(Boolean).join(" · ");
-                const forma = l.forma_pagamento?.replace("CARTAO_CREDITO", "CARTÃO DE CRÉDITO").replace("TED", "TRANSFERÊNCIA") || "FORMA NÃO INFORMADA";
+                const contexto = <span className="inline-flex flex-wrap gap-x-3">
+                  {l.referencia && <span className="font-id">{l.referencia}</span>}
+                  {l.descricao && <span>{l.descricao}</span>}
+                  {l.atividade?.codigo && <span className="font-id">{l.atividade.codigo}</span>}
+                  {l.atividade?.site && <span className="font-id">{l.atividade.site}</span>}
+                </span>;
+                const forma = formaLabel(l.forma_pagamento);
                 const detalhePagamento = l.cartao
                   ? l.cartao
+                  // A forma ("PIX") já sai ao lado; aqui vai só a chave.
                   : l.forma_pagamento === "PIX" && l.pix
-                    ? `PIX ${l.pix}`
+                    ? l.pix
                     : l.banco
                       ? `${l.banco} ${l.agencia || ""}/${l.conta || ""}`
                       : "";
@@ -322,12 +327,12 @@ export default function ControlePagamentos() {
                   });
                 }
                 const acaoPrincipal = l.comprovante_url
-                  ? <a href={l.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center rounded-lg border border-emerald-500/40 px-3 text-[11px] font-bold text-emerald-400 hover:bg-emerald-500/10">Ver comprovante</a>
+                  ? <a href={l.comprovante_url} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center rounded-lg border border-ok/40 px-3 text-[11px] font-bold text-ok hover:bg-ok/10">Ver comprovante</a>
                   : <button
                       type="button"
                       onClick={() => inputs.current[l.id]?.click()}
                       disabled={enviandoId === l.id}
-                      className={`h-8 rounded-lg border px-3 text-[11px] font-bold disabled:opacity-50 ${faltaComprovante ? "border-red-400/60 text-red-400 hover:bg-red-500/10" : "border-border text-foreground hover:bg-secondary"}`}
+                      className={`h-8 rounded-lg border px-3 text-[11px] font-bold disabled:opacity-50 ${faltaComprovante ? "border-crit/60 text-crit hover:bg-crit/10" : "border-border text-foreground hover:bg-secondary"}`}
                     >
                       {enviandoId === l.id ? "Enviando..." : "Anexar comprovante"}
                     </button>;
@@ -347,7 +352,7 @@ export default function ControlePagamentos() {
                     <FinancialPaymentCard
                       title={l.deposito_numero ? `Depósito ${l.deposito_numero}` : tipoLabel(l.tipo)}
                       amount={moeda(l.valor)}
-                      method={<span style={{ color: corOrigem(l.origem) }}>{forma}{detalhePagamento ? ` · ${detalhePagamento}` : ""}</span>}
+                      method={<span className="inline-flex flex-wrap gap-x-2"><span>{forma}</span>{detalhePagamento && <span className="font-id font-normal">{detalhePagamento}</span>}</span>}
                       context={contexto}
                       requestedAt={dataCurta(l.data_solicitacao)}
                       expectedAt={dataCurta(l.data_prevista)}
@@ -357,10 +362,13 @@ export default function ControlePagamentos() {
                       primaryAction={acaoPrincipal}
                       actions={acoes}
                     >
-                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
-                        <span className="font-semibold" style={{ color: corOrigem(l.origem) }}>{ORIGEM_LABEL[l.origem]}</span>
-                        {l.documento && <span>{l.documento}</span>}
-                        {(l.processo_tipo === 'PAYMENT_FORMALIZATION' || l.formalizacao_posterior) && <span className="text-amber-400">Pagamento já realizado · formalização documental, sem novo pagamento{l.fatura_referencia ? ` · ${l.fatura_referencia}` : ""}</span>}
+                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                        <span className="font-semibold text-foreground">{ORIGEM_LABEL[l.origem]}</span>
+                        {l.documento && <span className="font-id">{l.documento}</span>}
+                        {(l.processo_tipo === 'PAYMENT_FORMALIZATION' || l.formalizacao_posterior) && <>
+                          <span className="text-warn">Pagamento já realizado: formalização documental, sem novo pagamento</span>
+                          {l.fatura_referencia && <span>Fatura <span className="font-id">{l.fatura_referencia}</span></span>}
+                        </>}
                       </div>
                     </FinancialPaymentCard>
                   </div>
@@ -374,13 +382,13 @@ export default function ControlePagamentos() {
             {linhas.length === 0 ? "Nenhum pagamento cadastrado ainda." : "Nenhum pagamento neste filtro."}
           </div>
         )}
-        <div className="px-1 text-[10.5px] text-muted-foreground">
+        <div className="px-1 text-[11px] text-muted-foreground">
           Mostrando {visiveis.length} de {linhas.length}. Anexar o comprovante marca o pagamento como concluído.
         </div>
       </div>
       {editando && <div style={{ position: "fixed", inset: 0, zIndex: 9500, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setEditando(null)}>
         <div style={{ ...S.card, width: "100%", maxWidth: 480, padding: 20 }} onClick={e => e.stopPropagation()}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 16 }}><div><h2 style={{ margin: 0, color: T.txPri, fontSize: 16 }}>Editar pagamento solicitado</h2><p style={{ margin: "4px 0 0", color: T.txMut, fontSize: 11 }}>{editando.linha.favorecido}</p></div><button onClick={() => setEditando(null)} style={{ ...S.btn, padding: "4px 8px" }}>✕</button></div>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 16 }}><div><h2 style={{ margin: 0, color: T.txPri, fontSize: 15 }}>Editar pagamento solicitado</h2><p style={{ margin: "4px 0 0", color: T.txMut, fontSize: 11 }}>{editando.linha.favorecido}</p></div><button onClick={() => setEditando(null)} aria-label="Fechar" title="Fechar" style={{ ...S.btn, padding: "4px 8px", display: "inline-flex", alignItems: "center" }}><X size={14} aria-hidden /></button></div>
           {erro && <div style={{ marginBottom: 12, padding: "8px 10px", border: `1px solid ${T.red}66`, borderRadius: 7, background: `${T.red}12`, color: T.red, fontSize: 11 }}>{erro}</div>}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <label style={{ color: T.txSec, fontSize: 11 }}>Valor<input type="number" min="0.01" step="0.01" value={editando.valor} onChange={e => setEditando({ ...editando, valor: e.target.value })} style={{ ...S.input, display: "block", width: "100%", marginTop: 5 }}/></label>
@@ -396,11 +404,12 @@ export default function ControlePagamentos() {
 }
 
 
-function Kpi({ rotulo, valor, cor }: { rotulo: string; valor: string; cor: string }) {
+/** Valor neutro; só ganha cor quando é alerta. Sem valor, "—" sem cor. */
+function Kpi({ rotulo, valor, alerta }: { rotulo: string; valor: string | null; alerta?: string }) {
   return (
-    <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderTop: `3px solid ${cor}`, borderRadius: 10, padding: "11px 15px" }}>
-      <div style={{ fontSize: 9.5, color: T.txMut, fontWeight: 700, letterSpacing: "0.06em" }}>{rotulo.toUpperCase()}</div>
-      <div style={{ fontSize: 19, fontWeight: 900, color: cor, marginTop: 4 }}>{valor}</div>
+    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px" }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{rotulo}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
     </div>
   );
 }

@@ -391,48 +391,51 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                     {/* filtros */}
                     <div className="flex flex-col lg:flex-row gap-2 mb-3">
                         <div className="relative flex-1">
-                            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                            <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 className={`${inputClass} pl-9`}
                                 value={busca}
                                 onChange={e => setBusca(e.target.value)}
                                 placeholder="Buscar código LS, item, grupo ou família"
+                                aria-label="Buscar item da LPU"
                             />
                         </div>
-                        <select className={`${inputClass} lg:w-64`} value={familia} onChange={e => setFamilia(e.target.value)}>
+                        <select aria-label="Família" className={`${inputClass} lg:w-64`} value={familia} onChange={e => setFamilia(e.target.value)}>
                             <option value="TODAS">Todas as famílias ({familias.length})</option>
                             {familias.map(f => <option key={f} value={f}>{f}</option>)}
                         </select>
-                        <label className="h-10 px-3 flex items-center gap-2 border border-border bg-background text-sm whitespace-nowrap cursor-pointer">
+                        <label className="h-10 px-3 flex items-center gap-2 rounded-lg border border-border bg-background text-sm whitespace-nowrap cursor-pointer">
                             <input type="checkbox" checked={somenteSelecionados} onChange={e => setSomenteSelecionados(e.target.checked)} />
                             Selecionados
                         </label>
                     </div>
 
                     <div className="mb-3 text-xs text-muted-foreground">
-                        Custo sugerido: custo LS da <strong>{nomeBase || 'LPU LS Office Geral'}</strong>{motivoBase ? <> — escolhida automaticamente: {motivoBase}</> : null} · {catalogo.length} itens no catálogo · a venda ao lado é referência da LPU
+                        Custo sugerido: custo LS da <strong>{nomeBase || 'LPU LS Office Geral'}</strong>{motivoBase ? <> — escolhida automaticamente: {motivoBase}</> : null}.
+                        <span className="ml-3">{catalogo.length} itens no catálogo.</span>
+                        <span className="ml-3">A venda ao lado é referência da LPU.</span>
                     </div>
 
                     {semCusto.length > 0 && (
-                        <div className="mb-3 rounded-md border border-red-500/45 bg-red-500/10 px-3 py-2.5">
-                            <div className="text-sm font-semibold text-red-400">
-                                {semCusto.length} {semCusto.length === 1 ? 'item marcado esta' : 'itens marcados estao'} sem custo
+                        <div className="mb-3 rounded-md border border-crit/45 bg-crit/10 px-3 py-2.5">
+                            <div className="text-sm font-semibold text-crit">
+                                {semCusto.length} {semCusto.length === 1 ? 'item marcado está' : 'itens marcados estão'} sem custo
                             </div>
                             <div className="text-xs text-muted-foreground mt-0.5">
                                 A LPU tem custo cadastrado em poucos itens. Sem preencher, o custo da obra sai menor
-                                do que e de verdade e o total abaixo passa a mentir.
+                                do que é de verdade e o total abaixo passa a mentir.
                             </div>
                         </div>
                     )}
 
                     {divergentes.length > 0 && (
-                        <div className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2.5">
-                            <div className="text-sm font-semibold text-amber-500">
-                                {divergentes.length} {divergentes.length === 1 ? 'item esta' : 'itens estao'} com custo diferente da LPU
+                        <div className="mb-3 rounded-md border border-warn/50 bg-warn/10 px-3 py-2.5">
+                            <div className="text-sm font-semibold text-warn">
+                                {divergentes.length} {divergentes.length === 1 ? 'item está' : 'itens estão'} com custo diferente da LPU
                             </div>
                             <div className="text-xs text-muted-foreground mt-0.5">
-                                O custo foi copiado da LPU quando o item foi marcado. Use "usar" na linha
-                                para voltar ao cadastrado, ou mantenha se esta obra foi comprada por outro preco.
+                                O custo foi copiado da LPU quando o item foi marcado. Use "Usar custo da LPU" na linha
+                                para voltar ao cadastrado, ou mantenha se esta obra foi comprada por outro preço.
                             </div>
                         </div>
                     )}
@@ -442,18 +445,18 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                         <table className="w-full min-w-[1360px] text-sm">
                             <thead className="sticky top-0 z-10 bg-secondary text-muted-foreground">
                                 <tr className="text-left text-xs">
-                                    <th className="w-12 px-3 py-2.5"></th>
+                                    <th className="w-12 px-3 py-2.5"><span className="sr-only">Selecionar</span></th>
                                     <th className="w-28 px-3 py-2.5">Código LS</th>
                                     <th className="px-3 py-2.5">Item</th>
                                     <th className="w-32 px-3 py-2.5">Família</th>
                                     <th className="w-16 px-3 py-2.5">Un.</th>
                                     <th className="w-24 px-3 py-2.5 text-right">Qtd.</th>
-                                    <th className="w-32 px-3 py-2.5 text-right text-emerald-500">Custo LS un.</th>
-                                    <th className="w-32 px-3 py-2.5 text-right text-emerald-500">Custo total</th>
-                                    <th className="w-28 px-3 py-2.5 text-right" title="Valor de venda cadastrado na LPU. Referencia, nao editavel aqui.">Venda un. (ref.)</th>
+                                    <th className="w-32 px-3 py-2.5 text-right">Custo LS un.</th>
+                                    <th className="w-32 px-3 py-2.5 text-right">Custo total</th>
+                                    <th className="w-28 px-3 py-2.5 text-right" title="Valor de venda cadastrado na LPU. Referência, não editável aqui.">Venda un. (ref.)</th>
                                     <th className="w-28 px-3 py-2.5 text-right">Margem</th>
                                     <th className="w-20 px-3 py-2.5 text-right">BDI %</th>
-                                    <th className="w-24 px-3 py-2.5 text-right" title="Ajuste interno da LS Office; nao aparece no documento do cliente.">Desc. %</th>
+                                    <th className="w-24 px-3 py-2.5 text-right" title="Ajuste interno da LS Office; não aparece no documento do cliente.">Desc. %</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -471,7 +474,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                                             <td className="px-3 py-2 text-center">
                                                 <input type="checkbox" checked={Boolean(marcado)} onChange={() => marcar(item)} aria-label={`Selecionar ${item.codigo_item}`} />
                                             </td>
-                                            <td className="px-3 py-2 font-mono text-xs font-semibold">{item.codigo_item || '—'}</td>
+                                            <td className="px-3 py-2 font-id text-xs font-semibold">{item.codigo_item || '—'}</td>
                                             <td className="px-3 py-2">
                                                 <div className="font-medium">{item.descricao}</div>
                                                 {item.detalhamento && <div className="text-[11px] text-muted-foreground mt-0.5">{item.detalhamento}</div>}
@@ -481,21 +484,21 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                                             <td className="px-2 py-2"><input disabled={!marcado} type="number" min="0" step="0.01" className={`${inputClass} h-8 text-right`} value={marcado?.quantidade ?? ''} onChange={e => editar(item.id, 'quantidade', e.target.value)} /></td>
                                             <td className="px-2 py-2">
                                                 <input disabled={!marcado} type="number" min="0" step="0.01"
-                                                    className={`${inputClass} h-8 text-right ${divergente ? 'border-amber-500/70' : ''} ${faltaCusto ? 'border-red-500/60' : ''}`}
+                                                    className={`${inputClass} h-8 text-right ${divergente ? 'border-warn/70' : ''} ${faltaCusto ? 'border-crit/60' : ''}`}
                                                     placeholder={item.custo_ls == null ? 'sem custo' : ''}
                                                     value={marcado?.custo_unitario ?? item.custo_ls ?? ''} onChange={e => editar(item.id, 'custo_unitario', e.target.value)} />
                                                 {divergente && (
-                                                    <button type="button" onClick={() => alinharComABase(item)} className="mt-1 block w-full text-right text-[10px] text-amber-500 hover:underline">
-                                                        LPU {fmtMoeda(item.custo_ls!)} · usar
+                                                    <button type="button" onClick={() => alinharComABase(item)} title="Usar custo da LPU" className="mt-1 block w-full text-right text-[11px] text-warn hover:underline">
+                                                        Usar {fmtMoeda(item.custo_ls!)}
                                                     </button>
                                                 )}
                                             </td>
-                                            <td className="px-3 py-2 text-right font-semibold text-emerald-500">{marcado ? fmtMoeda(total) : '—'}</td>
+                                            <td className={`px-3 py-2 text-right ${marcado && total ? 'font-semibold' : 'text-muted-foreground'}`}>{marcado && total ? fmtMoeda(total) : '—'}</td>
                                             <td className="px-3 py-2 text-right text-xs text-muted-foreground">{item.valor_venda ? fmtMoeda(item.valor_venda) : '—'}</td>
                                             <td className="px-3 py-2 text-right text-xs">
                                                 {margem == null
                                                     ? <span className="text-muted-foreground">—</span>
-                                                    : <span className={margem >= 0 ? 'text-cyan-400 font-semibold' : 'text-red-400 font-semibold'}>
+                                                    : <span className={margem >= 0 ? 'text-foreground font-semibold' : 'text-crit font-semibold'}>
                                                         {fmtMoeda(margem)}
                                                         {vendaTotal ? <span className="text-muted-foreground font-normal ml-1">{Math.round((margem / vendaTotal) * 100)}%</span> : null}
                                                     </span>}
@@ -519,8 +522,8 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                         <div className="text-sm font-semibold">Itens avulsos</div>
                         <div className="text-xs text-muted-foreground">Para o que não existe na LPU. Entram na mesma cotação.</div>
                     </div>
-                    <button onClick={() => { setSaved(false); setAvulsos(a => [...a, novaAvulsa()]); }} className="h-9 px-3 border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2">
-                        <Plus size={15} /> Item avulso
+                    <button type="button" onClick={() => { setSaved(false); setAvulsos(a => [...a, novaAvulsa()]); }} className="h-9 px-3 rounded-lg border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2">
+                        <Plus size={15} aria-hidden /> Adicionar item avulso
                     </button>
                 </div>
                 {avulsos.length > 0 && (
@@ -536,23 +539,23 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                                     <th className="w-24 px-3 py-2.5 text-right">BDI %</th>
                                     <th className="w-28 px-3 py-2.5 text-right">Desc. %</th>
                                     <th className="w-32 px-3 py-2.5 text-right">Total</th>
-                                    <th className="w-12 px-3 py-2.5"></th>
+                                    <th className="w-12 px-3 py-2.5"><span className="sr-only">Ações</span></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {avulsos.map(l => (
                                     <tr key={l.key} className="border-t border-border/70">
-                                        <td className="px-2 py-2"><input className={`${inputClass} h-8`} value={l.codigo_item} onChange={e => editarAvulso(l.key, 'codigo_item', e.target.value)} /></td>
-                                        <td className="px-2 py-2"><input className={`${inputClass} h-8`} value={l.titulo} onChange={e => editarAvulso(l.key, 'titulo', e.target.value)} /></td>
-                                        <td className="px-2 py-2"><input className={`${inputClass} h-8`} value={l.unidade} onChange={e => editarAvulso(l.key, 'unidade', e.target.value)} /></td>
+                                        <td className="px-2 py-2"><input aria-label="Código" className={`${inputClass} h-8 font-id`} value={l.codigo_item} onChange={e => editarAvulso(l.key, 'codigo_item', e.target.value)} /></td>
+                                        <td className="px-2 py-2"><input aria-label="Descrição" className={`${inputClass} h-8`} value={l.titulo} onChange={e => editarAvulso(l.key, 'titulo', e.target.value)} /></td>
+                                        <td className="px-2 py-2"><input aria-label="Unidade" className={`${inputClass} h-8`} value={l.unidade} onChange={e => editarAvulso(l.key, 'unidade', e.target.value)} /></td>
                                         <td className="px-2 py-2"><input type="number" min="0" step="0.01" className={`${inputClass} h-8 text-right`} value={l.quantidade} onChange={e => editarAvulso(l.key, 'quantidade', e.target.value)} /></td>
                                         <td className="px-2 py-2"><input type="number" min="0" step="0.01" className={`${inputClass} h-8 text-right`} value={l.custo_unitario} onChange={e => editarAvulso(l.key, 'custo_unitario', e.target.value)} /></td>
                                         <td className="px-2 py-2"><input type="number" min="0" step="0.01" className={`${inputClass} h-8 text-right`} value={l.bdi_percent} onChange={e => editarAvulso(l.key, 'bdi_percent', e.target.value)} /></td>
                                         <td className="px-2 py-2"><input type="number" min="0" max="100" step="0.01" className={`${inputClass} h-8 text-right`} value={l.desconto_interno_percent} onChange={e => editarAvulso(l.key, 'desconto_interno_percent', e.target.value)} /></td>
                                         <td className="px-3 py-2 text-right font-semibold">{fmtMoeda(calculateItem(l).final)}</td>
                                         <td className="px-2 py-2 text-center">
-                                            <button onClick={() => { setSaved(false); setAvulsos(a => a.filter(x => x.key !== l.key)); }} title="Remover" className="text-muted-foreground hover:text-red-400">
-                                                <Trash2 size={15} />
+                                            <button onClick={() => { setSaved(false); setAvulsos(a => a.filter(x => x.key !== l.key)); }} type="button" title="Excluir item avulso" aria-label="Excluir item avulso" className="text-muted-foreground hover:text-crit">
+                                                <Trash2 size={15} aria-hidden />
                                             </button>
                                         </td>
                                     </tr>
@@ -569,22 +572,22 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                     <SummaryValue label="Custo da obra (Cotação LS)" value={totais.final} emphasis />
                     <SummaryValue label="Venda de referência (LPU)" value={referencia} />
                     <SummaryValue
-                        label={referencia > 0 ? `Margem sobre a referência · ${Math.round(((referencia - totais.final) / referencia) * 100)}%` : 'Margem sobre a referência'}
+                        label={referencia > 0 ? `Margem sobre a referência (${Math.round(((referencia - totais.final) / referencia) * 100)}%)` : 'Margem sobre a referência'}
                         value={roundMoney(referencia - totais.final)}
-                        tone={referencia - totais.final >= 0 ? 'success' : undefined} />
+                        tone={referencia > 0 && referencia - totais.final < 0 ? 'alert' : undefined} />
                 </div>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="text-xs text-muted-foreground">
                         {selecionados} de {catalogo.length} itens da LPU
-                        {avulsos.length > 0 && ` · ${avulsos.length} avulso(s)`}
+                        {avulsos.length > 0 && <span className="ml-3">{avulsos.length} avulso(s)</span>}
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2">
-                        {saved && <span className="flex items-center gap-1 text-xs text-emerald-500"><Check size={14} /> Salvo</span>}
-                        <button onClick={salvar} disabled={saving || exporting} className="h-9 px-3 border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
-                            <Save size={15} /> {saving ? 'Salvando...' : 'Salvar itens'}
+                        {saved && <span className="flex items-center gap-1 text-xs text-ok"><Check size={14} aria-hidden /> Salvo</span>}
+                        <button type="button" onClick={salvar} disabled={saving || exporting} className="h-9 px-3 rounded-lg border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
+                            <Save size={15} aria-hidden /> {saving ? 'Salvando...' : 'Salvar itens'}
                         </button>
-                        <button onClick={baixar} disabled={saving || exporting || (selecionados === 0 && avulsos.length === 0)} className="h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
-                            <Download size={15} /> {exporting ? 'Exportando...' : 'Baixar Cotação LS'}
+                        <button type="button" onClick={baixar} disabled={saving || exporting || (selecionados === 0 && avulsos.length === 0)} className="h-9 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
+                            <Download size={15} aria-hidden /> {exporting ? 'Exportando...' : 'Baixar cotação LS'}
                         </button>
                     </div>
                 </div>
@@ -594,14 +597,17 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
 }
 
 function SummaryValue({ label, value, emphasis = false, tone }: {
-    label: string; value: number; emphasis?: boolean; tone?: 'success';
+    label: string; value: number; emphasis?: boolean; tone?: 'alert';
 }) {
+    // Dinheiro é neutro; vermelho só quando é alerta (margem negativa).
     return (
         <div className="min-w-0">
             <div className="text-xs text-muted-foreground">{label}</div>
-            <div className={`${emphasis ? 'text-lg font-bold' : 'text-sm font-semibold'} mt-0.5 ${tone === 'success' ? 'text-emerald-500' : ''}`}>
-                {fmtMoeda(value)}
-            </div>
+            {value ? (
+                <div className={`${emphasis ? 'text-lg font-bold' : 'text-sm font-semibold'} mt-0.5 ${tone === 'alert' ? 'text-crit' : ''}`}>
+                    {fmtMoeda(value)}
+                </div>
+            ) : <div className={`${emphasis ? 'text-lg' : 'text-sm'} mt-0.5 text-muted-foreground`}>—</div>}
         </div>
     );
 }

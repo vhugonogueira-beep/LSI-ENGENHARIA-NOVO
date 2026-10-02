@@ -206,7 +206,7 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
         if (catalogContext.pricedItems != null && catalogContext.totalItems != null) {
             parts.push(`${catalogContext.pricedItems} de ${catalogContext.totalItems} itens com valor padrão`);
         }
-        return parts.join(' · ');
+        return parts.join(', ');
     }, [catalogContext]);
 
     function toggleItem(item: CatalogItem) {
@@ -308,23 +308,24 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
     if (loading) return <Card title="Itens do orçamento"><div className="py-8 text-center text-sm text-muted-foreground">Carregando catálogo Highline...</div></Card>;
 
     return (
-        <Card title="Itens do orçamento · Catálogo Highline">
+        <Card title="Itens do orçamento (catálogo Highline)">
             <ErrorBanner message={error} />
             <div className="flex flex-col lg:flex-row lg:items-center gap-2 mb-4">
                 <div className="relative flex-1 min-w-0">
-                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                         className={`${inputClass} pl-9`}
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         placeholder="Buscar código, descrição ou atividade"
+                        aria-label="Buscar item do catálogo"
                     />
                 </div>
-                <select className={`${inputClass} lg:w-64`} value={category} onChange={e => setCategory(e.target.value)}>
+                <select aria-label="Atividade do catálogo" className={`${inputClass} lg:w-64`} value={category} onChange={e => setCategory(e.target.value)}>
                     <option value="TODOS">Todas as atividades</option>
                     {categories.map(value => <option key={value} value={value}>{value}</option>)}
                 </select>
-                <label className="h-10 px-3 flex items-center gap-2 border border-border bg-background text-sm whitespace-nowrap cursor-pointer">
+                <label className="h-10 px-3 flex items-center gap-2 rounded-lg border border-border bg-background text-sm whitespace-nowrap cursor-pointer">
                     <input type="checkbox" checked={selectedOnly} onChange={e => setSelectedOnly(e.target.checked)} />
                     Selecionados
                 </label>
@@ -334,10 +335,10 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
             )}
 
             {divergentes.length > 0 && (
-                <div className="mb-3 rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2.5">
+                <div className="mb-3 rounded-md border border-warn/50 bg-warn/10 px-3 py-2.5">
                     <div className="flex flex-wrap items-center gap-3">
                         <div className="flex-1 min-w-[280px]">
-                            <div className="text-sm font-semibold text-amber-500">
+                            <div className="text-sm font-semibold text-warn">
                                 {divergentes.length} {divergentes.length === 1 ? 'item está' : 'itens estão'} com preço diferente da base
                             </div>
                             <div className="text-xs text-muted-foreground mt-0.5">
@@ -349,7 +350,7 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
                         <button
                             type="button"
                             onClick={() => alinharComABase()}
-                            className="rounded-md border border-amber-500/60 px-3 py-1.5 text-xs font-semibold text-amber-500 hover:bg-amber-500/15"
+                            className="rounded-md border border-warn/60 px-3 py-1.5 text-xs font-semibold text-warn hover:bg-warn/15"
                         >
                             Atualizar todos pela base
                         </button>
@@ -361,7 +362,7 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
                 <table className="w-full min-w-[1080px] text-sm">
                     <thead className="sticky top-0 z-10 bg-secondary text-muted-foreground">
                         <tr className="text-left text-xs">
-                            <th className="w-12 px-3 py-2.5"></th>
+                            <th className="w-12 px-3 py-2.5"><span className="sr-only">Selecionar</span></th>
                             <th className="w-24 px-3 py-2.5">Código</th>
                             <th className="px-3 py-2.5">Atividade / descrição</th>
                             <th className="w-20 px-3 py-2.5">Unidade</th>
@@ -382,7 +383,7 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
                                     <td className="px-3 py-2 text-center">
                                         <input type="checkbox" checked={Boolean(selected)} onChange={() => toggleItem(item)} aria-label={`Selecionar ${item.code}`} />
                                     </td>
-                                    <td className="px-3 py-2 font-mono text-xs font-semibold">{item.code}</td>
+                                    <td className="px-3 py-2 font-id text-xs font-semibold">{item.code}</td>
                                     <td className="px-3 py-2">
                                         <div className="font-medium">{item.description}</div>
                                         <div className="text-[11px] text-muted-foreground mt-0.5">{item.category}</div>
@@ -390,23 +391,23 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
                                     <td className="px-3 py-2">{item.unit}</td>
                                     <td className="px-2 py-2"><input disabled={!selected} type="number" min={item.quantityRule?.min ?? 0} max={item.quantityRule?.max} step={item.quantityRule?.integer ? 1 : 0.01} className={`${inputClass} h-8 text-right`} value={selected?.quantidade ?? ''} onChange={e => updateItem(item.templateRow, 'quantidade', e.target.value)} title={item.quantityRule ? `Faixa: ${item.quantityRule.min} a ${item.quantityRule.max}` : undefined} /></td>
                                     <td className="px-2 py-2">
-                                        <input disabled={!selected} type="number" min="0" step="0.01" className={`${inputClass} h-8 text-right ${divergencia ? 'border-amber-500/70' : ''}`} value={selected?.valor_unitario ?? item.defaultUnitPrice ?? ''} onChange={e => updateItem(item.templateRow, 'valor_unitario', e.target.value)} />
+                                        <input disabled={!selected} type="number" min="0" step="0.01" className={`${inputClass} h-8 text-right ${divergencia ? 'border-warn/70' : ''}`} value={selected?.valor_unitario ?? item.defaultUnitPrice ?? ''} onChange={e => updateItem(item.templateRow, 'valor_unitario', e.target.value)} />
                                         {divergencia ? (
                                             <button
                                                 type="button"
                                                 onClick={() => alinharComABase([item.templateRow])}
-                                                className="mt-1 block w-full text-right text-[10px] text-amber-500 hover:underline"
-                                                title={`Base: ${fmtMoeda(divergencia.naBase)}${item.priceDetail ? ` · ${item.priceDetail}` : ''}`}
+                                                className="mt-1 block w-full text-right text-[11px] text-warn hover:underline"
+                                                title={`Base: ${fmtMoeda(divergencia.naBase)}${item.priceDetail ? ` (${item.priceDetail})` : ''}`}
                                             >
-                                                base {fmtMoeda(divergencia.naBase)} · atualizar
+                                                Atualizar para {fmtMoeda(divergencia.naBase)}
                                             </button>
                                         ) : selected && item.priceDetail ? (
-                                            <div className="mt-1 text-right text-[10px] text-muted-foreground truncate" title={item.priceDetail}>{item.priceSource}</div>
+                                            <div className="mt-1 text-right text-[11px] text-muted-foreground truncate" title={item.priceDetail}>{item.priceSource}</div>
                                         ) : null}
                                     </td>
                                     <td className="px-2 py-2"><input disabled={!selected} type="number" min="0" max="100" step="0.01" className={`${inputClass} h-8 text-right`} value={selected?.desconto_interno_percent ?? ''} onChange={e => updateItem(item.templateRow, 'desconto_interno_percent', e.target.value)} title="Uso interno da LS Office; não aparece no documento enviado ao cliente." /></td>
                                     <td className="px-2 py-2"><input disabled={!selected} type="number" min="0" step="0.01" className={`${inputClass} h-8 text-right`} value={selected?.bdi_percent ?? ''} onChange={e => updateItem(item.templateRow, 'bdi_percent', e.target.value)} /></td>
-                                    <td className="px-3 py-2 text-right font-semibold">{selected ? fmtMoeda(total) : '—'}</td>
+                                    <td className={`px-3 py-2 text-right ${selected && total ? 'font-semibold' : 'text-muted-foreground'}`}>{selected && total ? fmtMoeda(total) : '—'}</td>
                                 </tr>
                             );
                         })}
@@ -424,7 +425,7 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
                         <div className="min-w-0">
                             <div className="text-xs text-muted-foreground truncate" title={targetLabel || 'Referência'}>{targetLabel || 'Referência'}</div>
                             <div className="text-sm font-semibold mt-0.5">{fmtMoeda(targetComparison.target)}</div>
-                            <div className={`text-xs mt-0.5 ${targetComparison.difference <= 0 ? 'text-emerald-500' : 'text-amber-500'}`}>
+                            <div className={`text-xs mt-0.5 ${targetComparison.difference <= 0 ? 'text-ok' : 'text-warn'}`}>
                                 {targetComparison.difference === 0
                                     ? 'Total final igual à referência'
                                     : `${fmtMoeda(Math.abs(targetComparison.difference))} ${targetComparison.difference < 0 ? 'abaixo' : 'acima'}`}
@@ -437,12 +438,12 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
                         {Object.keys(draft).length} de {catalog.length} itens selecionados
                     </div>
                     <div className="flex flex-wrap items-center justify-end gap-2">
-                        {saved && <span className="flex items-center gap-1 text-xs text-emerald-500"><Check size={14} /> Salvo</span>}
-                        <button onClick={saveItems} disabled={saving || Boolean(exporting)} className="h-9 px-3 border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
-                            <Save size={15} /> {saving ? 'Salvando...' : 'Salvar itens'}
+                        {saved && <span className="flex items-center gap-1 text-xs text-ok"><Check size={14} aria-hidden /> Salvo</span>}
+                        <button type="button" onClick={saveItems} disabled={saving || Boolean(exporting)} className="h-9 px-3 rounded-lg border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
+                            <Save size={15} aria-hidden /> {saving ? 'Salvando...' : 'Salvar itens'}
                         </button>
-                        <button onClick={exportPv} disabled={saving || Boolean(exporting) || !Object.values(draft).some(item => item.quantidade > 0)} className="h-9 px-3 bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
-                            <Download size={15} /> {exporting === 'pv' ? 'Exportando...' : 'PV Highline'}
+                        <button type="button" onClick={exportPv} disabled={saving || Boolean(exporting) || !Object.values(draft).some(item => item.quantidade > 0)} className="h-9 px-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold flex items-center gap-2 disabled:opacity-50">
+                            <Download size={15} aria-hidden /> {exporting === 'pv' ? 'Exportando...' : 'Exportar PV Highline'}
                         </button>
                     </div>
                 </div>
@@ -460,9 +461,11 @@ function SummaryValue({ label, value, emphasis = false, tone }: {
     return (
         <div className="min-w-0">
             <div className="text-xs text-muted-foreground">{label}</div>
-            <div className={`${emphasis ? 'text-lg font-bold' : 'text-sm font-semibold'} mt-0.5 ${tone === 'success' ? 'text-emerald-500' : ''}`}>
-                {fmtMoeda(value)}
-            </div>
+            {value ? (
+                <div className={`${emphasis ? 'text-lg font-bold' : 'text-sm font-semibold'} mt-0.5 ${tone === 'success' ? 'text-ok' : ''}`}>
+                    {fmtMoeda(value)}
+                </div>
+            ) : <div className={`${emphasis ? 'text-lg' : 'text-sm'} mt-0.5 text-muted-foreground`}>—</div>}
         </div>
     );
 }

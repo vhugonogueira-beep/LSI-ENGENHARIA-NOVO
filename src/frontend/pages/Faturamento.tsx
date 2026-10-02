@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRight, Mail } from 'lucide-react';
+import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRight, Mail, CornerDownRight } from 'lucide-react';
+import { T } from '../theme';
 import { fmtMoeda, fmtData } from '../components/atividades/constants';
 import { authFetch, downloadAuthenticatedFile } from '../lib/authFetch';
 
@@ -30,13 +31,17 @@ interface Faturamento {
     recebimentos?: { valor_recebido: number }[];
 }
 
+// Cor só para estado: em andamento é a cor de ação, espera do financeiro é
+// atenção e recebido é "em dia". Vem da paleta do tema (theme.ts).
 const FATURAMENTO_STAGES = [
-    { id: 'ENVIADO_FINANCEIRO', label: 'Enviado ao Financeiro', color: '#1768D5' },
-    { id: 'EM_FATURAMENTO', label: 'Em Faturamento', color: '#f59e0b' },
-    { id: 'NF_EMITIDA', label: 'NF Emitida', color: '#8b5cf6' },
-    { id: 'FATURADO', label: 'Faturado', color: '#6366f1' },
-    { id: 'RECEBIDO', label: 'Recebido', color: '#22c55e' },
+    { id: 'ENVIADO_FINANCEIRO', label: 'Enviado ao financeiro', color: T.blue },
+    { id: 'EM_FATURAMENTO', label: 'Em faturamento', color: T.amber },
+    { id: 'NF_EMITIDA', label: 'NF emitida', color: T.blue },
+    { id: 'FATURADO', label: 'Faturado', color: T.blue },
+    { id: 'RECEBIDO', label: 'Recebido', color: T.green },
 ];
+/** Código do banco (TIPO_X) em frase: "Tipo x". */
+const emFrase = (v: string) => { const t = String(v || '').replace(/_/g, ' ').toLocaleLowerCase('pt-BR'); return t.charAt(0).toLocaleUpperCase('pt-BR') + t.slice(1); };
 const STAGE_INDEX: Record<string, number> = Object.fromEntries(FATURAMENTO_STAGES.map((s, i) => [s.id, i]));
 
 export default function Faturamento() {
@@ -126,7 +131,7 @@ export default function Faturamento() {
             const body: any = { status: novoStatus };
             if (novoStatus === 'NF_EMITIDA') {
                 const nf = nfDraft[lote.id];
-                if (!nf) { setErro('Informe o número da NF antes de avançar para "NF Emitida"'); return; }
+                if (!nf) { setErro('Informe o número da NF antes de avançar para "NF emitida"'); return; }
                 body.nf_numero = nf;
             }
             const r = await fetch(`/api/faturamento/${lote.id}/status`, {
@@ -165,27 +170,27 @@ export default function Faturamento() {
         <div className="p-8 text-foreground">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-3xl font-bold flex items-center gap-3">
-                        <Receipt className="text-primary" size={28} />
+                    <h2 className="text-2xl font-bold flex items-center gap-3">
+                        <Receipt className="text-primary" size={24} aria-hidden />
                         Faturamento
                     </h2>
                     <p className="text-muted-foreground mt-1">Fila real (Blueprint LSI) — motor de regras, Start Faturamento e planilha padrão</p>
                 </div>
             </div>
 
-            {erro && <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>}
+            {erro && <div role="alert" className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>}
 
             {/* KPIs — o funil inteiro, das POs autorizadas às atividades ainda sem PO */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-                <KpiCard icon={<CheckCircle2 size={16} />} label="Autorizado a Faturar" value={fmtMoeda(resumo.aFaturar)} sub={`${resumo.linhasAFaturar} linha(s) de PO`} color="#22c55e" />
-                <KpiCard icon={<Wallet size={16} />} label="Aguardando Autorização" value={fmtMoeda(resumo.aguardandoAutorizacao)} sub={`${resumo.linhasAguardando} linha(s) sem OK`} color="#f59e0b" />
-                <KpiCard icon={<Receipt size={16} />} label="Sem PO Recebida" value={String(resumo.semPO.length)} sub="atividades em obra sem PO" color="#ef4444" />
-                <KpiCard icon={<Send size={16} />} label="Lotes em Aberto" value={String(lotesAbertos)} sub={`${lotes.length} lote(s) no total`} color="#1768D5" />
-                <KpiCard icon={<Receipt size={16} />} label="Valor a Receber" value={fmtMoeda(valorAReceber)} sub="soma dos lotes não recebidos" color="#8b5cf6" />
+                <KpiCard icon={<CheckCircle2 size={16} aria-hidden />} label="Autorizado a faturar" value={resumo.aFaturar ? fmtMoeda(resumo.aFaturar) : null} sub={`${resumo.linhasAFaturar} linha(s) de PO`} />
+                <KpiCard icon={<Wallet size={16} aria-hidden />} label="Aguardando autorização" value={resumo.aguardandoAutorizacao ? fmtMoeda(resumo.aguardandoAutorizacao) : null} sub={`${resumo.linhasAguardando} linha(s) sem OK`} />
+                <KpiCard icon={<Receipt size={16} aria-hidden />} label="Sem PO recebida" value={resumo.semPO.length ? String(resumo.semPO.length) : null} sub="atividades em obra sem PO" alerta={resumo.semPO.length > 0 ? T.red : undefined} />
+                <KpiCard icon={<Send size={16} aria-hidden />} label="Lotes em aberto" value={lotesAbertos ? String(lotesAbertos) : null} sub={`${lotes.length} lote(s) no total`} />
+                <KpiCard icon={<Receipt size={16} aria-hidden />} label="Valor a receber" value={valorAReceber ? fmtMoeda(valorAReceber) : null} sub="soma dos lotes não recebidos" />
             </div>
 
             {resumo.semPO.length > 0 && (
-                <div className="bg-card border border-border rounded-xl p-5 mb-6" style={{ borderLeft: '3px solid #ef4444' }}>
+                <div className="bg-card border border-border rounded-xl p-5 mb-6" style={{ borderLeft: `3px solid ${T.red}` }}>
                     <h3 className="text-sm font-bold mb-1">Atividades sem PO recebida</h3>
                     <p className="text-xs text-muted-foreground mb-3">
                         Já estão em obra ou concluídas, mas o PDF da PO ainda não foi anexado — sem PO não há o que faturar.
@@ -193,10 +198,10 @@ export default function Faturamento() {
                     <div className="flex flex-col gap-1.5">
                         {resumo.semPO.slice(0, 8).map(a => (
                             <div key={a.id} className="flex items-center gap-3 text-xs bg-secondary/30 border border-border rounded px-3 py-2">
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{a.sharing}</span>
-                                {a.id_site_sharing && <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{a.sharing}</span>
+                                {a.id_site_sharing && <span className="font-id text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
                                 <span className="flex-1 truncate font-medium">{a.titulo}</span>
-                                <span className="font-mono text-muted-foreground">{a.codigo}</span>
+                                <span className="font-id text-muted-foreground">{a.codigo}</span>
                                 <span className="font-semibold">{fmtMoeda(a.valor_contrato)}</span>
                             </div>
                         ))}
@@ -213,13 +218,13 @@ export default function Faturamento() {
             {/* Fila de faturamento */}
             <div className="bg-card border border-border rounded-xl p-5 mb-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-bold">Fila de Faturamento (Pronto para Faturar)</h3>
+                    <h3 className="text-sm font-bold">Fila de faturamento (pronto para faturar)</h3>
                     <button
                         onClick={startFaturamento}
                         disabled={selecionadas.size === 0 || starting}
-                        className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 shadow-md shadow-primary/20"
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-semibold hover:bg-primary/90 disabled:opacity-50"
                     >
-                        {starting ? 'Iniciando...' : `Start Faturamento (${selecionadas.size})`}
+                        {starting ? 'Iniciando...' : `Iniciar faturamento (${selecionadas.size})`}
                     </button>
                 </div>
                 {prontas.length === 0 ? (
@@ -229,10 +234,10 @@ export default function Faturamento() {
                         {prontas.map(a => (
                             <label key={a.id} className="flex items-center gap-3 bg-secondary/30 hover:bg-secondary/50 border border-border rounded-lg px-3 py-2.5 cursor-pointer transition-colors">
                                 <input type="checkbox" checked={selecionadas.has(a.id)} onChange={() => toggleSel(a.id)} className="accent-primary" />
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{a.sharing}</span>
-                                {a.id_site_sharing && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{a.sharing}</span>
+                                {a.id_site_sharing && <span className="font-id text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
                                 <span className="flex-1 text-sm font-medium truncate">{a.titulo}</span>
-                                <span className="text-xs font-mono text-muted-foreground">{a.codigo}</span>
+                                <span className="text-xs font-id text-muted-foreground">{a.codigo}</span>
                                 <span className="text-sm font-semibold w-28 text-right">{fmtMoeda(a.valor_contrato)}</span>
                             </label>
                         ))}
@@ -242,27 +247,28 @@ export default function Faturamento() {
 
             {/* Lotes */}
             <div className="bg-card border border-border rounded-xl p-5">
-                <h3 className="text-sm font-bold mb-4">Lotes de Faturamento</h3>
+                <h3 className="text-sm font-bold mb-4">Lotes de faturamento</h3>
                 {lotes.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground text-sm">Nenhum lote enviado ainda.</div>
                 ) : (
                     <div className="flex flex-col gap-3">
                         {lotes.map(lote => {
                             const stageIdx = STAGE_INDEX[lote.status] ?? 0;
-                            const stageColor = FATURAMENTO_STAGES[stageIdx]?.color || '#94a3b8';
+                            const stageColor = FATURAMENTO_STAGES[stageIdx]?.color || T.txMut;
                             const recebidoTotal = (lote.recebimentos || []).reduce((s, r) => s + r.valor_recebido, 0);
                             return (
                                 <div key={lote.id} className="border border-border rounded-lg overflow-hidden" style={{ borderLeft: `3px solid ${stageColor}` }}>
-                                    <div className="p-3.5 flex items-center justify-between gap-3 flex-wrap cursor-pointer" onClick={() => setExpandido(expandido === lote.id ? null : lote.id)}>
-                                        <div className="flex items-center gap-3">
-                                            <span className="font-mono text-xs text-muted-foreground">{lote.codigo}</span>
+                                    <button type="button" aria-expanded={expandido === lote.id} className="w-full text-left p-3.5 flex items-center justify-between gap-3 flex-wrap cursor-pointer" onClick={() => setExpandido(expandido === lote.id ? null : lote.id)}>
+                                        <div className="flex items-center gap-3 flex-wrap">
+                                            <span className="font-id text-xs text-muted-foreground">{lote.codigo}</span>
                                             <span className="text-sm font-semibold">{fmtMoeda(lote.valor_total)}</span>
-                                            <span className="text-xs text-muted-foreground">{lote.atividades.length} atividade(s) · {fmtData(lote.enviado_em)}</span>
+                                            <span className="text-xs text-muted-foreground">{lote.atividades.length} atividade(s)</span>
+                                            <span className="text-xs text-muted-foreground">Enviado em {fmtData(lote.enviado_em)}</span>
                                         </div>
-                                        <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: `${stageColor}22`, color: stageColor }}>
+                                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: `${stageColor}22`, color: stageColor }}>
                                             {FATURAMENTO_STAGES[stageIdx]?.label || lote.status}
                                         </span>
-                                    </div>
+                                    </button>
 
                                     {/* Stepper de status */}
                                     <div className="px-3.5 pb-3.5 flex items-center gap-1.5 flex-wrap">
@@ -275,7 +281,7 @@ export default function Faturamento() {
                                                     key={stage.id}
                                                     disabled={!isNext}
                                                     onClick={(e) => { e.stopPropagation(); avancarStatus(lote, stage.id); }}
-                                                    className="text-[10px] font-semibold px-2.5 py-1 rounded-full border transition-colors disabled:cursor-default"
+                                                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors disabled:cursor-default"
                                                     style={{
                                                         borderColor: isPast || isCurrent ? stage.color : 'hsl(var(--border))',
                                                         background: isCurrent ? `${stage.color}22` : isPast ? `${stage.color}11` : 'transparent',
@@ -294,7 +300,11 @@ export default function Faturamento() {
                                             <div className="flex flex-col gap-1.5 mb-3">
                                                 {lote.atividades.map(fa => (
                                                     <div key={fa.id} className="flex justify-between text-xs bg-secondary/40 rounded-md px-2.5 py-1.5">
-                                                        <span>{fa.atividade.sharing} · {fa.atividade.id_site_sharing || '-'} · {fa.atividade.titulo}</span>
+                                                        <span className="flex flex-wrap gap-x-3">
+                                                            <span className="font-semibold">{fa.atividade.sharing}</span>
+                                                            <span className={`font-id ${fa.atividade.id_site_sharing ? '' : 'text-muted-foreground'}`}>{fa.atividade.id_site_sharing || '—'}</span>
+                                                            <span>{fa.atividade.titulo}</span>
+                                                        </span>
                                                         <span className="font-semibold">{fmtMoeda(fa.valor_incluido)}{fa.percentual_marco != null ? ` (${fa.percentual_marco}%)` : ''}</span>
                                                     </div>
                                                 ))}
@@ -303,23 +313,23 @@ export default function Faturamento() {
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <a href={`/api/faturamento/${lote.id}/export.xlsx`} download
                                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium hover:bg-muted">
-                                                    <Download size={13} /> Exportar Excel (Winity)
+                                                    <Download size={14} aria-hidden /> Exportar Excel (Winity)
                                                 </a>
 
                                                 {lote.status === 'EM_FATURAMENTO' && (
-                                                    <input placeholder="Número da NF" value={nfDraft[lote.id] || ''} onChange={e => setNfDraft(prev => ({ ...prev, [lote.id]: e.target.value }))}
+                                                    <input placeholder="Número da NF" aria-label="Número da NF" value={nfDraft[lote.id] || ''} onChange={e => setNfDraft(prev => ({ ...prev, [lote.id]: e.target.value }))}
                                                         className="text-xs border border-border rounded-md px-2 py-1.5 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none" />
                                                 )}
-                                                {lote.nf_numero && <span className="text-xs text-muted-foreground">NF: <span className="font-semibold text-foreground">{lote.nf_numero}</span></span>}
+                                                {lote.nf_numero && <span className="text-xs text-muted-foreground">NF <span className="font-id font-semibold text-foreground">{lote.nf_numero}</span></span>}
 
                                                 {lote.status === 'FATURADO' && (
                                                     <div className="flex items-center gap-2 ml-auto">
                                                         <span className="text-xs text-muted-foreground">Recebido: {fmtMoeda(recebidoTotal)} / {fmtMoeda(lote.valor_total)}</span>
-                                                        <input type="number" placeholder="Valor recebido" value={recebimentoDraft[lote.id] || ''}
+                                                        <input type="number" placeholder="Valor recebido" aria-label="Valor recebido" value={recebimentoDraft[lote.id] || ''}
                                                             onChange={e => setRecebimentoDraft(prev => ({ ...prev, [lote.id]: e.target.value }))}
                                                             className="text-xs border border-border rounded-md px-2 py-1.5 bg-secondary/40 text-foreground placeholder:text-muted-foreground w-32 focus:outline-none" />
                                                         <button onClick={() => registrarRecebimento(lote)} className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90">
-                                                            Registrar Recebimento
+                                                            Registrar recebimento
                                                         </button>
                                                     </div>
                                                 )}
@@ -465,15 +475,15 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
     return (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
             <div className="flex items-center justify-between mb-1">
-                <h3 className="text-sm font-bold">POs Recebidas — faturamento por linha</h3>
-                <span className="text-xs text-muted-foreground">{pos.length} PO(s) · {comSaldo} linha(s) com saldo a faturar</span>
+                <h3 className="text-sm font-bold">POs recebidas: faturamento por linha</h3>
+                <span className="flex gap-3 text-xs text-muted-foreground"><span>{pos.length} PO(s)</span><span>{comSaldo} linha(s) com saldo a faturar</span></span>
             </div>
             <p className="text-xs text-muted-foreground mb-4">
                 Cada linha da PO (material, serviço...) é faturada separadamente e em partes. Selecione as linhas,
                 informe o percentual liberado e gere o e-mail para a equipe de faturamento.
             </p>
 
-            {erro && <div className="mb-3 p-2.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-500 text-xs">{erro}</div>}
+            {erro && <div role="alert" className="mb-3 p-2.5 rounded-lg border border-warn/40 bg-warn/10 text-warn text-xs">{erro}</div>}
 
             {pos.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma PO anexada ainda — anexe o PDF na aba PO da atividade.</div>
@@ -485,21 +495,21 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                         const expandida = aberta === po.id;
                         return (
                             <div key={po.id} className="bg-secondary/30 border border-border rounded-lg">
-                                <button onClick={() => setAberta(expandida ? null : po.id)} className="w-full flex items-center gap-3 flex-wrap px-3 py-2.5 text-left hover:bg-secondary/40 rounded-lg">
-                                    {expandida ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{po.atividade?.sharing}</span>
+                                <button onClick={() => setAberta(expandida ? null : po.id)} aria-expanded={expandida} className="w-full flex items-center gap-3 flex-wrap px-3 py-2.5 text-left hover:bg-secondary/40 rounded-lg">
+                                    {expandida ? <ChevronDown size={14} aria-hidden /> : <ChevronRight size={14} aria-hidden />}
+                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{po.atividade?.sharing}</span>
                                     {po.atividade?.id_site_sharing && (
-                                        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{po.atividade.id_site_sharing}</span>
+                                        <span className="font-id text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{po.atividade.id_site_sharing}</span>
                                     )}
-                                    <span className="text-xs font-mono text-muted-foreground">PO {po.numero || '—'}</span>
+                                    <span className="text-xs text-muted-foreground">PO <span className="font-id">{po.numero || '—'}</span></span>
                                     <span className="text-sm font-medium truncate flex-1 min-w-[100px]">{po.atividade?.titulo}</span>
                                     <span className="text-xs text-muted-foreground">{linhas.length} linha(s)</span>
                                     <span className="text-sm font-semibold">{fmtMoeda(po.valor)}</span>
                                     {pendenteDaPO > 0
-                                        ? <span className="text-xs font-semibold text-amber-500">pendente {fmtMoeda(pendenteDaPO)}</span>
-                                        : <span className="text-xs font-semibold text-emerald-500">100% faturado</span>}
+                                        ? <span className="text-xs font-semibold text-warn">Pendente {fmtMoeda(pendenteDaPO)}</span>
+                                        : <span className="text-xs font-semibold text-ok">100% faturado</span>}
                                     {po.arquivos?.[0] && (
-                                        <a href={`/api/pos/arquivos/${po.arquivos[0].id}/download`} onClick={e => e.stopPropagation()} className="text-xs text-primary hover:underline">PDF</a>
+                                        <a href={`/api/pos/arquivos/${po.arquivos[0].id}/download`} onClick={e => e.stopPropagation()} className="text-xs text-primary hover:underline">Baixar PDF</a>
                                     )}
                                 </button>
 
@@ -513,7 +523,7 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                             <table className="w-full text-[11px] min-w-[860px]">
                                                 <thead className="text-muted-foreground">
                                                     <tr className="text-left border-b border-border">
-                                                        <th className="py-1.5 w-8"></th>
+                                                        <th className="py-1.5 w-8"><span className="sr-only">Selecionar</span></th>
                                                         <th className="py-1.5 px-2">Linha</th>
                                                         <th className="py-1.5 px-2">Serviço</th>
                                                         <th className="py-1.5 px-2">Site</th>
@@ -533,34 +543,35 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                             <tr key={l.id} className={`border-b border-border/40 ${sel ? 'bg-primary/5' : ''} ${!l.autorizado ? 'opacity-70' : ''}`}>
                                                                 <td className="py-1.5 px-2">
                                                                     <input type="checkbox" checked={sel} disabled={bloqueada}
+                                                                        aria-label={`Selecionar linha ${l.numero_linha}`}
                                                                         title={!l.autorizado ? 'Autorize a linha antes de faturar' : undefined}
                                                                         onChange={() => alternarLinha(l)} className="accent-primary" />
                                                                 </td>
-                                                                <td className="py-1.5 px-2 font-mono">{l.numero_linha}</td>
+                                                                <td className="py-1.5 px-2 font-id">{l.numero_linha}</td>
                                                                 <td className="py-1.5 px-2">{l.descricao}</td>
-                                                                <td className="py-1.5 px-2 font-semibold">{l.site || '—'}</td>
+                                                                <td className={`py-1.5 px-2 font-id ${l.site ? 'font-semibold' : 'text-muted-foreground'}`}>{l.site || '—'}</td>
                                                                 <td className="py-1.5 px-2 text-right">{fmtMoeda(l.valor_total)}</td>
                                                                 <td className="py-1.5 px-2 text-center">
                                                                     <button onClick={() => alternarAutorizacao(l)}
-                                                                        title={l.autorizado ? 'Autorizado — clique para revogar' : 'Clique para autorizar esta linha'}
+                                                                        title={l.autorizado ? 'Revogar autorização desta linha' : 'Autorizar esta linha'}
                                                                         className={`cursor-pointer inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${l.autorizado
-                                                                            ? 'bg-emerald-500/15 text-emerald-500 border-emerald-500/40 hover:bg-emerald-500/25'
-                                                                            : 'bg-amber-500/10 text-amber-500 border-amber-500/40 hover:bg-amber-500/20'}`}>
+                                                                            ? 'bg-ok/15 text-ok border-ok/40 hover:bg-ok/25'
+                                                                            : 'bg-warn/10 text-warn border-warn/40 hover:bg-warn/20'}`}>
                                                                         {l.autorizado
-                                                                            ? <><CheckCircle2 size={12} /> Autorizado</>
+                                                                            ? <><CheckCircle2 size={14} aria-hidden /> Autorizado</>
                                                                             : <>Autorizar</>}
                                                                     </button>
                                                                 </td>
-                                                                <td className="py-1.5 px-2 text-right text-emerald-500">
-                                                                    {l.percentual_faturado > 0 ? `${l.percentual_faturado}% · ${fmtMoeda(l.valor_faturado)}` : '—'}
+                                                                <td className={`py-1.5 px-2 text-right ${l.percentual_faturado > 0 ? '' : 'text-muted-foreground'}`}>
+                                                                    {l.percentual_faturado > 0 ? <span className="inline-flex gap-2"><span className="text-muted-foreground">{l.percentual_faturado}%</span><span>{fmtMoeda(l.valor_faturado)}</span></span> : '—'}
                                                                 </td>
-                                                                <td className="py-1.5 px-2 text-right text-amber-500 font-semibold">
-                                                                    {semSaldo ? '—' : `${l.percentual_pendente}% · ${fmtMoeda(l.valor_pendente)}`}
+                                                                <td className={`py-1.5 px-2 text-right ${semSaldo ? 'text-muted-foreground' : 'font-semibold'}`}>
+                                                                    {semSaldo ? '—' : <span className="inline-flex gap-2"><span className="text-muted-foreground font-normal">{l.percentual_pendente}%</span><span>{fmtMoeda(l.valor_pendente)}</span></span>}
                                                                 </td>
                                                                 <td className="py-1.5 px-2 text-right">
                                                                     {sel ? (
                                                                         <div className="flex items-center gap-1 justify-end">
-                                                                            <input type="number" min="1" max={l.percentual_pendente} value={selecao[l.id]}
+                                                                            <input type="number" min="1" max={l.percentual_pendente} value={selecao[l.id]} aria-label={`Percentual a faturar da linha ${l.numero_linha}`}
                                                                                 onChange={e => setSelecao(a => ({ ...a, [l.id]: e.target.value }))}
                                                                                 className="w-16 bg-secondary/40 border border-border rounded px-1.5 py-0.5 text-right text-foreground" />
                                                                             <span className="text-muted-foreground w-24 text-right">
@@ -575,29 +586,30 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                     {/* remessas já solicitadas, com o caminho para cancelar */}
                                                     {linhas.filter((l: any) => l.faturamentos?.length).map((l: any) => (
                                                         l.faturamentos.map((f: any) => (
-                                                            <tr key={f.id} className="border-b border-border/30 text-[10px]">
+                                                            <tr key={f.id} className="border-b border-border/30 text-[11px]">
                                                                 <td></td>
-                                                                <td className="py-1 px-2 text-muted-foreground">↳ {l.numero_linha}</td>
+                                                                <td className="py-1 px-2 text-muted-foreground"><span className="inline-flex items-center gap-1"><CornerDownRight size={14} aria-hidden /><span className="font-id">{l.numero_linha}</span></span></td>
                                                                 <td className="py-1 px-2 text-muted-foreground" colSpan={3}>
-                                                                    Remessa de {f.percentual}% · {fmtMoeda(f.valor)} ·{' '}
-                                                                    {new Date(f.data_solicitacao).toLocaleDateString('pt-BR')}
+                                                                    <span className="mr-3">Remessa de {f.percentual}%</span>
+                                                                    <span className="mr-3">{fmtMoeda(f.valor)}</span>
+                                                                    <span>{new Date(f.data_solicitacao).toLocaleDateString('pt-BR')}</span>
                                                                     {f.status === 'CANCELADO' && f.motivo_cancelamento && (
-                                                                        <span className="text-red-400"> — cancelado por {f.cancelado_por || 'sistema'}: “{f.motivo_cancelamento}”</span>
+                                                                        <span className="text-crit"> — cancelado por {f.cancelado_por || 'sistema'}: “{f.motivo_cancelamento}”</span>
                                                                     )}
                                                                 </td>
                                                                 <td className="py-1 px-2 text-center">
-                                                                    <span className={`font-bold ${f.status === 'CANCELADO' ? 'text-red-400' : 'text-emerald-500'}`}>{f.status}</span>
+                                                                    <span className={`font-semibold ${f.status === 'CANCELADO' ? 'text-crit' : 'text-ok'}`}>{emFrase(f.status)}</span>
                                                                 </td>
                                                                 <td className="py-1 px-2 text-right" colSpan={3}>
                                                                     {f.status !== 'CANCELADO' && (
                                                                         ehAdmin ? (
                                                                             <button onClick={() => setCancelando({ fat: f, linha: l })}
-                                                                                className="text-red-400 hover:underline font-semibold">
+                                                                                className="text-crit hover:underline font-semibold">
                                                                                 Cancelar faturamento
                                                                             </button>
                                                                         ) : (
                                                                             <span className="text-muted-foreground" title="Somente administradores podem cancelar">
-                                                                                cancelamento: só admin
+                                                                                Cancelamento só por administrador
                                                                             </span>
                                                                         )
                                                                     )}
@@ -619,12 +631,12 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
             {selecionadas.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-4 flex-wrap">
                     <div className="text-sm">
-                        <strong>{selecionadas.length}</strong> linha(s) selecionada(s) ·
+                        <strong>{selecionadas.length}</strong> linha(s) selecionada(s),
                         <strong className="ml-1">{fmtMoeda(valorSelecionado)}</strong> a faturar
                     </div>
                     <button onClick={solicitarFaturamento} disabled={enviando}
                         className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
-                        <Mail size={14} /> {enviando ? 'Gerando...' : 'Solicitar faturamento e gerar e-mail'}
+                        <Mail size={14} aria-hidden /> {enviando ? 'Gerando...' : 'Solicitar faturamento e gerar e-mail'}
                     </button>
                 </div>
             )}
@@ -656,11 +668,12 @@ function ModalCancelamento({ dados, onConfirmar, onFechar }: {
             <div className="bg-card border border-border rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
                 <h3 className="text-base font-bold mb-1">Cancelar faturamento</h3>
                 <p className="text-xs text-muted-foreground mb-4">
-                    Linha {dados.linha.numero_linha} · {dados.linha.descricao} — remessa de {dados.fat.percentual}% ({fmtMoeda(dados.fat.valor)}).
+                    Linha <span className="font-id">{dados.linha.numero_linha}</span>, {dados.linha.descricao}: remessa de {dados.fat.percentual}% ({fmtMoeda(dados.fat.valor)}).
                     O saldo volta a ficar disponível e o motivo fica registrado no histórico.
                 </p>
-                <label className="text-xs font-semibold text-muted-foreground">Motivo do cancelamento</label>
+                <label htmlFor="motivo-cancelamento-faturamento" className="text-xs font-semibold text-muted-foreground">Motivo do cancelamento</label>
                 <textarea
+                    id="motivo-cancelamento-faturamento"
                     rows={4}
                     autoFocus
                     value={motivo}
@@ -669,7 +682,7 @@ function ModalCancelamento({ dados, onConfirmar, onFechar }: {
                     className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm text-foreground resize-y"
                 />
                 {curto && motivo.length > 0 && (
-                    <div className="text-[11px] text-amber-500 mt-1">Descreva com pelo menos 10 caracteres.</div>
+                    <div className="text-[11px] text-warn mt-1">Descreva com pelo menos 10 caracteres.</div>
                 )}
 
                 <div className="flex justify-end gap-2 mt-4">
@@ -677,7 +690,7 @@ function ModalCancelamento({ dados, onConfirmar, onFechar }: {
                         Voltar
                     </button>
                     <button onClick={() => onConfirmar(motivo)} disabled={curto}
-                        className="text-xs font-semibold bg-red-500/90 text-white rounded px-3 py-2 hover:bg-red-500 disabled:opacity-40">
+                        className="text-xs font-semibold bg-crit/90 text-white rounded px-3 py-2 hover:bg-crit disabled:opacity-40">
                         Confirmar cancelamento
                     </button>
                 </div>
@@ -712,7 +725,7 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
             <div className="bg-card border border-border rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
                 <h3 className="text-base font-bold mb-1">E-mail de solicitação de faturamento</h3>
                 <p className="text-xs text-muted-foreground mb-4">
-                    {email.total_linhas} linha(s) · {fmtMoeda(email.total)}. Copie e cole no Outlook e anexe a planilha —
+                    {email.total_linhas} linha(s), total {fmtMoeda(email.total)}. Copie e cole no Outlook e anexe a planilha;
                     a formatação da tabela é preservada.
                 </p>
 
@@ -723,8 +736,8 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
                     <div><span className="text-muted-foreground">Anexo:</span> planilha de faturamento (.xlsx)</div>
                 </div>
                 {email.routing_pendente && (
-                    <div className="mb-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-400">
-                        Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações → Comunicação.
+                    <div className="mb-3 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">
+                        Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações, aba Comunicação.
                     </div>
                 )}
 
@@ -741,8 +754,8 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
                 {email.ids?.length > 0 && (
                     <button type="button"
                         onClick={() => downloadAuthenticatedFile(`/api/pos/faturamento-linhas/planilha?ids=${email.ids.join(',')}`, 'FATURAMENTO.xlsx')}
-                        className="mb-4 inline-flex items-center gap-2 text-xs font-semibold bg-emerald-600 text-white rounded px-3 py-2 hover:bg-emerald-500">
-                        <Download size={14} /> Baixar planilha (.xlsx) para anexar ao e-mail
+                        className="mb-4 inline-flex items-center gap-2 text-xs font-semibold border border-border rounded px-3 py-2 hover:bg-secondary">
+                        <Download size={14} aria-hidden /> Baixar planilha (.xlsx) para anexar ao e-mail
                     </button>
                 )}
 
@@ -758,14 +771,15 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
     );
 }
 
-function KpiCard({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string; sub: string; color: string }) {
+/** Valor neutro; cor só quando é alerta. Sem valor, "—" sem cor. */
+function KpiCard({ icon, label, value, sub, alerta }: { icon: React.ReactNode; label: string; value: string | null; sub: string; alerta?: string }) {
     return (
-        <div className="bg-card border border-border rounded-xl p-4" style={{ borderTop: `3px solid ${color}` }}>
+        <div className="bg-card border border-border rounded-xl p-4" style={alerta ? { borderColor: `${alerta}66` } : undefined}>
             <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold tracking-wide text-muted-foreground uppercase">{label}</span>
-                <span className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${color}18`, color }}>{icon}</span>
+                <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+                <span className="text-muted-foreground">{icon}</span>
             </div>
-            <div className="text-xl font-extrabold" style={{ color }}>{value}</div>
+            <div className={`text-xl font-bold ${value == null ? 'text-muted-foreground' : ''}`} style={value != null && alerta ? { color: alerta } : undefined}>{value ?? '—'}</div>
             <div className="text-xs text-muted-foreground mt-1">{sub}</div>
         </div>
     );

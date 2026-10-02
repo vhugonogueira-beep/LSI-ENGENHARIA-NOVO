@@ -199,8 +199,7 @@ export function fmtData(d?: string | null): string {
 const STATUS_TOM_CLARO: Record<string, string> = {
     '#94a3b8': '#586B85',  // cinza  · neutro
     '#f59e0b': '#945F06',  // âmbar  · atenção
-    '#1768D5': '#005EEB',  // azul   · ação
-    '#0066FF': '#005EEB',
+    '#1768D5': '#0F4EA3',  // azul   · ação
     '#22c55e': '#157839',  // verde  · sucesso
     '#ef4444': '#CC1111',  // vermelho · erro
     '#8b5cf6': '#763FF4',  // roxo

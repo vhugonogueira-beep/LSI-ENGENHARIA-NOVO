@@ -186,9 +186,25 @@ async function main() {
             String(porAtividade[criados.atividades[1]]));
         conferir('o resumo soma o rateado', fin.corpo?.resumo?.rateado === 780, String(fin.corpo?.resumo?.rateado));
     } finally {
-        if (criados.reembolso) await json(`/reembolsos/${criados.reembolso}`, { method: 'DELETE' });
-        if (criados.projeto) await json(`/acionamentos/${criados.projeto}`, { method: 'DELETE' });
-        for (const id of criados.atividades) await json(`/atividades/${id}`, { method: 'DELETE' });
+        // Ordem importa: o projeto só sai vazio, e excluir atividade exige motivo.
+        // Sem isso a limpeza falhava calada e deixava TST001/TST002 na carteira.
+        const limpeza: string[] = [];
+        if (criados.reembolso) {
+            const r = await json(`/reembolsos/${criados.reembolso}`, { method: 'DELETE' });
+            if (!r.ok) limpeza.push(`reembolso: HTTP ${r.status} ${r.corpo?.error || ''}`);
+        }
+        for (const id of criados.atividades) {
+            const r = await json(`/atividades/${id}`, {
+                method: 'DELETE', headers: cabecalho,
+                body: JSON.stringify({ motivo: 'Limpeza do teste automatizado validar-projeto-rateio' }),
+            });
+            if (!r.ok) limpeza.push(`atividade ${id}: HTTP ${r.status} ${r.corpo?.error || ''}`);
+        }
+        if (criados.projeto) {
+            const r = await json(`/acionamentos/${criados.projeto}`, { method: 'DELETE' });
+            if (!r.ok) limpeza.push(`projeto: HTTP ${r.status} ${r.corpo?.error || ''}`);
+        }
+        conferir('limpeza: nada do teste ficou na base', limpeza.length === 0, limpeza.join(' | '));
     }
 }
 

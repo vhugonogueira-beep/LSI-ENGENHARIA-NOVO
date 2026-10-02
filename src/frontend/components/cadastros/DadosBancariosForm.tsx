@@ -1,5 +1,5 @@
 const input = 'w-full border border-border rounded-lg p-2.5 bg-secondary/40 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30';
-const label = 'block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1';
+const label = 'block text-xs font-semibold text-muted-foreground mb-1';
 
 const BANCOS = [
   'Banco do Brasil', 'Bradesco', 'Caixa Econômica Federal', 'Itaú', 'Santander',
@@ -44,12 +44,12 @@ export default function DadosBancariosForm({ value, onChange, mostrarFormaPagame
   const semPix = pixSelecionado === 'NAO_POSSUI';
   const formas = formasPermitidas?.length ? FORMAS.filter(([v]) => formasPermitidas.includes(v)) : FORMAS;
 
-  return <section className="bg-secondary/20 border border-border rounded-xl p-4">
+  return <section className="bg-secondary/20 border border-border rounded-lg p-4">
     <h3 className="text-sm font-bold mb-3">Dados bancários / PIX</h3>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {mostrarFormaPagamento && <label className="md:col-span-2"><span className={label}>Forma de pagamento padrão</span><select className={input} value={value.forma_pagamento || ''} onChange={e => onChange('forma_pagamento', e.target.value)}><option value="">Selecione</option>{formas.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>}
       <label><span className={label}>Tipo de chave PIX</span><select className={input} value={pixSelecionado} onChange={e => onChange('pix_tipo', e.target.value)}><option value="">Selecione</option>{PIX.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
-      <label><span className={label}>Chave PIX</span><input className={input} disabled={semPix} value={semPix ? '' : (value.pix_chave || '')} onChange={e => onChange('pix_chave', e.target.value)} placeholder={placeholderPix(pixSelecionado)}/></label>
+      <label><span className={label}>Chave PIX</span><input className={`${input} font-id`} disabled={semPix} value={semPix ? '' : (value.pix_chave || '')} onChange={e => onChange('pix_chave', e.target.value)} placeholder={placeholderPix(pixSelecionado)}/></label>
       <label><span className={label}>Banco</span><select className={input} value={bancoSelecionado} onChange={e => onChange('banco', e.target.value)}><option value="">Selecione</option>{BANCOS.map(b => <option key={b} value={b}>{b}</option>)}<option value="OUTRO">Outro banco</option></select></label>
       {bancoPersonalizado && <label><span className={label}>Nome do banco</span><input autoFocus className={input} value={value.banco === 'OUTRO' ? '' : (value.banco || '')} onChange={e => onChange('banco', e.target.value)} placeholder="Informe o banco"/></label>}
       <label><span className={label}>Agência</span><input className={input} value={value.agencia || ''} onChange={e => onChange('agencia', e.target.value)} placeholder="Número ou N/A"/></label>

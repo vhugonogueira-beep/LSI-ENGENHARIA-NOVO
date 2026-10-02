@@ -1,5 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Building2, HardHat, Plus, Search, Pencil, Trash2, Wallet, X } from 'lucide-react';
+import {
+    BarChart3, Building2, Cog, CreditCard, DraftingCompass, Factory, Forklift, HardHat, Mail, MapPin,
+    Microscope, Package, Pencil, Phone, Plus, Search, Trash2, Truck, Wallet, Wrench, X,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import DadosBancariosForm from '../components/cadastros/DadosBancariosForm';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { useEhAdmin } from '../lib/permissoes';
@@ -40,17 +44,18 @@ interface Supplier {
     _condicoesCount?: number;
 }
 
-const CATEGORIA_INFO: Record<string, { label: string; color: string; icon: string }> = {
-    MATERIAL: { label: 'Material', color: '#22c55e', icon: '🏭' },
-    MAO_DE_OBRA: { label: 'Mão de Obra', color: '#1768D5', icon: '👷' },
-    SERVICO: { label: 'Serviço', color: '#8b5cf6', icon: '🔧' },
-    LOCACAO: { label: 'Locação', color: '#f59e0b', icon: '🚚' },
-    EQUIPAMENTO: { label: 'Equipamento', color: '#06b6d4', icon: '⚙️' },
-    TRANSPORTE: { label: 'Transporte', color: '#fb923c', icon: '🚛' },
-    ENGENHARIA: { label: 'Engenharia', color: '#6366f1', icon: '🏗️' },
-    SONDAGEM: { label: 'Sondagem', color: '#ec4899', icon: '🔬' },
-    ANALISE: { label: 'Análise', color: '#14b8a6', icon: '📊' },
-    OUTROS: { label: 'Outros', color: '#94a3b8', icon: '📦' },
+// Categoria é rótulo, não estado: ícone + texto em pílula neutra, sem cor própria.
+const CATEGORIA_INFO: Record<string, { label: string; icon: LucideIcon }> = {
+    MATERIAL: { label: 'Material', icon: Factory },
+    MAO_DE_OBRA: { label: 'Mão de obra', icon: HardHat },
+    SERVICO: { label: 'Serviço', icon: Wrench },
+    LOCACAO: { label: 'Locação', icon: Forklift },
+    EQUIPAMENTO: { label: 'Equipamento', icon: Cog },
+    TRANSPORTE: { label: 'Transporte', icon: Truck },
+    ENGENHARIA: { label: 'Engenharia', icon: DraftingCompass },
+    SONDAGEM: { label: 'Sondagem', icon: Microscope },
+    ANALISE: { label: 'Análise', icon: BarChart3 },
+    OUTROS: { label: 'Outros', icon: Package },
 };
 const CATEGORIAS_PRESTADOR = ['MAO_DE_OBRA', 'SERVICO', 'LOCACAO', 'EQUIPAMENTO', 'TRANSPORTE', 'ENGENHARIA', 'SONDAGEM', 'ANALISE', 'OUTROS'];
 const REGIOES = ['NACIONAL', 'NORTE', 'NORDESTE', 'CENTRO_OESTE', 'SUDESTE', 'SUL'];
@@ -240,10 +245,13 @@ export function Fornecedores() {
                         <Building2 className="text-primary" size={28} />
                         Fornecedores & Prestadores
                     </h2>
-                    <p className="text-muted-foreground mt-1">{suppliers.filter(s => s.categoria === 'MATERIAL').length} fornecedores de material · {suppliers.filter(s => s.categoria !== 'MATERIAL').length} prestadores de serviço</p>
+                    <p className="text-muted-foreground mt-1 flex flex-wrap gap-x-4">
+                        <span>{suppliers.filter(s => s.categoria === 'MATERIAL').length} fornecedores de material</span>
+                        <span>{suppliers.filter(s => s.categoria !== 'MATERIAL').length} prestadores de serviço</span>
+                    </p>
                 </div>
-                <button onClick={openCreate} className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-semibold shadow-md shadow-primary/20">
-                    <Plus size={18} /> Novo Cadastro
+                <button onClick={openCreate} className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-semibold">
+                    <Plus size={16} aria-hidden /> Novo cadastro
                 </button>
             </div>
 
@@ -256,8 +264,10 @@ export function Fornecedores() {
                 <div className="flex gap-1 bg-secondary/40 rounded-lg p-1">
                     {(['TODOS', 'MATERIAL', 'PRESTADOR'] as const).map(m => (
                         <button key={m} onClick={() => { setFiltroModulo(m); setFiltroCategoria(''); setFiltroEspecialidade(''); }}
-                            className={`px-3 py-1.5 rounded-md text-sm font-medium ${filtroModulo === m ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                            {m === 'TODOS' ? 'Todos' : m === 'MATERIAL' ? '🏭 Material' : '👷 Prestadores'}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium inline-flex items-center gap-1.5 ${filtroModulo === m ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                            {m === 'MATERIAL' && <Factory size={14} aria-hidden />}
+                            {m === 'PRESTADOR' && <HardHat size={14} aria-hidden />}
+                            {m === 'TODOS' ? 'Todos' : m === 'MATERIAL' ? 'Material' : 'Prestadores'}
                         </button>
                     ))}
                 </div>
@@ -273,11 +283,12 @@ export function Fornecedores() {
                 {categoriasPresentes.map(c => {
                     const info = CATEGORIA_INFO[c.id];
                     const ativo = filtroCategoria === c.id;
+                    const Icone = info.icon;
                     return (
                         <button key={c.id} onClick={() => { setFiltroCategoria(ativo ? '' : c.id); setFiltroEspecialidade(''); }}
-                            className="px-2.5 py-1 rounded-full text-xs font-semibold border"
-                            style={ativo ? { background: info.color, borderColor: info.color, color: '#fff' } : { borderColor: `${info.color}55`, color: info.color }}>
-                            {info.label} <span className="opacity-70">{c.total}</span>
+                            aria-pressed={ativo}
+                            className={`px-2.5 py-1 rounded-full text-xs font-semibold border inline-flex items-center gap-1.5 ${ativo ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'}`}>
+                            <Icone size={14} aria-hidden /> {info.label} <span className="opacity-70">{c.total}</span>
                         </button>
                     );
                 })}
@@ -291,9 +302,10 @@ export function Fornecedores() {
                     {ufsPresentes.map(uf => <option key={uf} value={uf}>{uf}</option>)}
                 </select>
                 {temFiltro && (
-                    <button onClick={limparFiltros} className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground">
-                        Limpar · {filtered.length} resultado(s)
-                    </button>
+                    <span className="h-8 inline-flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{filtered.length} resultado(s)</span>
+                        <button onClick={limparFiltros} className="h-8 px-2 hover:text-foreground">Limpar filtros</button>
+                    </span>
                 )}
             </div>
 
@@ -302,40 +314,56 @@ export function Fornecedores() {
                     <div className="col-span-3 text-center py-12 text-muted-foreground">Carregando...</div>
                 ) : filtered.length === 0 ? (
                     <div className="col-span-3 text-center py-12 text-muted-foreground">
-                        {temFiltro ? 'Nenhum cadastro com esses filtros.' : 'Nenhum fornecedor cadastrado. Clique em "Novo Cadastro" para começar.'}
+                        {temFiltro ? 'Nenhum cadastro com esses filtros.' : 'Nenhum fornecedor cadastrado. Clique em "Novo cadastro" para começar.'}
                     </div>
                 ) : filtered.map(s => {
                     const ci = catInfo(s.categoria);
+                    const IconeCat = ci.icon;
+                    const temCondicao = (s._condicoesCount || 0) > 0;
+                    const local = s.cidade ? [s.cidade, ufDe(s)].filter(Boolean).join('/') : s.uf;
+                    const regiao = s.regiao ? (REGIAO_LABEL[s.regiao] || s.regiao) : null;
                     return (
-                        <div key={s.id} className="bg-card text-foreground rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow p-5"
-                            style={{ borderLeft: `3px solid ${ci.color}` }}>
-                            <div className="flex items-start justify-between mb-2">
+                        <div key={s.id} className="bg-card text-foreground rounded-lg border border-border p-5 flex flex-col">
+                            <div className="flex items-start justify-between gap-2 mb-2">
                                 <div className="min-w-0">
-                                    <h3 className="font-bold text-base truncate">{ci.icon} {s.nome}</h3>
-                                    <p className="text-xs text-muted-foreground">{s.cnpj || s.cpf || '—'}</p>
+                                    <h3 className="font-semibold text-base truncate" title={s.nome}>{s.nome}</h3>
+                                    {s.cnpj || s.cpf
+                                        ? <p className="text-xs text-muted-foreground font-id">{s.cnpj || s.cpf}</p>
+                                        : <p className="text-xs text-muted-foreground">—</p>}
                                 </div>
                                 <div className="flex gap-1 flex-shrink-0">
-                                    <button onClick={() => openEdit(s)} className="p-1.5 rounded-md hover:bg-muted" title="Editar"><Pencil size={15} className="text-muted-foreground" /></button>
-                                    {ehAdmin && <button onClick={() => handleDelete(s.id, s.nome)} className="p-1.5 rounded-md hover:bg-red-500/10" title="Desativar"><Trash2 size={15} className="text-red-500" /></button>}
+                                    <button onClick={() => openEdit(s)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                                        aria-label={`Editar ${s.nome}`} title="Editar cadastro"><Pencil size={15} aria-hidden /></button>
+                                    {ehAdmin && (
+                                        <button onClick={() => handleDelete(s.id, s.nome)} className="p-1.5 rounded-md hover:bg-crit/10 text-muted-foreground hover:text-crit"
+                                            aria-label={`Desativar ${s.nome}`} title="Desativar cadastro"><Trash2 size={15} aria-hidden /></button>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex gap-1.5 flex-wrap mb-3">
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${ci.color}22`, color: ci.color }}>{ci.label}</span>
-                                {s.especialidade && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.especialidade}</span>}
-                                {s.tipo && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.tipo === 'PESSOA_FISICA' ? 'PF' : 'PJ'}</span>}
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border border-border text-foreground">
+                                    <IconeCat size={14} aria-hidden className="text-muted-foreground" /> {ci.label}
+                                </span>
+                                {s.especialidade && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.especialidade}</span>}
+                                {s.tipo && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.tipo === 'PESSOA_FISICA' ? 'PF' : 'PJ'}</span>}
                             </div>
-                            <div className="text-xs text-muted-foreground space-y-0.5 mb-3">
-                                {s.email && <p>✉ {s.email}</p>}
-                                {s.telefone && <p>☎ {s.telefone}</p>}
-                                {s.pix && <p>💳 PIX: {s.pix}</p>}
-                                {(s.cidade || s.uf || s.regiao) && (
-                                    <p>📍 {[s.cidade ? [s.cidade, ufDe(s)].filter(Boolean).join('/') : s.uf, s.regiao && (REGIAO_LABEL[s.regiao] || s.regiao)].filter(Boolean).join(' · ')}</p>
+                            <div className="text-xs text-muted-foreground space-y-1 mb-3 flex-1">
+                                {s.email && <p className="flex items-center gap-1.5 min-w-0"><Mail size={14} aria-hidden className="flex-shrink-0" /><span className="sr-only">E-mail: </span><span className="truncate">{s.email}</span></p>}
+                                {s.telefone && <p className="flex items-center gap-1.5"><Phone size={14} aria-hidden className="flex-shrink-0" /><span className="sr-only">Telefone: </span>{s.telefone}</p>}
+                                {s.pix && <p className="flex items-center gap-1.5 min-w-0"><CreditCard size={14} aria-hidden className="flex-shrink-0" /><span>PIX</span><span className="font-id truncate text-foreground">{s.pix}</span></p>}
+                                {(local || regiao) && (
+                                    <p className="flex items-center gap-1.5 flex-wrap">
+                                        <MapPin size={14} aria-hidden className="flex-shrink-0" />
+                                        <span className="sr-only">Local: </span>
+                                        {local && <span>{local}</span>}
+                                        {regiao && <span className={local ? 'ml-2' : ''}>{regiao}</span>}
+                                    </p>
                                 )}
                             </div>
-                            <div className="flex items-center gap-1.5 pt-2 border-t border-border text-xs font-medium" style={{ color: (s._condicoesCount || 0) > 0 ? '#22c55e' : undefined }}>
-                                <Wallet size={13} className={(s._condicoesCount || 0) > 0 ? '' : 'text-muted-foreground'} />
-                                <span className={(s._condicoesCount || 0) > 0 ? '' : 'text-muted-foreground'}>
-                                    {s._condicoesCount ? `${s._condicoesCount} condição(ões) de pagamento cadastrada(s)` : 'Nenhuma condição de pagamento'}
+                            <div className={`flex items-center gap-1.5 pt-2 border-t border-border text-xs font-medium ${temCondicao ? 'text-ok' : 'text-muted-foreground'}`}>
+                                <Wallet size={14} aria-hidden />
+                                <span>
+                                    {temCondicao ? `${s._condicoesCount} condição(ões) de pagamento cadastrada(s)` : 'Nenhuma condição de pagamento'}
                                 </span>
                             </div>
                         </div>
@@ -347,42 +375,37 @@ export function Fornecedores() {
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-background text-foreground rounded-xl shadow-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-border">
                         <div className="flex items-center justify-between mb-5">
-                            <h3 className="text-xl font-bold">{editingId ? 'Editar Cadastro' : 'Novo Cadastro'}</h3>
-                            <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
+                            <h3 className="text-lg font-bold">{editingId ? 'Editar cadastro' : 'Novo cadastro'}</h3>
+                            <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="text-muted-foreground hover:text-foreground"
+                                aria-label="Fechar cadastro" title="Fechar cadastro"><X size={18} aria-hidden /></button>
                         </div>
                         <form onSubmit={handleSave} className="space-y-5">
 
                             {/* Tipo de cadastro — dois grandes cartões, como no modelo anterior */}
                             <div className="grid grid-cols-2 gap-3">
                                 <button type="button" onClick={() => setForm(f => ({ ...f, categoria: 'MATERIAL' }))}
-                                    className="text-left rounded-xl p-4 transition-colors"
-                                    style={{
-                                        border: `2px solid ${isMaterial ? CATEGORIA_INFO.MATERIAL.color : 'hsl(var(--border))'}`,
-                                        background: isMaterial ? `${CATEGORIA_INFO.MATERIAL.color}18` : 'hsl(var(--secondary) / 0.3)',
-                                    }}>
-                                    <div className="text-2xl mb-1">🏭</div>
-                                    <div className="text-sm font-bold" style={{ color: isMaterial ? CATEGORIA_INFO.MATERIAL.color : undefined }}>Fornecedor de Material</div>
+                                    aria-pressed={isMaterial}
+                                    className={`text-left rounded-lg p-4 transition-colors border-2 ${isMaterial ? 'border-primary bg-primary/10' : 'border-border bg-secondary/30'}`}>
+                                    <Factory size={24} aria-hidden className={`mb-1 ${isMaterial ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    <div className={`text-sm font-bold ${isMaterial ? 'text-primary' : ''}`}>Fornecedor de material</div>
                                     <div className="text-xs text-muted-foreground mt-0.5">Vende produtos e insumos (CNPJ)</div>
                                 </button>
                                 <button type="button" onClick={() => setForm(f => ({ ...f, categoria: 'MAO_DE_OBRA' }))}
-                                    className="text-left rounded-xl p-4 transition-colors"
-                                    style={{
-                                        border: `2px solid ${!isMaterial ? CATEGORIA_INFO.MAO_DE_OBRA.color : 'hsl(var(--border))'}`,
-                                        background: !isMaterial ? `${CATEGORIA_INFO.MAO_DE_OBRA.color}18` : 'hsl(var(--secondary) / 0.3)',
-                                    }}>
-                                    <div className="text-2xl mb-1"><HardHat size={26} /></div>
-                                    <div className="text-sm font-bold" style={{ color: !isMaterial ? CATEGORIA_INFO.MAO_DE_OBRA.color : undefined }}>Prestador de Serviço</div>
+                                    aria-pressed={!isMaterial}
+                                    className={`text-left rounded-lg p-4 transition-colors border-2 ${!isMaterial ? 'border-primary bg-primary/10' : 'border-border bg-secondary/30'}`}>
+                                    <HardHat size={24} aria-hidden className={`mb-1 ${!isMaterial ? 'text-primary' : 'text-muted-foreground'}`} />
+                                    <div className={`text-sm font-bold ${!isMaterial ? 'text-primary' : ''}`}>Prestador de serviço</div>
                                     <div className="text-xs text-muted-foreground mt-0.5">Executa obras e serviços (PF ou PJ)</div>
                                 </button>
                             </div>
 
                             <div>
-                                <label className={labelCls}>{isMaterial ? 'Razão Social' : 'Nome / Razão Social'} *</label>
+                                <label className={labelCls}>{isMaterial ? 'Razão social' : 'Nome / razão social'} *</label>
                                 <input required value={form.nome} onChange={e => setForm(f => ({ ...f, nome: e.target.value }))}
                                     className={inputCls} placeholder={isMaterial ? 'Razão social do fornecedor' : 'Nome ou empresa prestadora'} />
                             </div>
                             <div>
-                                <label className={labelCls}>Nome Fantasia</label>
+                                <label className={labelCls}>Nome fantasia</label>
                                 <input value={form.nome_fantasia} onChange={e => setForm(f => ({ ...f, nome_fantasia: e.target.value }))} className={inputCls} />
                             </div>
 
@@ -466,9 +489,9 @@ export function Fornecedores() {
                             />
 
                             {/* Condição de pagamento — agora dentro do próprio cadastro */}
-                            <div className="rounded-lg p-3.5 border" style={{ background: '#1768D50d', borderColor: '#1768D530' }}>
-                                <div className="text-xs font-bold text-muted-foreground mb-2 tracking-wide flex items-center gap-1.5">
-                                    <Wallet size={13} /> CONDIÇÃO DE PAGAMENTO PADRÃO
+                            <div className="rounded-lg p-3.5 border border-primary/20 bg-primary/5">
+                                <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
+                                    <Wallet size={14} aria-hidden /> Condição de pagamento padrão
                                 </div>
                                 {condicoesModal.length > 0 && (
                                     <div className="flex flex-col gap-1.5 mb-3">
@@ -503,8 +526,8 @@ export function Fornecedores() {
                             </div>
                             <div className="flex justify-end gap-3 pt-2">
                                 <button type="button" onClick={() => { setIsModalOpen(false); resetForm(); }} className="px-4 py-2.5 border border-border rounded-lg hover:bg-muted font-medium">Cancelar</button>
-                                <button type="submit" disabled={saving} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 font-semibold shadow-md shadow-primary/20 disabled:opacity-60">
-                                    {saving ? 'Salvando...' : editingId ? 'Salvar Alterações' : `Adicionar ${isMaterial ? 'Fornecedor' : 'Prestador'}`}
+                                <button type="submit" disabled={saving} className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg hover:bg-primary/90 font-semibold disabled:opacity-60">
+                                    {saving ? 'Salvando...' : editingId ? 'Salvar alterações' : `Adicionar ${isMaterial ? 'Fornecedor' : 'Prestador'}`}
                                 </button>
                             </div>
                         </form>

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "../lib/authFetch";
 import { useEhAdmin } from "../lib/permissoes";
 import UsuariosAcessos from "../components/configuracoes/UsuariosAcessos";
+import { T as TEMA } from "../theme";
+import { Building2, Landmark, CreditCard, Mail, Users, X, Plus } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configurações — o cadastro da própria LS Office.
@@ -27,9 +29,10 @@ const T = {
   txMut: "hsl(var(--muted-foreground))",
   txDis: "hsl(var(--muted-foreground))",
   blue: "hsl(var(--primary))",
-  // Acentos semânticos: já são exatamente as cores emerald/amber/red/violet-400
-  // do Tailwind usadas nas outras telas.
-  green: "#34d399", amber: "#fbbf24", red: "#f87171", purple: "#a78bfa",
+  // Acentos semânticos vêm da paleta do tema (hex), e não de CSS variable,
+  // porque o código soma canal alfa ao final (`T.red + "66"`). Assim acompanham
+  // o tema claro/escuro sem quebrar essas concatenações.
+  green: TEMA.green, amber: TEMA.amber, red: TEMA.red, purple: TEMA.purple,
 };
 
 // Medidas alinhadas com as classes usadas nas telas em Tailwind: card
@@ -37,7 +40,7 @@ const T = {
 const S = {
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "16px 18px" } as React.CSSProperties,
   input: { height: 36, padding: "0 12px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", width: "100%", boxSizing: "border-box" } as React.CSSProperties,
-  label: { fontSize: 10, color: T.txMut, display: "block", marginBottom: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" } as React.CSSProperties,
+  label: { fontSize: 11, color: T.txMut, display: "block", marginBottom: 4, fontWeight: 600 } as React.CSSProperties,
   btn: { height: 36, padding: "0 16px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, cursor: "pointer", color: T.txPri, fontWeight: 700 } as React.CSSProperties,
   btnBlue: { background: T.blue, color: "hsl(var(--primary-foreground))", borderColor: T.blue } as React.CSSProperties,
 };
@@ -287,21 +290,21 @@ export default function Configuracoes() {
 
   if (carregando) return <div style={{ padding: 40, color: T.txMut }}>Carregando configurações...</div>;
 
-  const abas: { id: Aba; rotulo: string }[] = [
-    { id: "empresa", rotulo: "🏢 Dados da empresa" },
-    { id: "contas", rotulo: `🏦 Contas para recebimento (${contas.length})` },
-    { id: "cartoes", rotulo: `💳 Cartões corporativos (${cartoes.length})` },
-    { id: "comunicacao", rotulo: "✉ Comunicação" },
+  const abas: { id: Aba; rotulo: string; icone: React.ReactNode }[] = [
+    { id: "empresa", rotulo: "Dados da empresa", icone: <Building2 size={14} aria-hidden /> },
+    { id: "contas", rotulo: `Contas para recebimento (${contas.length})`, icone: <Landmark size={14} aria-hidden /> },
+    { id: "cartoes", rotulo: `Cartões corporativos (${cartoes.length})`, icone: <CreditCard size={14} aria-hidden /> },
+    { id: "comunicacao", rotulo: "Comunicação", icone: <Mail size={14} aria-hidden /> },
     // Gestão de acesso é do administrador; os demais nem veem a aba.
-    ...(ehAdmin ? [{ id: "usuarios" as Aba, rotulo: "👥 Usuários e acessos" }] : []),
+    ...(ehAdmin ? [{ id: "usuarios" as Aba, rotulo: "Usuários e acessos", icone: <Users size={14} aria-hidden /> }] : []),
   ];
 
   return (
     <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14, maxWidth: 1080 }}>
-      {toast && <div style={{ position: "fixed", bottom: 20, right: 20, background: T.green, color: "#052e1b", padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 700, fontSize: 12 }}>{toast}</div>}
+      {toast && <div role="status" style={{ position: "fixed", bottom: 20, right: 20, background: T.bg2, color: T.txPri, border: `1px solid ${T.green}`, borderLeft: `3px solid ${T.green}`, padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 600, fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.18)" }}>{toast}</div>}
 
       <div>
-        <h1 style={{ fontSize: 20, fontWeight: 800, color: T.txPri, margin: 0 }}>Configurações da LS Office</h1>
+        <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Configurações da LS Office</h1>
         <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0", maxWidth: 640, lineHeight: 1.55 }}>
           O que está aqui sai nos documentos e nas notas: o logo e o CNPJ no cabeçalho do cronograma
           e da PV, os dados fiscais na nota, e a conta principal no e-mail de faturamento.
@@ -309,15 +312,15 @@ export default function Configuracoes() {
       </div>
 
       {erro && (
-        <div style={{ ...S.card, borderColor: T.red + "66", background: T.red + "12", color: "#fca5a5", fontSize: 12, display: "flex", justifyContent: "space-between" }}>
+        <div role="alert" style={{ ...S.card, borderColor: T.red + "66", background: T.red + "12", color: T.red, fontSize: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>{erro}</span>
-          <button onClick={() => setErro("")} style={{ background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontWeight: 700 }}>✕</button>
+          <button onClick={() => setErro("")} aria-label="Fechar aviso" title="Fechar aviso" style={{ background: "none", border: "none", color: T.red, cursor: "pointer", display: "inline-flex", padding: 2 }}><X size={14} aria-hidden /></button>
         </div>
       )}
 
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
         {abas.map(a => (
-          <button key={a.id} onClick={() => setAba(a.id)} style={{ ...S.btn, ...(aba === a.id ? S.btnBlue : {}) }}>{a.rotulo}</button>
+          <button key={a.id} onClick={() => setAba(a.id)} aria-pressed={aba === a.id} style={{ ...S.btn, ...(aba === a.id ? S.btnBlue : {}), display: "inline-flex", alignItems: "center", gap: 6 }}>{a.icone}{a.rotulo}</button>
         ))}
       </div>
 
@@ -466,7 +469,7 @@ function ListaContas({ contas, aoSalvar, aoRemover, temEmpresa }: {
             </select>
           </Campo>
           <Campo rotulo="Chave PIX"><input style={S.input} value={nova.pix_chave || ""} onChange={e => setNova({ ...nova, pix_chave: e.target.value })} /></Campo>
-          <button onClick={() => { aoSalvar(nova); setNova({ tipo: "CORRENTE" }); }} style={{ ...S.btn, ...S.btnBlue, height: 34, alignSelf: "end" }}>+ Adicionar</button>
+          <button onClick={() => { aoSalvar(nova); setNova({ tipo: "CORRENTE" }); }} style={{ ...S.btn, ...S.btnBlue, height: 34, alignSelf: "end", display: "inline-flex", alignItems: "center", gap: 6 }}><Plus size={14} aria-hidden />Adicionar conta</button>
         </Grid>
       </div>
 
@@ -475,18 +478,22 @@ function ListaContas({ contas, aoSalvar, aoRemover, temEmpresa }: {
       {contas.map(c => (
         <div key={c.id} style={{ ...S.card, borderLeft: `3px solid ${c.principal ? T.green : T.brBase}`, display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div style={{ minWidth: 260 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: T.txPri, display: "flex", alignItems: "center", gap: 8 }}>
-              {c.codigo_banco ? `${c.codigo_banco} · ` : ""}{c.banco}
-              {c.principal && <span style={{ fontSize: 9, fontWeight: 800, color: T.green, border: `1px solid ${T.green}66`, background: T.green + "1a", borderRadius: 20, padding: "2px 8px" }}>PRINCIPAL</span>}
-              {!c.ativa && <span style={{ fontSize: 9, fontWeight: 800, color: T.txDis }}>INATIVA</span>}
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, display: "flex", alignItems: "center", gap: 8 }}>
+              {c.codigo_banco && <span className="font-id" style={{ color: T.txMut, fontWeight: 500 }}>{c.codigo_banco}</span>}
+              <span>{c.banco}</span>
+              {c.principal && <span style={{ fontSize: 11, fontWeight: 600, color: T.green, border: `1px solid ${T.green}66`, background: T.green + "1a", borderRadius: 20, padding: "2px 8px" }}>Principal</span>}
+              {!c.ativa && <span style={{ fontSize: 11, fontWeight: 600, color: T.txDis }}>Inativa</span>}
             </div>
-            <div style={{ fontSize: 11.5, color: T.txSec, marginTop: 4 }}>
-              Ag. {c.agencia || "—"} · Conta {c.conta || "—"} · {c.tipo === "CORRENTE" ? "Corrente" : "Poupança"}
+            <div style={{ fontSize: 12, color: T.txSec, marginTop: 4, display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <span>Ag. <span className="font-id">{c.agencia || "—"}</span></span>
+              <span>Conta <span className="font-id">{c.conta || "—"}</span></span>
+              <span>{c.tipo === "CORRENTE" ? "Corrente" : "Poupança"}</span>
             </div>
-            <div style={{ fontSize: 11, color: T.txMut, marginTop: 3 }}>
-              {c.titular || "—"}{c.cnpj_titular ? ` · ${fmtCnpj(c.cnpj_titular)}` : ""}
+            <div style={{ fontSize: 11, color: T.txMut, marginTop: 3, display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <span>{c.titular || "—"}</span>
+              {c.cnpj_titular && <span>CNPJ <span className="font-id">{fmtCnpj(c.cnpj_titular)}</span></span>}
             </div>
-            {c.pix_chave && <div style={{ fontSize: 11, color: T.txMut, marginTop: 3 }}>PIX {c.pix_tipo || ""}: {c.pix_chave}</div>}
+            {c.pix_chave && <div style={{ fontSize: 11, color: T.txMut, marginTop: 3 }}>PIX {c.pix_tipo || ""}: <span className="font-id">{c.pix_chave}</span></div>}
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
             {!c.principal && <button onClick={() => aoSalvar({ principal: true }, c.id)} style={S.btn}>Tornar principal</button>}
@@ -523,7 +530,17 @@ function ListaCartoes({ cartoes, aoSalvar, aoRemover, temEmpresa }: {
     </div>
     {cartoes.length === 0 && <div style={{ ...S.card, color: T.txMut, fontSize: 12 }}>Nenhum cartão corporativo cadastrado.</div>}
     {cartoes.map(c => <div key={c.id} style={{ ...S.card, display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap", opacity: c.ativo ? 1 : .65 }}>
-      <div><div style={{ color: T.txPri, fontWeight: 800, fontSize: 14 }}>{c.bandeira} •••• {c.final}{c.apelido ? ` · ${c.apelido}` : ''}</div><div style={{ color: T.txMut, fontSize: 11, marginTop: 4 }}>{c.titular || 'Titular não informado'}{c.limite != null ? ` · Limite ${c.limite.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}` : ''}{c.dia_fechamento ? ` · Fecha dia ${c.dia_fechamento}` : ''}</div></div>
+      <div>
+        <div style={{ color: T.txPri, fontWeight: 700, fontSize: 15, display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
+          <span>{c.bandeira} <span className="font-id">•••• {c.final}</span></span>
+          {c.apelido && <span style={{ fontSize: 13, fontWeight: 500, color: T.txSec }}>{c.apelido}</span>}
+        </div>
+        <div style={{ color: T.txMut, fontSize: 11, marginTop: 4, display: "flex", gap: 14, flexWrap: "wrap" }}>
+          <span>{c.titular || 'Titular não informado'}</span>
+          {c.limite != null && <span>Limite {c.limite.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>}
+          {c.dia_fechamento ? <span>Fecha dia {c.dia_fechamento}</span> : null}
+        </div>
+      </div>
       <div style={{ display: "flex", gap: 8 }}><button onClick={() => aoSalvar({ ...c, ativo: !c.ativo }, c.id)} style={S.btn}>{c.ativo ? 'Desativar' : 'Reativar'}</button><button onClick={() => aoRemover(c)} style={{ ...S.btn, color: T.red }}>Remover</button></div>
     </div>)}
   </>;
@@ -540,7 +557,7 @@ export function ListaOperadoras({ operadoras, aoSalvar, aoRemover }: {
     <>
       <div style={S.card}>
         <Titulo>Operadora</Titulo>
-        <p style={{ fontSize: 11.5, color: T.txMut, margin: "0 0 10px", lineHeight: 1.55 }}>
+        <p style={{ fontSize: 12, color: T.txMut, margin: "0 0 10px", lineHeight: 1.55 }}>
           O logo cadastrado aqui entra no cabeçalho do cronograma, ao lado do logo da LS e do da
           sharing. O nome precisa bater com o campo <strong>Operadora</strong> da atividade
           (CLARO, TIM, VIVO…). Sem logo, o documento mostra o nome em texto.
@@ -576,10 +593,13 @@ export function ListaOperadoras({ operadoras, aoSalvar, aoRemover }: {
             <div style={{ height: 52, background: "#fff", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
               {o.logo_url
                 ? <img src={o.logo_url} alt={o.nome} style={{ maxHeight: 40, maxWidth: 180, objectFit: "contain" }} />
-                : <span style={{ color: "#334155", fontWeight: 800, fontSize: 14 }}>{o.nome}</span>}
+                : <span style={{ color: "#334155", fontWeight: 700, fontSize: 15 }}>{o.nome}</span>}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: T.txPri }}>{o.nome}{o.sigla ? ` · ${o.sigla}` : ""}</div>
-            <div style={{ fontSize: 10.5, color: o.logo_url ? T.txMut : T.amber, marginTop: 3 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, display: "flex", gap: 8 }}>
+              <span>{o.nome}</span>
+              {o.sigla && <span style={{ color: T.txMut, fontWeight: 500 }}>{o.sigla}</span>}
+            </div>
+            <div style={{ fontSize: 11, color: o.logo_url ? T.txMut : T.amber, marginTop: 3 }}>
               {o.logo_url ? "Logo cadastrado" : "Sem logo — sai como texto"}
             </div>
             <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
@@ -606,7 +626,7 @@ export function ListaOperadoras({ operadoras, aoSalvar, aoRemover }: {
 // ─── Peças de layout ─────────────────────────────────────────────────────────
 
 function Titulo({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 12.5, fontWeight: 800, color: T.txPri, marginBottom: 12 }}>{children}</div>;
+  return <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 12 }}>{children}</div>;
 }
 
 function Grid({ cols, children }: { cols: string; children: React.ReactNode }) {
@@ -614,11 +634,19 @@ function Grid({ cols, children }: { cols: string; children: React.ReactNode }) {
 }
 
 function Campo({ rotulo, dica, children }: { rotulo: string; dica?: string; children: React.ReactNode }) {
+  // Associa o rótulo ao campo quando o filho é um controle de formulário.
+  // Quando o filho é composto (botão de upload, por exemplo), o rótulo segue
+  // como texto, para não aninhar um <label> dentro de outro.
+  const id = React.useId();
+  const controle = React.isValidElement(children) && typeof children.type === "string"
+    && ["input", "select", "textarea"].includes(children.type);
   return (
     <div>
-      <label style={S.label} title={dica}>{rotulo}</label>
-      {children}
-      {dica && <div style={{ fontSize: 10, color: T.txDis, marginTop: 3, lineHeight: 1.45 }}>{dica}</div>}
+      {controle
+        ? <label htmlFor={id} style={S.label} title={dica}>{rotulo}</label>
+        : <span style={S.label} title={dica}>{rotulo}</span>}
+      {controle ? React.cloneElement(children as React.ReactElement<any>, { id }) : children}
+      {dica && <div style={{ fontSize: 11, color: T.txDis, marginTop: 3, lineHeight: 1.45 }}>{dica}</div>}
     </div>
   );
 }

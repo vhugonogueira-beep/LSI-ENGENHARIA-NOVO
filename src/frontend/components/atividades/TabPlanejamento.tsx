@@ -38,9 +38,9 @@ const CATEGORIA_LABEL: Record<string, string> = {
     DOCUMENTACAO: 'Documentação', MEDICAO: 'Medição', FATURAMENTO: 'Faturamento', OUTROS: 'Outros',
 };
 const CATEGORIA_COR: Record<string, string> = {
-    LIBERACAO: '#16a34a', PRE_OBRA: '#7c3aed', CIVIL: '#0F4EA3', ENERGIA: '#ea580c',
-    ESTRUTURA: '#059669', INSTALACAO: '#0891b2', RFI: '#0891b2', EXECUCAO: '#0F4EA3',
-    LOGISTICA: '#7c3aed', MOBILIZACAO: '#7c3aed',
+    LIBERACAO: '#22C55E', PRE_OBRA: '#8B5CF6', CIVIL: '#0F4EA3', ENERGIA: '#ea580c',
+    ESTRUTURA: '#22C55E', INSTALACAO: '#0891b2', RFI: '#0891b2', EXECUCAO: '#0F4EA3',
+    LOGISTICA: '#8B5CF6', MOBILIZACAO: '#8B5CF6',
 };
 const corDaEtapa = (c: string) => CATEGORIA_COR[c] || '#64748b';
 
@@ -49,8 +49,11 @@ const CATEGORIAS_RFI = ['INSTALACAO', 'RFI'];
 
 const STATUS_OPTS = ['PENDENTE', 'EM_ANDAMENTO', 'CONCLUIDO', 'ATRASADO'];
 const PRIORIDADES = ['BAIXA', 'MEDIA', 'ALTA'];
-const STATUS_COLOR: Record<string, string> = { PENDENTE: '#94a3b8', EM_ANDAMENTO: '#f59e0b', CONCLUIDO: '#22c55e', ATRASADO: '#ef4444' };
-const PRIORIDADE_COLOR: Record<string, string> = { BAIXA: '#94a3b8', MEDIA: '#f59e0b', ALTA: '#ef4444' };
+// Tokens de estado (index.css), não hex.
+const STATUS_TOM: Record<string, string> = { PENDENTE: 'bg-muted text-muted-foreground', EM_ANDAMENTO: 'bg-warn/15 text-warn', CONCLUIDO: 'bg-ok/15 text-ok', ATRASADO: 'bg-crit/15 text-crit' };
+const STATUS_ROTULO: Record<string, string> = { PENDENTE: 'Pendente', EM_ANDAMENTO: 'Em andamento', CONCLUIDO: 'Concluído', ATRASADO: 'Atrasado' };
+const PRIORIDADE_TOM: Record<string, string> = { BAIXA: 'text-muted-foreground', MEDIA: 'text-foreground', ALTA: 'text-crit' };
+const PRIORIDADE_ROTULO: Record<string, string> = { BAIXA: 'Baixa', MEDIA: 'Média', ALTA: 'Alta' };
 
 const FORM_INIT = {
     titulo: '', categoria: 'CIVIL', grupo: '', responsavel: '', data_inicio: '', data_fim: '',
@@ -338,8 +341,8 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
             <ErrorBanner message={erro} />
 
             {vencidas.length > 0 && (
-                <div className="mb-4 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4">
-                    <div className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                <div className="mb-4 rounded-xl border border-warn/50 bg-warn/10 p-4">
+                    <div className="text-sm font-bold text-warn">
                         {vencidas.length === 1
                             ? '1 etapa venceu e precisa de confirmação'
                             : `${vencidas.length} etapas venceram e precisam de confirmação`}
@@ -351,14 +354,17 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
                         {vencidas.map(item => (
                             <div key={item.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-border bg-card px-3 py-2">
                                 <span className="text-xs font-semibold">{item.titulo}</span>
-                                <span className="text-[11px] text-muted-foreground">
-                                    previsto {fmtData(item.data_fim)} · {diasDeAtraso(item.data_fim)} · {Math.round(item.progresso_percentual || 0)}%
+                                <span className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+                                    <span>Previsto {fmtData(item.data_fim)}</span>
+                                    <span className="text-warn">{diasDeAtraso(item.data_fim)}</span>
+                                    <span>{Math.round(item.progresso_percentual || 0)}%</span>
                                 </span>
                                 <button
+                                    type="button"
                                     onClick={() => setConferindo(item)}
                                     className="ml-auto h-7 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground"
                                 >
-                                    Conferir
+                                    Conferir etapa
                                 </button>
                             </div>
                         ))}
@@ -367,32 +373,32 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
             )}
 
             <Card
-                title="Cronograma de Obra"
+                title="Cronograma de obra"
                 action={
                     <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1 mr-1">
-                            <button onClick={() => setVista('lista')} title="Lista"
+                            <button type="button" onClick={() => setVista('lista')} title="Ver em lista" aria-label="Ver em lista" aria-pressed={vista === 'lista'}
                                 className={`p-1.5 rounded ${vista === 'lista' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                <List size={14} />
+                                <List size={14} aria-hidden />
                             </button>
-                            <button onClick={() => setVista('gantt')} title="Gantt"
+                            <button type="button" onClick={() => setVista('gantt')} title="Ver em Gantt" aria-label="Ver em Gantt" aria-pressed={vista === 'gantt'}
                                 className={`p-1.5 rounded ${vista === 'gantt' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
-                                <BarChart3 size={14} />
+                                <BarChart3 size={14} aria-hidden />
                             </button>
                         </div>
                         <GhostButton onClick={aplicarModelo}>
-                            <FolderPlus size={13} className="inline mr-1" />Etapas padrão
+                            <FolderPlus size={14} className="inline mr-1" aria-hidden />Aplicar etapas padrão
                         </GhostButton>
                         {itens.length > 0 && (
                             <GhostButton onClick={salvarComoModelo}>
-                                <Save size={13} className="inline mr-1" />Salvar como modelo
+                                <Save size={14} className="inline mr-1" aria-hidden />Salvar como modelo
                             </GhostButton>
                         )}
                         <a href={`/api/cronograma/atividades/${atividade.id}/export/html`} target="_blank" rel="noreferrer"
                             className="h-8 px-3 inline-flex items-center gap-1.5 text-xs font-semibold border border-border rounded-lg hover:bg-secondary">
-                            <Download size={13} />Baixar Cronograma
+                            <Download size={14} aria-hidden />Baixar cronograma
                         </a>
-                        <PrimaryButton onClick={openNew}><Plus size={13} className="inline mr-1" />Nova Etapa</PrimaryButton>
+                        <PrimaryButton onClick={openNew}><Plus size={14} className="inline mr-1" aria-hidden />Nova etapa</PrimaryButton>
                     </div>
                 }
             >
@@ -402,7 +408,7 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
                         {/* O traço vertical é o previsto pelas datas. Barra à esquerda
                             dele significa obra atrasada em relação ao planejado. */}
                         <div className="relative h-2 rounded-full bg-[var(--progress-track)] overflow-hidden">
-                            <div className="h-full bg-emerald-500 transition-all" style={{ width: `${avanco}%` }} />
+                            <div className="h-full bg-ok transition-all" style={{ width: `${avanco}%` }} />
                             {itens.length > 0 && (
                                 <div
                                     className="absolute top-0 h-full w-0.5 bg-foreground/60"
@@ -418,10 +424,10 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
                     <div className="mb-2 text-[11px] text-muted-foreground">
                         Previsto pelas datas: <span className="font-semibold text-foreground">{previsto}%</span>
                         {desvio === 0 ? (
-                            <span> · em dia</span>
+                            <span className="ml-3">Em dia</span>
                         ) : (
-                            <span className={desvio > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}>
-                                {' '}· {desvio > 0 ? 'adiantado' : 'atrasado'} {Math.abs(desvio)} p.p.
+                            <span className={`ml-3 ${desvio > 0 ? 'text-ok' : 'text-warn'}`}>
+                                {desvio > 0 ? 'Adiantado' : 'Atrasado'} {Math.abs(desvio)} p.p.
                             </span>
                         )}
                     </div>
@@ -430,7 +436,7 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
                     <div className="text-[11px] text-muted-foreground mb-4">
                         {noDocumento.length} de {itens.length} etapa(s) entram no cronograma do cliente
                         {noDocumento.length < itens.length && (
-                            <span> · {itens.length - noDocumento.length} marcada(s) como controle interno</span>
+                            <span className="ml-3">{itens.length - noDocumento.length} marcada(s) como controle interno</span>
                         )}
                     </div>
                 )}
@@ -455,10 +461,10 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
             {showForm && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9000] p-4">
                     <div className="bg-card border border-border rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
-                        <h3 className="text-base font-bold mb-4">{editId ? 'Editar Etapa' : 'Nova Etapa do Cronograma'}</h3>
+                        <h3 className="text-base font-bold mb-4">{editId ? 'Editar etapa' : 'Nova etapa do cronograma'}</h3>
                         <div className="flex flex-col gap-3">
                             <Field label="Título">
-                                <input className={inputClass} value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} placeholder="Ex: Execução de Obra Civil" />
+                                <input className={inputClass} value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))} placeholder="Ex: Execução de obra civil" />
                             </Field>
                             <div className="grid grid-cols-2 gap-3">
                                 <Field label="Etapa">
@@ -476,7 +482,7 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
                                 </Field>
                                 <Field label="Prioridade">
                                     <select className={inputClass} value={form.prioridade} onChange={e => setForm(f => ({ ...f, prioridade: e.target.value }))}>
-                                        {PRIORIDADES.map(p => <option key={p} value={p}>{p}</option>)}
+                                        {PRIORIDADES.map(p => <option key={p} value={p}>{PRIORIDADE_ROTULO[p] || p}</option>)}
                                     </select>
                                 </Field>
                                 <Field label="Duração (dias)"><input type="number" className={inputClass} value={form.duracao_dias} onChange={e => setForm(f => ({ ...f, duracao_dias: e.target.value }))} /></Field>
@@ -578,7 +584,7 @@ function ListaEtapas({ itens, onEdit, onExcluir, onStatus, onProgresso, onVisibi
                         <th className="pb-2 font-semibold">Término</th>
                         <th className="pb-2 font-semibold">Prioridade</th>
                         <th className="pb-2 font-semibold">Status</th>
-                        <th className="pb-2 font-semibold"></th>
+                        <th className="pb-2 font-semibold"><span className="sr-only">Ações</span></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -592,20 +598,21 @@ function ListaEtapas({ itens, onEdit, onExcluir, onStatus, onProgresso, onVisibi
                                         type="checkbox"
                                         checked={it.visivel_cliente !== false}
                                         onChange={e => onVisibilidade(it.id, e.target.checked)}
+                                        aria-label={`Incluir ${it.titulo} no cronograma do cliente`}
                                         className="accent-primary"
                                     />
-                                    <span className="text-[10px] text-muted-foreground">
-                                        {it.visivel_cliente === false ? 'interno' : 'cliente'}
+                                    <span className="text-[11px] text-muted-foreground">
+                                        {it.visivel_cliente === false ? 'Interno' : 'Cliente'}
                                     </span>
                                 </label>
                             </td>
                             <td className="py-2 font-medium">{it.titulo}</td>
                             <td className="py-2">
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded text-white" style={{ background: corDaEtapa(it.categoria) }}>
+                                <span className="text-[11px] font-bold px-1.5 py-0.5 rounded text-white" style={{ background: corDaEtapa(it.categoria) }}>
                                     {CATEGORIA_LABEL[it.categoria] || it.categoria}
                                 </span>
                                 {it.motivo_atraso && (
-                                    <div className="mt-1 max-w-[220px] text-[10px] leading-snug text-muted-foreground">
+                                    <div className="mt-1 max-w-[220px] text-[11px] leading-snug text-muted-foreground">
                                         {it.motivo_atraso}
                                     </div>
                                 )}
@@ -616,6 +623,7 @@ function ListaEtapas({ itens, onEdit, onExcluir, onStatus, onProgresso, onVisibi
                                         type="range" min={0} max={100} step={5}
                                         value={it.progresso_percentual ?? 0}
                                         onChange={e => onProgresso(it.id, parseInt(e.target.value))}
+                                        aria-label={`Progresso de ${it.titulo}`}
                                         className="w-16 accent-primary"
                                     />
                                     <span className="text-[11px] font-semibold w-9">{it.progresso_percentual ?? 0}%</span>
@@ -628,45 +636,45 @@ function ListaEtapas({ itens, onEdit, onExcluir, onStatus, onProgresso, onVisibi
                                     combinada desde sempre e o atraso sumia da tela. */}
                                 {it.replanejamentos > 0 && it.data_fim_baseline && (
                                     <div
-                                        className="text-[10px] text-amber-600 dark:text-amber-400"
+                                        className="text-[11px] text-warn"
                                         title={it.motivo_atraso || undefined}
                                     >
-                                        era {fmtData(it.data_fim_baseline)}
-                                        {it.replanejamentos > 1 ? ` · ${it.replanejamentos} adiamentos` : ' · 1 adiamento'}
+                                        Era {fmtData(it.data_fim_baseline)}
+                                        <span className="ml-2">{it.replanejamentos > 1 ? `${it.replanejamentos} adiamentos` : '1 adiamento'}</span>
                                     </div>
                                 )}
                                 {it.data_fim_real && it.status === 'CONCLUIDO' && (
-                                    <div className="text-[10px] text-emerald-600 dark:text-emerald-400">
-                                        concluída {fmtData(it.data_fim_real)}
+                                    <div className="text-[11px] text-ok">
+                                        Concluída {fmtData(it.data_fim_real)}
                                     </div>
                                 )}
                             </td>
                             <td className="py-2">
-                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded" style={{ background: `${PRIORIDADE_COLOR[it.prioridade]}22`, color: PRIORIDADE_COLOR[it.prioridade] }}>{it.prioridade}</span>
+                                <span className={`text-[11px] font-medium ${PRIORIDADE_TOM[it.prioridade] || 'text-muted-foreground'}`}>{PRIORIDADE_ROTULO[it.prioridade] || it.prioridade}</span>
                             </td>
                             <td className="py-2">
                                 <select
                                     value={it.status}
                                     onChange={e => onStatus(it, e.target.value)}
-                                    className="text-[11px] font-semibold rounded px-1.5 py-1 border-0"
-                                    style={{ background: `${STATUS_COLOR[it.status]}22`, color: STATUS_COLOR[it.status] }}
+                                    aria-label={`Status de ${it.titulo}`}
+                                    className={`text-[11px] font-semibold rounded-md px-1.5 py-1 border-0 ${STATUS_TOM[it.status] || STATUS_TOM.PENDENTE}`}
                                 >
-                                    {STATUS_OPTS.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+                                    {STATUS_OPTS.map(s => <option key={s} value={s}>{STATUS_ROTULO[s] || s}</option>)}
                                 </select>
                             </td>
                             <td className="py-2 flex gap-0.5 justify-end items-center">
                                 <div className="flex flex-col mr-1">
-                                    <button onClick={() => onMover(it.id, 'cima')} disabled={idx === 0} title="Mover para cima"
+                                    <button type="button" onClick={() => onMover(it.id, 'cima')} disabled={idx === 0} title="Mover para cima" aria-label="Mover etapa para cima"
                                         className="text-muted-foreground hover:text-foreground disabled:opacity-25 disabled:hover:text-muted-foreground leading-none">
-                                        <ChevronUp size={13} />
+                                        <ChevronUp size={14} aria-hidden />
                                     </button>
-                                    <button onClick={() => onMover(it.id, 'baixo')} disabled={idx === itens.length - 1} title="Mover para baixo"
+                                    <button type="button" onClick={() => onMover(it.id, 'baixo')} disabled={idx === itens.length - 1} title="Mover para baixo" aria-label="Mover etapa para baixo"
                                         className="text-muted-foreground hover:text-foreground disabled:opacity-25 disabled:hover:text-muted-foreground leading-none">
-                                        <ChevronDown size={13} />
+                                        <ChevronDown size={14} aria-hidden />
                                     </button>
                                 </div>
-                                <button onClick={() => onEdit(it)} className="text-muted-foreground hover:text-foreground p-1"><Pencil size={13} /></button>
-                                <button onClick={() => onExcluir(it.id)} className="text-muted-foreground hover:text-destructive p-1"><Trash2 size={13} /></button>
+                                <button type="button" onClick={() => onEdit(it)} title="Editar etapa" aria-label="Editar etapa" className="text-muted-foreground hover:text-foreground p-1"><Pencil size={14} aria-hidden /></button>
+                                <button type="button" onClick={() => onExcluir(it.id)} title="Excluir etapa" aria-label="Excluir etapa" className="text-muted-foreground hover:text-destructive p-1"><Trash2 size={14} aria-hidden /></button>
                             </td>
                         </tr>
                     ))}
@@ -705,7 +713,7 @@ function Gantt({ itens }: { itens: any[] }) {
                     <tr className="bg-secondary/60">
                         <th className="text-left px-3 py-2 font-semibold sticky left-0 bg-secondary/60 min-w-[180px]">Tarefa</th>
                         {grade.dias.map((d, i) => (
-                            <th key={i} className={`px-0 py-1 font-normal text-[9px] w-[18px] ${d.getUTCDay() === 0 || d.getUTCDay() === 6 ? 'bg-secondary' : ''}`}>
+                            <th key={i} className={`px-0 py-1 font-normal text-[11px] w-[18px] ${d.getUTCDay() === 0 || d.getUTCDay() === 6 ? 'bg-secondary' : ''}`}>
                                 <div className="text-muted-foreground">{String(d.getUTCDate()).padStart(2, '0')}</div>
                                 <div className="text-muted-foreground/60">{DIA_SEMANA[d.getUTCDay()]}</div>
                             </th>
@@ -716,14 +724,14 @@ function Gantt({ itens }: { itens: any[] }) {
                     {itens.map(item => {
                         const inicio = item.data_inicio ? diaUTC(item.data_inicio).getTime() : null;
                         const fim = item.data_fim ? diaUTC(item.data_fim).getTime() : null;
-                        const cor = item.status === 'CONCLUIDO' ? '#22c55e'
-                            : item.status === 'EM_ANDAMENTO' ? '#f59e0b'
+                        const cor = item.status === 'CONCLUIDO' ? 'hsl(var(--ok))'
+                            : item.status === 'EM_ANDAMENTO' ? 'hsl(var(--warn))'
                                 : corDaEtapa(item.categoria);
                         return (
                             <tr key={item.id} className="border-t border-border/50">
                                 <td className="px-3 py-1.5 font-medium sticky left-0 bg-card whitespace-nowrap">
                                     {item.titulo}
-                                    <span className="ml-2 text-[9px] font-bold px-1 py-0.5 rounded text-white" style={{ background: corDaEtapa(item.categoria) }}>
+                                    <span className="ml-2 text-[11px] font-bold px-1 py-0.5 rounded text-white" style={{ background: corDaEtapa(item.categoria) }}>
                                         {CATEGORIA_LABEL[item.categoria] || item.categoria}
                                     </span>
                                 </td>
@@ -732,7 +740,7 @@ function Gantt({ itens }: { itens: any[] }) {
                                     const dentro = inicio != null && fim != null && t >= inicio && t <= fim;
                                     const fds = d.getUTCDay() === 0 || d.getUTCDay() === 6;
                                     return (
-                                        <td key={i} className={`p-0 h-6 relative ${fds ? 'bg-secondary/40' : ''} ${t === hojeUTC ? 'border-l-2 border-l-red-500' : ''}`}>
+                                        <td key={i} className={`p-0 h-6 relative ${fds ? 'bg-secondary/40' : ''} ${t === hojeUTC ? 'border-l-2 border-l-crit' : ''}`}>
                                             {dentro && <span className="absolute inset-y-1 inset-x-0" style={{ background: cor }} />}
                                         </td>
                                     );
@@ -840,7 +848,7 @@ function ConferenciaEtapa({ item, onFechar, onAdiar, onResponder }: {
                         {item.data_fim_baseline && (
                             <p className="text-[11px] text-muted-foreground">
                                 Previsão original: {fmtData(item.data_fim_baseline)}
-                                {item.replanejamentos > 0 && ` · já replanejada ${item.replanejamentos}x`}
+                                {item.replanejamentos > 0 && <span className="ml-2">Já replanejada {item.replanejamentos}x</span>}
                             </p>
                         )}
                     </div>

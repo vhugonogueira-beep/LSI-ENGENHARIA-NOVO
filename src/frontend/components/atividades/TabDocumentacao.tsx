@@ -18,14 +18,14 @@ const STATUS_LABEL: Record<string, string> = {
 };
 const STATUS_CLASS: Record<string, string> = {
     NAO_INICIADO: 'bg-muted text-muted-foreground',
-    SOLICITADO: 'bg-sky-500/10 text-sky-500',
-    EM_ELABORACAO: 'bg-amber-500/10 text-amber-500',
-    RECEBIDO: 'bg-cyan-500/10 text-cyan-500',
-    EM_VALIDACAO: 'bg-blue-500/10 text-blue-500',
-    APROVADO: 'bg-emerald-500/10 text-emerald-500',
-    REPROVADO: 'bg-red-500/10 text-red-500',
-    NECESSITA_CORRECAO: 'bg-red-500/10 text-red-500',
-    VENCIDO: 'bg-red-500/10 text-red-500',
+    SOLICITADO: 'bg-info/10 text-info',
+    EM_ELABORACAO: 'bg-warn/10 text-warn',
+    RECEBIDO: 'bg-info/10 text-info',
+    EM_VALIDACAO: 'bg-primary/10 text-primary',
+    APROVADO: 'bg-ok/10 text-ok',
+    REPROVADO: 'bg-crit/10 text-crit',
+    NECESSITA_CORRECAO: 'bg-crit/10 text-crit',
+    VENCIDO: 'bg-crit/10 text-crit',
     NAO_APLICAVEL: 'bg-muted text-muted-foreground',
 };
 const ISSUE_STATUSES = new Set(['REPROVADO', 'NECESSITA_CORRECAO', 'VENCIDO']);
@@ -233,10 +233,10 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
 
     return (
         <Card
-            title={`Documentação · ${atividade.tipo_obra || 'Tipo não definido'}`}
+            title={`Documentação (${atividade.tipo_obra || 'tipo de obra não definido'})`}
             action={(
                 <PrimaryButton onClick={syncMatrix} disabled={syncing}>
-                    <RefreshCw size={14} className={`inline mr-1.5 ${syncing ? 'animate-spin' : ''}`} />
+                    <RefreshCw size={14} aria-hidden className={`inline mr-1.5 ${syncing ? 'animate-spin' : ''}`} />
                     Sincronizar checklist
                 </PrimaryButton>
             )}
@@ -247,29 +247,33 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
             ) : (
                 <>
                     <div className="grid grid-cols-2 lg:grid-cols-5 border border-border mb-4">
-                        {[
-                            ['Progresso', `${summary.percent}%`],
-                            ['Concluídos', `${summary.complete}/${summary.total}`],
-                            ['Com arquivo', `${summary.attached}/${summary.total}`],
-                            ['Pendentes', String(summary.pending)],
-                            ['Correção', String(summary.issues)],
-                        ].map(([label, value], index) => (
+                        {/* Pendente primeiro: pendentes e correção são os únicos números
+                            com cor, e só quando existem. Zero é ausência: "—". */}
+                        {([
+                            ['Pendentes', summary.pending ? String(summary.pending) : '', 'text-warn'],
+                            ['Correção', summary.issues ? String(summary.issues) : '', 'text-crit'],
+                            ['Progresso', `${summary.percent}%`, ''],
+                            ['Concluídos', `${summary.complete}/${summary.total}`, ''],
+                            ['Com arquivo', `${summary.attached}/${summary.total}`, ''],
+                        ] as [string, string, string][]).map(([label, value, tom], index) => (
                             <div key={label} className={`px-3 py-3 ${index > 0 ? 'border-l border-border' : ''}`}>
                                 <div className="text-[11px] text-muted-foreground">{label}</div>
-                                <div className="text-lg font-bold mt-0.5">{value}</div>
+                                {value
+                                    ? <div className={`text-lg font-bold mt-0.5 ${tom}`}>{value}</div>
+                                    : <div className="text-lg mt-0.5 text-muted-foreground">—</div>}
                             </div>
                         ))}
                     </div>
                     <div className="h-1.5 bg-muted mb-4 overflow-hidden">
-                        <div className="h-full bg-emerald-500 transition-all" style={{ width: `${summary.percent}%` }} />
+                        <div className="h-full bg-ok transition-all" style={{ width: `${summary.percent}%` }} />
                     </div>
 
                     <div className="flex flex-col lg:flex-row gap-2 mb-5">
                         <div className="relative flex-1 min-w-0">
-                            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                            <input className={`${inputClass} pl-9`} value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar documento" />
+                            <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                            <input className={`${inputClass} pl-9`} value={search} onChange={event => setSearch(event.target.value)} placeholder="Buscar documento" aria-label="Buscar documento" />
                         </div>
-                        <select className={`${inputClass} lg:w-72`} value={category} onChange={event => setCategory(event.target.value)}>
+                        <select aria-label="Categoria" className={`${inputClass} lg:w-72`} value={category} onChange={event => setCategory(event.target.value)}>
                             <option value="TODAS">Todas as categorias</option>
                             {categories.map(value => <option key={value} value={value}>{value}</option>)}
                         </select>
@@ -277,7 +281,7 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
                             {[
                                 ['TODOS', 'Todos'], ['PENDENTES', 'Pendentes'], ['CONCLUIDOS', 'Concluídos'], ['CORRECAO', 'Correção'],
                             ].map(([value, label]) => (
-                                <button key={value} onClick={() => setView(value)} className={`h-10 px-3 text-xs font-semibold whitespace-nowrap ${view === value ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-secondary'}`}>
+                                <button key={value} type="button" role="tab" aria-selected={view === value} onClick={() => setView(value)} className={`h-10 px-3 text-xs font-semibold whitespace-nowrap ${view === value ? 'bg-primary text-primary-foreground' : 'bg-background hover:bg-secondary'}`}>
                                     {label}
                                 </button>
                             ))}
@@ -303,10 +307,10 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
                                                     <div className="min-w-0">
                                                         <div className="flex items-start gap-2">
                                                             {isDocumentComplete(document)
-                                                                ? <CheckCircle2 size={17} className="mt-0.5 text-emerald-500 flex-none" />
+                                                                ? <CheckCircle2 size={16} aria-hidden className="mt-0.5 text-ok flex-none" />
                                                                 : ISSUE_STATUSES.has(document.status)
-                                                                    ? <XCircle size={17} className="mt-0.5 text-red-500 flex-none" />
-                                                                    : <FileText size={17} className="mt-0.5 text-muted-foreground flex-none" />}
+                                                                    ? <XCircle size={16} aria-hidden className="mt-0.5 text-crit flex-none" />
+                                                                    : <FileText size={16} aria-hidden className="mt-0.5 text-muted-foreground flex-none" />}
                                                             <div className="min-w-0">
                                                                 <div className="text-sm font-medium break-words">{requirement.nome}</div>
                                                                 <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px] text-muted-foreground">
@@ -322,6 +326,7 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
                                                         value={document.status}
                                                         disabled={isBusy}
                                                         onChange={event => changeStatus(document, event.target.value)}
+                                                        aria-label={`Status de ${requirement.nome}`}
                                                         className={`${inputClass} h-9 text-xs font-semibold ${STATUS_CLASS[document.status] || ''}`}
                                                     >
                                                         {STATUS_OPTIONS.map(status => <option key={status} value={status}>{STATUS_LABEL[status]}</option>)}
@@ -338,8 +343,8 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
                                                                 event.currentTarget.value = '';
                                                             }}
                                                         />
-                                                        <label htmlFor={`upload-${document.id}`} title="Anexar documento" className={`h-9 px-3 border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2 cursor-pointer ${isBusy ? 'pointer-events-none opacity-50' : ''}`}>
-                                                            <Upload size={15} /> Anexar
+                                                        <label htmlFor={`upload-${document.id}`} title="Anexar documento" className={`h-9 px-3 rounded-md border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2 cursor-pointer ${isBusy ? 'pointer-events-none opacity-50' : ''}`}>
+                                                            <Upload size={15} aria-hidden /> Anexar
                                                         </label>
                                                     </div>
                                                 </div>
@@ -348,15 +353,15 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
                                                     <div className="ml-0 sm:ml-6 mt-2 flex flex-wrap gap-2">
                                                         {document.arquivos.map(attachment => (
                                                             <div key={attachment.id} className="h-8 max-w-full flex items-center border border-border bg-background">
-                                                                <Paperclip size={13} className="ml-2 text-muted-foreground flex-none" />
+                                                                <Paperclip size={14} aria-hidden className="ml-2 text-muted-foreground flex-none" />
                                                                 <a href={`/api/documentacao/arquivos/${attachment.id}/download`} className="px-2 text-xs truncate hover:underline" title={attachment.nome_original}>
-                                                                    {attachment.nome_original} · {fileSize(attachment.tamanho_bytes)}
+                                                                    {attachment.nome_original}<span className="ml-2 text-muted-foreground">{fileSize(attachment.tamanho_bytes)}</span>
                                                                 </a>
-                                                                <a href={`/api/documentacao/arquivos/${attachment.id}/download`} className="h-8 w-8 flex items-center justify-center hover:bg-secondary" title="Baixar arquivo">
-                                                                    <Download size={13} />
+                                                                <a href={`/api/documentacao/arquivos/${attachment.id}/download`} className="h-8 w-8 flex items-center justify-center hover:bg-secondary" title="Baixar arquivo" aria-label="Baixar arquivo">
+                                                                    <Download size={14} aria-hidden />
                                                                 </a>
-                                                                <button onClick={() => deleteFile(attachment, document)} disabled={isBusy} className="h-8 w-8 flex items-center justify-center hover:bg-red-500/10 hover:text-red-500 disabled:opacity-50" title="Excluir arquivo">
-                                                                    <Trash2 size={13} />
+                                                                <button type="button" onClick={() => deleteFile(attachment, document)} disabled={isBusy} className="h-8 w-8 flex items-center justify-center hover:bg-crit/10 hover:text-crit disabled:opacity-50" title="Excluir arquivo" aria-label="Excluir arquivo">
+                                                                    <Trash2 size={14} aria-hidden />
                                                                 </button>
                                                             </div>
                                                         ))}
@@ -365,12 +370,13 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
 
                                                 <details className="ml-0 sm:ml-6 mt-2 group">
                                                     <summary className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground cursor-pointer list-none">
-                                                        <ChevronDown size={13} className="group-open:rotate-180 transition-transform" />
+                                                        <ChevronDown size={14} aria-hidden className="group-open:rotate-180 transition-transform" />
                                                         Validade e observações
                                                     </summary>
                                                     <div className="grid grid-cols-1 md:grid-cols-[180px_minmax(0,1fr)_40px] gap-2 mt-2">
                                                         <input
                                                             type="date"
+                                                            aria-label="Data de validade"
                                                             className={`${inputClass} h-9`}
                                                             value={details[document.id]?.data_validade || ''}
                                                             onChange={event => setDetails(current => ({ ...current, [document.id]: { ...current[document.id], data_validade: event.target.value } }))}
@@ -380,14 +386,17 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
                                                             value={details[document.id]?.observacao || ''}
                                                             onChange={event => setDetails(current => ({ ...current, [document.id]: { ...current[document.id], observacao: event.target.value } }))}
                                                             placeholder="Observação"
+                                                            aria-label="Observação"
                                                         />
                                                         <button
                                                             onClick={() => updateDocument(document, details[document.id] || {})}
                                                             disabled={isBusy}
                                                             className="h-9 w-10 flex items-center justify-center border border-border bg-secondary hover:bg-secondary/70 disabled:opacity-50"
+                                                            type="button"
                                                             title="Salvar detalhes"
+                                                            aria-label="Salvar detalhes"
                                                         >
-                                                            <Save size={15} />
+                                                            <Save size={15} aria-hidden />
                                                         </button>
                                                     </div>
                                                     {document.justificativa_na && <p className="mt-2 text-xs text-muted-foreground">Justificativa: {document.justificativa_na}</p>}

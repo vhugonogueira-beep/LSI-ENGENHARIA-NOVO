@@ -1,5 +1,10 @@
 import React from 'react';
 import { LOGO_MARCA_B64 } from '../assets/logoMarca';
+import {
+    BarChart3, Building2, ClipboardList, CreditCard, Download, Folder, Handshake, Home,
+    Library, LogOut, Pin, PinOff, Receipt, Settings, Target, TrendingUp, Upload, User,
+    type LucideIcon,
+} from 'lucide-react';
 
 // Extraído de SimuladorLPU.tsx (Blueprint LSI, Onda 0) — mesmo JSX e comportamento
 // de antes, apenas com as dependências de closure convertidas em props explícitas.
@@ -22,14 +27,24 @@ export interface SidebarProps {
     onAbrirPerfil?: () => void;
     T: Record<string, any>;
     iconBox: (accent: string, active?: boolean) => React.CSSProperties;
-    LOGO_B64: string;
+}
+
+interface NavItemProps {
+    id: string;
+    icon: LucideIcon;
+    label: string;
+    badge?: string | null;
+    indent?: boolean;
+    onClick?: () => void;
+    activeOverride?: boolean;
+    color?: string | null;
 }
 
 export default function Sidebar(props: SidebarProps) {
     const {
         tab, setTab, sidePinned, setSidePinned, sideHovered, setSideHovered,
         historico, exportarBackup,
-        importarBackup, user, onLogout, onAbrirConfiguracoes, onAbrirPerfil, T, iconBox, LOGO_B64,
+        importarBackup, user, onLogout, onAbrirConfiguracoes, onAbrirPerfil, T, iconBox,
     } = props;
 
     const isExpanded = sidePinned || sideHovered;
@@ -47,12 +62,13 @@ export default function Sidebar(props: SidebarProps) {
         configuracoes: T.indigo,
     };
 
-    const NavItem = ({ id, icon, label, badge, indent = false, onClick, activeOverride = undefined, color = null }: any) => {
+    const NavItem = ({ id, icon: Icone, label, badge, indent = false, onClick, activeOverride = undefined, color = null }: NavItemProps) => {
         const active = typeof activeOverride === "boolean" ? activeOverride : (tab === id && !onClick);
         const handleClick = onClick || (() => setTab(id));
         const accent = color || NAV_COLORS[id] || T.blue;
         return (
-            <button onClick={handleClick} style={{
+            <button onClick={handleClick} aria-label={label} title={isExpanded ? undefined : label}
+                aria-current={active ? "page" : undefined} style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
                 padding: indent ? (isExpanded ? "7px 12px 7px 28px" : "7px 0") : "10px 14px",
                 borderRadius: 10, border: "none", cursor: "pointer", marginBottom: 3,
@@ -77,20 +93,13 @@ export default function Sidebar(props: SidebarProps) {
                     ? (isExpanded ? <span style={{ width: 6, height: 6, borderRadius: "50%", background: active ? "#FFFFFF" : (badge || T.txMut), flexShrink: 0, boxShadow: "none" }} /> : null)
                     : (
                         <span style={iconBox(accent, active)}>
-                            <span style={{
-                                fontSize: 14,
-                                opacity: active ? 1 : 0.9,
-                                // Os icones do menu sao emojis: glifos coloridos, em que a
-                                // propriedade `color` nao pega. Para o item ativo ficar branco
-                                // sobre o azul, o caminho e achatar o glifo e inverte-lo.
-                                // Inativo apenas clareia, para ganhar legibilidade no marinho.
-                                filter: active ? "grayscale(1) brightness(0) invert(1)" : "grayscale(1) brightness(1.7)",
-                            }}>{icon}</span>
+                            {/* Icone lucide: herda a cor da caixa (branco no item ativo). */}
+                            <Icone size={16} aria-hidden="true" style={{ opacity: active ? 1 : 0.9 }} />
                         </span>
                     )
                 }
                 {isExpanded && <span style={{ flex: 1, letterSpacing: "0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>}
-                {isExpanded && badge && !indent && <span style={{ background: T.red, color: "#fff", borderRadius: 10, padding: "2px 7px", fontSize: 9, fontWeight: 700, boxShadow: `0 0 8px ${T.red}60` }}>{badge}</span>}
+                {isExpanded && badge && !indent && <span style={{ background: T.red, color: "#fff", borderRadius: 10, padding: "2px 7px", fontSize: 11, fontWeight: 700, boxShadow: `0 0 8px ${T.red}60` }}>{badge}</span>}
             </button>
         );
     };
@@ -133,8 +142,9 @@ export default function Sidebar(props: SidebarProps) {
                     transition: "all 0.2s", zIndex: 1010
                 }}
                 title={sidePinned ? "Desafixar menu" : "Fixar menu"}
+                aria-label={sidePinned ? "Desafixar menu" : "Fixar menu"}
             >
-                {sidePinned ? "📌" : "📍"}
+                {sidePinned ? <PinOff size={15} aria-hidden="true" /> : <Pin size={15} aria-hidden="true" />}
             </button>
 
             <div className="scroll-min" style={{ height: "100%", overflowY: "auto", paddingRight: 12, marginRight: -12, position: "relative", zIndex: 1 }}>
@@ -168,15 +178,15 @@ export default function Sidebar(props: SidebarProps) {
                     </div>
                     {isExpanded && (
                         <div style={{
-                            fontSize: 10, fontWeight: 800, letterSpacing: "0.10em", color: T.txSec,
+                            fontSize: 11, fontWeight: 600, color: T.txSec,
                             background: T.bg1,
                             borderRadius: 6, padding: "4px 12px",
                             border: `1px solid ${T.brBase}`,
                             display: "inline-flex", alignItems: "center", gap: 6,
                             animation: "fadeIn 0.3s ease"
                         }}>
-                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.blue, flexShrink: 0, boxShadow: `0 0 8px ${T.blue}40` }} />
-                            LS OFFICE ERP
+                            <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.blue, flexShrink: 0 }} />
+                            LS Office ERP
                         </div>
                     )}
                     <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
@@ -185,51 +195,51 @@ export default function Sidebar(props: SidebarProps) {
                 <nav style={{ padding: isExpanded ? "8px 6px" : "8px 4px", flex: 1, overflowX: "hidden" }}>
 
                     {/* ── Seção DEMANDAS ── */}
-                    {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>DEMANDAS</div>}
-                    <NavItem id="overview" icon="🏠" label="Visão Geral" color={T.indigo} />
-                    <NavItem id="demandas" icon="📋" label="Pipeline" color={T.indigo} />
+                    {isExpanded && <div style={{ fontSize: 11, fontWeight: 600, color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>Demandas</div>}
+                    <NavItem id="overview" icon={Home} label="Visão Geral" color={T.indigo} />
+                    <NavItem id="demandas" icon={ClipboardList} label="Pipeline" color={T.indigo} />
 
                     {/* ── Divisor ── */}
                     {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
 
                     {/* ── Seção DASHBOARD ── */}
-                    {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>DASHBOARD</div>}
-                    <NavItem id="dashboard" icon="📈" label="Dashboard Financeiro" />
+                    {isExpanded && <div style={{ fontSize: 11, fontWeight: 600, color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>Dashboard</div>}
+                    <NavItem id="dashboard" icon={TrendingUp} label="Dashboard Financeiro" />
 
                     {/* ── Divisor ── */}
                     {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
 
                     {/* ── Seção ORÇAMENTO ── */}
-                    {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>ORÇAMENTO</div>}
+                    {isExpanded && <div style={{ fontSize: 11, fontWeight: 600, color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>Orçamento</div>}
 
                     {/* Orçamento nasce dentro da Atividade (abas PV Highline e Cotação LS).
                         "Novo Orçamento" saiu da sidebar para não existir um segundo caminho,
                         que criava orçamento solto, sem obra. */}
-                    <NavItem id="historico" icon="📁" label="Orçamentos" badge={historico.length > 0 ? historico.length.toString() : null} />
-                    <NavItem id="lpus" icon="📚" label="Bases (LPUs)" />
+                    <NavItem id="historico" icon={Folder} label="Orçamentos" badge={historico.length > 0 ? historico.length.toString() : null} />
+                    <NavItem id="lpus" icon={Library} label="Bases (LPUs)" />
 
                     {/* ── Divisor ── */}
                     {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
 
                     {/* ── Seção OBRAS ── */}
-                    {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>OBRAS</div>}
+                    {isExpanded && <div style={{ fontSize: 11, fontWeight: 600, color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>Obras</div>}
 
-                    <NavItem id="atividades" icon="🎯" label="Atividades" badge={isExpanded ? "novo" : null} color={T.green} />
+                    <NavItem id="atividades" icon={Target} label="Atividades" badge={isExpanded ? "novo" : null} color={T.green} />
 
-                    <NavItem id="fornecedores" icon="🏢" label="Pessoas e Fornecedores" />
-                    <NavItem id="relatorios" icon="📊" label="Relatórios" />
-                    <NavItem id="faturamento" icon="🧾" label="Faturamento" />
-                    <NavItem id="pagamentos" icon="💳" label="Controle de Pagamentos" color={T.amber} />
-                    <NavItem id="clientes" icon="🤝" label="Clientes" />
+                    <NavItem id="fornecedores" icon={Building2} label="Pessoas e Fornecedores" />
+                    <NavItem id="relatorios" icon={BarChart3} label="Relatórios" />
+                    <NavItem id="faturamento" icon={Receipt} label="Faturamento" />
+                    <NavItem id="pagamentos" icon={CreditCard} label="Controle de Pagamentos" color={T.amber} />
+                    <NavItem id="clientes" icon={Handshake} label="Clientes" />
 
                     {/* ── Seção SISTEMA ──
                         O avatar e a logo continuam como atalhos, mas o acesso
                         principal a Meu Perfil e Configurações (empresa, contas,
                         cartões e roteamento de e-mail) precisa estar no menu. */}
-                    {isExpanded && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>SISTEMA</div>}
+                    {isExpanded && <div style={{ fontSize: 11, fontWeight: 600, color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>Sistema</div>}
 
-                    <NavItem id="perfil" icon="👤" label="Meu Perfil" />
-                    <NavItem id="configuracoes" icon="⚙" label="Configurações" />
+                    <NavItem id="perfil" icon={User} label="Meu Perfil" />
+                    <NavItem id="configuracoes" icon={Settings} label="Configurações" />
 
                     {/* ── Divisor ── */}
                 </nav>
@@ -237,50 +247,51 @@ export default function Sidebar(props: SidebarProps) {
                 {/* Usuário logado + logout */}
                 <div style={{ borderTop: `1px solid ${T.brStrong}`, background: T.bg1 }}>
                     {/* Backup buttons */}
-                    <div style={{ padding: "8px 10px 4px", display: "flex", gap: 6 }}>
+                    <div style={{ padding: isExpanded ? "8px 10px 4px" : "8px 8px 4px", display: "flex", flexDirection: isExpanded ? "row" : "column", gap: 6 }}>
                         <button onClick={exportarBackup}
-                            title="Exportar backup JSON"
+                            title="Exportar backup JSON" aria-label="Exportar backup"
                             style={{
                                 flex: 1, background: T.bg3, border: `1px solid ${T.brBase}`, borderRadius: 6,
-                                padding: "6px 4px", cursor: "pointer", color: T.txSec, fontSize: 10, fontWeight: 600,
+                                padding: "6px 4px", cursor: "pointer", color: T.txSec, fontSize: 11, fontWeight: 600,
                                 display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
                                 transition: "all 0.15s"
                             }}
                             onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.blue}
                             onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.brBase}
                         >
-                            ⬇ Backup
+                            <Download size={15} aria-hidden="true" />{isExpanded && " Backup"}
                         </button>
                         <label title="Restaurar dados de um backup JSON"
                             style={{
                                 flex: 1, background: T.bg3, border: `1px solid ${T.brBase}`, borderRadius: 6,
-                                padding: "6px 4px", cursor: "pointer", color: T.txSec, fontSize: 10, fontWeight: 600,
+                                padding: "6px 4px", cursor: "pointer", color: T.txSec, fontSize: 11, fontWeight: 600,
                                 display: "flex", alignItems: "center", justifyContent: "center", gap: 3,
                                 transition: "all 0.15s"
                             }}
                             onMouseEnter={e => (e.currentTarget as HTMLLabelElement).style.borderColor = T.blue}
                             onMouseLeave={e => (e.currentTarget as HTMLLabelElement).style.borderColor = T.brBase}
                         >
-                            ⬆ Restaurar
+                            <Upload size={15} aria-hidden="true" />{isExpanded && " Restaurar"}
                             <input type="file" accept=".json" style={{ display: "none" }}
                                 onChange={e => e.target.files && e.target.files[0] && importarBackup(e.target.files[0])} />
                         </label>
                     </div>
                     {/* Auto-save indicator */}
-                    <div style={{ padding: "2px 14px 6px", display: "flex", alignItems: "center", gap: 5 }}>
-                        <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green, boxShadow: `0 0 6px ${T.green}` }} />
-                        <span style={{ fontSize: 10, color: T.txDis, fontWeight: 500 }}>Auto-save ativo</span>
-                    </div>
-                    <div style={{ padding: "6px 12px 12px", display: "flex", alignItems: "center", gap: 10, borderTop: `1px solid ${T.brStrong}40` }}>
+                    {isExpanded && (
+                        <div style={{ padding: "2px 14px 6px", display: "flex", alignItems: "center", gap: 5 }}>
+                            <div style={{ width: 5, height: 5, borderRadius: "50%", background: T.green }} />
+                            <span style={{ fontSize: 11, color: T.txDis, fontWeight: 500 }}>Auto-save ativo</span>
+                        </div>
+                    )}
+                    <div style={{ padding: isExpanded ? "6px 12px 12px" : "8px 0 12px", display: "flex", flexDirection: isExpanded ? "row" : "column", alignItems: "center", gap: 10, borderTop: `1px solid ${T.brStrong}40` }}>
                         <div onClick={onAbrirPerfil} title="Meu perfil"
                             style={{ position: "relative", width: 36, height: 36, flexShrink: 0, cursor: onAbrirPerfil ? "pointer" : "default" }}>
                             <div style={{
                                 width: 36, height: 36, borderRadius: "50%",
                                 background: `linear-gradient(135deg, ${T.blueD}, ${T.blue})`,
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 13, fontWeight: 800, color: "#fff",
-                                boxShadow: `0 4px 12px ${T.blue}40`,
-                                border: `1px solid ${T.blue}55`
+                                fontSize: 13, fontWeight: 700, color: "#fff",
+                                                                border: `1px solid ${T.blue}55`
                             }}>
                                 {user?.nome?.charAt(0) || "U"}
                             </div>
@@ -288,29 +299,31 @@ export default function Sidebar(props: SidebarProps) {
                                 position: "absolute", right: -1, bottom: -1,
                                 width: 9, height: 9, borderRadius: "50%",
                                 background: T.green, border: `2px solid ${T.bg1}`,
-                                boxShadow: `0 0 6px ${T.green}`
                             }} />
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        {isExpanded && <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.nome || "Usuário"}</div>
-                            <div style={{ fontSize: 10, color: T.txMut, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: 0.8 }}>{user?.email || ""}</div>
-                        </div>
+                            <div style={{ fontSize: 11, color: T.txMut, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: 0.8 }}>{user?.email || ""}</div>
+                        </div>}
                         <button onClick={onLogout}
                             title="Sair"
+                            aria-label="Sair"
                             style={{
                                 background: "transparent", border: `1px solid ${T.brBase}`, borderRadius: 8,
-                                padding: "6px", cursor: "pointer", color: T.txMut, fontSize: 14, flexShrink: 0,
+                                padding: "6px", cursor: "pointer", color: T.txMut, fontSize: 15, flexShrink: 0,
                                 transition: "all 0.15s"
                             }}
                             onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.red}
                             onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.borderColor = T.brBase}
                         >
-                            ⏻
+                            <LogOut size={15} aria-hidden="true" style={{ display: "block" }} />
                         </button>
                     </div>
-                    <div style={{ padding: "1px 8px 6px", fontSize: 8, color: T.txDis, textAlign: "center", opacity: 0.5 }}>
-                        v3.5 · LS Office ERP
-                    </div>
+                    {isExpanded && (
+                        <div style={{ padding: "1px 8px 6px", fontSize: 11, color: T.txDis, textAlign: "center", opacity: 0.5 }}>
+                            LS Office ERP v3.5
+                        </div>
+                    )}
                 </div>
             </div>
         </aside>

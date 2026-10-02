@@ -65,12 +65,12 @@ export default function DashboardFinanceiro() {
     <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 800, color: T.txPri, margin: 0 }}>Dashboard Financeiro</h1>
+          <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Dashboard Financeiro</h1>
           <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0" }}>
-            Controladoria por atividade · impostos a {pct(dados.aliquota * 100)} (cadastro da empresa)
+            Controladoria por atividade, com impostos a {pct(dados.aliquota * 100)} (cadastro da empresa)
           </p>
         </div>
-        <select value={mes} onChange={e => setMes(e.target.value)}
+        <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período"
           style={{ padding: "8px 12px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, minWidth: 200 }}>
           <option value="TODOS">Todas as atividades</option>
           {dados.mesesDisponiveis.map(m => <option key={m} value={m}>{nomeMes(m)}</option>)}
@@ -84,7 +84,7 @@ export default function DashboardFinanceiro() {
       {semCusto && (
         <Aviso cor={T.amber}>
           <strong>Custo ainda não cadastrado.</strong> Nenhuma das {dados.contagem.total} atividade(s) tem
-          contratação de fornecedor registrada, então o custo é zero de verdade — não é estimativa.
+          contratação de fornecedor registrada, então o custo é zero de verdade, não estimativa.
           A margem abaixo é o teto: ela cai conforme você contratar fornecedores na aba
           <em> Planejamento</em> da atividade.
         </Aviso>
@@ -98,33 +98,33 @@ export default function DashboardFinanceiro() {
 
       {/* Cadeia da seção 14 */}
       <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "16px 18px" }}>
-        <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.09em", color: T.txDis, marginBottom: 14 }}>DA RECEITA BRUTA À MARGEM</div>
+        <h2 style={{ fontSize: 12, fontWeight: 600, color: T.txMut, margin: "0 0 14px" }}>Da receita bruta à margem</h2>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 0 }}>
-          <Etapa rotulo="Receita bruta" valor={dados.receitaBruta} cor={T.blue} />
+          <Etapa rotulo="Receita bruta" valor={dados.receitaBruta} />
           <Sinal>−</Sinal>
-          <Etapa rotulo="Impostos" valor={dados.impostos} cor={T.txMut} />
+          <Etapa rotulo="Impostos" valor={dados.impostos} />
           <Sinal>=</Sinal>
-          <Etapa rotulo="Receita líquida" valor={dados.receitaLiquida} cor={T.cyan} />
+          <Etapa rotulo="Receita líquida" valor={dados.receitaLiquida} />
           <Sinal>−</Sinal>
-          <Etapa rotulo="Custo comprometido" valor={dados.custoComprometido} cor={T.amber} />
+          <Etapa rotulo="Custo comprometido" valor={dados.custoComprometido} />
           <Sinal>=</Sinal>
-          <Etapa rotulo="Resultado" valor={dados.resultadoProjetado} cor={dados.resultadoProjetado >= 0 ? T.green : T.red} destaque />
+          <Etapa rotulo="Resultado" valor={dados.resultadoProjetado} alerta={dados.resultadoProjetado < 0 ? T.red : undefined} destaque />
         </div>
       </div>
 
       {/* Custo e caixa */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        <Kpi rotulo="Custo comprometido" valor={moeda(dados.custoComprometido)} cor={T.amber} nota="contratado, pago ou não" />
-        <Kpi rotulo="Custo pago" valor={moeda(dados.custoPago)} cor={T.green} nota="já saiu do caixa" />
-        <Kpi rotulo="Custo a pagar" valor={moeda(dados.custoAPagar)} cor={T.red} nota="comprometido − pago" />
-        <Kpi rotulo="Margem projetada" valor={pct(dados.margemProjetada)} cor={dados.margemProjetada >= 0 ? T.green : T.red} nota="sobre receita bruta" />
+        <Kpi rotulo="Custo comprometido" valor={dados.custoComprometido ? moeda(dados.custoComprometido) : null} nota="contratado, pago ou não" />
+        <Kpi rotulo="Custo pago" valor={dados.custoPago ? moeda(dados.custoPago) : null} nota="já saiu do caixa" />
+        <Kpi rotulo="Custo a pagar" valor={dados.custoAPagar ? moeda(dados.custoAPagar) : null} nota="comprometido − pago" />
+        <Kpi rotulo="Margem projetada" valor={dados.margemProjetada ? pct(dados.margemProjetada) : null} alerta={dados.margemProjetada < 0 ? T.red : undefined} nota="sobre receita bruta" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        <Kpi rotulo="Faturado" valor={moeda(dados.faturado)} cor={T.purple} nota="linhas de PO faturadas" />
-        <Kpi rotulo="Recebido" valor={moeda(dados.recebido)} cor={T.green} nota="baixa financeira" />
-        <Kpi rotulo="A receber" valor={moeda(dados.aReceber)} cor={T.cyan} nota="faturado − recebido" />
-        <Kpi rotulo="Atividades" valor={String(dados.contagem.total)} cor={T.blue} nota={nomeMes(dados.mes)} />
+        <Kpi rotulo="Faturado" valor={dados.faturado ? moeda(dados.faturado) : null} nota="linhas de PO faturadas" />
+        <Kpi rotulo="Recebido" valor={dados.recebido ? moeda(dados.recebido) : null} nota="baixa financeira" />
+        <Kpi rotulo="A receber" valor={dados.aReceber ? moeda(dados.aReceber) : null} nota="faturado − recebido" />
+        <Kpi rotulo="Atividades" valor={dados.contagem.total ? String(dados.contagem.total) : null} nota={nomeMes(dados.mes)} />
       </div>
 
       {/* Por atividade */}
@@ -133,18 +133,18 @@ export default function DashboardFinanceiro() {
           Resultado por atividade
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11.5 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
             <thead style={{ background: T.bg3, color: T.txMut }}>
               <tr style={{ textAlign: "left" }}>
-                <th style={th(112)}>CÓDIGO</th>
-                <th style={th()}>ATIVIDADE</th>
-                <th style={th(96)}>SHARING</th>
-                <th style={th(126)}>OPERACIONAL</th>
-                <th style={th(126)}>FATURAMENTO</th>
-                <th style={{ ...th(112), textAlign: "right" }}>RECEITA</th>
-                <th style={{ ...th(112), textAlign: "right" }}>COMPROMETIDO</th>
-                <th style={{ ...th(100), textAlign: "right" }}>PAGO</th>
-                <th style={{ ...th(126), textAlign: "right" }}>MARGEM</th>
+                <th style={th(112)}>Código</th>
+                <th style={th()}>Atividade</th>
+                <th style={th(96)}>Sharing</th>
+                <th style={th(126)}>Operacional</th>
+                <th style={th(126)}>Faturamento</th>
+                <th style={{ ...th(112), textAlign: "right" }}>Receita</th>
+                <th style={{ ...th(112), textAlign: "right" }}>Comprometido</th>
+                <th style={{ ...th(100), textAlign: "right" }}>Pago</th>
+                <th style={{ ...th(126), textAlign: "right" }}>Margem</th>
               </tr>
             </thead>
             <tbody>
@@ -153,27 +153,27 @@ export default function DashboardFinanceiro() {
                 const fat = STATUS_FATURAMENTO[a.status_faturamento];
                 return (
                   <tr key={a.id} style={{ borderTop: `1px solid ${T.brSub}` }}>
-                    <td style={{ ...td(), fontFamily: "monospace", fontWeight: 700, color: T.txSec }}>{a.codigo}</td>
+                    <td className="font-id" style={{ ...td(), fontWeight: 600, color: T.txSec }}>{a.codigo}</td>
                     <td style={{ ...td(), color: T.txPri }}>{a.titulo}</td>
                     <td style={{ ...td(), color: T.txMut }}>{a.sharing}</td>
                     <td style={td()}><Pill info={op} bruto={a.status_operacional} /></td>
                     <td style={td()}><Pill info={fat} bruto={a.status_faturamento} /></td>
-                    <td style={{ ...td(), textAlign: "right", color: a.receita > 0 ? T.txPri : T.txDis, fontWeight: 700 }}>
+                    <td style={{ ...td(), textAlign: "right", color: a.receita > 0 ? T.txPri : T.txMut, fontWeight: 700 }}>
                       {a.receita > 0 ? moedaExata(a.receita) : "—"}
                     </td>
-                    <td style={{ ...td(), textAlign: "right", color: a.comprometido > 0 ? T.amber : T.txDis }}>
+                    <td style={{ ...td(), textAlign: "right", color: a.comprometido > 0 ? T.txPri : T.txMut }}>
                       {a.comprometido > 0 ? moedaExata(a.comprometido) : "—"}
                     </td>
-                    <td style={{ ...td(), textAlign: "right", color: a.pago > 0 ? T.green : T.txDis }}>
+                    <td style={{ ...td(), textAlign: "right", color: a.pago > 0 ? T.txPri : T.txMut }}>
                       {a.pago > 0 ? moedaExata(a.pago) : "—"}
                     </td>
                     <td style={{ ...td(), textAlign: "right" }}>
                       {a.receita > 0
-                        ? <span style={{ color: a.margem >= 0 ? T.green : T.red, fontWeight: 700 }}>
+                        ? <span style={{ color: a.margem >= 0 ? T.txPri : T.red, fontWeight: 700 }}>
                           {moedaExata(a.margem)}
-                          <span style={{ color: T.txMut, fontWeight: 500, marginLeft: 6, fontSize: 10 }}>{pct(a.margemPercentual ?? 0)}</span>
+                          <span style={{ color: T.txMut, fontWeight: 500, marginLeft: 6, fontSize: 11 }}>{pct(a.margemPercentual ?? 0)}</span>
                         </span>
-                        : <span style={{ color: T.txDis }}>—</span>}
+                        : <span style={{ color: T.txMut }}>—</span>}
                     </td>
                   </tr>
                 );
@@ -186,7 +186,7 @@ export default function DashboardFinanceiro() {
         </div>
       </div>
 
-      <div style={{ fontSize: 10.5, color: T.txDis, lineHeight: 1.6 }}>
+      <div style={{ fontSize: 11, color: T.txDis, lineHeight: 1.6 }}>
         Receita = valor de contrato da atividade (ou o orçado, quando ainda não há contrato).
         Comprometido = soma das contratações de fornecedor, independente de pagamento.
         Pago = parcelas com status pago, comprovante recebido ou conferido.
@@ -196,44 +196,45 @@ export default function DashboardFinanceiro() {
 }
 
 const th = (w?: number): React.CSSProperties =>
-  ({ padding: "9px 10px", fontWeight: 700, fontSize: 9.5, letterSpacing: "0.05em", ...(w ? { width: w } : {}) });
+  ({ padding: "9px 10px", fontWeight: 600, fontSize: 12, ...(w ? { width: w } : {}) });
 const td = (): React.CSSProperties => ({ padding: "8px 10px", verticalAlign: "middle" });
 
 function Pill({ info, bruto }: { info?: { label: string; color: string }; bruto: string }) {
   const cor = info?.color || T.txMut;
   return (
-    <span style={{ fontSize: 9.5, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: `${cor}1a`, color: cor, whiteSpace: "nowrap" }}>
+    <span style={{ fontSize: 11, fontWeight: 600, padding: "2px 8px", borderRadius: 20, background: `${cor}1a`, color: cor, whiteSpace: "nowrap" }}>
       {info?.label || bruto}
     </span>
   );
 }
 
-function Etapa({ rotulo, valor, cor, destaque }: { rotulo: string; valor: number; cor: string; destaque?: boolean }) {
+// Valor neutro; só o resultado negativo ganha cor. Zero aparece como "—".
+function Etapa({ rotulo, valor, alerta, destaque }: { rotulo: string; valor: number; alerta?: string; destaque?: boolean }) {
   return (
     <div style={{ minWidth: 150, padding: "2px 4px" }}>
-      <div style={{ fontSize: 9.5, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>{rotulo.toUpperCase()}</div>
-      <div style={{ fontSize: destaque ? 21 : 17, fontWeight: destaque ? 900 : 800, color: cor, marginTop: 3 }}>{moeda(valor)}</div>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{rotulo}</div>
+      <div style={{ fontSize: destaque ? 24 : 18, fontWeight: 700, color: !valor ? T.txMut : alerta || T.txPri, marginTop: 3 }}>{valor ? moeda(valor) : "—"}</div>
     </div>
   );
 }
 
 function Sinal({ children }: { children: React.ReactNode }) {
-  return <div style={{ color: T.txDis, fontSize: 16, padding: "18px 12px 0", fontWeight: 700 }}>{children}</div>;
+  return <div style={{ color: T.txDis, fontSize: 15, padding: "18px 12px 0", fontWeight: 700 }}>{children}</div>;
 }
 
-function Kpi({ rotulo, valor, cor, nota }: { rotulo: string; valor: string; cor: string; nota?: string }) {
+function Kpi({ rotulo, valor, alerta, nota }: { rotulo: string; valor: string | null; alerta?: string; nota?: string }) {
   return (
-    <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderTop: `3px solid ${cor}`, borderRadius: 10, padding: "11px 15px" }}>
-      <div style={{ fontSize: 9.5, color: T.txMut, fontWeight: 700, letterSpacing: "0.06em" }}>{rotulo.toUpperCase()}</div>
-      <div style={{ fontSize: 19, fontWeight: 900, color: cor, marginTop: 4 }}>{valor}</div>
-      {nota && <div style={{ fontSize: 10, color: T.txDis, marginTop: 3 }}>{nota}</div>}
+    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px" }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{rotulo}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
+      {nota && <div style={{ fontSize: 11, color: T.txDis, marginTop: 3 }}>{nota}</div>}
     </div>
   );
 }
 
 function Aviso({ cor, children }: { cor: string; children: React.ReactNode }) {
   return (
-    <div style={{ background: cor + "12", border: `1px solid ${cor}55`, borderRadius: 10, padding: "10px 14px", fontSize: 11.5, color: T.txSec, lineHeight: 1.55 }}>
+    <div style={{ background: cor + "12", border: `1px solid ${cor}55`, borderRadius: 10, padding: "10px 14px", fontSize: 12, color: T.txSec, lineHeight: 1.55 }}>
       {children}
     </div>
   );

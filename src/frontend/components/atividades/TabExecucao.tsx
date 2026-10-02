@@ -104,32 +104,32 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
         <div>
             <ErrorBanner message={erro} />
 
-            <Card title="Registro de Execução">
+            <Card title="Registro de execução">
                 <div className="grid grid-cols-2 gap-3 mb-3">
-                    <Field label="Data de Início"><input type="date" className={inputClass} value={execForm.data_inicio} onChange={e => setExecForm(f => ({ ...f, data_inicio: e.target.value }))} /></Field>
-                    <Field label="Data Prevista de Conclusão"><input type="date" className={inputClass} value={execForm.data_prevista_conclusao} onChange={e => setExecForm(f => ({ ...f, data_prevista_conclusao: e.target.value }))} /></Field>
-                    <Field label="Data Real de Conclusão"><input type="date" className={inputClass} value={execForm.data_real_conclusao} onChange={e => setExecForm(f => ({ ...f, data_real_conclusao: e.target.value }))} /></Field>
+                    <Field label="Data de início"><input type="date" className={inputClass} value={execForm.data_inicio} onChange={e => setExecForm(f => ({ ...f, data_inicio: e.target.value }))} /></Field>
+                    <Field label="Data prevista de conclusão"><input type="date" className={inputClass} value={execForm.data_prevista_conclusao} onChange={e => setExecForm(f => ({ ...f, data_prevista_conclusao: e.target.value }))} /></Field>
+                    <Field label="Data real de conclusão"><input type="date" className={inputClass} value={execForm.data_real_conclusao} onChange={e => setExecForm(f => ({ ...f, data_real_conclusao: e.target.value }))} /></Field>
                     <Field label="Equipe"><input className={inputClass} value={execForm.equipe} onChange={e => setExecForm(f => ({ ...f, equipe: e.target.value }))} /></Field>
                 </div>
-                <Field label={`Avanço Físico: ${execForm.avanco_percentual}%`}>
+                <Field label={`Avanço físico: ${execForm.avanco_percentual}%`}>
                     <input type="range" min={0} max={100} value={execForm.avanco_percentual} onChange={e => setExecForm(f => ({ ...f, avanco_percentual: e.target.value }))} className="w-full accent-primary" />
                 </Field>
                 <div className="mt-3">
-                    <Field label="Ocorrências / Não Conformidades">
+                    <Field label="Ocorrências e não conformidades">
                         <textarea rows={2} className={`${inputClass} resize-y`} value={execForm.ocorrencias} onChange={e => setExecForm(f => ({ ...f, ocorrencias: e.target.value }))} />
                     </Field>
                 </div>
                 <div className="flex justify-end mt-3">
-                    <PrimaryButton onClick={salvarExecucao} disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar Execução'}</PrimaryButton>
+                    <PrimaryButton onClick={salvarExecucao} disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar execução'}</PrimaryButton>
                 </div>
                 {execForm.avanco_percentual === '100' && !execForm.data_real_conclusao && (
-                    <p className="text-xs text-amber-500 mt-2">Preencha a data real de conclusão para fechar o status operacional (G7).</p>
+                    <p className="text-xs text-warn mt-2">Preencha a data real de conclusão para fechar o status operacional (G7).</p>
                 )}
             </Card>
 
             <Card
-                title={usaRelatorioFotografico ? 'Relatório Fotográfico' : 'RFI'}
-                action={podeEnviarRfi ? <PrimaryButton onClick={() => setShowRfiForm(v => !v)}>{showRfiForm ? 'Cancelar' : usaRelatorioFotografico ? '+ Enviar Relatório' : '+ Enviar RFI'}</PrimaryButton> : undefined}
+                title={usaRelatorioFotografico ? 'Relatório fotográfico' : 'RFI'}
+                action={podeEnviarRfi ? <PrimaryButton onClick={() => setShowRfiForm(v => !v)}>{showRfiForm ? 'Cancelar' : usaRelatorioFotografico ? 'Enviar relatório' : 'Enviar RFI'}</PrimaryButton> : undefined}
             >
                 {!podeEnviarRfi && (
                     <p className="text-xs text-muted-foreground mb-3">
@@ -137,7 +137,7 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                     </p>
                 )}
                 {usaRelatorioFotografico && podeEnviarRfi && (
-                    <p className="text-xs text-muted-foreground mb-3">Fluxo de Operação — sem exigência de APC; conclusão operacional segue mesmo com PO pendente.</p>
+                    <p className="text-xs text-muted-foreground mb-3">Fluxo de operação — sem exigência de APC; conclusão operacional segue mesmo com PO pendente.</p>
                 )}
                 {showRfiForm && (
                     <div className="grid grid-cols-2 gap-3 mb-4 border border-border rounded-lg p-3">
@@ -145,7 +145,7 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                         {!usaRelatorioFotografico && (
                             <>
                                 <Field label="Protocolo"><input className={inputClass} value={rfiForm.protocolo} onChange={e => setRfiForm(f => ({ ...f, protocolo: e.target.value }))} /></Field>
-                                <Field label="Condição de Energia">
+                                <Field label="Condição de energia">
                                     <select className={inputClass} value={rfiForm.energizado} onChange={e => setRfiForm(f => ({ ...f, energizado: e.target.value }))}>
                                         <option value="">Não informado</option>
                                         <option value="true">Energizado</option>
@@ -158,7 +158,7 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                             <Field label="Observações"><input className={inputClass} value={rfiForm.observacoes} onChange={e => setRfiForm(f => ({ ...f, observacoes: e.target.value }))} /></Field>
                         </div>
                         <div className="col-span-2 flex justify-end">
-                            <PrimaryButton onClick={enviarRfi} disabled={salvando}>Confirmar Envio</PrimaryButton>
+                            <PrimaryButton onClick={enviarRfi} disabled={salvando}>Confirmar envio</PrimaryButton>
                         </div>
                     </div>
                 )}
@@ -167,8 +167,8 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                 ) : (
                     rfis.map(r => (
                         <div key={r.id} className="border-b border-border/60 last:border-0 py-2">
-                            {!usaRelatorioFotografico && <Row label="Protocolo" value={r.protocolo || '—'} />}
-                            <Row label="Data de Envio" value={fmtData(r.data_envio)} />
+                            {!usaRelatorioFotografico && <Row label="Protocolo" value={r.protocolo && <span className="font-id">{r.protocolo}</span>} />}
+                            <Row label="Data de envio" value={fmtData(r.data_envio)} />
                             <Row label="Destinatário" value={r.destinatario} />
                             {!usaRelatorioFotografico && <Row label="Energia" value={r.energizado === true ? 'Energizado' : r.energizado === false ? 'Sem energia' : 'Não informado'} />}
                         </div>

@@ -5,6 +5,11 @@ import { carregarTemplatesDoBanco, findTemplate, templatesDeFallback } from "./l
 import { gerarPdfBudgetV2 } from "./gerarPdfV2";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
+import { BarChart3, Blocks, Check, ClipboardList, Cog, FileText, HardHat, Link2, MapPin, NotebookPen, Package, Plus, Save, ShoppingCart, Wallet, Wrench, X } from "lucide-react";
+
+const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const iconeBtn: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 3, display: "inline-flex", alignItems: "center", borderRadius: 6 };
+const comIcone: React.CSSProperties = { display: "inline-flex", alignItems: "center", gap: 6 };
 
 // Theme (original dark)
 
@@ -12,9 +17,9 @@ const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", curren
 
 // ── Styles ──
 const S = {
-  card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "14px 16px", boxShadow: "0 6px 16px rgba(0, 0, 0, 0.35)" } as React.CSSProperties,
+  card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 8, padding: "14px 16px" } as React.CSSProperties,
   input: { padding: "5px 10px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", fontFamily: "inherit", width: "100%", transition: "all 0.15s" } as React.CSSProperties,
-  label: { fontSize: 10, color: T.txSec, display: "block", marginBottom: 3, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" } as React.CSSProperties,
+  label: { fontSize: 11, color: T.txSec, display: "block", marginBottom: 3, fontWeight: 600 } as React.CSSProperties,
   btn: { padding: "5px 12px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, cursor: "pointer", color: T.txSec, fontWeight: 600, transition: "all 0.15s" } as React.CSSProperties,
   btnBlue: { background: T.blue, color: "#fff", borderColor: T.blue } as React.CSSProperties,
   btnGreen: { background: T.greenD, color: "#fff", borderColor: T.greenD } as React.CSSProperties,
@@ -296,88 +301,84 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
   if (!activeBudget) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "60vh", gap: 16 }}>
-        <div style={{ fontSize: 36 }}>📋</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>Sistema de Orçamentos Multi-Sharing</div>
+        <ClipboardList size={32} aria-hidden style={{ color: T.txMut }} />
+        <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>Orçamentos multi-sharing</div>
         <div style={{ fontSize: 11, color: T.txMut, textAlign: "center", maxWidth: 400 }}>
           Crie orçamentos com múltiplos clientes de sharing, cada um com seu próprio template de LPU, BDI e parâmetros independentes.
         </div>
-        <button onClick={createNewBudget} style={{ ...S.btn, ...S.btnBlue, padding: "8px 24px", fontSize: 12, fontWeight: 700 }}>
-          + Novo Orçamento
+        <button onClick={createNewBudget} style={{ ...S.btn, ...S.btnBlue, ...comIcone, padding: "8px 24px", fontSize: 12, fontWeight: 700 }}>
+          <Plus size={14} aria-hidden /> Novo orçamento
         </button>
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, height: "100%", animation: "fadeIn 0.4s ease-out" }}>
-      <style>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .step-enter { animation: fadeIn 0.3s ease-out; }
-      `}</style>
-      {toast && <div style={{ padding: "4px 12px", fontSize: 10, color: T.green, background: T.green + "22", borderRadius: 6, textAlign: "center", border: `1px solid ${T.green}40` }}>✅ {toast}</div>}
+    <div style={{ display: "flex", flexDirection: "column", gap: 8, height: "100%" }}>
+      {toast && <div style={{ padding: "4px 12px", fontSize: 11, color: T.green, background: T.green + "22", borderRadius: 6, textAlign: "center", border: `1px solid ${T.green}40`, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}><Check size={14} aria-hidden /> {toast}</div>}
 
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 13, fontWeight: 800, color: T.blue }}>{activeBudget.id}</span>
-        <span style={{ fontSize: 9, padding: "1px 8px", borderRadius: 10, background: T.bg4, color: T.txMut, fontWeight: 600 }}>{activeBudget.status}</span>
-        <span style={{ fontSize: 9, color: T.txDis }}>{activeBudget.data}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: T.blue, fontFamily: MONO }}>{activeBudget.id}</span>
+        <span style={{ fontSize: 11, padding: "1px 8px", borderRadius: 10, background: T.bg4, color: T.txMut, fontWeight: 600 }}>{activeBudget.status}</span>
+        <span style={{ fontSize: 11, color: T.txMut }}>{activeBudget.data}</span>
         <div style={{ flex: 1 }} />
 
         {(["site", "config", "itens", "resumo"] as const).map(s => (
           <button key={s} onClick={() => setStep(s)} style={{
-            ...S.ghost, fontWeight: step === s ? 700 : 400, fontSize: 10,
+            ...S.ghost, fontWeight: step === s ? 700 : 400, fontSize: 11,
             color: step === s ? T.blue : T.txMut,
             borderColor: step === s ? T.blue : T.brBase,
             background: step === s ? T.blue + "18" : "transparent",
           }}>
-            {s === "site" ? "1. Dados Iniciais" : s === "config" ? "2. Sharings" : s === "itens" ? "3. Catálogo de Itens" : "4. Resumo Final"}
+            {s === "site" ? "1. Dados iniciais" : s === "config" ? "2. Sharings" : s === "itens" ? "3. Catálogo de itens" : "4. Resumo final"}
           </button>
         ))}
 
-        <button onClick={handleSave} style={{ ...S.btn, ...S.btnGreen, fontWeight: 700 }}>💾 Salvar</button>
+        <button onClick={handleSave} style={{ ...S.btn, ...S.btnGreen, ...comIcone, fontWeight: 700 }}><Save size={14} aria-hidden /> Salvar</button>
         {activeBudget.blocos.length > 0 && (
-          <button onClick={() => gerarPdfBudgetV2(activeBudget, logoBase64)} style={{ ...S.ghost, color: T.amber, borderColor: T.amber + "40" }}>📄 PDF</button>
+          <button onClick={() => gerarPdfBudgetV2(activeBudget, logoBase64)} style={{ ...S.ghost, ...comIcone }}><FileText size={14} aria-hidden /> Gerar PDF</button>
         )}
         {activeBudget.projetoId ? (
-          <button onClick={() => onOpenLinkedProject(activeBudget.projetoId!)} style={{ ...S.ghost, color: T.green, borderColor: T.green + "40", fontWeight: 700 }}>
-            🏗️ Ver atividade
+          <button onClick={() => onOpenLinkedProject(activeBudget.projetoId!)} style={{ ...S.ghost, ...comIcone, color: T.blue, borderColor: T.blue + "40", fontWeight: 700 }}>
+            <HardHat size={14} aria-hidden /> Ver atividade
           </button>
         ) : (
           <>
-            <button onClick={handleLinkActivity} style={{ ...S.ghost, color: T.blue, borderColor: T.blue + "40", fontWeight: 700 }}>
-              🔗 Vincular atividade
+            <button onClick={handleLinkActivity} style={{ ...S.ghost, ...comIcone, color: T.blue, borderColor: T.blue + "40", fontWeight: 700 }}>
+              <Link2 size={14} aria-hidden /> Vincular atividade
             </button>
-            <button onClick={handleCreateActivity} style={{ ...S.ghost, color: T.green, borderColor: T.green + "40", fontWeight: 700 }}>
-              ➕ Criar atividade
+            <button onClick={handleCreateActivity} style={{ ...S.ghost, ...comIcone, color: T.blue, borderColor: T.blue + "40", fontWeight: 700 }}>
+              <Plus size={14} aria-hidden /> Criar atividade
             </button>
           </>
         )}
-        <button onClick={() => { setActiveBudget(null); setStep("site"); }} style={S.ghost}>✕</button>
+        <button onClick={() => { setActiveBudget(null); setStep("site"); }} aria-label="Fechar orçamento" title="Fechar orçamento" style={{ ...S.ghost, ...comIcone, padding: "5px 8px" }}><X size={14} aria-hidden /></button>
       </div>
 
       {step === "site" && (
         <div className="step-enter" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           <div style={S.card}>
-            <div style={{ fontWeight: 700, color: T.blue, fontSize: 11, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14 }}>📍</span> Identificação do Site
+            <div style={{ fontWeight: 700, color: T.txPri, fontSize: 13, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+              <MapPin size={15} aria-hidden style={{ color: T.txMut }} /> Identificação do site
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <div style={{ gridColumn: "span 2" }}>
-                <label style={S.label}>BUSCA SITE ID (Autocomplete)</label>
+                <label style={S.label}>Buscar Site ID</label>
                 <input 
                   list="sites-list"
                   defaultValue={activeBudget.siteInfo.siteId || ""} 
                   onChange={e => handleSiteIdChange(e.target.value)} 
-                  style={{ ...S.input, padding: "8px 10px", fontSize: 12, fontWeight: 700 }} 
+                  style={{ ...S.input, padding: "8px 10px", fontSize: 12, fontWeight: 700, fontFamily: MONO }} 
                   placeholder="Busque pelo Site ID do Sharing, Operadora ou Interno..." 
                 />
                 <datalist id="sites-list">
                   {projetos.map(p => (
                     <option key={p.id} value={p.siteIdSharing || p.siteIdOperadora || p.siteId}>
-                      {p.sharing || "—"} · {p.municipio}
+                      {p.municipio ? `${p.sharing || "Sem sharing"} (${p.municipio})` : (p.sharing || "Sem sharing")}
                     </option>
                   ))}
                 </datalist>
-                <div style={{ fontSize: 9, color: T.txMut, marginTop: 4 }}>Dica: Se o site existir no Controle de Obras, os dados abaixo serão preenchidos.</div>
+                <div style={{ fontSize: 11, color: T.txMut, marginTop: 4 }}>Dica: Se o site existir no Controle de Obras, os dados abaixo serão preenchidos.</div>
               </div>
 
               <div>
@@ -429,7 +430,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                 <input value={activeBudget.siteInfo.uf || ""} onChange={e => updateSiteField("uf", e.target.value)} style={S.input} placeholder="SP" />
               </div>
               <div style={{ gridColumn: "span 2" }}>
-                <label style={S.label}>Endereço Completo</label>
+                <label style={S.label}>Endereço completo</label>
                 <input value={activeBudget.siteInfo.endereco || ""} onChange={e => updateSiteField("endereco", e.target.value)} style={S.input} placeholder="Rua, número, bairro..." />
               </div>
               <div>
@@ -444,8 +445,8 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
           </div>
 
           <div style={S.card}>
-            <div style={{ fontWeight: 700, color: T.purple, fontSize: 11, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14 }}>📝</span> Dados do Orçamento
+            <div style={{ fontWeight: 700, color: T.txPri, fontSize: 13, marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}>
+              <NotebookPen size={15} aria-hidden style={{ color: T.txMut }} /> Dados do orçamento
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               <div style={{ gridColumn: "span 2" }}>
@@ -455,7 +456,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                   onChange={e => updateField("contratante", e.target.value)} 
                   style={{ ...S.input, padding: "8px 10px", fontSize: 12 }}
                 >
-                  <option value="">— Selecione o Cliente —</option>
+                  <option value="">Selecione o cliente</option>
                   {clientes.map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
                 </select>
               </div>
@@ -463,7 +464,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
               <div style={{ gridColumn: "span 2" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
                   <div>
-                    <label style={S.label}>Categoria de Projeto</label>
+                    <label style={S.label}>Categoria de projeto</label>
                     <select 
                       value={activeBudget.siteInfo.categoriaProjeto || "implantacao"} 
                       onChange={e => {
@@ -482,7 +483,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                   </div>
                   {activeBudget.siteInfo.categoriaProjeto === "manutencao" ? (
                     <div>
-                      <label style={S.label}>Sub-tipo O&M</label>
+                      <label style={S.label}>Subtipo O&M</label>
                       <select 
                         value={activeBudget.siteInfo.tipoProjeto || "manutencao_geral"} 
                         onChange={e => updateBudget(b => ({
@@ -500,7 +501,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                     </div>
                   ) : (
                     <div>
-                      <label style={S.label}>Tipo de Implantação</label>
+                      <label style={S.label}>Tipo de implantação</label>
                       <select 
                         value={activeBudget.siteInfo.tipoProjeto || "bts"} 
                         onChange={e => updateBudget(b => ({
@@ -526,7 +527,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
               </div>
 
               <div>
-                <label style={S.label}>Vigência da Proposta</label>
+                <label style={S.label}>Vigência da proposta</label>
                 <input value={activeBudget.vigencia || ""} onChange={e => updateField("vigencia", e.target.value)} style={S.input} placeholder="Ex: 10 DIAS" />
               </div>
               <div>
@@ -535,12 +536,12 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
               </div>
 
               <div style={{ gridColumn: "span 2" }}>
-                <label style={S.label}>Notas e Observações</label>
+                <label style={S.label}>Notas e observações</label>
                 <textarea value={activeBudget.obs || ""} onChange={e => updateField("obs", e.target.value)} style={{ ...S.input, resize: "vertical", minHeight: 60 }} placeholder="Notas operacionais, prazos ou condições comerciais..." />
               </div>
             </div>
             <button onClick={() => setStep("config")} style={{ ...S.btn, ...S.btnBlue, marginTop: 12, width: "100%", padding: "10px", fontWeight: 700 }}>
-              Confirmar Dados e Ir para Sharings →
+              Confirmar dados e seguir para sharings
             </button>
           </div>
         </div>
@@ -553,15 +554,15 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
         <div className="step-enter" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {/* Add sharing */}
           <div style={S.card}>
-            <div style={{ fontWeight: 700, color: T.amber, fontSize: 11, marginBottom: 8 }}>➕ Adicionar Bloco de Sharing</div>
+            <div style={{ fontWeight: 700, color: T.txPri, fontSize: 13, marginBottom: 8, ...comIcone }}><Plus size={15} aria-hidden style={{ color: T.txMut }} /> Adicionar bloco de sharing</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {sharingClients.filter(c => c.ativo).map(c => (
                 <div key={c.id} style={{ display: "flex", gap: 3 }}>
-                  <button onClick={() => addSharingBlock(c.id, "implantacao")} style={{ ...S.ghost, borderColor: c.cor + "60", color: c.cor, fontSize: 9 }}>
-                    {c.sigla} · Impl.
+                  <button onClick={() => addSharingBlock(c.id, "implantacao")} title={`Adicionar bloco de implantação ${c.nome}`} style={{ ...S.ghost, ...comIcone, borderColor: c.cor + "60", color: c.cor, fontSize: 11 }}>
+                    <span style={{ fontWeight: 700 }}>{c.sigla}</span><span>Impl.</span>
                   </button>
-                  <button onClick={() => addSharingBlock(c.id, "manutencao")} style={{ ...S.ghost, borderColor: c.cor + "60", color: c.cor, fontSize: 9 }}>
-                    {c.sigla} · Mant.
+                  <button onClick={() => addSharingBlock(c.id, "manutencao")} title={`Adicionar bloco de manutenção ${c.nome}`} style={{ ...S.ghost, ...comIcone, borderColor: c.cor + "60", color: c.cor, fontSize: 11 }}>
+                    <span style={{ fontWeight: 700 }}>{c.sigla}</span><span>Mant.</span>
                   </button>
                 </div>
               ))}
@@ -570,9 +571,9 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
 
           {/* Block list */}
           {activeBudget.blocos.length === 0 ? (
-            <div style={{ ...S.card, textAlign: "center", padding: 30, color: T.txDis }}>
-              <div style={{ fontSize: 24, marginBottom: 6 }}>🧱</div>
-              <div style={{ fontSize: 11 }}>Adicione blocos de sharing acima</div>
+            <div style={{ ...S.card, textAlign: "center", padding: 30, color: T.txMut }}>
+              <Blocks size={24} aria-hidden style={{ marginBottom: 6 }} />
+              <div style={{ fontSize: 12 }}>Nenhum bloco ainda. Adicione um bloco de sharing acima.</div>
             </div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 8 }}>
@@ -580,17 +581,21 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                 const custo = calcBlocoCustoDireto(bloco);
                 const total = calcBlocoTotal(bloco);
                 return (
-                  <div key={bloco.id} style={{ ...S.card, borderLeft: `3px solid ${bloco.sharingCor}` }}>
+                  <div key={bloco.id} style={S.card}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                       <div>
                         <span style={{ fontSize: 11, fontWeight: 700, color: bloco.sharingCor }}>{bloco.sharingNome}</span>
-                        <span style={{ fontSize: 9, color: T.txMut, marginLeft: 6 }}>{bloco.tipo === "implantacao" ? "🔧 Implantação" : "⚙️ Manutenção"}</span>
+                        <span style={{ fontSize: 11, color: T.txMut, marginLeft: 8, ...comIcone, gap: 4, verticalAlign: "middle" }}>
+                          {bloco.tipo === "implantacao" ? <Wrench size={14} aria-hidden /> : <Cog size={14} aria-hidden />}
+                          {bloco.tipo === "implantacao" ? "Implantação" : "Manutenção"}
+                        </span>
                       </div>
-                      <button onClick={() => removeBlock(bloco.id)} style={{ background: "none", border: "none", color: T.red, cursor: "pointer", fontSize: 12 }}>✕</button>
+                      <button onClick={() => removeBlock(bloco.id)} aria-label={`Remover bloco ${bloco.sharingNome}`} title="Remover bloco"
+                        style={{ ...iconeBtn, color: T.txMut }}><X size={14} aria-hidden /></button>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9 }}>
-                      <span style={{ color: T.txMut }}>{bloco.itens.length} itens · Custo: {fmt(custo)}</span>
-                      <span style={{ fontWeight: 700, color: bloco.sharingCor }}>{fmt(total)}</span>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+                      <span style={{ color: T.txMut, display: "flex", gap: 12 }}><span>{bloco.itens.length} itens</span><span>Custo {fmt(custo)}</span></span>
+                      <span style={{ fontWeight: 700, color: T.txPri }}>{fmt(total)}</span>
                     </div>
                   </div>
                 );
@@ -600,7 +605,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
 
           {activeBudget.blocos.length > 0 && (
             <button onClick={() => { setStep("itens"); setActiveBlockId(activeBudget.blocos[0].id); }} style={{ ...S.btn, ...S.btnBlue, alignSelf: "flex-end" }}>
-              Próximo → Editar Itens
+              Editar itens
             </button>
           )}
         </div>
@@ -616,22 +621,22 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
             {activeBudget.blocos.map(bl => (
               <button key={bl.id} onClick={() => { setActiveBlockId(bl.id); setCatFilter("TODOS"); setSearchTerm(""); }}
                 style={{
-                  ...S.ghost, textAlign: "left", fontSize: 9, padding: "6px 8px",
+                  ...S.ghost, textAlign: "left", fontSize: 11, padding: "6px 8px",
                   borderLeft: `3px solid ${activeBlockId === bl.id ? bl.sharingCor : "transparent"}`,
                   background: activeBlockId === bl.id ? bl.sharingCor + "18" : "transparent",
                   color: activeBlockId === bl.id ? bl.sharingCor : T.txMut,
                   fontWeight: activeBlockId === bl.id ? 700 : 400,
                 }}>
                 <div>{bl.sharingNome}</div>
-                <div style={{ fontSize: 8, opacity: 0.7 }}>{bl.tipo === "implantacao" ? "Implantação" : "Operação"} · {bl.itens.length} itens</div>
+                <div style={{ fontSize: 11, opacity: 0.7, display: "flex", gap: 8 }}><span>{bl.tipo === "implantacao" ? "Implantação" : "Operação"}</span><span>{bl.itens.length} itens</span></div>
               </button>
             ))}
             <div style={{ height: 1, background: T.brSub, margin: "4px 0" }} />
-            <div style={{ fontSize: 9, color: T.txMut, padding: "4px 8px" }}>
-              <div>CAPEX: <span style={{ color: T.blue, fontWeight: 700 }}>{fmt(totals.totalCapex)}</span></div>
-              <div>OPEX: <span style={{ color: T.green, fontWeight: 700 }}>{fmt(totals.totalOpex)}</span></div>
+            <div style={{ fontSize: 11, color: T.txMut, padding: "4px 8px" }}>
+              <div>CAPEX <span style={{ color: T.txPri, fontWeight: 600 }}>{fmt(totals.totalCapex)}</span></div>
+              <div>OPEX <span style={{ color: T.txPri, fontWeight: 600 }}>{fmt(totals.totalOpex)}</span></div>
               <div style={{ borderTop: `1px solid ${T.brSub}`, paddingTop: 3, marginTop: 3 }}>
-                TOTAL: <span style={{ color: T.amber, fontWeight: 700 }}>{fmt(totals.totalGeral)}</span>
+                Total <span style={{ color: T.txPri, fontWeight: 700 }}>{fmt(totals.totalGeral)}</span>
               </div>
             </div>
           </div>
@@ -641,8 +646,10 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
             <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 300px", gap: 8, overflow: "hidden" }}>
               {/* Catalog */}
               <div style={{ ...S.card, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-                <div style={{ fontWeight: 700, fontSize: 10, color: activeBlock.sharingCor, marginBottom: 6 }}>
-                  📦 Catálogo {activeBlock.tipo === "implantacao" ? "Implantação" : "Operação"} — {currentCatalog.length} itens
+                <div style={{ fontWeight: 700, fontSize: 12, color: T.txPri, marginBottom: 6, ...comIcone }}>
+                  <Package size={14} aria-hidden style={{ color: T.txMut }} />
+                  <span>Catálogo de {activeBlock.tipo === "implantacao" ? "implantação" : "operação"}</span>
+                  <span style={{ color: T.txMut, fontWeight: 400 }}>{currentCatalog.length} itens</span>
                 </div>
                 <div style={{ display: "flex", gap: 4, marginBottom: 6 }}>
                   <input placeholder="Buscar código, solução..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ ...S.input, flex: 1 }} />
@@ -651,24 +658,24 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                     {catalogCats.map((c: string) => <option key={c}>{c}</option>)}
                   </select>
                 </div>
-                <div style={{ fontSize: 8, color: T.txMut, marginBottom: 3 }}>{filteredCatalog.length} encontrados</div>
+                <div style={{ fontSize: 11, color: T.txMut, marginBottom: 3 }}>{filteredCatalog.length} encontrados</div>
                 <div style={{ flex: 1, overflowY: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 9 }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                     <thead><tr style={{ borderBottom: `1px solid ${T.brBase}` }}>
                       {["Cód", "Cat.", "Solução", "Unid", "Valor", ""].map(h => (
-                        <th key={h} style={{ padding: "3px 4px", textAlign: "left", color: T.txMut, fontWeight: 700, fontSize: 8 }}>{h}</th>
+                        <th key={h} style={{ padding: "3px 4px", textAlign: "left", color: T.txMut, fontWeight: 600, fontSize: 11 }}>{h}</th>
                       ))}
                     </tr></thead>
                     <tbody>
                       {filteredCatalog.slice(0, 100).map((item: any, i: number) => (
                         <tr key={item.cod} style={{ borderBottom: `1px solid ${T.brSub}`, background: i % 2 ? T.bg1 + "50" : "transparent" }}>
-                          <td style={{ padding: "2px 4px", color: T.blue, fontWeight: 700 }}>{item.cod}</td>
-                          <td style={{ padding: "2px 4px" }}><span style={{ background: T.bg4, color: T.txSec, padding: "0px 4px", borderRadius: 3, fontSize: 8 }}>{item.resumo}</span></td>
+                          <td style={{ padding: "2px 4px", color: T.blue, fontWeight: 700, fontFamily: MONO }}>{item.cod}</td>
+                          <td style={{ padding: "2px 4px" }}><span style={{ background: T.bg4, color: T.txSec, padding: "0px 4px", borderRadius: 3, fontSize: 11 }}>{item.resumo}</span></td>
                           <td style={{ padding: "2px 4px", color: T.txSec, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={item.solucao}>{item.solucao}</td>
                           <td style={{ padding: "2px 4px", color: T.txMut }}>{item.unid}</td>
-                          <td style={{ padding: "2px 4px", color: T.green, fontWeight: 700 }}>{fmt(item.vl_medio ?? item.vlReferencia ?? item.vlUnitario ?? 0)}</td>
+                          <td style={{ padding: "2px 4px", color: (item.vl_medio ?? item.vlReferencia ?? item.vlUnitario ?? 0) > 0 ? T.txPri : T.txMut }}>{(item.vl_medio ?? item.vlReferencia ?? item.vlUnitario ?? 0) > 0 ? fmt(item.vl_medio ?? item.vlReferencia ?? item.vlUnitario) : "—"}</td>
                           <td style={{ padding: "2px 4px" }}>
-                            <button onClick={() => addItemToBlock(activeBlock.id, item)} style={{ ...S.btn, padding: "1px 6px", fontSize: 8 }}>+</button>
+                            <button onClick={() => addItemToBlock(activeBlock.id, item)} aria-label={`Adicionar ${item.cod} ao bloco`} title="Adicionar ao bloco" style={{ ...S.btn, ...comIcone, padding: "2px 5px" }}><Plus size={14} aria-hidden /></button>
                           </td>
                         </tr>
                       ))}
@@ -680,16 +687,16 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
               {/* Selected items */}
               <div style={{ ...S.card, display: "flex", flexDirection: "column", overflow: "hidden" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                  <span style={{ fontWeight: 700, fontSize: 10, color: activeBlock.sharingCor }}>
-                    🛒 {activeBlock.sharingNome} ({activeBlock.itens.length})
+                  <span style={{ fontWeight: 700, fontSize: 12, color: activeBlock.sharingCor, ...comIcone }}>
+                    <ShoppingCart size={14} aria-hidden /> {activeBlock.sharingNome} ({activeBlock.itens.length})
                   </span>
-                  <span style={{ fontSize: 10, fontWeight: 900, color: T.amber }}>{fmt(calcBlocoTotal(activeBlock))}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: T.txPri }}>{fmt(calcBlocoTotal(activeBlock))}</span>
                 </div>
                 <div style={{ flex: 1, overflowY: "auto" }}>
                   {activeBlock.itens.length === 0 ? (
-                    <div style={{ textAlign: "center", padding: 20, color: T.txDis, fontSize: 10 }}>
-                      <div style={{ fontSize: 20, marginBottom: 4 }}>📋</div>
-                      Adicione itens do catálogo
+                    <div style={{ textAlign: "center", padding: 20, color: T.txMut, fontSize: 12 }}>
+                      <ClipboardList size={18} aria-hidden style={{ marginBottom: 4 }} />
+                      <div>Nenhum item. Adicione itens do catálogo.</div>
                     </div>
                   ) : activeBlock.itens.map(item => {
                     const baseUnit = item.vlUnitario || 0;
@@ -699,39 +706,40 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                     return (
                       <div key={item.id} style={{ background: T.bg0, borderRadius: 6, padding: "5px 6px", marginBottom: 3, border: `1px solid ${T.brSub}` }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                          <span style={{ color: T.blue, fontWeight: 700, fontSize: 9 }}>{item.cod}</span>
-                          <button onClick={() => removeItemFromBlock(activeBlock.id, item.id)} style={{ background: "none", border: "none", color: T.red, cursor: "pointer", fontSize: 10 }}>✕</button>
+                          <span style={{ color: T.blue, fontWeight: 700, fontSize: 11, fontFamily: MONO }}>{item.cod}</span>
+                          <button onClick={() => removeItemFromBlock(activeBlock.id, item.id)} aria-label={`Remover ${item.cod} do bloco`} title="Remover item"
+                            style={{ ...iconeBtn, padding: 1, color: T.txMut }}><X size={14} aria-hidden /></button>
                         </div>
-                        <div style={{ fontSize: 8, color: T.txMut, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.descricao}</div>
+                        <div style={{ fontSize: 11, color: T.txMut, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.descricao}</div>
 
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4 }}>
                           <div>
-                            <label style={{ ...S.label, fontSize: 7 }}>Qtde</label>
-                            <input type="number" value={item.qtde} min={0} onChange={e => updateItemField(activeBlock.id, item.id, "qtde", Number(e.target.value) || 0)} style={{ ...S.input, textAlign: "center", fontSize: 10 }} />
+                            <label style={{ ...S.label, fontSize: 11 }}>Qtde</label>
+                            <input type="number" value={item.qtde} min={0} onChange={e => updateItemField(activeBlock.id, item.id, "qtde", Number(e.target.value) || 0)} style={{ ...S.input, textAlign: "center", fontSize: 11 }} />
                           </div>
                           <div>
-                            <label style={{ ...S.label, fontSize: 7 }}>VL Unit (Liq.)</label>
-                            <input type="number" value={Number(netUnit.toFixed(2))} min={0} step={0.01} onChange={e => updateItemUnitNet(activeBlock.id, item, Number(e.target.value) || 0)} style={{ ...S.input, color: T.green, fontSize: 10 }} />
+                            <label style={{ ...S.label, fontSize: 11 }}>Vl. unit. líquido</label>
+                            <input type="number" value={Number(netUnit.toFixed(2))} min={0} step={0.01} onChange={e => updateItemUnitNet(activeBlock.id, item, Number(e.target.value) || 0)} style={{ ...S.input, fontSize: 11 }} />
                           </div>
                           <div style={{ textAlign: "right" }}>
-                            <label style={{ ...S.label, fontSize: 7 }}>Total</label>
-                            <div style={{ fontSize: 10, fontWeight: 700, color: T.amber, paddingTop: 4 }}>{fmt(calcItemTotal(item))}</div>
+                            <label style={{ ...S.label, fontSize: 11 }}>Total</label>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: T.txPri, paddingTop: 4 }}>{fmt(calcItemTotal(item))}</div>
                           </div>
                         </div>
 
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, marginTop: 4 }}>
                           <div>
-                            <label style={{ ...S.label, fontSize: 7 }}>Desc. %</label>
-                            <input type="number" value={Number(descPct.toFixed(2))} min={0} max={100} step={0.01} onChange={e => updateItemDiscountPct(activeBlock.id, item, Number(e.target.value) || 0)} style={{ ...S.input, color: T.amber, fontSize: 10 }} />
+                            <label style={{ ...S.label, fontSize: 11 }}>Desc. %</label>
+                            <input type="number" value={Number(descPct.toFixed(2))} min={0} max={100} step={0.01} onChange={e => updateItemDiscountPct(activeBlock.id, item, Number(e.target.value) || 0)} style={{ ...S.input, fontSize: 11 }} />
                           </div>
                           <div>
-                            <label style={{ ...S.label, fontSize: 7 }}>Desc. R$</label>
-                            <input type="number" value={Number(descValor.toFixed(2))} min={0} step={0.01} onChange={e => updateItemDiscountValor(activeBlock.id, item, Number(e.target.value) || 0)} style={{ ...S.input, color: T.amber, fontSize: 10 }} />
+                            <label style={{ ...S.label, fontSize: 11 }}>Desc. R$</label>
+                            <input type="number" value={Number(descValor.toFixed(2))} min={0} step={0.01} onChange={e => updateItemDiscountValor(activeBlock.id, item, Number(e.target.value) || 0)} style={{ ...S.input, fontSize: 11 }} />
                           </div>
                         </div>
 
                         {descValor > 0 && (
-                          <div style={{ marginTop: 3, fontSize: 8, color: T.txMut }}>
+                          <div style={{ marginTop: 3, fontSize: 11, color: T.txMut }}>
                             Base: {fmt(baseUnit)}
                           </div>
                         )}
@@ -742,7 +750,7 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
               </div>
             </div>
           ) : (
-            <div style={{ flex: 1, ...S.card, display: "flex", alignItems: "center", justifyContent: "center", color: T.txDis }}>
+            <div style={{ flex: 1, ...S.card, display: "flex", alignItems: "center", justifyContent: "center", color: T.txMut }}>
               Selecione um bloco à esquerda
             </div>
           )}
@@ -756,24 +764,24 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
         <div className="step-enter" style={{ display: "flex", flexDirection: "column", gap: 8, overflowY: "auto" }}>
           {/* KPIs */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-            {[{ l: "CAPEX (Implantação)", v: totals.totalCapex, c: T.blue, icon: "🔧" }, { l: "OPEX (Operação)", v: totals.totalOpex, c: T.green, icon: "⚙️" }, { l: "TOTAL GERAL", v: totals.totalGeral, c: T.amber, icon: "💰" }].map(kpi => (
-              <div key={kpi.l} style={{ ...S.card, borderLeft: `3px solid ${kpi.c}` }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
-                  <span style={{ fontSize: 12 }}>{kpi.icon}</span>
-                  <span style={{ fontSize: 9, color: T.txMut, fontWeight: 700 }}>{kpi.l}</span>
+            {[{ l: "CAPEX (implantação)", v: totals.totalCapex, Icone: Wrench }, { l: "OPEX (operação)", v: totals.totalOpex, Icone: Cog }, { l: "Total geral", v: totals.totalGeral, Icone: Wallet }].map(kpi => (
+              <div key={kpi.l} style={S.card}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, color: T.txMut }}>
+                  <kpi.Icone size={14} aria-hidden />
+                  <span style={{ fontSize: 11, fontWeight: 600 }}>{kpi.l}</span>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: kpi.c }}>{fmt(kpi.v)}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: kpi.v > 0 ? T.txPri : T.txMut }}>{kpi.v > 0 ? fmt(kpi.v) : "—"}</div>
               </div>
             ))}
           </div>
 
           {/* Resumo por Sharing */}
           <div style={S.card}>
-            <div style={{ fontWeight: 700, fontSize: 11, color: T.txPri, marginBottom: 8 }}>📊 Resumo por Sharing</div>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+            <div style={{ fontWeight: 700, fontSize: 13, color: T.txPri, marginBottom: 8, ...comIcone }}><BarChart3 size={14} aria-hidden style={{ color: T.txMut }} /> Resumo por sharing</div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
               <thead><tr style={{ borderBottom: `1px solid ${T.brBase}` }}>
-                {["Sharing", "Tipo", "Custo Direto", "BDI", "Lucro", "Desc.", "Total"].map(h => (
-                  <th key={h} style={{ padding: "4px 6px", textAlign: "left", color: T.txMut, fontWeight: 700, fontSize: 9 }}>{h}</th>
+                {["Sharing", "Tipo", "Custo direto", "BDI", "Lucro", "Desc.", "Total"].map(h => (
+                  <th key={h} style={{ padding: "4px 6px", textAlign: "left", color: T.txMut, fontWeight: 600, fontSize: 11 }}>{h}</th>
                 ))}
               </tr></thead>
               <tbody>
@@ -783,43 +791,43 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                   return (
                     <tr key={bl.id} style={{ borderBottom: `1px solid ${T.brSub}` }}>
                       <td style={{ padding: "4px 6px", fontWeight: 700, color: bl.sharingCor }}>{bl.sharingNome}</td>
-                      <td style={{ padding: "4px 6px", color: T.txMut }}>{bl.tipo === "implantacao" ? "🔧 Impl." : "⚙️ Oper."}</td>
+                      <td style={{ padding: "4px 6px", color: T.txMut }}><span style={{ ...comIcone, gap: 4 }}>{bl.tipo === "implantacao" ? <Wrench size={14} aria-hidden /> : <Cog size={14} aria-hidden />}{bl.tipo === "implantacao" ? "Impl." : "Oper."}</span></td>
                       <td style={{ padding: "4px 6px", color: T.txSec }}>{fmt(custo)}</td>
-                      <td style={{ padding: "4px 6px", color: T.purple }}>
+                      <td style={{ padding: "4px 6px", color: T.txMut }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <input type="number" value={bl.bdi} onChange={e => updateBlockField(bl.id, "bdi", Number(e.target.value))} style={{ ...S.input, width: 45, padding: "2px 4px", textAlign: "center" }} /> %
                         </div>
                       </td>
-                      <td style={{ padding: "4px 6px", color: T.green }}>
+                      <td style={{ padding: "4px 6px", color: T.txMut }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <input type="number" value={bl.lucro} onChange={e => updateBlockField(bl.id, "lucro", Number(e.target.value))} style={{ ...S.input, width: 45, padding: "2px 4px", textAlign: "center" }} /> %
                         </div>
                       </td>
-                      <td style={{ padding: "4px 6px", color: T.red }}>
+                      <td style={{ padding: "4px 6px", color: T.txMut }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                           <input type="number" value={bl.discount} onChange={e => updateBlockField(bl.id, "discount", Number(e.target.value))} style={{ ...S.input, width: 45, padding: "2px 4px", textAlign: "center" }} /> %
                         </div>
                       </td>
-                      <td style={{ padding: "4px 6px", fontWeight: 700, color: T.amber }}>{fmt(total)}</td>
+                      <td style={{ padding: "4px 6px", fontWeight: 700, color: T.txPri }}>{fmt(total)}</td>
                     </tr>
                   );
                 })}
                 {/* Subtotals */}
                 {implBlocks.length > 0 && (
-                  <tr style={{ borderTop: `2px solid ${T.blue}40` }}>
-                    <td colSpan={6} style={{ padding: "4px 6px", fontWeight: 700, color: T.blue, fontSize: 10 }}>Subtotal CAPEX</td>
-                    <td style={{ padding: "4px 6px", fontWeight: 900, color: T.blue }}>{fmt(totals.totalCapex)}</td>
+                  <tr style={{ borderTop: `2px solid ${T.brBase}` }}>
+                    <td colSpan={6} style={{ padding: "4px 6px", fontWeight: 600, color: T.txSec, fontSize: 11 }}>Subtotal CAPEX</td>
+                    <td style={{ padding: "4px 6px", fontWeight: 700, color: T.txPri }}>{fmt(totals.totalCapex)}</td>
                   </tr>
                 )}
                 {operBlocks.length > 0 && (
-                  <tr style={{ borderTop: `2px solid ${T.green}40` }}>
-                    <td colSpan={6} style={{ padding: "4px 6px", fontWeight: 700, color: T.green, fontSize: 10 }}>Subtotal OPEX</td>
-                    <td style={{ padding: "4px 6px", fontWeight: 900, color: T.green }}>{fmt(totals.totalOpex)}</td>
+                  <tr style={{ borderTop: `2px solid ${T.brBase}` }}>
+                    <td colSpan={6} style={{ padding: "4px 6px", fontWeight: 600, color: T.txSec, fontSize: 11 }}>Subtotal OPEX</td>
+                    <td style={{ padding: "4px 6px", fontWeight: 700, color: T.txPri }}>{fmt(totals.totalOpex)}</td>
                   </tr>
                 )}
-                <tr style={{ borderTop: `2px solid ${T.amber}`, background: T.bg3 }}>
-                  <td colSpan={6} style={{ padding: "6px", fontWeight: 900, color: T.amber, fontSize: 12 }}>TOTAL GERAL</td>
-                  <td style={{ padding: "6px", fontWeight: 900, color: T.amber, fontSize: 14 }}>{fmt(totals.totalGeral)}</td>
+                <tr style={{ borderTop: `2px solid ${T.brStrong}`, background: T.bg3 }}>
+                  <td colSpan={6} style={{ padding: "6px", fontWeight: 700, color: T.txPri, fontSize: 12 }}>Total geral</td>
+                  <td style={{ padding: "6px", fontWeight: 700, color: T.txPri, fontSize: 15 }}>{fmt(totals.totalGeral)}</td>
                 </tr>
               </tbody>
             </table>
@@ -827,14 +835,16 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
 
           {/* Detalhamento por bloco */}
           {activeBudget.blocos.map(bl => (
-            <div key={bl.id} style={{ ...S.card, borderLeft: `3px solid ${bl.sharingCor}` }}>
-              <div style={{ fontWeight: 700, fontSize: 10, color: bl.sharingCor, marginBottom: 6 }}>
-                {bl.sharingNome} — {bl.tipo === "implantacao" ? "Implantação" : "Operação"} ({bl.itens.length} itens)
+            <div key={bl.id} style={S.card}>
+              <div style={{ fontSize: 12, marginBottom: 6, display: "flex", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                <span style={{ fontWeight: 700, color: bl.sharingCor }}>{bl.sharingNome}</span>
+                <span style={{ color: T.txSec }}>{bl.tipo === "implantacao" ? "Implantação" : "Operação"}</span>
+                <span style={{ color: T.txMut, fontSize: 11 }}>{bl.itens.length} itens</span>
               </div>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 9 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                 <thead><tr style={{ borderBottom: `1px solid ${T.brBase}` }}>
-                  {["ITEM", "CATEGORIA", "DESCRIÇÃO", "CONFIG.", "QTD", "UNID", "VL UNITÁRIO", "DESC. R$", "VL UNIT. C/DESC", "VL TOTAL"].map(h => (
-                    <th key={h} style={{ padding: "3px 4px", textAlign: h.startsWith("VL") ? "right" : "left", color: T.txMut, fontWeight: 700, fontSize: 8 }}>{h}</th>
+                  {["Item", "Categoria", "Descrição", "Config.", "Qtd", "Unid", "Vl. unitário", "Desc. R$", "Vl. unit. c/ desc.", "Vl. total"].map(h => (
+                    <th key={h} style={{ padding: "3px 4px", textAlign: h.startsWith("Vl.") ? "right" : "left", color: T.txMut, fontWeight: 600, fontSize: 11 }}>{h}</th>
                   ))}
                 </tr></thead>
                 <tbody>
@@ -842,23 +852,23 @@ export default function TabOrcamentoV2({ dbImpl, dbOp, dbHighline, onSaveBudget,
                     const itemFinance = calcItemFinancials(item);
                     return (
                     <tr key={item.id} style={{ borderBottom: `1px solid ${T.brSub}`, background: i % 2 ? T.bg1 + "50" : "transparent" }}>
-                      <td style={{ padding: "4px 4px", color: T.blue, fontWeight: 700 }}>{String(i + 1).padStart(2, "0")}</td>
-                      <td style={{ padding: "4px 4px", color: T.txMut }}>{item.categoria?.toUpperCase() || "GERAL"}</td>
+                      <td style={{ padding: "4px 4px", color: T.txMut, fontWeight: 600 }}>{String(i + 1).padStart(2, "0")}</td>
+                      <td style={{ padding: "4px 4px", color: T.txMut }}>{item.categoria || "Geral"}</td>
                       <td style={{ padding: "4px 4px", color: T.txSec, maxWidth: 220, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={item.descricao}>{item.descricao}</td>
                       <td style={{ padding: "4px 4px", color: T.txMut }}>{item.config || "—"}</td>
                       <td style={{ padding: "4px 4px", textAlign: "center" }}>{item.qtde}</td>
                       <td style={{ padding: "4px 4px", textAlign: "center" }}>{item.unid}</td>
                       <td style={{ padding: "4px 4px", textAlign: "right", color: T.txSec }}>{fmt(itemFinance.unitBase)}</td>
-                      <td style={{ padding: "4px 4px", textAlign: "right", color: T.red }}>{fmt(itemFinance.discountUnit)}</td>
-                      <td style={{ padding: "4px 4px", textAlign: "right", color: T.green }}>{fmt(itemFinance.unitNet)}</td>
-                      <td style={{ padding: "4px 4px", textAlign: "right", fontWeight: 700, color: T.amber }}>{fmt(itemFinance.totalNet)}</td>
+                      <td style={{ padding: "4px 4px", textAlign: "right", color: itemFinance.discountUnit > 0 ? T.txSec : T.txMut }}>{itemFinance.discountUnit > 0 ? fmt(itemFinance.discountUnit) : "—"}</td>
+                      <td style={{ padding: "4px 4px", textAlign: "right", color: T.txSec }}>{fmt(itemFinance.unitNet)}</td>
+                      <td style={{ padding: "4px 4px", textAlign: "right", fontWeight: 700, color: T.txPri }}>{fmt(itemFinance.totalNet)}</td>
                     </tr>
                   )})}
                 </tbody>
               </table>
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4, fontSize: 10 }}>
-                <span style={{ color: T.txMut }}>Total com BDI/Lucro/Desc: </span>
-                <span style={{ fontWeight: 900, color: bl.sharingCor, marginLeft: 8 }}>{fmt(calcBlocoTotal(bl))}</span>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 4, fontSize: 11 }}>
+                <span style={{ color: T.txMut }}>Total com BDI, lucro e desconto</span>
+                <span style={{ fontWeight: 700, color: T.txPri, marginLeft: 8 }}>{fmt(calcBlocoTotal(bl))}</span>
               </div>
             </div>
           ))}

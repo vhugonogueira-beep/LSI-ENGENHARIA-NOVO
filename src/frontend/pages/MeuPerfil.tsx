@@ -83,15 +83,15 @@ export default function MeuPerfil() {
   return (
     <main className="mx-auto max-w-5xl space-y-4 p-5">
       <div>
-        <h1 className="text-xl font-extrabold text-[hsl(var(--titulo))]">Meu perfil</h1>
+        <h1 className="text-xl font-bold text-[hsl(var(--titulo))]">Meu perfil</h1>
         <p className="mt-1 text-xs text-muted-foreground">
           Dados e preferências pertencem ao seu usuário, não à configuração da LS Office.
         </p>
       </div>
 
       {(erro || mensagem) && (
-        <div className={`rounded-lg border px-3 py-2 text-xs ${
-          erro ? 'border-red-500/40 bg-red-500/10 text-red-400' : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'
+        <div role={erro ? 'alert' : 'status'} className={`rounded-lg border px-3 py-2 text-xs ${
+          erro ? 'border-crit/40 bg-crit/10 text-crit' : 'border-ok/40 bg-ok/10 text-ok'
         }`}>
           {erro || mensagem}
         </div>
@@ -102,6 +102,7 @@ export default function MeuPerfil() {
           <button
             key={id}
             onClick={() => setAba(id)}
+            aria-pressed={aba === id}
             className={`rounded-lg border px-4 py-2 text-xs font-bold ${
               aba === id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-card text-foreground'
             }`}
@@ -114,7 +115,7 @@ export default function MeuPerfil() {
       {aba === 'dados' && (
         <section className="rounded-xl border border-border bg-card p-5">
           <h2 className="mb-4 flex items-center gap-2 text-sm font-bold">
-            <UserRound size={16} />Dados pessoais e profissionais
+            <UserRound size={16} aria-hidden />Dados pessoais e profissionais
           </h2>
           {!perfil ? (
             <p className="text-xs text-muted-foreground">Carregando...</p>
@@ -147,7 +148,7 @@ export default function MeuPerfil() {
                     onChange={e => setPerfil({ ...perfil, email_cc_padrao: e.target.value })} />
                 </Campo>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Somado aos destinatários de Configurações → Comunicação nas solicitações de pagamento, reembolso e faturamento.
+                  Somado aos destinatários definidos em Configurações, aba Comunicação, nas solicitações de pagamento, reembolso e faturamento.
                 </p>
               </div>
 
@@ -164,7 +165,7 @@ export default function MeuPerfil() {
       {aba === 'acesso' && (
         <section className="rounded-xl border border-border bg-card p-5">
           <h2 className="mb-4 flex items-center gap-2 text-sm font-bold">
-            <KeyRound size={16} />Alterar senha
+            <KeyRound size={16} aria-hidden />Alterar senha
           </h2>
           <div className="grid max-w-2xl gap-4 md:grid-cols-2">
             <Campo rotulo="Senha atual">
@@ -211,7 +212,7 @@ function MeuAcesso() {
         : 'Você solicita pagamentos sem aprovação prévia.';
   return (
     <section className="rounded-xl border border-border bg-card p-5">
-      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold"><ShieldCheck size={16} />O que você pode fazer</h2>
+      <h2 className="mb-3 flex items-center gap-2 text-sm font-bold"><ShieldCheck size={16} aria-hidden />O que você pode fazer</h2>
       <p className="mb-3 text-xs text-muted-foreground">Você vê o sistema inteiro. As ações abaixo foram liberadas pelo administrador.</p>
       <div className="flex flex-wrap gap-1.5">
         {admin
@@ -227,8 +228,8 @@ function MeuAcesso() {
 
 function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
-    <label className="space-y-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-      <span>{rotulo}</span>
+    <label className="block space-y-1.5 text-xs font-semibold text-muted-foreground">
+      <span className="block">{rotulo}</span>
       {children}
     </label>
   );

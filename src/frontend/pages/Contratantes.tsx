@@ -108,9 +108,9 @@ export function Contratantes() {
         <div className="p-8">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-3xl font-bold">Contratantes</h2>
-                <button onClick={() => setIsModalOpen(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">Novo Contratante</button>
+                <button onClick={() => setIsModalOpen(true)} className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90">Novo contratante</button>
             </div>
-            <div className="bg-card rounded-lg shadow-sm border p-6">
+            <div className="bg-card rounded-lg border p-6">
                 {loading ? <p>Carregando...</p> : (
                     <table className="w-full text-left">
                         <thead>
@@ -125,12 +125,12 @@ export function Contratantes() {
                             {items.map(c => (
                                 <tr key={c.id} className="border-b">
                                     <td className="py-4">
-                                        {c.logo_url ? <img src={c.logo_url} alt="Logo" className="h-8 object-contain" /> : <span className="text-muted-foreground text-sm">Sem logo</span>}
+                                        {c.logo_url ? <img src={c.logo_url} alt="Logo" className="h-8 object-contain" /> : <span className="text-muted-foreground text-sm">—</span>}
                                     </td>
                                     <td className="py-4 font-medium">{c.nome}</td>
-                                    <td className="py-4">{c.contato_nome}</td>
+                                    <td className="py-4">{c.contato_nome || <span className="text-muted-foreground">—</span>}</td>
                                     <td className="py-4 text-right">
-                                        <button onClick={() => handleUpdateLogo(c.id)} className="text-primary hover:underline text-sm mr-4">Trocar Logo</button>
+                                        <button onClick={() => handleUpdateLogo(c.id)} className="text-primary hover:underline text-sm mr-4">Trocar logo</button>
                                         <button className="text-primary hover:underline text-sm">Editar</button>
                                     </td>
                                 </tr>
@@ -146,12 +146,13 @@ export function Contratantes() {
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-background rounded-lg shadow-lg p-6 w-full max-w-md">
-                        <h3 className="text-xl font-bold mb-4">Novo Contratante</h3>
+                        <h3 className="text-xl font-bold mb-4">Novo contratante</h3>
                         <form onSubmit={handleCreateContratante} className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium mb-1">Nome da Empresa</label>
+                                <label htmlFor="contratante-nome" className="block text-sm font-medium mb-1">Nome da empresa</label>
                                 <input
                                     type="text"
+                                    id="contratante-nome"
                                     value={novoNome}
                                     onChange={e => setNovoNome(e.target.value)}
                                     className="w-full border rounded-md p-2"
@@ -159,18 +160,20 @@ export function Contratantes() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">Contato (Nome)</label>
+                                <label htmlFor="contratante-contato" className="block text-sm font-medium mb-1">Nome do contato</label>
                                 <input
                                     type="text"
+                                    id="contratante-contato"
                                     value={novoContato}
                                     onChange={e => setNovoContato(e.target.value)}
                                     className="w-full border rounded-md p-2"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium mb-1">URL da Logo (Opcional)</label>
+                                <label htmlFor="contratante-logo" className="block text-sm font-medium mb-1">URL do logo (opcional)</label>
                                 <input
                                     type="text"
+                                    id="contratante-logo"
                                     value={novaLogo}
                                     onChange={e => setNovaLogo(e.target.value)}
                                     placeholder="https://..."

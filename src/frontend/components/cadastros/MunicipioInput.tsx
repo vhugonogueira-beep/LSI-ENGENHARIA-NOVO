@@ -65,7 +65,7 @@ export default function MunicipioInput({ uf, value, onChange, className, require
                 {municipios.map(m => <option key={m.codigo_ibge} value={m.nome} />)}
             </datalist>
             {foraDaBase && (
-                <span className="mt-1 block text-[11px] text-amber-500">Não consta na base IBGE de {uf} — confira a grafia.</span>
+                <span className="mt-1 block text-[11px] text-warn">Não consta na base IBGE de {uf} — confira a grafia.</span>
             )}
         </>
     );

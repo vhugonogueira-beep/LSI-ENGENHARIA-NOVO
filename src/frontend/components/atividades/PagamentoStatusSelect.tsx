@@ -3,24 +3,25 @@ export const PAGAMENTO_STATUS = [
     'PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO',
 ] as const;
 
-const COR_STATUS: Record<string, string> = {
-    PENDENTE: '#94a3b8',
-    SOLICITADO: '#f59e0b',
-    ENVIADO_FINANCEIRO: '#1768D5',
-    AGUARDANDO_PAGAMENTO: '#1768D5',
-    PAGO: '#22c55e',
-    COMPROVANTE_RECEBIDO: '#22c55e',
-    CONFERIDO: '#22d3ee',
+// Tokens de estado (index.css), não hex: acompanham o tema claro/escuro.
+const TOM_STATUS: Record<string, string> = {
+    PENDENTE: 'bg-muted text-muted-foreground',
+    SOLICITADO: 'bg-warn/15 text-warn',
+    ENVIADO_FINANCEIRO: 'bg-primary/15 text-primary',
+    AGUARDANDO_PAGAMENTO: 'bg-primary/15 text-primary',
+    PAGO: 'bg-ok/15 text-ok',
+    COMPROVANTE_RECEBIDO: 'bg-ok/15 text-ok',
+    CONFERIDO: 'bg-info/15 text-info',
 };
 
 const ROTULO_STATUS: Record<string, string> = {
-    PENDENTE: 'PENDENTE',
-    SOLICITADO: 'SOLICITADO',
-    ENVIADO_FINANCEIRO: 'ENVIADO AO FINANCEIRO',
-    AGUARDANDO_PAGAMENTO: 'AGUARDANDO PAGAMENTO',
-    PAGO: 'PAGO',
-    COMPROVANTE_RECEBIDO: 'COMPROVANTE RECEBIDO',
-    CONFERIDO: 'CONFERIDO',
+    PENDENTE: 'Pendente',
+    SOLICITADO: 'Solicitado',
+    ENVIADO_FINANCEIRO: 'Enviado ao financeiro',
+    AGUARDANDO_PAGAMENTO: 'Aguardando pagamento',
+    PAGO: 'Pago',
+    COMPROVANTE_RECEBIDO: 'Comprovante recebido',
+    CONFERIDO: 'Conferido',
 };
 
 export default function PagamentoStatusSelect({
@@ -30,14 +31,14 @@ export default function PagamentoStatusSelect({
     onChange: (status: string) => void;
     disabled?: boolean;
 }) {
-    const cor = COR_STATUS[value] || '#94a3b8';
+    const tom = TOM_STATUS[value] || TOM_STATUS.PENDENTE;
     return (
         <select
             value={value}
             disabled={disabled}
             onChange={e => onChange(e.target.value)}
-            className="h-7 min-w-[172px] rounded border-0 px-2 text-[10px] font-bold outline-none disabled:opacity-50"
-            style={{ backgroundColor: `${cor}22`, color: cor }}
+            aria-label="Status do pagamento"
+            className={`h-7 min-w-[172px] rounded-md border-0 px-2 text-xs font-semibold disabled:opacity-50 ${tom}`}
         >
             {PAGAMENTO_STATUS.map(status => (
                 <option key={status} value={status}>{ROTULO_STATUS[status]}</option>

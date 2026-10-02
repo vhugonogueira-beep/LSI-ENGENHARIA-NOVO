@@ -1,4 +1,5 @@
 import React from 'react';
+import { fmtMoeda } from './constants';
 
 export function Card({ title, action, children }: { title?: string; action?: React.ReactNode; children: React.ReactNode }) {
     return (
@@ -55,11 +56,24 @@ export function ErrorBanner({ message }: { message: string }) {
     return <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{message}</div>;
 }
 
+/** Ausência não tem cor: zero, vazio e "sem dado" saem como "—" apagado. */
+export function Vazio() {
+    return <span className="text-muted-foreground font-normal">—</span>;
+}
+
+const vazio = (v: React.ReactNode) => v == null || v === '' || v === '—' || v === false;
+
+/** Dinheiro neutro; zero ou nulo vira "—". */
+export function Dinheiro({ v, className }: { v?: number | null; className?: string }) {
+    if (!v) return <Vazio />;
+    return <span className={className}>{fmtMoeda(v)}</span>;
+}
+
 export function Row({ label, value }: { label: string; value: React.ReactNode }) {
     return (
         <div className="flex justify-between items-center py-1.5 border-b border-border/60 last:border-0">
             <span className="text-xs text-muted-foreground">{label}</span>
-            <span className="text-sm font-medium text-right">{value ?? '—'}</span>
+            <span className="text-sm font-medium text-right">{vazio(value) ? <Vazio /> : value}</span>
         </div>
     );
 }

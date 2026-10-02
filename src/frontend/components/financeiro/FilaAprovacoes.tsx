@@ -53,10 +53,10 @@ export default function FilaAprovacoes({ onDecidido }: { onDecidido?: () => void
     const total = pendentes.reduce((s, p) => s + p.valor, 0);
 
     return (
-        <div className={`rounded-xl border p-4 ${pendentes.length ? 'border-amber-500/40 bg-amber-500/[0.06]' : 'border-border bg-card'}`}>
+        <div className={`rounded-xl border p-4 ${pendentes.length ? 'border-warn/40 bg-warn/[0.06]' : 'border-border bg-card'}`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-sm font-bold">
-                    <Clock size={16} className={pendentes.length ? 'text-amber-500' : 'text-muted-foreground'} />
+                    <Clock size={16} aria-hidden className={pendentes.length ? 'text-warn' : 'text-muted-foreground'} />
                     {pendentes.length
                         ? `${pendentes.length} pagamento(s) aguardando aprovação — ${moeda(total)}`
                         : podeAprovar ? 'Nenhum pagamento aguardando aprovação' : 'Seus pedidos de aprovação'}
@@ -75,20 +75,20 @@ export default function FilaAprovacoes({ onDecidido }: { onDecidido?: () => void
                         <div key={p.id} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2.5">
                             <div className="min-w-0">
                                 <div className="text-[13px] font-semibold">{p.descricao}</div>
-                                <div className="text-[11px] text-muted-foreground">
-                                    Pedido por {p.solicitante.nome} em {data(p.created_at)}
-                                    {p.atividade?.id_site_sharing ? ` · site ${p.atividade.id_site_sharing}` : ''}
+                                <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+                                    <span>Pedido por {p.solicitante.nome} em {data(p.created_at)}</span>
+                                    {p.atividade?.id_site_sharing && <span>Site <span className="font-id">{p.atividade.id_site_sharing}</span></span>}
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="text-sm font-bold">{moeda(p.valor)}</span>
                                 {podeAprovar && p.solicitante_id !== sessao?.id ? (
                                     <>
-                                        <button onClick={() => decidir(p, 'APROVADA')} className="flex h-8 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white"><Check size={14} /> Aprovar</button>
-                                        <button onClick={() => decidir(p, 'RECUSADA')} className="flex h-8 items-center gap-1 rounded-lg border border-red-500/40 px-3 text-xs font-bold text-red-500"><X size={14} /> Recusar</button>
+                                        <button onClick={() => decidir(p, 'APROVADA')} className="flex h-8 items-center gap-1 rounded-lg bg-ok px-3 text-xs font-semibold text-background"><Check size={14} aria-hidden /> Aprovar</button>
+                                        <button onClick={() => decidir(p, 'RECUSADA')} className="flex h-8 items-center gap-1 rounded-lg border border-crit/40 px-3 text-xs font-semibold text-crit"><X size={14} aria-hidden /> Recusar</button>
                                     </>
                                 ) : (
-                                    <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-bold text-amber-500">AGUARDANDO</span>
+                                    <span className="rounded-full bg-warn/15 px-2 py-0.5 text-[11px] font-semibold text-warn">Aguardando</span>
                                 )}
                             </div>
                         </div>
@@ -99,14 +99,18 @@ export default function FilaAprovacoes({ onDecidido }: { onDecidido?: () => void
             {mostrarDecididos && (
                 <div className="mt-3 space-y-1.5">
                     {decididos.map(p => (
-                        <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-secondary/30 px-3 py-2 text-[12px]">
+                        <div key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-secondary/30 px-3 py-2 text-xs">
                             <span className="min-w-0">
-                                <b className={p.status === 'APROVADA' ? 'text-emerald-500' : 'text-red-500'}>{p.status === 'APROVADA' ? 'Aprovado' : 'Recusado'}</b>
-                                {' · '}{p.descricao} · {moeda(p.valor)}
-                                <span className="block text-[11px] text-muted-foreground">
-                                    {p.solicitante.nome} → {p.decisor?.nome || '—'}{p.decidido_em ? ` em ${data(p.decidido_em)}` : ''}
-                                    {p.motivo_decisao ? ` — "${p.motivo_decisao}"` : ''}
-                                    {p.status === 'APROVADA' ? ' · agora é só repetir a solicitação' : ''}
+                                <span className="flex flex-wrap gap-x-3">
+                                    <b className={p.status === 'APROVADA' ? 'text-ok' : 'text-crit'}>{p.status === 'APROVADA' ? 'Aprovado' : 'Recusado'}</b>
+                                    <span>{p.descricao}</span>
+                                    <span className="font-semibold">{moeda(p.valor)}</span>
+                                </span>
+                                <span className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
+                                    <span>Pedido por {p.solicitante.nome}</span>
+                                    <span>Decidido por {p.decisor?.nome || '—'}{p.decidido_em ? ` em ${data(p.decidido_em)}` : ''}</span>
+                                    {p.motivo_decisao && <span>Motivo: "{p.motivo_decisao}"</span>}
+                                    {p.status === 'APROVADA' && <span>Agora é só repetir a solicitação.</span>}
                                 </span>
                             </span>
                         </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Download, FileText, Paperclip, Trash2 } from 'lucide-react';
+import { Check, Download, FileText, Paperclip, Trash2 } from 'lucide-react';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -92,21 +92,22 @@ export default function PaymentAttachments({ ownerType, ownerId, requiresFiscal 
 
   return (
     <div className="mt-2 rounded-lg border border-border/70 bg-background/30 p-2">
-      <div className="flex flex-wrap items-center gap-2 text-[10px]">
-        <Paperclip size={12} />
+      <div className="flex flex-wrap items-center gap-2 text-[11px]">
+        <Paperclip size={14} aria-hidden />
         <strong>Documentos</strong>
 
-        <span className={temComprovante ? 'text-emerald-400' : 'text-amber-400'}>
-          {temComprovante ? '✓ Comprovante' : 'Comprovante pendente'}
+        <span className={`inline-flex items-center gap-1 ${temComprovante ? 'text-ok' : 'text-warn'}`}>
+          {temComprovante ? <><Check size={14} aria-hidden />Comprovante</> : 'Comprovante pendente'}
         </span>
         {requiresFiscal && (
-          <span className={temFiscal ? 'text-emerald-400' : 'text-amber-400'}>
-            {temFiscal ? '✓ Documento fiscal' : 'Documento fiscal pendente'}
+          <span className={`inline-flex items-center gap-1 ${temFiscal ? 'text-ok' : 'text-warn'}`}>
+            {temFiscal ? <><Check size={14} aria-hidden />Documento fiscal</> : 'Documento fiscal pendente'}
           </span>
         )}
 
         <select
           className="ml-auto h-7 rounded border border-border bg-secondary px-2"
+          aria-label="Tipo do documento a anexar"
           value={tipoUpload}
           onChange={e => setTipoUpload(e.target.value as TipoUpload)}
         >
@@ -114,7 +115,7 @@ export default function PaymentAttachments({ ownerType, ownerId, requiresFiscal 
           <option value="DOCUMENTO_FISCAL">Nota fiscal / documento fiscal</option>
           <option value="OUTRO_DOCUMENTO">Foto, orçamento, OS e outros</option>
         </select>
-        <button className="h-7 rounded border border-border px-2 font-bold" onClick={() => seletor.current?.click()}>
+        <button className="h-7 rounded border border-border px-2 font-semibold" onClick={() => seletor.current?.click()}>
           Anexar arquivos
         </button>
         <input
@@ -130,7 +131,7 @@ export default function PaymentAttachments({ ownerType, ownerId, requiresFiscal 
         />
       </div>
 
-      {erro && <div className="mt-2 text-[10px] text-red-400">{erro}</div>}
+      {erro && <div className="mt-2 text-[11px] text-crit">{erro}</div>}
 
       {(docs.length > 0 || comprovanteLegado) && (
         <div className="mt-2 flex flex-wrap gap-2">
@@ -140,26 +141,27 @@ export default function PaymentAttachments({ ownerType, ownerId, requiresFiscal 
               target="_blank"
               rel="noreferrer"
               title="Comprovante anexado antes desta faixa existir"
-              className="inline-flex items-center gap-1 rounded border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] text-emerald-400"
+              className="inline-flex items-center gap-1 rounded border border-ok/30 bg-ok/10 px-2 py-1 text-[11px] text-ok"
             >
-              <FileText size={11} />
+              <FileText size={14} aria-hidden />
               Comprovante (arquivo anterior)
-              <Download size={11} />
+              <Download size={14} aria-hidden />
             </a>
           )}
           {docs.map(doc => (
-            <span key={doc.id} className="inline-flex items-center gap-1 rounded border border-border bg-secondary px-2 py-1 text-[10px]">
-              <FileText size={11} />
+            <span key={doc.id} className="inline-flex items-center gap-1 rounded border border-border bg-secondary px-2 py-1 text-[11px]">
+              <FileText size={14} aria-hidden />
               <span className="text-muted-foreground">{ROTULO_TIPO[doc.tipo] || doc.tipo}</span>
               {doc.nome_original}
               <button
-                title="Baixar"
+                title="Baixar anexo"
+                aria-label={`Baixar ${doc.nome_original}`}
                 onClick={() => downloadAuthenticatedFile(`/api/payment-attachments/${doc.id}/download`, doc.nome_original)}
               >
-                <Download size={11} />
+                <Download size={14} aria-hidden />
               </button>
-              <button title="Remover" className="text-red-400" onClick={() => remover(doc.id)}>
-                <Trash2 size={11} />
+              <button title="Remover anexo" aria-label={`Remover ${doc.nome_original}`} className="text-crit" onClick={() => remover(doc.id)}>
+                <Trash2 size={14} aria-hidden />
               </button>
             </span>
           ))}

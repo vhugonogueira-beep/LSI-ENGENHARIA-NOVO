@@ -129,17 +129,17 @@ export default function Clientes() {
   return (
     <main className="space-y-4 p-5">
       <div>
-        <h1 className="text-xl font-extrabold text-[hsl(var(--titulo))]">Clientes</h1>
+        <h1 className="text-xl font-bold text-[hsl(var(--titulo))]">Clientes</h1>
         <p className="mt-1 text-xs text-muted-foreground">
           Cadastro mestre de clientes, sharings e operadoras. Os logos usados nos documentos passam a sair daqui.
         </p>
       </div>
 
-      {erro && <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-xs text-red-400">{erro}</div>}
+      {erro && <div className="rounded-lg border border-crit/40 bg-crit/10 p-3 text-xs text-crit">{erro}</div>}
 
-      <section className="rounded-xl border border-border bg-card p-4">
+      <section className="rounded-lg border border-border bg-card p-4">
         <h2 className="mb-4 flex items-center gap-2 text-sm font-bold">
-          <Plus size={15} />{editando ? 'Editar cliente' : 'Novo cliente'}
+          <Plus size={15} aria-hidden />{editando ? 'Editar cliente' : 'Novo cliente'}
         </h2>
         <div className="grid gap-3 md:grid-cols-4">
           <Campo rotulo="Nome *">
@@ -158,7 +158,7 @@ export default function Clientes() {
           </Campo>
 
           <Campo rotulo="CNPJ">
-            <input className={inputClass} value={form.cnpj || ''} onChange={e => setForm({ ...form, cnpj: e.target.value })} />
+            <input className={`${inputClass} font-id`} value={form.cnpj || ''} onChange={e => setForm({ ...form, cnpj: e.target.value })} />
           </Campo>
           <Campo rotulo="Contato">
             <input className={inputClass} value={form.contato_nome || ''} onChange={e => setForm({ ...form, contato_nome: e.target.value })} />
@@ -190,7 +190,7 @@ export default function Clientes() {
               disabled={!form.nome.trim()}
               onClick={salvar}
             >
-              <Save size={14} />Salvar
+              <Save size={14} aria-hidden />Salvar
             </button>
             {editando && (
               <button className="h-9 rounded-lg border border-border px-3 text-xs" onClick={cancelarEdicao}>Cancelar</button>
@@ -201,7 +201,7 @@ export default function Clientes() {
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">
-          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={14} aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             className={`${inputClass} pl-9 pr-8`}
             placeholder="Buscar por nome, razão social, sigla ou CNPJ..."
@@ -209,8 +209,8 @@ export default function Clientes() {
             onChange={e => setBusca(e.target.value)}
           />
           {busca && (
-            <button onClick={() => setBusca('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X size={13} />
+            <button onClick={() => setBusca('')} aria-label="Limpar busca" title="Limpar busca" className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X size={14} aria-hidden />
             </button>
           )}
         </div>
@@ -246,7 +246,7 @@ export default function Clientes() {
             // um cadastro desligado que parece ativo volta a ser usado por engano.
             <article
               key={item.id}
-              className={`rounded-xl border bg-card p-4 ${item.ativo ? 'border-border' : 'border-border/50 opacity-60'}`}
+              className={`rounded-lg border bg-card p-4 ${item.ativo ? 'border-border' : 'border-border/50 opacity-60'}`}
             >
               <div className="flex gap-3">
                 <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg bg-white p-2">
@@ -258,16 +258,16 @@ export default function Clientes() {
                   <div className="flex items-center gap-2">
                     <span className="truncate text-sm font-bold">{item.nome}</span>
                     {!item.ativo && (
-                      <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-muted-foreground">
+                      <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
                         Inativo
                       </span>
                     )}
                   </div>
-                  <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-primary">
+                  <div className="mt-1 text-[11px] font-semibold text-primary">
                     {TIPO_ROTULO[item.tipo] || item.tipo}
                   </div>
                   <div className="mt-1 truncate text-[11px] text-muted-foreground">
-                    {item.razao_social || item.cnpj || 'Sem dados fiscais'}
+                    {item.razao_social || (item.cnpj ? <span className="font-id">{item.cnpj}</span> : 'Sem dados fiscais')}
                   </div>
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function Clientes() {
                   Editar
                 </button>
                 <label className="inline-flex h-8 cursor-pointer items-center gap-2 rounded-lg border border-border px-3 text-xs font-bold">
-                  <ImageUp size={13} />Logo
+                  <ImageUp size={14} aria-hidden />Enviar logo
                   <input
                     type="file"
                     accept="image/*,.svg"
@@ -302,7 +302,7 @@ export default function Clientes() {
 
 function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
-    <label className="space-y-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+    <label className="space-y-1 text-[11px] font-semibold text-muted-foreground">
       <span>{rotulo}</span>
       {children}
     </label>

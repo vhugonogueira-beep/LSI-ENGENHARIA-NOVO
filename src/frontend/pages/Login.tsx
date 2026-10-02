@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 // Paleta unica do sistema, com tema claro e escuro.
 import { T as T0 } from '../theme';
+import { HardHat, Eye, EyeOff, AlertTriangle } from 'lucide-react';
 
 interface LoginProps {
     onLogin: (token: string, user: { nome: string; email: string; role: string }) => void;
@@ -65,7 +66,6 @@ export default function Login({ onLogin }: LoginProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontFamily: "'Inter', 'Segoe UI', sans-serif",
         }}>
             <div style={{
                 width: 420,
@@ -73,7 +73,6 @@ export default function Login({ onLogin }: LoginProps) {
                 border: `1px solid ${T.border}`,
                 borderRadius: 16,
                 padding: '40px 36px',
-                boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
             }}>
                 {/* Logo / Marca */}
                 <div style={{ textAlign: 'center', marginBottom: 32 }}>
@@ -83,14 +82,14 @@ export default function Login({ onLogin }: LoginProps) {
                         justifyContent: 'center',
                         width: 56,
                         height: 56,
-                        background: `linear-gradient(135deg, ${T.accent}, #1F4FA8)`,
+                        background: T.accent,
+                        color: '#fff',
                         borderRadius: 14,
                         marginBottom: 16,
-                        fontSize: 26,
                     }}>
-                        🏗️
+                        <HardHat size={28} aria-hidden />
                     </div>
-                    <h1 style={{ color: T.tx, fontSize: 22, fontWeight: 700, margin: 0 }}>
+                    <h1 style={{ color: T.tx, fontSize: 24, fontWeight: 700, margin: 0 }}>
                         LS Office ERP
                     </h1>
                     <p style={{ color: T.txSub, fontSize: 13, margin: '6px 0 0' }}>
@@ -101,11 +100,13 @@ export default function Login({ onLogin }: LoginProps) {
                 {/* Formulário */}
                 <form onSubmit={handleSubmit}>
                     <div style={{ marginBottom: 18 }}>
-                        <label style={{ display: 'block', color: T.txSub, fontSize: 12, fontWeight: 600, marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        <label htmlFor="login-email" style={{ display: 'block', color: T.txSub, fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
                             E-mail
                         </label>
                         <input
+                            id="login-email"
                             type="email"
+                            autoComplete="username"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             placeholder="seu@email.com"
@@ -118,7 +119,7 @@ export default function Login({ onLogin }: LoginProps) {
                                 border: `1px solid ${erro ? T.error : T.border}`,
                                 borderRadius: 8,
                                 color: T.tx,
-                                fontSize: 14,
+                                fontSize: 15,
                                 outline: 'none',
                                 boxSizing: 'border-box',
                                 transition: 'border-color 0.2s',
@@ -129,11 +130,13 @@ export default function Login({ onLogin }: LoginProps) {
                     </div>
 
                     <div style={{ marginBottom: 24 }}>
-                        <label style={{ display: 'block', color: T.txSub, fontSize: 12, fontWeight: 600, marginBottom: 6, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                        <label htmlFor="login-senha" style={{ display: 'block', color: T.txSub, fontSize: 12, fontWeight: 600, marginBottom: 6 }}>
                             Senha
                         </label>
                         <div style={{ position: 'relative' }}>
                             <input
+                                id="login-senha"
+                                autoComplete="current-password"
                                 type={mostrarSenha ? 'text' : 'password'}
                                 value={senha}
                                 onChange={e => setSenha(e.target.value)}
@@ -146,7 +149,7 @@ export default function Login({ onLogin }: LoginProps) {
                                     border: `1px solid ${erro ? T.error : T.border}`,
                                     borderRadius: 8,
                                     color: T.tx,
-                                    fontSize: 14,
+                                    fontSize: 15,
                                     outline: 'none',
                                     boxSizing: 'border-box',
                                     transition: 'border-color 0.2s',
@@ -157,20 +160,23 @@ export default function Login({ onLogin }: LoginProps) {
                             <button
                                 type="button"
                                 onClick={() => setMostrarSenha(v => !v)}
+                                aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                                title={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'}
+                                aria-pressed={mostrarSenha}
                                 style={{
                                     position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
                                     background: 'none', border: 'none', cursor: 'pointer',
-                                    color: T.txSub, fontSize: 16, padding: 0,
+                                    color: T.txSub, padding: 0, display: 'inline-flex',
                                 }}
                             >
-                                {mostrarSenha ? '🙈' : '👁️'}
+                                {mostrarSenha ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}
                             </button>
                         </div>
                     </div>
 
                     {erro && (
-                        <div style={{
-                            background: 'rgba(248,113,113,0.1)',
+                        <div role="alert" style={{
+                            background: `${T.error}1a`,
                             border: `1px solid ${T.error}`,
                             borderRadius: 8,
                             padding: '10px 14px',
@@ -181,7 +187,8 @@ export default function Login({ onLogin }: LoginProps) {
                             alignItems: 'center',
                             gap: 8,
                         }}>
-                            ⚠️ {erro}
+                            <AlertTriangle size={16} aria-hidden style={{ flexShrink: 0 }} />
+                            {erro}
                         </div>
                     )}
 
@@ -191,11 +198,11 @@ export default function Login({ onLogin }: LoginProps) {
                         style={{
                             width: '100%',
                             padding: '11px 0',
-                            background: carregando ? '#2B4059' : T.accent,
+                            background: carregando ? T.border : T.accent,
                             border: 'none',
                             borderRadius: 8,
                             color: '#fff',
-                            fontSize: 14,
+                            fontSize: 15,
                             fontWeight: 600,
                             cursor: carregando ? 'not-allowed' : 'pointer',
                             transition: 'background 0.2s',
@@ -222,8 +229,8 @@ export default function Login({ onLogin }: LoginProps) {
 
             <style>{`
                 @keyframes spin { to { transform: rotate(360deg); } }
-                input::placeholder { color: #64778E; }
-                input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #182B43 inset !important; -webkit-text-fill-color: #EAF1FA !important; }
+                input::placeholder { color: ${T0.txDis}; }
+                input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px ${T.inputBg} inset !important; -webkit-text-fill-color: ${T.tx} !important; }
             `}</style>
         </div>
     );

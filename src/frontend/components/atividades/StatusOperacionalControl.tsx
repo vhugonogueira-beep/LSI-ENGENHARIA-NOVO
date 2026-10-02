@@ -75,9 +75,11 @@ export default function StatusOperacionalControl({
                 onClick={() => (aberto ? fechar() : setAberto(true))}
                 className="inline-flex items-center gap-1 rounded-full transition-opacity hover:opacity-80"
                 title="Alterar status operacional"
+                aria-label="Alterar status operacional"
+                aria-expanded={aberto}
             >
                 <StatusPill status={status} map={STATUS_OPERACIONAL} />
-                <ChevronDown size={13} style={{ color: T.txMut }} />
+                <ChevronDown size={14} style={{ color: T.txMut }} aria-hidden />
             </button>
 
             {aberto && (
@@ -85,7 +87,7 @@ export default function StatusOperacionalControl({
                     className="absolute right-0 z-30 mt-2 w-72 rounded-xl p-2 shadow-lg"
                     style={{ background: T.bg2, border: `1px solid ${T.brBase}` }}
                 >
-                    <div className="px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide" style={{ color: T.txMut }}>
+                    <div className="px-2 py-1.5 text-xs font-semibold" style={{ color: T.txMut }}>
                         Status operacional
                     </div>
 
@@ -104,7 +106,7 @@ export default function StatusOperacionalControl({
                                     color: atual ? T.txDis : T.txPri,
                                 }}
                             >
-                                <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: info.color }} />
+                                <span className="h-2 w-2 flex-shrink-0 rounded-full" style={{ background: info.color }} aria-hidden />
                                 <span className="flex-1">{info.label}</span>
                                 {atual && <span className="text-[11px]" style={{ color: T.txDis }}>atual</span>}
                             </button>
@@ -118,6 +120,7 @@ export default function StatusOperacionalControl({
                                 onChange={e => setObservacao(e.target.value)}
                                 rows={2}
                                 placeholder="Motivo (opcional) — fica no histórico"
+                                aria-label="Motivo da mudança de status"
                                 className="w-full resize-none rounded-lg px-2 py-1.5 text-sm outline-none"
                                 style={{ background: T.bg1, border: `1px solid ${T.brBase}`, color: T.txPri }}
                             />

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Check, Plus, X } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
 import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento } from './constants';
@@ -224,15 +225,15 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
         <div>
             <ErrorBanner message={erro} />
 
-            <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${lpuCliente ? 'border-primary/30 bg-primary/[0.05]' : 'border-amber-500/40 bg-amber-500/[0.07]'}`}>
-                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">LPU aplicada (preço ao cliente)</div>
+            <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${lpuCliente ? 'border-primary/30 bg-primary/[0.05]' : 'border-warn/40 bg-warn/[0.07]'}`}>
+                <div className="text-xs font-semibold text-muted-foreground">LPU aplicada (preço ao cliente)</div>
                 {lpuCliente ? (
                     <>
                         <div className="mt-0.5 font-semibold">{lpuCliente.nome}</div>
                         <div className="text-xs text-muted-foreground">Escolhida automaticamente: {lpuCliente.motivo}. Para mudar, ajuste a área e o cliente da base em Bases e LPUs.</div>
                     </>
                 ) : (
-                    <div className="mt-0.5 text-xs text-amber-500">Nenhuma LPU de cliente cadastrada para esta área — cadastre ou classifique uma em Bases e LPUs.</div>
+                    <div className="mt-0.5 text-xs text-warn">Nenhuma LPU de cliente cadastrada para esta área — cadastre ou classifique uma em Bases e LPUs.</div>
                 )}
             </div>
 
@@ -248,8 +249,8 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                 ) : (
                     <div>
                         {faltaContratante && (
-                            <div className="mb-3 p-3 rounded-lg border border-amber-500/40 bg-amber-500/10">
-                                <p className="text-xs text-amber-500 mb-2">
+                            <div className="mb-3 p-3 rounded-lg border border-warn/40 bg-warn/10">
+                                <p className="text-xs text-warn mb-2">
                                     Esta atividade ainda não tem Contratante — escolha aqui mesmo para liberar a criação do orçamento.
                                 </p>
                                 <div className="flex gap-2 items-end">
@@ -270,23 +271,23 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                         <div className="bg-secondary/40 border border-border rounded-lg p-4">
                             {precisaEscolherTipo && (
                                 <div className="mb-3">
-                                    <Field label="Tipo de Orçamento (Implantação · Highline)">
+                                    <Field label="Tipo de orçamento (Implantação Highline)">
                                         <select className={inputClass} value={tipoOrcamentoNovo} onChange={e => setTipoOrcamentoNovo(e.target.value)}>
                                             {TIPOS_ORCAMENTO.map(t => <option key={t} value={t}>{TIPO_ORCAMENTO_LABEL[t]}</option>)}
                                         </select>
                                     </Field>
                                 </div>
                             )}
-                            <PrimaryButton onClick={criarOrcamento} disabled={salvando || faltaContratante}>+ Criar Orçamento</PrimaryButton>
+                            <PrimaryButton onClick={criarOrcamento} disabled={salvando || faltaContratante}><Plus size={14} className="inline mr-1" aria-hidden />Criar orçamento</PrimaryButton>
                         </div>
 
                         {!mostrarVincular ? (
-                            <button onClick={() => setMostrarVincular(true)} className="text-xs text-muted-foreground hover:text-foreground mt-3">
-                                ou vincular um orçamento já existente
+                            <button type="button" onClick={() => setMostrarVincular(true)} className="text-xs text-muted-foreground hover:text-foreground mt-3">
+                                Ou vincular um orçamento já existente
                             </button>
                         ) : (
                             <div className="flex gap-2 mt-3">
-                                <select className={`${inputClass} max-w-xs`} value={budgetEscolhido} onChange={e => setBudgetEscolhido(e.target.value)}>
+                                <select aria-label="Orçamento existente" className={`${inputClass} max-w-xs`} value={budgetEscolhido} onChange={e => setBudgetEscolhido(e.target.value)}>
                                     <option value="">Selecione um orçamento...</option>
                                     {budgets.map(b => <option key={b.id} value={b.id}>{b.assunto || b.id.substring(0, 8)} — {b.status}</option>)}
                                 </select>
@@ -310,7 +311,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     {!negociacaoAberta && (
                         <EmptyState
                             text="Nenhuma negociação aberta para o orçamento vinculado."
-                            action={<PrimaryButton onClick={abrirNegociacao} disabled={salvando}>Abrir Negociação</PrimaryButton>}
+                            action={<PrimaryButton onClick={abrirNegociacao} disabled={salvando}>Abrir negociação</PrimaryButton>}
                         />
                     )}
 
@@ -335,9 +336,9 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                                         {c.observacao && <div className="text-xs text-muted-foreground mt-1">{c.observacao}</div>}
                                         {c.decisao === 'PENDENTE' && (
                                             <div className="flex gap-1.5 mt-2 flex-wrap">
-                                                <GhostButton onClick={() => decidir(negociacaoAberta.id, c.id, 'ACEITA')} disabled={salvando}>✓ Aceitar</GhostButton>
-                                                <GhostButton onClick={() => decidir(negociacaoAberta.id, c.id, 'RECUSADA')} disabled={salvando}>✕ Recusar</GhostButton>
-                                                <GhostButton onClick={() => decidir(negociacaoAberta.id, c.id, 'ANALISE_INTERNA')} disabled={salvando}>Análise Interna</GhostButton>
+                                                <GhostButton onClick={() => decidir(negociacaoAberta.id, c.id, 'ACEITA')} disabled={salvando}><Check size={14} className="inline mr-1" aria-hidden />Aceitar</GhostButton>
+                                                <GhostButton onClick={() => decidir(negociacaoAberta.id, c.id, 'RECUSADA')} disabled={salvando}><X size={14} className="inline mr-1" aria-hidden />Recusar</GhostButton>
+                                                <GhostButton onClick={() => decidir(negociacaoAberta.id, c.id, 'ANALISE_INTERNA')} disabled={salvando}>Análise interna</GhostButton>
                                             </div>
                                         )}
                                     </div>
@@ -353,17 +354,17 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                                             <option value="LS_OFFICE">LS Office</option>
                                         </select>
                                     </Field>
-                                    <Field label="Valor Proposto (R$)">
+                                    <Field label="Valor proposto (R$)">
                                         <input type="number" step="0.01" className={inputClass} value={rodadaForm.valor_proposto} onChange={e => setRodadaForm(f => ({ ...f, valor_proposto: e.target.value }))} />
                                     </Field>
-                                    <Field label="Custo Previsto (R$, opcional)">
+                                    <Field label="Custo previsto (R$, opcional)">
                                         <input type="number" step="0.01" className={inputClass} value={rodadaForm.custo_previsto} onChange={e => setRodadaForm(f => ({ ...f, custo_previsto: e.target.value }))} />
                                     </Field>
                                     <Field label="Observação">
                                         <input className={inputClass} value={rodadaForm.observacao} onChange={e => setRodadaForm(f => ({ ...f, observacao: e.target.value }))} />
                                     </Field>
                                 </div>
-                                <PrimaryButton onClick={() => registrarRodada(negociacaoAberta.id)} disabled={salvando || !rodadaForm.valor_proposto}>Registrar Rodada</PrimaryButton>
+                                <PrimaryButton onClick={() => registrarRodada(negociacaoAberta.id)} disabled={salvando || !rodadaForm.valor_proposto}>Registrar rodada</PrimaryButton>
                             </div>
                         </div>
                     )}
@@ -372,7 +373,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                         <div className="mt-5 pt-4 border-t border-border">
                             <div className="text-xs font-semibold text-muted-foreground mb-2">Negociações anteriores</div>
                             {historico.map(n => (
-                                <Row key={n.id} label={`${fmtMoeda(n.valor_original)} → ${n.valor_final != null ? fmtMoeda(n.valor_final) : '—'}`} value={n.status} />
+                                <Row key={n.id} label={`${fmtMoeda(n.valor_original)} para ${n.valor_final != null ? fmtMoeda(n.valor_final) : '—'}`} value={n.status} />
                             ))}
                         </div>
                     )}
@@ -383,9 +384,10 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
 }
 
 function DecisaoBadge({ decisao }: { decisao: string }) {
-    const colorMap: Record<string, string> = {
-        PENDENTE: '#94a3b8', ACEITA: '#22c55e', RECUSADA: '#ef4444', NOVA_CONTRAPROPOSTA: '#f59e0b', ANALISE_INTERNA: '#1768D5',
+    const tomMap: Record<string, string> = {
+        PENDENTE: 'bg-muted text-muted-foreground', ACEITA: 'bg-ok/15 text-ok', RECUSADA: 'bg-crit/15 text-crit',
+        NOVA_CONTRAPROPOSTA: 'bg-warn/15 text-warn', ANALISE_INTERNA: 'bg-primary/15 text-primary',
     };
-    const color = colorMap[decisao] || '#94a3b8';
-    return <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: `${color}22`, color }}>{decisao.replace(/_/g, ' ')}</span>;
+    const rotulo = decisao.replace(/_/g, ' ').toLowerCase();
+    return <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${tomMap[decisao] || tomMap.PENDENTE}`}>{rotulo.charAt(0).toUpperCase() + rotulo.slice(1)}</span>;
 }

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
-import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
-import { fmtData, fmtMoeda } from './constants';
+import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState, Row, Dinheiro } from './ui';
+import { fmtData } from './constants';
 
 const APC_STATUS_ORDEM = ['AGUARDANDO_APC', 'APC_RECEBIDO', 'APC_VALIDADO', 'APC_LIBERADO'];
 const APC_STATUS_LABEL: Record<string, string> = {
-    AGUARDANDO_APC: 'Aguardando APC', APC_RECEBIDO: 'APC Recebido', APC_VALIDADO: 'APC Validado', APC_LIBERADO: 'APC Liberado',
+    AGUARDANDO_APC: 'Aguardando APC', APC_RECEBIDO: 'APC recebido', APC_VALIDADO: 'APC validado', APC_LIBERADO: 'APC liberado',
 };
 
 const FORM_INIT = { numero: '', data: '', documento_url: '', valor: '', responsavel: '', observacoes: '' };
@@ -80,7 +80,7 @@ export default function TabAPC({ atividade, onRefresh }: { atividade: AtividadeD
     const apcAtual = apcs[0];
 
     return (
-        <Card title="APC — Autorização para Execução">
+        <Card title="APC — Autorização para execução">
             <ErrorBanner message={erro} />
             {!apcAtual ? (
                 <>
@@ -91,7 +91,7 @@ export default function TabAPC({ atividade, onRefresh }: { atividade: AtividadeD
                         <Field label="Valor (R$)"><input type="number" step="0.01" className={inputClass} value={form.valor} onChange={e => setForm(f => ({ ...f, valor: e.target.value }))} /></Field>
                         <Field label="Responsável"><input className={inputClass} value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} /></Field>
                         <div className="col-span-2">
-                            <Field label="URL do Documento"><input className={inputClass} value={form.documento_url} onChange={e => setForm(f => ({ ...f, documento_url: e.target.value }))} /></Field>
+                            <Field label="URL do documento"><input className={inputClass} value={form.documento_url} onChange={e => setForm(f => ({ ...f, documento_url: e.target.value }))} /></Field>
                         </div>
                     </div>
                     <div className="flex justify-end mt-3">
@@ -100,9 +100,9 @@ export default function TabAPC({ atividade, onRefresh }: { atividade: AtividadeD
                 </>
             ) : (
                 <div>
-                    <Row label="Número" value={apcAtual.numero} />
+                    <Row label="Número" value={apcAtual.numero && <span className="font-id">{apcAtual.numero}</span>} />
                     <Row label="Data" value={fmtData(apcAtual.data)} />
-                    <Row label="Valor" value={fmtMoeda(apcAtual.valor)} />
+                    <Row label="Valor" value={<Dinheiro v={apcAtual.valor} />} />
                     <Row label="Responsável" value={apcAtual.responsavel} />
                     <div className="mt-4 pt-4 border-t border-border">
                         <div className="text-xs font-semibold text-muted-foreground mb-2">Status atual: {APC_STATUS_LABEL[apcAtual.status]}</div>

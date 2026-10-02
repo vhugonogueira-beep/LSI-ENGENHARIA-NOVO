@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, OPERADORA_COLOR, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
+    TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
     REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
@@ -77,7 +77,7 @@ const FILTROS_KEY = 'ls_atividades_filtros';
 function lerFiltros(): typeof FILTROS_INIT {
     try { return { ...FILTROS_INIT, ...JSON.parse(localStorage.getItem(FILTROS_KEY) || '{}') }; } catch { return FILTROS_INIT; }
 }
-const PO_STATUS_COLOR: Record<string, string> = { AGUARDANDO: '#94a3b8', RECEBIDA: '#f59e0b', VALIDADA: '#1768D5', LIBERADA: '#22c55e' };
+const PO_STATUS_TOM: Record<string, string> = { AGUARDANDO: 'text-muted-foreground', RECEBIDA: 'text-warn', VALIDADA: 'text-primary', LIBERADA: 'text-ok' };
 
 // `vistaInicial` existe para o item "Pipeline" da sidebar abrir esta mesma tela
 // em kanban — antes ele apontava para uma tela separada sobre o modelo Demanda,
@@ -328,33 +328,33 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     onClick={() => { setForm(FORM_INIT); setErro(''); setShowForm(true); }}
                     className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-medium shadow-sm"
                 >
-                    <Plus size={18} /> Nova Atividade
+                    <Plus size={16} aria-hidden /> Nova atividade
                 </button>
             </div>
 
             <div className="flex items-center gap-3 mb-5">
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} aria-hidden />
                     <input
-                        type="text" placeholder="Buscar por código, título ou site..."
+                        type="text" placeholder="Buscar por código, título ou site..." aria-label="Buscar atividades"
                         value={search} onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 border border-border rounded-lg bg-card focus:outline-none focus:ring-2 focus:ring-primary/30"
                     />
                 </div>
-                <select value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} className="h-10 px-3 border border-border rounded-lg bg-card text-sm">
+                <select value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} aria-label="Filtrar por documentação" className="h-10 px-3 border border-border rounded-lg bg-card text-sm">
                     <option value="TODAS">Toda documentação</option>
                     <option value="PENDENTES">Com pendências</option>
                     <option value="COMPLETAS">Documentação completa</option>
                     <option value="CORRECAO">Necessita correção</option>
                 </select>
                 <div className="flex gap-1 bg-secondary/40 rounded-lg p-1">
-                    <button onClick={() => setView('lista')} className={`p-2 rounded-md ${view === 'lista' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Lista (Carteira)">
-                        <ListIcon size={16} />
+                    <button onClick={() => setView('lista')} className={`p-2 rounded-md ${view === 'lista' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Ver em lista" aria-label="Ver em lista" aria-pressed={view === 'lista'}>
+                        <ListIcon size={16} aria-hidden />
                     </button>
-                    <button onClick={() => setView('kanban')} className={`p-2 rounded-md ${view === 'kanban' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Kanban">
-                        <LayoutGrid size={16} />
+                    <button onClick={() => setView('kanban')} className={`p-2 rounded-md ${view === 'kanban' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Ver em kanban" aria-label="Ver em kanban" aria-pressed={view === 'kanban'}>
+                        <LayoutGrid size={16} aria-hidden />
                     </button>
-                    <button onClick={() => setView('projetos')} className={`px-2.5 py-2 rounded-md text-[11px] font-semibold ${view === 'projetos' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Projetos — atividades agrupadas num orçamento só">
+                    <button onClick={() => setView('projetos')} className={`px-2.5 py-2 rounded-md text-xs font-semibold ${view === 'projetos' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Projetos — atividades agrupadas num orçamento só" aria-pressed={view === 'projetos'}>
                         Projetos
                     </button>
                 </div>
@@ -369,12 +369,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             const ativo = filtros.situacao === s.id;
                             const alerta = (s.id === 'ATRASADAS' || s.id === 'COMPROVANTE_PENDENTE') && total > 0;
                             return (
-                                <button key={s.id} onClick={() => setFiltro('situacao', s.id)}
+                                <button key={s.id} type="button" aria-pressed={ativo} onClick={() => setFiltro('situacao', s.id)}
                                     className={`h-8 rounded-full border px-3 text-xs font-semibold transition-colors ${ativo
                                         ? 'border-primary bg-primary text-primary-foreground'
-                                        : alerta ? 'border-amber-500/40 text-amber-500 hover:bg-amber-500/10'
+                                        : alerta ? 'border-warn/40 text-warn hover:bg-warn/10'
                                             : 'border-border text-muted-foreground hover:text-foreground'}`}>
-                                    {s.label} <span className={ativo ? 'opacity-80' : 'opacity-60'}>{total}</span>
+                                    {s.label} <span className={`tabular-nums ${ativo ? 'opacity-80' : 'opacity-60'}`}>{total || '—'}</span>
                                 </button>
                             );
                         })}
@@ -441,129 +441,106 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-primary/30 bg-primary/[0.06] px-3.5 py-2.5">
                         <span className="text-[13px] font-semibold">{selecionadas.length} atividade(s) selecionada(s)</span>
                         <span className="text-[11px] text-muted-foreground">agrupar em</span>
-                        <select className="h-8 rounded-lg border border-border bg-background px-2 text-[12px]"
+                        <select className="h-8 rounded-lg border border-border bg-background px-2 text-xs" aria-label="Projeto de destino"
                             value={projetoAlvo} onChange={e => setProjetoAlvo(e.target.value)}>
                             <option value="">— novo projeto —</option>
-                            {projetos.map(p => <option key={p.id} value={p.id}>{p.codigo} · {p.titulo}</option>)}
+                            {projetos.map(p => <option key={p.id} value={p.id}>{p.codigo} — {p.titulo}</option>)}
                         </select>
                         {!projetoAlvo && (
-                            <input autoFocus className="h-8 w-72 rounded-lg border border-border bg-background px-2 text-[12px]"
+                            <input autoFocus className="h-8 w-72 rounded-lg border border-border bg-background px-2 text-xs"
                                 value={novoProjeto} onChange={e => setNovoProjeto(e.target.value)}
-                                placeholder="Nome do projeto — ex.: Vistoria de Energia OI"/>
+                                placeholder="Nome do projeto — ex.: Vistoria de Energia OI" aria-label="Nome do novo projeto"/>
                         )}
                         <button onClick={agruparSelecionadas} disabled={agrupando}
-                            className="h-8 rounded-lg bg-primary px-3 text-[12px] font-semibold text-primary-foreground disabled:opacity-60">
+                            className="h-8 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60">
                             {agrupando ? 'Agrupando...' : 'Agrupar'}
                         </button>
-                        <button onClick={() => setSelecionadas([])} className="h-8 px-2 text-[12px] text-muted-foreground">Cancelar</button>
+                        <button onClick={() => setSelecionadas([])} className="h-8 px-2 text-xs text-muted-foreground">Cancelar</button>
                     </div>
                 )}
                 <div className="bg-card border border-border rounded-xl overflow-x-auto">
                     <table className="w-full text-[13px]">
                         <thead>
-                            <tr className="text-left text-[11px] text-muted-foreground bg-secondary/40 border-b border-border whitespace-nowrap">
-                                <th className="px-2 py-2.5 align-middle w-8">
-                                    <input type="checkbox" title="Selecionar todas as visíveis"
+                            <tr className="text-left text-xs text-muted-foreground bg-secondary/40 border-b border-border whitespace-nowrap">
+                                <th className="px-3 py-2.5 align-middle w-8">
+                                    <input type="checkbox" title="Selecionar todas as visíveis" aria-label="Selecionar todas as atividades visíveis"
                                         checked={filtradas.length > 0 && filtradas.every(a => selecionadas.includes(a.id))}
                                         onChange={e => setSelecionadas(e.target.checked ? filtradas.map(a => a.id) : [])}/>
                                 </th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">Site ID Sharing / Operadora</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">Cliente / Sharing</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">Operadora</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">Fornecedor</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">Gestor</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">PO</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">Status</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold">Documentação</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold text-right">Budget</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold text-right">Custo</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold text-right">Saldo</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold min-w-[104px]">Avanço</th>
-                                <th className="px-2.5 py-2.5 align-middle font-semibold"></th>
+                                <th className="px-3 py-2.5 align-middle font-medium">Site</th>
+                                <th className="px-3 py-2.5 align-middle font-medium">Cliente e operadora</th>
+                                <th className="px-3 py-2.5 align-middle font-medium">Status e pendências</th>
+                                <th className="px-3 py-2.5 align-middle font-medium min-w-[120px]">Avanço</th>
+                                <th className="px-3 py-2.5 align-middle font-medium text-right">Saldo</th>
+                                <th className="px-3 py-2.5 align-middle"><span className="sr-only">Ações</span></th>
                             </tr>
                         </thead>
                         <tbody>
                             {filtradas.length === 0 && (
-                                <tr><td colSpan={14} className="text-center py-10 text-muted-foreground">Nenhuma atividade encontrada.</td></tr>
+                                <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">Nenhuma atividade encontrada.</td></tr>
                             )}
                             {filtradas.map(a => {
-                                const opColor = OPERADORA_COLOR[a.operadora || ''] || '#94a3b8';
-                                const saldo = a.saldo ?? ((a.valor_contrato ?? 0) - (a.custo_pago ?? 0));
+                                const avanco = Math.min(100, Math.max(0, a.avanco_percentual ?? 0));
+                                const local = [normalizarUf(a.estado) || a.estado, a.municipio].filter(Boolean).join(' / ');
+                                const gestor = a.gestor || a.responsavel;
                                 return (
-                                    <tr key={a.id} className="border-b border-border/60 last:border-0 hover:bg-secondary/20 transition-colors align-top">
-                                        <td className="px-2 py-3 align-middle">
+                                    <tr key={a.id} className="border-b border-border/60 last:border-0 hover:bg-secondary/20 transition-colors">
+                                        <td className="px-3 py-3 align-top">
                                             <input type="checkbox" checked={selecionadas.includes(a.id)}
+                                                aria-label={`Selecionar ${a.id_site_sharing || a.codigo}`}
                                                 onChange={e => setSelecionadas(v => e.target.checked ? [...v, a.id] : v.filter(id => id !== a.id))}/>
                                         </td>
-                                        <td className="px-2.5 py-3 align-middle">
-                                            <div className="font-bold text-primary">{a.id_site_sharing || '—'}</div>
-                                            <div className="text-[11px] font-medium text-foreground/70">{a.id_site_operadora || '—'}</div>
-                                            <div className="text-[11px] text-muted-foreground">{[normalizarUf(a.estado) || a.estado, a.municipio].filter(Boolean).join(' / ') || '—'}</div>
-                                            <span className="inline-block mt-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                                                {TIPOS_DEMANDA_LABEL[a.tipo_demanda] || a.tipo_demanda}
-                                            </span>
+                                        {/* O Site ID é a âncora da linha: é por ele que a obra é chamada. */}
+                                        <td className="px-3 py-3 align-top min-w-[180px]">
+                                            {a.id_site_sharing
+                                                ? <div className="font-id text-base font-semibold leading-tight text-foreground" title={a.titulo}>{a.id_site_sharing}</div>
+                                                : <div className="text-sm text-muted-foreground" title={a.titulo}>Sem Site ID</div>}
+                                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                                {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}
+                                                <span className="font-id">{a.codigo}</span>
+                                            </div>
+                                            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                                {local && <span>{local}</span>}
+                                                <span>{TIPOS_DEMANDA_LABEL[a.tipo_demanda] || a.tipo_demanda}</span>
+                                            </div>
                                         </td>
-                                        <td className="px-2.5 py-3 align-middle font-semibold text-primary whitespace-nowrap">{a.sharing}</td>
-                                        <td className="px-2.5 py-3 align-middle">
-                                            {a.operadora && <span className="text-xs font-bold" style={{ color: opColor }}>{a.operadora}</span>}
+                                        <td className="px-3 py-3 align-top">
+                                            <div className="font-medium whitespace-nowrap">{a.sharing}</div>
+                                            <div className="text-xs text-muted-foreground">{a.operadora || '—'}</div>
+                                            {gestor && <div className="mt-1 text-xs text-muted-foreground whitespace-nowrap">Gestor {gestor}</div>}
+                                            {a.fornecedor_principal && <div className="text-xs text-muted-foreground">{a.fornecedor_principal}</div>}
                                         </td>
-                                        <td className="px-2.5 py-3 align-middle text-xs">{a.fornecedor_principal || <span className="text-muted-foreground">—</span>}</td>
-                                        <td className="px-2.5 py-3 align-middle text-xs font-semibold whitespace-nowrap">{a.responsavel || '—'}</td>
-                                        <td className="px-2.5 py-3 align-middle">
-                                            {a.po ? (
-                                                <span className="text-[10px] font-bold px-2 py-1 rounded-full whitespace-nowrap" style={{ background: `${PO_STATUS_COLOR[a.po.status]}22`, color: PO_STATUS_COLOR[a.po.status] }}>
-                                                    {a.po.numero || a.po.status}
-                                                </span>
-                                            ) : (
-                                                <button onClick={() => { setPoModalId(a.id); setPoForm({ numero: '', pdf_url: '' }); }}
-                                                    className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/40 whitespace-nowrap">
-                                                    <Paperclip size={11} /> Anexar PO
-                                                </button>
-                                            )}
-                                        </td>
-                                        <td className="px-2.5 py-3 align-middle">
+                                        <td className="px-3 py-3 align-top min-w-[200px]">
                                             <StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} />
-                                            {(a.comprovantes_pendentes || 0) > 0 && (
-                                                <div className="mt-1 text-[10px] font-semibold text-amber-500" title="Pagamento solicitado ou pago sem comprovante anexado">
-                                                    {a.comprovantes_pendentes} comprovante(s) pendente(s)
+                                            <PendenciasDaLinha a={a} onAnexarPO={() => { setPoModalId(a.id); setPoForm({ numero: '', pdf_url: '' }); }} />
+                                        </td>
+                                        <td className="px-3 py-3 align-top w-36 min-w-[120px]">
+                                            {/* Verde ao chegar em 100%: a conclusão é a leitura mais
+                                                importante da coluna. O número ao lado garante que a
+                                                informação não dependa só da cor. */}
+                                            {avanco > 0 ? (
+                                                <div className="flex items-center gap-2 pt-1">
+                                                    <div className="h-1.5 flex-1 min-w-[52px] rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
+                                                        <div className={`h-full rounded-full ${avanco >= 100 ? 'bg-ok' : 'bg-primary'}`} style={{ width: `${avanco}%` }} />
+                                                    </div>
+                                                    <span className="text-xs font-medium w-9 text-right tabular-nums">{Math.round(avanco)}%</span>
                                                 </div>
-                                            )}
+                                            ) : <span className="text-muted-foreground">—</span>}
                                         </td>
-                                        <td className="px-2.5 py-3 align-middle min-w-[92px]">
-                                            <div className="flex items-center justify-between gap-2 text-[11px] mb-1">
-                                                <span className={(a.documentos_correcao || 0) > 0 ? 'text-red-500 font-semibold' : 'text-muted-foreground'}>
-                                                    {(a.documentos_correcao || 0) > 0 ? `${a.documentos_correcao} em correção` : `${a.documentos_ok || 0}/${a.documentos_total || 0}`}
-                                                </span>
-                                                <span className="font-semibold">{a.documentos_percentual || 0}%</span>
-                                            </div>
-                                            <div className="h-2 rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
-                                                <div className={`h-full rounded-full ${(a.documentos_correcao || 0) > 0 ? 'bg-red-600' : 'bg-emerald-600'}`} style={{ width: `${Math.min(100, a.documentos_percentual || 0)}%` }} />
-                                            </div>
+                                        <td className="px-3 py-3 align-top text-right whitespace-nowrap">
+                                            <SaldoDaLinha a={a} />
                                         </td>
-                                        <td className="px-2.5 py-3 align-middle text-right font-semibold whitespace-nowrap">{fmtMoeda(a.valor_contrato)}</td>
-                                        <td className="px-2.5 py-3 align-middle text-right whitespace-nowrap" style={{ color: '#f59e0b' }}>{fmtMoeda(a.custo_pago)}</td>
-                                        <td className="px-2.5 py-3 align-middle text-right font-semibold whitespace-nowrap" style={{ color: saldo < 0 ? '#ef4444' : '#22c55e' }}>{fmtMoeda(saldo)}</td>
-                                        <td className="px-2.5 py-3 align-middle w-32 min-w-[104px]">
-                                            {/* Verde ao chegar em 100%: a conclusao e a leitura mais
-                                                importante da coluna. O numero ao lado garante que a
-                                                informacao nao dependa so da cor. */}
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-2 flex-1 min-w-[52px] rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
-                                                    <div
-                                                        className={`h-full rounded-full transition-[width] duration-300 ${(a.avanco_percentual ?? 0) >= 100 ? 'bg-emerald-600' : 'bg-primary'}`}
-                                                        style={{ width: `${Math.min(100, Math.max(0, a.avanco_percentual ?? 0))}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-[11px] font-semibold text-foreground w-9 text-right tabular-nums">{Math.round(a.avanco_percentual ?? 0)}%</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-2.5 py-3 align-middle">
-                                            <div className="flex items-center gap-2 justify-end">
-                                                <button onClick={() => setSelecionadaId(a.id)} className="text-xs font-semibold text-primary hover:underline whitespace-nowrap">Abrir →</button>
+                                        <td className="px-3 py-3 align-top">
+                                            <div className="flex items-center gap-1 justify-end">
+                                                <button type="button" onClick={() => setSelecionadaId(a.id)}
+                                                    className="h-8 rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary/60 whitespace-nowrap">
+                                                    Abrir
+                                                </button>
                                                 {ehAdmin && (
-                                                    <button onClick={() => setExcluindo(a)} title="Excluir atividade"
-                                                        className="text-muted-foreground hover:text-destructive p-1">
-                                                        <Trash2 size={14} />
+                                                    <button type="button" onClick={() => setExcluindo(a)}
+                                                        aria-label="Excluir atividade" title="Excluir atividade"
+                                                        className="h-8 w-8 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                                                        <Trash2 size={14} aria-hidden />
                                                     </button>
                                                 )}
                                             </div>
@@ -589,36 +566,36 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             <div key={p.id} className="rounded-xl border border-border bg-card overflow-hidden">
                                 <button onClick={() => setProjetoAberto(aberto ? null : p)}
                                     className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-left hover:bg-primary/[0.04]">
-                                    <span className="font-mono text-[11px] text-muted-foreground">{p.codigo}</span>
+                                    <span className="font-id text-xs text-muted-foreground">{p.codigo}</span>
                                     <strong className="text-sm">{p.titulo}</strong>
                                     <span className="text-[11px] text-muted-foreground">{r.atividades ?? (p.atividades?.length || 0)} atividade(s)</span>
                                     <span className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
-                                        <span className="text-muted-foreground">receita <strong className="text-foreground">{fmtMoeda(r.receita || 0)}</strong></span>
-                                        <span className="text-muted-foreground">contratado <strong className="text-foreground">{fmtMoeda(r.custo_comprometido || 0)}</strong></span>
-                                        <span className="text-muted-foreground">adiantado <strong className="text-foreground">{fmtMoeda(r.adiantado || 0)}</strong></span>
+                                        <span className="text-muted-foreground">Receita <Valor v={r.receita} /></span>
+                                        <span className="text-muted-foreground">Contratado <Valor v={r.custo_comprometido} /></span>
+                                        <span className="text-muted-foreground">Adiantado <Valor v={r.adiantado} /></span>
                                         {/* Enquanto sobrar dinheiro sem dono, a margem por
                                             atividade está incompleta — e é isso que o âmbar diz. */}
                                         {(r.a_ratear || 0) > 0
-                                            ? <span className="rounded-full bg-amber-500/15 px-2 py-0.5 font-semibold text-amber-500">a ratear {fmtMoeda(r.a_ratear)}</span>
-                                            : (r.rateado || 0) > 0 && <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 font-semibold text-emerald-500">rateado {fmtMoeda(r.rateado)}</span>}
+                                            ? <span className="rounded-full bg-warn/15 px-2 py-0.5 font-semibold text-warn">A ratear {fmtMoeda(r.a_ratear)}</span>
+                                            : (r.rateado || 0) > 0 && <span className="rounded-full bg-ok/15 px-2 py-0.5 font-semibold text-ok">Rateado {fmtMoeda(r.rateado)}</span>}
                                     </span>
                                 </button>
                                 {aberto && (
                                     <div className="border-t border-border">
                                         {(p.atividades || []).map((a: any) => (
                                             <button key={a.id} onClick={() => setSelecionadaId(a.id)}
-                                                className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2.5 text-left text-[12px] last:border-0 hover:bg-secondary/30">
-                                                <span className="font-mono text-[11px] text-primary">{a.codigo}</span>
+                                                className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2.5 text-left text-xs last:border-0 hover:bg-secondary/30">
+                                                <span className="font-id text-xs text-primary">{a.codigo}</span>
                                                 <span>{a.titulo}</span>
-                                                {a.site && <span className="text-[11px] text-muted-foreground">{a.site}</span>}
-                                                <span className="ml-auto text-[11px] text-muted-foreground">
-                                                    contratado <strong className="text-foreground">{fmtMoeda(a.custo_comprometido || 0)}</strong>
-                                                    {(a.custo_rateado || 0) > 0 && <> · rateado <strong className="text-emerald-500">{fmtMoeda(a.custo_rateado)}</strong></>}
+                                                {a.site && <span className="font-id text-xs text-muted-foreground">{a.site}</span>}
+                                                <span className="ml-auto flex items-center gap-x-4 text-[11px] text-muted-foreground">
+                                                    <span>Contratado <Valor v={a.custo_comprometido} /></span>
+                                                    {(a.custo_rateado || 0) > 0 && <span>Rateado <Valor v={a.custo_rateado} /></span>}
                                                 </span>
                                             </button>
                                         ))}
                                         {(p.atividades || []).length === 0 && (
-                                            <div className="px-4 py-6 text-center text-[12px] text-muted-foreground">Projeto sem atividades. Agrupe pela visão de Lista.</div>
+                                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">Projeto sem atividades. Agrupe pela visão de Lista.</div>
                                         )}
                                     </div>
                                 )}
@@ -635,51 +612,51 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             <div key={statusId} className="min-w-[280px] w-[280px] flex-shrink-0 bg-card border border-border rounded-xl overflow-hidden">
                                 <div className="px-3.5 py-2.5 bg-secondary/60 border-b border-border flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full" style={{ background: info.color }} />
-                                        <span className="text-xs font-bold tracking-wide text-muted-foreground">{info.label.toUpperCase()}</span>
+                                        <span className="w-2 h-2 rounded-full" style={{ background: info.color }} aria-hidden />
+                                        <span className="text-xs font-semibold text-foreground">{info.label}</span>
                                     </div>
-                                    <span className="text-xs font-bold rounded-full px-2 py-0.5" style={{ background: `${info.color}22`, color: info.color }}>
-                                        {cards.length}
+                                    <span className={`text-xs font-medium tabular-nums ${cards.length ? 'text-foreground' : 'text-muted-foreground'}`}>
+                                        {cards.length || '—'}
                                     </span>
                                 </div>
                                 <div className="p-2 flex flex-col gap-2 min-h-[100px]">
                                     {cards.length === 0 && (
                                         <div className="text-center py-6 text-xs text-muted-foreground">Nenhuma atividade</div>
                                     )}
-                                    {cards.map(a => (
-                                        <button
-                                            key={a.id}
-                                            onClick={() => setSelecionadaId(a.id)}
-                                            className="text-left bg-secondary/40 hover:bg-secondary/70 border border-border rounded-lg p-3 transition-colors"
-                                        >
-                                            <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-                                                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/15 text-primary">{a.sharing}</span>
-                                                {a.id_site_sharing && (
-                                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{a.id_site_sharing}</span>
-                                                )}
-                                                {a.id_site_operadora && (
-                                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted text-muted-foreground">{a.id_site_operadora}</span>
-                                                )}
-                                            </div>
-                                            <div className="text-sm font-semibold leading-snug mb-1">{a.titulo}</div>
-                                            <div className="text-[11px] text-muted-foreground font-mono mb-2">{a.codigo}</div>
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className="text-muted-foreground">{TIPOS_DEMANDA_LABEL[a.tipo_demanda] || a.tipo_demanda}</span>
-                                                {a.valor_contrato != null && <span className="font-semibold">{fmtMoeda(a.valor_contrato)}</span>}
-                                            </div>
-                                            {a.tipo_demanda === 'IMPLANTACAO' && (
-                                                <div className="mt-2 pt-2 border-t border-border/70">
-                                                    <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                                                        <span>Documentação {a.documentos_ok || 0}/{a.documentos_total || 0}</span>
-                                                        <span>{a.documentos_percentual || 0}%</span>
-                                                    </div>
-                                                    <div className="h-2 rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
-                                                        <div className={`h-full rounded-full ${(a.documentos_correcao || 0) > 0 ? 'bg-red-600' : 'bg-emerald-600'}`} style={{ width: `${Math.min(100, a.documentos_percentual || 0)}%` }} />
-                                                    </div>
+                                    {cards.map(a => {
+                                        const doc = Math.min(100, a.documentos_percentual || 0);
+                                        return (
+                                            <button
+                                                key={a.id}
+                                                type="button"
+                                                onClick={() => setSelecionadaId(a.id)}
+                                                className="text-left bg-secondary/40 hover:bg-secondary/70 border border-border rounded-lg p-3 transition-colors"
+                                            >
+                                                {a.id_site_sharing
+                                                    ? <div className="font-id text-base font-semibold leading-tight">{a.id_site_sharing}</div>
+                                                    : <div className="text-sm text-muted-foreground">Sem Site ID</div>}
+                                                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                                                    {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}
+                                                    <span>{a.sharing}</span>
+                                                    <span>{TIPOS_DEMANDA_LABEL[a.tipo_demanda] || a.tipo_demanda}</span>
                                                 </div>
-                                            )}
-                                        </button>
-                                    ))}
+                                                <div className="mt-1.5 text-sm leading-snug">{a.titulo}</div>
+                                                <div className="mt-0.5 font-id text-[11px] text-muted-foreground">{a.codigo}</div>
+                                                <PendenciasDaLinha a={a} />
+                                                {a.tipo_demanda === 'IMPLANTACAO' && (a.documentos_total || 0) > 0 && (
+                                                    <div className="mt-2 pt-2 border-t border-border/70">
+                                                        <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                                                            <span>Documentação {a.documentos_ok || 0}/{a.documentos_total}</span>
+                                                            <span className="tabular-nums">{doc}%</span>
+                                                        </div>
+                                                        <div className="h-1.5 rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
+                                                            <div className={`h-full rounded-full ${(a.documentos_correcao || 0) > 0 ? 'bg-crit' : doc >= 100 ? 'bg-ok' : 'bg-primary'}`} style={{ width: `${doc}%` }} />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         );
@@ -691,8 +668,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9500] p-4">
                     <div className="bg-card border border-border rounded-2xl w-full max-w-sm p-6">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-base font-bold flex items-center gap-2"><FolderPlus size={18} /> Anexar PO</h3>
-                            <button onClick={() => setPoModalId(null)} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
+                            <h3 className="text-base font-bold flex items-center gap-2"><FolderPlus size={16} aria-hidden /> Anexar PO</h3>
+                            <button type="button" onClick={() => setPoModalId(null)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden /></button>
                         </div>
                         {erro && <div className="mb-3 p-2.5 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-xs">{erro}</div>}
                         <form onSubmit={anexarPO} className="flex flex-col gap-3">
@@ -717,8 +694,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9000] p-4">
                     <div className="bg-card border border-border rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-7">
                         <div className="flex justify-between items-center mb-5">
-                            <h3 className="text-lg font-bold">Nova Atividade</h3>
-                            <button onClick={() => setShowForm(false)} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
+                            <h3 className="text-lg font-bold">Nova atividade</h3>
+                            <button type="button" onClick={() => setShowForm(false)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden /></button>
                         </div>
                         {erro && <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>}
                         <form onSubmit={handleSave} className="flex flex-col gap-4">
@@ -727,7 +704,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     placeholder="Ex: Implantação BTS — PAPUP2064" className="input" />
                             </Field>
                             <div className="grid grid-cols-2 gap-3">
-                                <Field label="Tipo de Demanda *">
+                                <Field label="Tipo de demanda *">
                                     <select
                                         value={form.tipo_demanda}
                                         onChange={e => {
@@ -746,7 +723,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 </Field>
                             </div>
                             {form.tipo_demanda === 'OPERACAO' && (
-                                <Field label="Subtipo de Operação">
+                                <Field label="Subtipo de operação">
                                     <select value={form.subtipo_demanda} onChange={e => setForm(f => ({ ...f, subtipo_demanda: e.target.value }))} className="input">
                                         <option value="">—</option>
                                         {SUBTIPOS_OPERACAO.map(s => <option key={s} value={s}>{SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
@@ -759,7 +736,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="Tipo de Obra">
+                                <Field label="Tipo de obra">
                                     <select value={form.tipo_obra} onChange={e => setForm(f => ({ ...f, tipo_obra: e.target.value }))} className="input">
                                         <option value="">—</option>
                                         {TIPOS_OBRA.map(t => <option key={t} value={t}>{t}</option>)}
@@ -767,14 +744,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 </Field>
                             </div>
                             {form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && (
-                                <Field label="Tipo de Site Highline *">
+                                <Field label="Tipo de site Highline *">
                                     <select required value={form.tipo_site_highline} onChange={e => setForm(f => ({ ...f, tipo_site_highline: e.target.value }))} className="input">
                                         <option value="">Selecione...</option>
                                         {TIPOS_SITE_HIGHLINE.map(type => <option key={type} value={type}>{type}</option>)}
                                     </select>
                                 </Field>
                             )}
-                            <Field label="Modelo de Operação">
+                            <Field label="Modelo de operação">
                                 <select value={form.modelo_operacao} disabled={modelosPermitidos(form.tipo_demanda).length === 1}
                                     onChange={e => setForm(f => ({ ...f, modelo_operacao: e.target.value }))} className="input">
                                     {modelosPermitidos(form.tipo_demanda).map(m => <option key={m} value={m}>{MODELO_OPERACAO_LABEL[m]}</option>)}
@@ -783,18 +760,18 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             <p className="text-[11px] text-muted-foreground -mt-2">
                                 {form.tipo_demanda === 'IMPLANTACAO'
                                     ? 'Implantação sempre segue o fluxo completo (Mediante Aprovação).'
-                                    : 'Preenchido automaticamente a partir do Tipo de Demanda — pode trocar manualmente para exceções.'}
+                                    : 'Preenchido automaticamente a partir do tipo de demanda — pode trocar manualmente para exceções.'}
                             </p>
-                            <Field label="Tipo de Atividade">
+                            <Field label="Tipo de atividade">
                                 <input value={form.tipo_atividade} onChange={e => setForm(f => ({ ...f, tipo_atividade: e.target.value }))}
                                     placeholder="Ex: Instalação de antena, SPDA, obra civil..." className="input" />
                             </Field>
                             <div className="grid grid-cols-2 gap-3">
-                                <Field label="Site ID Sharing *">
+                                <Field label="Site ID sharing *">
                                     <input value={form.id_site_sharing} onChange={e => setForm(f => ({ ...f, id_site_sharing: e.target.value }))}
                                         placeholder="Ex: PAPUP2064" required className="input" />
                                 </Field>
-                                <Field label="Site ID Operadora *">
+                                <Field label="Site ID operadora *">
                                     <input value={form.id_site_operadora} onChange={e => setForm(f => ({ ...f, id_site_operadora: e.target.value }))}
                                         placeholder="Ex: PAPCJ001" required className="input" />
                                 </Field>
@@ -824,13 +801,13 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             <Field label="Responsável / Gestor">
                                 <input value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} className="input" />
                             </Field>
-                            <Field label="Descrição / Escopo">
+                            <Field label="Descrição e escopo">
                                 <textarea rows={3} value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} className="input resize-y" />
                             </Field>
                             <div className="flex justify-end gap-2.5 mt-2">
                                 <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-secondary/50">Cancelar</button>
                                 <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 disabled:opacity-60">
-                                    {saving ? 'Criando...' : 'Criar Atividade'}
+                                    {saving ? 'Criando...' : 'Criar atividade'}
                                 </button>
                             </div>
                         </form>
@@ -851,6 +828,64 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     );
 }
 
+/**
+ * O que a atividade está devendo, em uma linha cada. Pendente primeiro: é a
+ * primeira coisa que se lê depois do status. Sem pendência, não mostra nada.
+ */
+function PendenciasDaLinha({ a, onAnexarPO }: { a: Atividade; onAnexarPO?: () => void }) {
+    const itens: { texto: string; tom: 'warn' | 'crit'; titulo?: string }[] = [];
+    if (atrasada(a)) itens.push({ texto: 'Prazo vencido', tom: 'crit', titulo: `Término planejado em ${String(a.data_fim_planejada).slice(0, 10).split('-').reverse().join('/')}` });
+    const correcao = a.documentos_correcao || 0;
+    if (correcao > 0) itens.push({ texto: `${correcao} ${correcao === 1 ? 'documento' : 'documentos'} em correção`, tom: 'crit' });
+    const docsPend = a.documentos_pendentes || 0;
+    if (docsPend > 0) itens.push({ texto: `${docsPend} ${docsPend === 1 ? 'documento pendente' : 'documentos pendentes'}`, tom: 'warn' });
+    const comp = a.comprovantes_pendentes || 0;
+    if (comp > 0) itens.push({ texto: `${comp} ${comp === 1 ? 'comprovante pendente' : 'comprovantes pendentes'}`, tom: 'warn', titulo: 'Pagamento solicitado ou pago sem comprovante anexado' });
+    const semPO = !a.po && a.status_operacional !== 'CONCLUIDA';
+    if (!itens.length && !semPO && !a.po) return null;
+    return (
+        <div className="mt-1.5 flex flex-col gap-0.5 text-xs">
+            {itens.map(i => (
+                <span key={i.texto} title={i.titulo} className={`flex items-center gap-1 font-medium ${i.tom === 'crit' ? 'text-crit' : 'text-warn'}`}>
+                    <AlertTriangle size={12} aria-hidden className="shrink-0" />{i.texto}
+                </span>
+            ))}
+            {a.po ? (
+                <span className="flex items-center gap-1.5 text-muted-foreground">
+                    PO <span className={`font-id ${PO_STATUS_TOM[a.po.status] || ''}`} title={`PO ${a.po.status.toLowerCase()}`}>{a.po.numero || a.po.status.toLowerCase()}</span>
+                </span>
+            ) : semPO && (
+                onAnexarPO ? (
+                    <button type="button" onClick={onAnexarPO}
+                        className="flex w-fit items-center gap-1 font-medium text-warn hover:underline">
+                        <Paperclip size={12} aria-hidden /> Sem PO. Anexar PO
+                    </button>
+                ) : <span className="flex items-center gap-1 font-medium text-warn"><Paperclip size={12} aria-hidden />Sem PO</span>
+            )}
+        </div>
+    );
+}
+
+/** Saldo neutro; vermelho só quando o custo passou do contrato. Sem contrato, "—". */
+function SaldoDaLinha({ a }: { a: Atividade }) {
+    if (!a.valor_contrato) {
+        return <span className="text-muted-foreground" title={a.custo_pago ? `Sem contrato. Custo pago: ${fmtMoeda(a.custo_pago)}` : 'Sem contrato'}>—</span>;
+    }
+    const saldo = a.saldo ?? (a.valor_contrato - (a.custo_pago ?? 0));
+    return (
+        <span className={`font-medium tabular-nums ${saldo < 0 ? 'text-crit' : 'text-foreground'}`}
+            title={`Contrato: ${fmtMoeda(a.valor_contrato)}\nCusto pago: ${a.custo_pago ? fmtMoeda(a.custo_pago) : '—'}`}>
+            {fmtMoeda(saldo)}
+        </span>
+    );
+}
+
+/** Valor de projeto: zero é ausência, sai como "—". */
+function Valor({ v, tom }: { v?: number | null; tom?: string }) {
+    if (!v) return <span className="text-muted-foreground">—</span>;
+    return <strong className={tom || 'text-foreground'}>{fmtMoeda(v)}</strong>;
+}
+
 // Exclusão apaga cronograma, APC, RFI, execução, documentação, POs e contratações da
 // atividade — o modal deixa isso explícito e exige justificativa.
 function ModalExcluirAtividade({ atividade, onConfirmar, onFechar }: {
@@ -865,11 +900,12 @@ function ModalExcluirAtividade({ atividade, onConfirmar, onFechar }: {
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9000] p-4" onClick={onFechar}>
             <div className="bg-card border border-border rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
                 <h3 className="text-base font-bold flex items-center gap-2 mb-1">
-                    <AlertTriangle size={16} className="text-destructive" /> Excluir atividade
+                    <AlertTriangle size={16} className="text-destructive" aria-hidden /> Excluir atividade
                 </h3>
                 <p className="text-xs text-muted-foreground mb-3">
-                    <strong className="text-foreground">{atividade.codigo} · {atividade.titulo}</strong>
-                    {atividade.id_site_sharing ? ` — ${atividade.id_site_sharing}` : ''}
+                    {atividade.id_site_sharing && <span className="font-id text-foreground mr-3">{atividade.id_site_sharing}</span>}
+                    <span className="font-id mr-3">{atividade.codigo}</span>
+                    <strong className="text-foreground">{atividade.titulo}</strong>
                 </p>
 
                 <div className="text-xs bg-destructive/10 border border-destructive/30 rounded-lg p-3 mb-4">
@@ -878,8 +914,9 @@ function ModalExcluirAtividade({ atividade, onConfirmar, onFechar }: {
                     Orçamentos vinculados não são apagados — apenas desvinculados.
                 </div>
 
-                <label className="text-xs font-semibold text-muted-foreground">Motivo da exclusão</label>
+                <label htmlFor="motivo-exclusao" className="text-xs font-semibold text-muted-foreground">Motivo da exclusão</label>
                 <textarea
+                    id="motivo-exclusao"
                     rows={3}
                     autoFocus
                     value={motivo}
@@ -888,7 +925,7 @@ function ModalExcluirAtividade({ atividade, onConfirmar, onFechar }: {
                     className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm text-foreground resize-y"
                 />
                 {curto && motivo.length > 0 && (
-                    <div className="text-[11px] text-amber-500 mt-1">Descreva com pelo menos 10 caracteres.</div>
+                    <div className="text-[11px] text-warn mt-1">Descreva com pelo menos 10 caracteres.</div>
                 )}
 
                 <div className="flex justify-end gap-2 mt-4">

@@ -11,7 +11,8 @@ import PaymentAttachments from '../financeiro/PaymentAttachments';
 
 const CONTRATO_STATUS = ['GERADO', 'ENVIADO', 'ASSINADO'];
 const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIADO: 'Enviado', ASSINADO: 'Assinado' };
-const CONTRATO_STATUS_COLOR: Record<string, string> = { GERADO: '#94a3b8', ENVIADO: '#f59e0b', ASSINADO: '#22c55e' };
+const CONTRATO_STATUS_TOM: Record<string, string> = { GERADO: 'bg-muted text-muted-foreground', ENVIADO: 'bg-warn/15 text-warn', ASSINADO: 'bg-ok/15 text-ok' };
+const PARCELA_TIPO_LABEL: Record<string, string> = { ENTRADA: 'Entrada', SALDO: 'Saldo', PARCELA: 'Parcela', ADIANTAMENTO: 'Adiantamento' };
 
 const FINALIDADES = ['CABO', 'METALICO', 'QTM', 'MAO_DE_OBRA', 'LOCACAO', 'MATERIAL_CIVIL', 'MATERIAL_ELETRICO', 'EQUIPAMENTO', 'TRANSPORTE', 'REEMBOLSO', 'ADIANTAMENTO_VIAGEM', 'OUTROS'];
 const FINALIDADE_LABEL: Record<string, string> = {
@@ -522,8 +523,8 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     return (
         <Card title="Pagamentos" action={
             <div className="flex gap-2">
-                <GhostButton onClick={abrirModeloContrato}><Settings size={13} className="inline mr-1" />Modelo de Contrato</GhostButton>
-                <PrimaryButton onClick={() => setShowForm(v => !v)}><Plus size={13} className="inline mr-1" />Novo Pagamento</PrimaryButton>
+                <GhostButton onClick={abrirModeloContrato}><Settings size={14} className="inline mr-1" aria-hidden />Modelo de contrato</GhostButton>
+                <PrimaryButton onClick={() => setShowForm(v => !v)}><Plus size={14} className="inline mr-1" aria-hidden />Novo pagamento</PrimaryButton>
             </div>
         }>
             <ErrorBanner message={erro} />
@@ -547,7 +548,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     {suppliers.map(s => <option key={s.id} value={`supplier:${s.id}`}>{s.nome}</option>)}
                                 </optgroup>
                                 <optgroup label="Funcionários LS">
-                                    {funcionarios.map(f => <option key={f.id} value={`funcionario:${f.id}`}>{f.nome}{f.cargo ? ` · ${f.cargo}` : ''}</option>)}
+                                    {funcionarios.map(f => <option key={f.id} value={`funcionario:${f.id}`}>{f.nome}{f.cargo ? ` (${f.cargo})` : ''}</option>)}
                                 </optgroup>
                             </select>
                         </Field>
@@ -581,7 +582,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         <Field label="Destino da viagem"><input className={inputClass} value={form.destino} onChange={e => setForm(f => ({ ...f, destino: e.target.value }))} placeholder="Cidade/UF ou trecho" /></Field>
                         <Field label="Início da viagem"><input type="date" className={inputClass} value={form.data_inicio_viagem} onChange={e => setForm(f => ({ ...f, data_inicio_viagem: e.target.value }))} /></Field>
                         <Field label="Fim da viagem"><input type="date" className={inputClass} value={form.data_fim_viagem} onChange={e => setForm(f => ({ ...f, data_fim_viagem: e.target.value }))} /></Field>
-                        <Field label="Motivo / observações"><input className={inputClass} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} /></Field>
+                        <Field label="Motivo e observações"><input className={inputClass} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} /></Field>
                         </> : form.finalidade === 'REEMBOLSO' ? <>
                         <Field label="Data da despesa"><input type="date" className={inputClass} value={form.data_despesa} onChange={e => setForm(f => ({ ...f, data_despesa: e.target.value }))} /></Field>
                         <Field label="Motivo do reembolso"><input className={inputClass} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Descreva a despesa reembolsada" /></Field>
@@ -593,8 +594,8 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     <option value="">Selecione...</option><option value="PIX">PIX</option><option value="TED">Transferência bancária</option><option value="CARTAO_CREDITO">Cartão de crédito corporativo</option><option value="BOLETO">Boleto</option><option value="DINHEIRO">Dinheiro</option>
                                 </select>
                             </Field>
-                            {form.forma_pagamento === 'CARTAO_CREDITO' && <Field label="Cartão corporativo"><select className={inputClass} value={form.cartao_id} onChange={e => setForm(f=>({...f,cartao_id:e.target.value}))}><option value="">Selecione...</option>{cartoes.map(c=><option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido?` · ${c.apelido}`:''}</option>)}</select></Field>}
-                        </> : <><Field label="Gatilho do Saldo">
+                            {form.forma_pagamento === 'CARTAO_CREDITO' && <Field label="Cartão corporativo"><select className={inputClass} value={form.cartao_id} onChange={e => setForm(f=>({...f,cartao_id:e.target.value}))}><option value="">Selecione...</option>{cartoes.map(c=><option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido?` (${c.apelido})`:''}</option>)}</select></Field>}
+                        </> : <><Field label="Gatilho do saldo">
                             <select className={inputClass} value={form.gatilho_saldo} onChange={e => setForm(f => ({ ...f, gatilho_saldo: e.target.value }))}>
                                 <option value="INICIO">Início</option>
                                 <option value="MARCO">Marco</option>
@@ -625,7 +626,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             <Field label="Cartão corporativo">
                                 <select className={inputClass} value={form.cartao_id} onChange={e => setForm(f => ({ ...f, cartao_id: e.target.value }))}>
                                     <option value="">Selecione...</option>
-                                    {cartoes.map(c => <option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido ? ` · ${c.apelido}` : ''}</option>)}
+                                    {cartoes.map(c => <option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido ? ` (${c.apelido})` : ''}</option>)}
                                 </select>
                             </Field>
                         </>}
@@ -673,13 +674,13 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                 const tom = passouReceita
                     ? 'border-destructive/40 bg-destructive/5 text-destructive'
                     : passouOrcado || semReferencia
-                        ? 'border-amber-500/30 bg-amber-500/5 text-amber-500'
+                        ? 'border-warn/30 bg-warn/5 text-warn'
                         : 'border-border bg-secondary/30 text-muted-foreground';
                 return (
                     <div className={`mb-3 rounded-lg border px-3.5 py-2.5 text-[11px] ${tom}`}>
-                        <span className="font-semibold">Custo contratado {fmtMoeda(comprometido)}</span>
-                        {orcado > 0 && <span> · orçado {fmtMoeda(orcado)}</span>}
-                        {receita > 0 && <span> · receita {fmtMoeda(receita)}</span>}
+                        <span className="font-semibold">Custo contratado {comprometido ? fmtMoeda(comprometido) : '—'}</span>
+                        {orcado > 0 && <span className="ml-4">Orçado {fmtMoeda(orcado)}</span>}
+                        {receita > 0 && <span className="ml-4">Receita {fmtMoeda(receita)}</span>}
                         {passouReceita && <div className="mt-1 font-semibold">O custo contratado passou a receita da atividade em {fmtMoeda(comprometido - receita)}. Esta atividade está dando prejuízo.</div>}
                         {!passouReceita && passouOrcado && <div className="mt-1 font-semibold">O custo contratado passou o orçado em {fmtMoeda(comprometido - orcado)}.</div>}
                         {semReferencia && <div className="mt-1 font-semibold">A atividade não tem receita nem custo orçado preenchidos, então não há com o que comparar este custo.</div>}
@@ -688,7 +689,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             })()}
 
             {contratacoes.length === 0 ? (
-                <EmptyState text="Nenhum fornecedor contratado para esta atividade ainda." />
+                <EmptyState text="Nenhum pagamento lançado para esta atividade. Use Novo pagamento para começar." />
             ) : (
                 <div className="flex flex-col gap-3">
                     {contratacoes.map(c => {
@@ -714,9 +715,9 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         return <FinancialBeneficiaryCard
                             key={c.id}
                             name={c.supplier?.nome || c.funcionario?.nome || 'Favorecido'}
-                            category={FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ')}
+                            category={FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ').toLowerCase()}
                             total={fmtMoeda(c.valor_contratado)}
-                            status={c.contrato && <select value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className="rounded border-0 px-2 py-1 text-[10px] font-bold" style={{ background: `${CONTRATO_STATUS_COLOR[c.contrato.status]}22`, color: CONTRATO_STATUS_COLOR[c.contrato.status] }}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>}
+                            status={c.contrato && <select aria-label="Status do contrato" value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className={`rounded-md border-0 px-2 py-1 text-[11px] font-semibold ${CONTRATO_STATUS_TOM[c.contrato.status] || CONTRATO_STATUS_TOM.GERADO}`}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>}
                             headerActions={<FinancialActionMenu actions={contratoActions}/>}
                         >
                             {edicao && <div className="mb-3 rounded-lg border border-border bg-secondary/30 p-3">
@@ -743,7 +744,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                         placeholder="Ex.: escopo ampliado — total da atividade passou para R$ 3.500,00"/>
                                 </label>
                                 <div className="mt-3 flex justify-end gap-2">
-                                    <button onClick={() => setEditandoContratacao(null)} className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground">Cancelar</button>
+                                    <button type="button" onClick={() => setEditandoContratacao(null)} className="rounded-lg px-3 py-1.5 text-xs text-muted-foreground">Cancelar</button>
                                     <button onClick={() => salvarContratacao(c.id, {
                                         valor_contratado: Number(String(edicao.valor).replace(',', '.')),
                                         observacoes: edicao.observacoes.trim() || null,
@@ -753,24 +754,25 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             </div>}
                             {c.observacoes && !edicao && <div className="px-1 pb-2 text-[11px] text-muted-foreground">{c.observacoes}</div>}
                             {registros && <div className="mb-3 rounded-lg border border-border bg-secondary/20 p-3">
-                                <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Histórico de alterações</div>
+                                <div className="mb-2 text-xs font-semibold text-muted-foreground">Histórico de alterações</div>
                                 {registros.length === 0
                                     ? <div className="text-[11px] text-muted-foreground">Nenhuma alteração registrada. O histórico passou a ser gravado agora; mudanças anteriores a isso não ficaram registradas.</div>
                                     : <div className="flex flex-col gap-2">{registros.map((h: any) => (
                                         <div key={h.id} className="border-l-2 border-border pl-2.5 text-[11px]">
-                                            <div className="text-muted-foreground">
-                                                {fmtData(h.criado_em)} · <strong className="text-foreground">{h.alvo}</strong>
-                                                {h.antes?.valor != null && h.depois?.valor != null && <> · {fmtMoeda(h.antes.valor)} → <strong className="text-foreground">{fmtMoeda(h.depois.valor)}</strong></>}
-                                                {h.antes?.valor_contratado != null && h.depois?.valor_contratado != null && <> · {fmtMoeda(h.antes.valor_contratado)} → <strong className="text-foreground">{fmtMoeda(h.depois.valor_contratado)}</strong></>}
-                                                {h.user_id && <> · {h.user_id}</>}
+                                            <div className="flex flex-wrap gap-x-3 text-muted-foreground">
+                                                <span>{fmtData(h.criado_em)}</span>
+                                                <strong className="text-foreground">{h.alvo}</strong>
+                                                {h.antes?.valor != null && h.depois?.valor != null && <span>De {fmtMoeda(h.antes.valor)} para <strong className="text-foreground">{fmtMoeda(h.depois.valor)}</strong></span>}
+                                                {h.antes?.valor_contratado != null && h.depois?.valor_contratado != null && <span>De {fmtMoeda(h.antes.valor_contratado)} para <strong className="text-foreground">{fmtMoeda(h.depois.valor_contratado)}</strong></span>}
+                                                {h.user_id && <span>{h.user_id}</span>}
                                             </div>
                                             {h.motivo && <div className="mt-0.5 text-foreground">{h.motivo}</div>}
                                         </div>
                                     ))}</div>}
                             </div>}
-                            {Math.abs(diferenca) >= 0.01 && <div className="rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2 text-[11px] text-amber-400">Valor ainda não alocado em parcelas: <strong>{fmtMoeda(diferenca)}</strong></div>}
+                            {Math.abs(diferenca) >= 0.01 && <div className="rounded-lg border border-warn/25 bg-warn/5 px-3 py-2 text-[11px] text-warn">Valor ainda não alocado em parcelas: <strong>{fmtMoeda(diferenca)}</strong></div>}
                             {c.contrato && <FinancialAttachments count={arquivos.length} label="Arquivos do contrato" addAction={<button type="button" onClick={() => clicarAnexarContrato(c.contrato.id)} className="text-[11px] font-semibold text-primary hover:underline">Adicionar</button>}>
-                                {arquivos.map((a: any) => <div key={a.id} className="flex items-center justify-between gap-2 rounded-md bg-secondary/30 px-2.5 py-2 text-xs"><a href={`/api/contratos/arquivos/${a.id}/download`} className="flex min-w-0 items-center gap-1.5 text-primary hover:underline"><Paperclip size={12}/><span className="truncate">{a.nome_original}</span></a><button type="button" onClick={() => removerArquivoContrato(a.id)} className="text-muted-foreground hover:text-destructive"><Trash2 size={12}/></button></div>)}
+                                {arquivos.map((a: any) => <div key={a.id} className="flex items-center justify-between gap-2 rounded-md bg-secondary/30 px-2.5 py-2 text-xs"><a href={`/api/contratos/arquivos/${a.id}/download`} className="flex min-w-0 items-center gap-1.5 text-primary hover:underline"><Paperclip size={14} aria-hidden/><span className="truncate">{a.nome_original}</span></a><button type="button" onClick={() => removerArquivoContrato(a.id)} aria-label="Excluir arquivo do contrato" title="Excluir arquivo do contrato" className="text-muted-foreground hover:text-destructive"><Trash2 size={14} aria-hidden/></button></div>)}
                             </FinancialAttachments>}
                             {(c.parcelas || []).map((p: any) => {
                                 const pago = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status);
@@ -799,15 +801,15 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 const primaryAction = formalizacao ? null : p.status === 'PENDENTE'
                                     ? <GhostButton onClick={() => abrirProgramacao(p)}>Solicitar pagamento</GhostButton>
                                     : null;
-                                return <FinancialPaymentCard key={p.id} title={formalizacao ? 'FORMALIZAÇÃO' : p.tipo} percentage={`${p.percentual}%`} amount={fmtMoeda(p.valor)} method={<>{FORMA_LABEL[forma] || forma}{p.cartao_bandeira && p.cartao_final ? ` · ${p.cartao_bandeira} •••• ${p.cartao_final}` : ''}</>} context={formalizacao ? `Pagamento já realizado · pendente de documentos${p.fatura_referencia ? ` · ${p.fatura_referencia}` : ''}` : undefined} requestedAt={p.data_solicitacao ? fmtData(p.data_solicitacao) : undefined} expectedAt={p.data_prevista ? fmtData(p.data_prevista) : undefined} paidAt={p.data_pagamento ? fmtData(p.data_pagamento) : undefined} status={<PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)}/>} primaryAction={primaryAction} actions={actions}>
+                                return <FinancialPaymentCard key={p.id} title={formalizacao ? 'Formalização' : (PARCELA_TIPO_LABEL[p.tipo] || p.tipo)} percentage={`${p.percentual}%`} amount={fmtMoeda(p.valor)} method={<>{FORMA_LABEL[forma] || forma}{p.cartao_bandeira && p.cartao_final ? <span className="ml-2">{p.cartao_bandeira} •••• {p.cartao_final}</span> : null}</>} context={formalizacao ? `Pagamento já realizado, pendente de documentos${p.fatura_referencia ? ` (${p.fatura_referencia})` : ''}` : undefined} requestedAt={p.data_solicitacao ? fmtData(p.data_solicitacao) : undefined} expectedAt={p.data_prevista ? fmtData(p.data_prevista) : undefined} paidAt={p.data_pagamento ? fmtData(p.data_pagamento) : undefined} status={<PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)}/>} primaryAction={primaryAction} actions={actions}>
                                     <PaymentAttachments ownerType="PARCELA" ownerId={p.id} comprovanteLegado={p.comprovante_url} requiresFiscal={['CABO','METALICO','QTM','ETM','MATERIAL_CIVIL','MATERIAL_ELETRICO','EQUIPAMENTO'].includes(c.finalidade)} onChange={load}/>
-                                    {dividindo === p.id && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2 text-xs"><span>Adiantar</span><input autoFocus type="number" step="1" min="0" max="100" className={`${inputClass} h-8 w-20 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setDividindo(null); if (e.key === 'Enter') dividirParcela(p.id, p.valor, c.valor_contratado); }}/><span>% = <strong className="text-emerald-500">{fmtMoeda(Math.round((c.valor_contratado * (Number(String(valorParcela).replace(',', '.')) || 0) / 100) * 100) / 100)}</strong></span>{[10,20,30,40,50].map(v => <button key={v} onClick={() => setValorParcela(String(v))} className="rounded border border-border px-2 py-1 text-[10px]">{v}%</button>)}<button onClick={() => dividirParcela(p.id, p.valor, c.valor_contratado)} className="font-semibold text-emerald-500">Aplicar</button><button onClick={() => setDividindo(null)} className="text-muted-foreground">Cancelar</button></div>}
+                                    {dividindo === p.id && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2 text-xs"><span>Adiantar</span><input autoFocus aria-label="Percentual a adiantar" type="number" step="1" min="0" max="100" className={`${inputClass} h-8 w-20 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setDividindo(null); if (e.key === 'Enter') dividirParcela(p.id, p.valor, c.valor_contratado); }}/><span>% = <strong className="text-foreground">{fmtMoeda(Math.round((c.valor_contratado * (Number(String(valorParcela).replace(',', '.')) || 0) / 100) * 100) / 100)}</strong></span>{[10,20,30,40,50].map(v => <button type="button" key={v} onClick={() => setValorParcela(String(v))} className="rounded border border-border px-2 py-1 text-[11px]">{v}%</button>)}<button type="button" onClick={() => dividirParcela(p.id, p.valor, c.valor_contratado)} className="font-semibold text-primary">Aplicar</button><button type="button" onClick={() => setDividindo(null)} className="text-muted-foreground">Cancelar</button></div>}
                                     {editandoParcela === p.id && <div className="mt-3 rounded-lg border border-border bg-secondary/30 p-2 text-xs">
-                                        <div className="flex flex-wrap items-center gap-2"><span>R$</span><input autoFocus type="number" step="0.01" min="0" className={`${inputClass} h-8 w-32 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setEditandoParcela(null); if (e.key === 'Enter') salvarValorParcela(p.id); }}/><button onClick={() => salvarValorParcela(p.id)} className="font-semibold text-emerald-500">Salvar</button><button onClick={() => setEditandoParcela(null)} className="text-muted-foreground">Cancelar</button></div>
+                                        <div className="flex flex-wrap items-center gap-2"><span>R$</span><input autoFocus aria-label="Valor do pagamento" type="number" step="0.01" min="0" className={`${inputClass} h-8 w-32 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setEditandoParcela(null); if (e.key === 'Enter') salvarValorParcela(p.id); }}/><button type="button" onClick={() => salvarValorParcela(p.id)} className="font-semibold text-primary">Salvar</button><button type="button" onClick={() => setEditandoParcela(null)} className="text-muted-foreground">Cancelar</button></div>
                                         {/* Sem este campo, o motivo da mudança de valor não tinha
                                             onde ser escrito — e quem escrevia em outro lugar não
                                             achava o texto depois. */}
-                                        <input className={`${inputClass} mt-2 h-8 w-full text-xs`} value={motivoParcela} onChange={e => setMotivoParcela(e.target.value)} placeholder="Motivo da alteração (fica no histórico)"/>
+                                        <input className={`${inputClass} mt-2 h-8 w-full text-xs`} value={motivoParcela} onChange={e => setMotivoParcela(e.target.value)} placeholder="Motivo da alteração (fica no histórico)" aria-label="Motivo da alteração"/>
                                     </div>}
                                 </FinancialPaymentCard>;
                             })}
@@ -821,7 +823,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     <div className="bg-card border border-border rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
                         <div className="flex justify-between items-start mb-4">
                             <div><h3 className="text-base font-bold">Programar pagamento</h3><p className="text-xs text-muted-foreground mt-1">Estas datas aparecerão no Controle de Pagamentos.</p></div>
-                            <button onClick={() => setProgramacao(null)} className="text-muted-foreground hover:text-foreground"><X size={18}/></button>
+                            <button type="button" onClick={() => setProgramacao(null)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden/></button>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <Field label="Data da solicitação">
@@ -830,7 +832,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             <Field label="Data prevista para pagamento">
                                 <input type="date" className={inputClass} value={programacao.data_prevista} onChange={e => setProgramacao(p => p && ({ ...p, data_prevista: e.target.value }))}/>
                             </Field>
-                            {programacao.statusAtual === 'PENDENTE' && <div className="col-span-2"><Field label="Motivo / observação para o financeiro">
+                            {programacao.statusAtual === 'PENDENTE' && <div className="col-span-2"><Field label="Motivo ou observação para o financeiro">
                                 <textarea className={inputClass} rows={3} value={programacao.motivo} onChange={e => setProgramacao(p => p && ({ ...p, motivo: e.target.value }))} placeholder="Ex.: pagamento de mobilização, saldo após conclusão..." />
                             </Field></div>}
                         </div>
@@ -842,7 +844,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             {showTemplateModal && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9000] p-4">
                     <div className="bg-card border border-border rounded-2xl w-full max-w-2xl p-6">
-                        <h3 className="text-base font-bold mb-1">Modelo de Contrato de Prestação de Serviço</h3>
+                        <h3 className="text-base font-bold mb-1">Modelo de contrato de prestação de serviço</h3>
                         <p className="text-xs text-muted-foreground mb-3">
                             Texto/HTML padrão usado para gerar o contrato de qualquer fornecedor contratado. Use marcadores
                             como <code className="bg-secondary/60 px-1 rounded">{'{{fornecedor.nome}}'}</code>, <code className="bg-secondary/60 px-1 rounded">{'{{atividade.escopo}}'}</code>,{' '}
@@ -853,10 +855,11 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             className={`${inputClass} font-mono text-xs resize-y`}
                             value={templateDraft}
                             onChange={e => setTemplateDraft(e.target.value)}
+                            aria-label="Modelo de contrato"
                         />
                         <div className="flex justify-end gap-2 mt-4">
                             <GhostButton onClick={() => setShowTemplateModal(false)}>Cancelar</GhostButton>
-                            <PrimaryButton onClick={salvarModeloContrato} disabled={salvandoTemplate}>{salvandoTemplate ? 'Salvando...' : 'Salvar Modelo'}</PrimaryButton>
+                            <PrimaryButton onClick={salvarModeloContrato} disabled={salvandoTemplate}>{salvandoTemplate ? 'Salvando...' : 'Salvar modelo'}</PrimaryButton>
                         </div>
                     </div>
                 </div>
@@ -869,10 +872,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             <div className="min-w-0">
                                 <h3 className="text-base font-bold">{emailPagamento.resumo?.formalizacao_posterior ? 'E-mail de formalização da compra' : 'E-mail de programação de pagamento'}</h3>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                    Revise e copie. O envio e manual, de proposito: pagamento nao sai daqui sem alguem conferir.
+                                    Revise e copie. O envio é manual, de propósito: pagamento não sai daqui sem alguém conferir.
                                 </p>
                             </div>
-                            <button onClick={() => setEmailPagamento(null)} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
+                            <button type="button" onClick={() => setEmailPagamento(null)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden /></button>
                         </div>
 
                         <div className="px-5 py-3 border-b border-border space-y-2 text-xs">
@@ -884,38 +887,39 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 {emailPagamento.responsavel && <span><span className="text-muted-foreground">Responsável:</span> <strong>{emailPagamento.responsavel.nome}</strong></span>}
                                 <span><span className="text-muted-foreground">Favorecido:</span> <strong>{emailPagamento.resumo?.fornecedor}</strong></span>
                                 {emailPagamento.resumo?.razao_social && emailPagamento.resumo.razao_social !== emailPagamento.resumo.fornecedor && (
-                                    <span><span className="text-muted-foreground">Razao social:</span> <strong>{emailPagamento.resumo.razao_social}</strong></span>
+                                    <span><span className="text-muted-foreground">Razão social:</span> <strong>{emailPagamento.resumo.razao_social}</strong></span>
                                 )}
                             </div>
                             {emailPagamento.anexos?.length > 0 && <div className="text-muted-foreground">Anexos reais no .eml: <strong className="text-foreground">{emailPagamento.anexos.map((a:any)=>a.nome).join('; ')}</strong></div>}
-                            {emailPagamento.resumo?.documentos_pendentes?.length > 0 && <div className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-amber-400">Formalização incompleta: {emailPagamento.resumo.documentos_pendentes.join(', ')}</div>}
-                            {emailPagamento.routing_pendente && <div className="rounded border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-amber-400">Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações → Comunicação.</div>}
+                            {emailPagamento.resumo?.documentos_pendentes?.length > 0 && <div className="rounded border border-warn/40 bg-warn/10 px-2.5 py-1.5 text-warn">Formalização incompleta: {emailPagamento.resumo.documentos_pendentes.join(', ')}</div>}
+                            {emailPagamento.routing_pendente && <div className="rounded border border-warn/40 bg-warn/10 px-2.5 py-1.5 text-warn">Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações → Comunicação.</div>}
                             <div className="flex items-start gap-2">
                                 <span className="text-muted-foreground shrink-0 pt-0.5">Assunto:</span>
-                                <span className="font-mono text-[11px] break-all">{emailPagamento.assunto}</span>
+                                <span className="text-xs break-all">{emailPagamento.assunto}</span>
                                 <button
+                                    type="button"
                                     onClick={() => { navigator.clipboard.writeText(emailPagamento.assunto); setCopiado('assunto'); setTimeout(() => setCopiado(''), 2500); }}
                                     className="shrink-0 flex items-center gap-1 text-primary hover:underline"
                                 >
-                                    <Copy size={12} /> {copiado === 'assunto' ? 'copiado' : 'copiar'}
+                                    <Copy size={14} aria-hidden /> {copiado === 'assunto' ? 'Copiado' : 'Copiar assunto'}
                                 </button>
                             </div>
                             <div className="flex flex-wrap gap-x-5 gap-y-1 pt-1">
-                                <span className="text-muted-foreground">Contratado <strong className="text-foreground">{fmtMoeda(emailPagamento.resumo?.valor_total || 0)}</strong></span>
-                                <span className="text-muted-foreground">Ja pago <strong className="text-foreground">{fmtMoeda(emailPagamento.resumo?.valor_pago || 0)}</strong></span>
-                                <span className="text-emerald-500 font-semibold">{emailPagamento.resumo?.formalizacao_posterior ? 'Compra formalizada' : 'Esta programação'} {fmtMoeda(emailPagamento.resumo?.valor_pagamento || 0)}</span>
-                                <span className="text-amber-500">Saldo {fmtMoeda(emailPagamento.resumo?.saldo || 0)}</span>
+                                <span className="text-muted-foreground">Contratado <strong className="text-foreground">{emailPagamento.resumo?.valor_total ? fmtMoeda(emailPagamento.resumo.valor_total) : '—'}</strong></span>
+                                <span className="text-muted-foreground">Já pago <strong className="text-foreground">{emailPagamento.resumo?.valor_pago ? fmtMoeda(emailPagamento.resumo.valor_pago) : '—'}</strong></span>
+                                <span className="text-muted-foreground">{emailPagamento.resumo?.formalizacao_posterior ? 'Compra formalizada' : 'Esta programação'} <strong className="text-foreground">{emailPagamento.resumo?.valor_pagamento ? fmtMoeda(emailPagamento.resumo.valor_pagamento) : '—'}</strong></span>
+                                <span className="text-muted-foreground">Saldo <strong className={(emailPagamento.resumo?.saldo || 0) < 0 ? 'text-crit' : 'text-foreground'}>{emailPagamento.resumo?.saldo ? fmtMoeda(emailPagamento.resumo.saldo) : '—'}</strong></span>
                             </div>
                             {emailPagamento.resumo?.sem_dados_bancarios && (
-                                <div className="mt-1 rounded border border-red-500/45 bg-red-500/10 px-2.5 py-1.5 text-red-400">
-                                    Este fornecedor nao tem banco nem PIX cadastrado. O e-mail sai sem os dados para pagamento.
+                                <div className="mt-1 rounded border border-crit/45 bg-crit/10 px-2.5 py-1.5 text-crit">
+                                    Este fornecedor não tem banco nem PIX cadastrado. O e-mail sai sem os dados para pagamento. Cadastre em Fornecedores.
                                 </div>
                             )}
                         </div>
 
                         <div className="flex-1 overflow-auto bg-[#F4F6F8] p-3">
                             <iframe
-                                title="Previa do e-mail"
+                                title="Prévia do e-mail"
                                 srcDoc={emailPagamento.html}
                                 className="w-full bg-white border-0"
                                 style={{ height: 1500 }}
@@ -927,10 +931,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             <button
                                 type="button"
                                 onClick={abrirEmailNoOutlook}
-                                className="h-9 px-3 border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2"
+                                className="h-9 px-3 rounded-lg border border-border bg-secondary hover:bg-secondary/70 text-sm font-semibold flex items-center gap-2"
                                 title="Baixa um .eml — abrir no Outlook cria a mensagem pronta para enviar"
                             >
-                                <Mail size={15} /> Abrir no Outlook
+                                <Mail size={15} aria-hidden /> Abrir no Outlook
                             </button>
                             <PrimaryButton onClick={() => copiarEmail(emailPagamento.html, emailPagamento.assunto)}>
                                 {copiado === 'corpo' ? 'Copiado' : 'Copiar e-mail'}

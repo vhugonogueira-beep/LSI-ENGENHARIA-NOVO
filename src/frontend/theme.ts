@@ -39,18 +39,18 @@ const CLARA: Paleta = {
     bg2: '#FFFFFF',   // cartões
     bg3: '#FFFFFF',   // campos e áreas elevadas
     bg4: '#EAF3FF',   // fundo de seleção
-    bgHover: 'rgba(0,102,255,0.07)',
+    bgHover: 'rgba(23,104,213,0.07)',
     bgSidebar: '#0A2644',
     brSub: '#E8EFF8', brBase: '#DCE7F3', brStrong: '#C3D5E9',
     // txPri é o texto principal; títulos usam `titulo`, mais escuro.
     txPri: '#172B4D', txSec: '#526B89', txMut: '#5F7590', txDis: '#8496AC',
-    blue: '#0066FF', blueD: '#0057D9', blueL: '#005CE6',
+    blue: '#1768D5', blueD: '#0F4EA3', blueL: '#005CE6',
     // Semânticas escurecidas: os tons do tema noturno não têm contraste sobre branco.
     green: '#1D865C', greenD: '#146B48', greenL: '#4FAE84',
     amber: '#A26B16', amberD: '#8F5E10',
     red: '#C0413C', redD: '#99322E',
     purple: '#6D4FC4', cyan: '#1E7F94', orange: '#C26A28', indigo: '#3F57B8',
-    gradBlue: 'linear-gradient(90deg, #0057D9, #0066FF)',
+    gradBlue: 'linear-gradient(90deg, #0F4EA3, #1768D5)',
     titulo: '#0B173D',
 };
 
@@ -64,12 +64,12 @@ const ESCURA: Paleta = {
     bgSidebar: '#081321',
     brSub: '#1F3149', brBase: '#2B4059', brStrong: '#3A5273',
     txPri: '#EAF1FA', txSec: '#A6B7CC', txMut: '#8497AE', txDis: '#64778E',
-    blue: '#0066FF', blueD: '#0057D9', blueL: '#78B5FF',
+    blue: '#1768D5', blueD: '#0F4EA3', blueL: '#78B5FF',
     green: '#34d399', greenD: '#0d9e74', greenL: '#6ee7b7',
-    amber: '#fbbf24', amberD: '#d97706',
-    red: '#f87171', redD: '#dc2626',
+    amber: '#fbbf24', amberD: '#F59E0B',
+    red: '#f87171', redD: '#EF4444',
     purple: '#a78bfa', cyan: '#67e8f9', orange: '#fb923c', indigo: '#6366f1',
-    gradBlue: 'linear-gradient(90deg, #0057D9, #0066FF)',
+    gradBlue: 'linear-gradient(90deg, #0F4EA3, #1768D5)',
     titulo: '#F2F7FC',
 };
 
@@ -102,7 +102,7 @@ export const TMenu: Paleta = {
     txSec: '#DCE8F7',
     txMut: '#C2D5EC',
     txDis: '#9FB6D2',
-    blue: '#0066FF',
+    blue: '#1768D5',
     bgSidebar: T.bgSidebar,
     bg0: T.bgSidebar,
     bg1: tema === 'claro' ? '#123156' : '#0E1A2B',

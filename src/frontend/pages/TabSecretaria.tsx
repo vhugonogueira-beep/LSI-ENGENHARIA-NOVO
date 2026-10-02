@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
+import { Check, Clock, User, Pencil, MessageCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays, Kanban, ClipboardList, Plus } from 'lucide-react';
 
 
 interface SecTask {
@@ -22,29 +23,32 @@ const effStatus = (t: SecTask) => { if (t.status === "done") return "done"; if (
 const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
 const Tag = ({ bg, color, children }: { bg: string; color: string; children: React.ReactNode }) => (
-  <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 10, fontWeight: 700, background: bg, color, whiteSpace: "nowrap" }}>{children}</span>
+  <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 10, fontWeight: 600, background: bg, color, whiteSpace: "nowrap", display: "inline-flex", alignItems: "center", gap: 3 }}>{children}</span>
 );
 
 const StatusTag = ({ status }: { status: string }) => {
-  const m: Record<string, [string, string, string]> = {
-    pending: ["#332b00", T.amber, "Pendente"], awaiting: ["#0c1a3a", T.blueL, "Aguardando"],
-    done: ["#0a2218", T.green, "Concluída"], overdue: ["#2a0a0a", T.red, "Vencida"],
+  // Fundo derivado da própria cor do estado, para acompanhar o tema.
+  const m: Record<string, [string, string]> = {
+    pending: [T.amber, "Pendente"], awaiting: [T.blueL, "Aguardando"],
+    done: [T.green, "Concluída"], overdue: [T.red, "Vencida"],
   };
-  const [bg, c, l] = m[status] || m.pending;
-  return <Tag bg={bg} color={c}>{l}</Tag>;
+  const [c, l] = m[status] || m.pending;
+  return <Tag bg={c + "1a"} color={c}>{l}</Tag>;
 };
 
 const Btn = ({ children, onClick, blue, green, red, small, style: extra }: any) => (
   <button onClick={onClick} style={{
-    padding: small ? "3px 8px" : "4px 10px", fontSize: small ? 10 : 11, border: `1px solid ${blue ? T.blue : green ? T.greenD : red ? T.redD : T.brBase}`,
+    display: "inline-flex", alignItems: "center", gap: 4,
+    padding: small ? "3px 8px" : "4px 10px", fontSize: 11, border: `1px solid ${blue ? T.blue : green ? T.greenD : red ? T.redD : T.brBase}`,
     borderRadius: 6, background: blue ? T.blue : green ? T.greenD : red ? T.redD : T.bg3,
     cursor: "pointer", color: blue || green || red ? "#fff" : T.txSec, fontWeight: 500, whiteSpace: "nowrap", ...extra,
   }}>{children}</button>
 );
 
 const Input = (props: any) => <input {...props} style={{ padding: "5px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, fontFamily: "inherit", outline: "none", width: "100%", ...props.style }} />;
-const Select = (props: any) => <select {...props} style={{ padding: "4px 6px", fontSize: 10, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, fontFamily: "inherit", outline: "none", ...props.style }} />;
-const Label = ({ children }: any) => <label style={{ fontSize: 9, color: T.txMut, marginBottom: 2, display: "block" }}>{children}</label>;
+const Select = (props: any) => <select {...props} style={{ padding: "4px 6px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, fontFamily: "inherit", outline: "none", ...props.style }} />;
+const Label = ({ children, htmlFor }: any) => <label htmlFor={htmlFor} style={{ fontSize: 11, color: T.txMut, marginBottom: 2, display: "block" }}>{children}</label>;
+const iconBtn: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 2, color: T.txMut, display: "inline-flex" };
 
 export default function TabSecretaria() {
   const [tasks, setTasks] = useState<SecTask[]>([]);
@@ -149,24 +153,24 @@ export default function TabSecretaria() {
     if (t.deadline && !isDone) { const diff = Math.round((new Date(t.deadline+"T00:00:00").getTime() - new Date(todayKey()+"T00:00:00").getTime()) / 86400000); if (diff < 0) dl = "Vencido"; else if (diff === 0) dl = "Hoje!"; else if (diff <= 3) dl = `${diff}d`; }
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px", background: T.bg2, border: `1px solid ${T.brSub}`, borderRadius: 6, borderLeft: isUrg ? `2px solid ${T.red}` : `1px solid ${T.brSub}`, opacity: isDone ? 0.5 : 1 }}>
-        <div onClick={() => toggleDone(t.id)} style={{ width: 14, height: 14, borderRadius: 3, border: `1.5px solid ${isDone ? T.blue : T.brStrong}`, background: isDone ? T.blue : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, color: "#fff", flexShrink: 0 }}>{isDone ? "✓" : ""}</div>
+        <button type="button" role="checkbox" aria-checked={isDone} aria-label={isDone ? `Reabrir tarefa: ${t.desc}` : `Concluir tarefa: ${t.desc}`} title={isDone ? "Reabrir tarefa" : "Concluir tarefa"} onClick={() => toggleDone(t.id)} style={{ width: 16, height: 16, padding: 0, borderRadius: 3, border: `1.5px solid ${isDone ? T.blue : T.brStrong}`, background: isDone ? T.blue : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", flexShrink: 0 }}>{isDone && <Check size={12} aria-hidden />}</button>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 11, color: T.txPri, textDecoration: isDone ? "line-through" : "none", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.desc}</div>
           <div style={{ display: "flex", gap: 3, marginTop: 3, flexWrap: "wrap", alignItems: "center" }}>
             <StatusTag status={eff} />
-            {isUrg && <Tag bg="#2a0a0a" color={T.red}>Urgente</Tag>}
-            {t.client && <Tag bg="#1a0a2e" color={T.purple}>{t.client}</Tag>}
+            {isUrg && <Tag bg={T.red + "1a"} color={T.red}>Urgente</Tag>}
+            {t.client && <Tag bg={T.bg4} color={T.txSec}>{t.client}</Tag>}
             {t.type && <Tag bg={T.bg4} color={T.txSec}>{t.type}</Tag>}
-            {t.rescheduled && <Tag bg="#2a0a1a" color={T.orange}>Reag.</Tag>}
-            {dl && <Tag bg="#2a0a0a" color={T.red}>⏳{dl}</Tag>}
-            {t.time && <span style={{ fontSize: 9, color: T.txMut }}>⏰{t.time}</span>}
-            {t.resp && <span style={{ fontSize: 9, color: T.txMut }}>👤{t.resp}</span>}
+            {t.rescheduled && <Tag bg={T.amber + "1a"} color={T.amber}>Reagendada</Tag>}
+            {dl && <Tag bg={T.red + "1a"} color={T.red}><Clock size={12} aria-hidden />Prazo: {dl}</Tag>}
+            {t.time && <span style={{ fontSize: 11, color: T.txMut, display: "inline-flex", alignItems: "center", gap: 3 }}><Clock size={12} aria-hidden />{t.time}</span>}
+            {t.resp && <span style={{ fontSize: 11, color: T.txMut, display: "inline-flex", alignItems: "center", gap: 3 }}><User size={12} aria-hidden />{t.resp}</span>}
           </div>
         </div>
         <div style={{ display: "flex", gap: 1, flexShrink: 0 }}>
-          <button onClick={() => openEdit(t.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, fontSize: 11, color: T.txMut }}>✎</button>
-          <button onClick={() => { const msg = `📌 *${t.desc}*\n${t.client?"Cliente: "+t.client+"\n":""}${t.resp?"Resp: "+t.resp+"\n":""}Status: ${eff}`; openWA(msg); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, fontSize: 11, color: T.txMut }}>📲</button>
-          <button onClick={() => deleteTask(t.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, fontSize: 11, color: T.txMut }}>✕</button>
+          <button onClick={() => openEdit(t.id)} aria-label="Editar tarefa" title="Editar tarefa" style={iconBtn}><Pencil size={14} aria-hidden /></button>
+          <button onClick={() => { const msg = `📌 *${t.desc}*\n${t.client?"Cliente: "+t.client+"\n":""}${t.resp?"Resp: "+t.resp+"\n":""}Status: ${eff}`; openWA(msg); }} aria-label="Enviar tarefa por WhatsApp" title="Enviar tarefa por WhatsApp" style={iconBtn}><MessageCircle size={14} aria-hidden /></button>
+          <button onClick={() => deleteTask(t.id)} aria-label="Excluir tarefa" title="Excluir tarefa" style={iconBtn}><Trash2 size={14} aria-hidden /></button>
         </div>
       </div>
     );
@@ -175,8 +179,8 @@ export default function TabSecretaria() {
   // ── Stat Card ──
   const Stat = ({ v, l, c }: { v: number; l: string; c: string }) => (
     <div style={{ background: T.bg3, border: `1px solid ${T.brSub}`, borderRadius: 6, padding: "6px 8px", textAlign: "center" }}>
-      <div style={{ fontSize: 16, fontWeight: 700, color: c }}>{v}</div>
-      <div style={{ fontSize: 8, color: T.txMut, marginTop: 1 }}>{l}</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: v ? c : T.txMut }}>{v || "—"}</div>
+      <div style={{ fontSize: 11, color: T.txMut, marginTop: 1 }}>{l}</div>
     </div>
   );
 
@@ -184,19 +188,19 @@ export default function TabSecretaria() {
   const Calendar = () => (
     <div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-        <button onClick={prevM} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: T.txMut, padding: "0 3px" }}>‹</button>
-        <span style={{ fontSize: 10, fontWeight: 600, color: T.txSec }}>{MESES[calM]} {calY}</span>
-        <button onClick={nextM} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: T.txMut, padding: "0 3px" }}>›</button>
+        <button onClick={prevM} aria-label="Mês anterior" title="Mês anterior" style={{ ...iconBtn, padding: "0 3px" }}><ChevronLeft size={14} aria-hidden /></button>
+        <span style={{ fontSize: 11, fontWeight: 600, color: T.txSec }}>{MESES[calM]} {calY}</span>
+        <button onClick={nextM} aria-label="Próximo mês" title="Próximo mês" style={{ ...iconBtn, padding: "0 3px" }}><ChevronRight size={14} aria-hidden /></button>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1 }}>
-        {["D","S","T","Q","Q","S","S"].map((d,i) => <div key={i} style={{ textAlign: "center", fontSize: 8, color: T.txDis, padding: 1 }}>{d}</div>)}
+        {["D","S","T","Q","Q","S","S"].map((d,i) => <div key={i} style={{ textAlign: "center", fontSize: 11, color: T.txDis, padding: 1 }}>{d}</div>)}
         {calDays.map((c, i) => {
           if (!c.d) return <div key={i} />;
           const isT = c.k === todayKey(), isS = c.k === selDate && !isT, has = taskDates.has(c.k);
-          return <div key={i} onClick={() => setSelDate(c.k)} style={{ textAlign: "center", fontSize: 9, padding: "2px 0", borderRadius: 3, cursor: "pointer", color: isT ? "#fff" : isS ? T.blue : T.txMut, background: isT ? T.blue : isS ? "#0c1a3a" : "transparent", fontWeight: isS ? 600 : 400, position: "relative" }}>
+          return <button type="button" key={i} onClick={() => setSelDate(c.k)} aria-pressed={c.k === selDate} aria-label={`${c.d} de ${MESES_FULL[calM]}${has ? ", com tarefas" : ""}`} style={{ textAlign: "center", fontSize: 11, padding: "2px 0", border: "none", borderRadius: 3, cursor: "pointer", color: isT ? "#fff" : isS ? T.blue : T.txMut, background: isT ? T.blue : isS ? T.bg4 : "transparent", fontWeight: isS ? 600 : 400, position: "relative" }}>
             {c.d}
             {has && <span style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 2, height: 2, borderRadius: "50%", background: isT ? "#fff" : T.red }} />}
-          </div>;
+          </button>;
         })}
       </div>
     </div>
@@ -210,11 +214,11 @@ export default function TabSecretaria() {
 
         {/* Nav tabs */}
         <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 10 }}>
-          {([["agenda","📅","Agenda"],["kanban","📊","Kanban"],["relatorio","📋","Relatório"]] as const).map(([id, icon, label]) => (
-            <div key={id} onClick={() => setView(id)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px", borderRadius: 5, cursor: "pointer", fontSize: 11, color: view === id ? T.blue : T.txMut, background: view === id ? "#0c1a3a" : "transparent", fontWeight: view === id ? 600 : 400 }}>
-              <span style={{ fontSize: 12 }}>{icon}</span>{label}
-              {id === "agenda" && overdueN > 0 && <span style={{ marginLeft: "auto", background: T.red, color: "#fff", fontSize: 8, padding: "0 4px", borderRadius: 8, fontWeight: 700 }}>{overdueN}</span>}
-            </div>
+          {([["agenda", <CalendarDays size={14} aria-hidden />, "Agenda"], ["kanban", <Kanban size={14} aria-hidden />, "Kanban"], ["relatorio", <ClipboardList size={14} aria-hidden />, "Relatório"]] as const).map(([id, icon, label]) => (
+            <button type="button" key={id} onClick={() => setView(id)} aria-pressed={view === id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 8px", border: "none", borderRadius: 5, cursor: "pointer", fontSize: 11, textAlign: "left", color: view === id ? T.blue : T.txMut, background: view === id ? T.bg4 : "transparent", fontWeight: view === id ? 600 : 400 }}>
+              {icon}{label}
+              {id === "agenda" && overdueN > 0 && <span aria-label={`${overdueN} vencida(s)`} style={{ marginLeft: "auto", background: T.red, color: "#fff", fontSize: 11, padding: "0 4px", borderRadius: 8, fontWeight: 700 }}>{overdueN}</span>}
+            </button>
           ))}
         </div>
 
@@ -235,10 +239,10 @@ export default function TabSecretaria() {
 
         {/* Selected date info */}
         <div style={{ marginTop: 10, padding: "6px 4px", background: T.bg3, borderRadius: 6, textAlign: "center" }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: T.txPri }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: T.txPri }}>
             {DIAS[selObj.getDay()]}, {selObj.getDate()} {MESES_FULL[selObj.getMonth()]}
           </div>
-          <div style={{ fontSize: 9, color: T.txMut }}>{selDate === todayKey() ? "Hoje" : selDate < todayKey() ? "Passado" : "Futuro"}</div>
+          <div style={{ fontSize: 11, color: T.txMut }}>{selDate === todayKey() ? "Hoje" : selDate < todayKey() ? "Passado" : "Futuro"}</div>
         </div>
       </div>
 
@@ -246,28 +250,28 @@ export default function TabSecretaria() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
 
         {/* Toast */}
-        {toast && <div style={{ padding: "4px 12px", fontSize: 10, color: T.green, background: "#081a10", borderBottom: `1px solid ${T.brSub}`, textAlign: "center" }}>✅ {toast}</div>}
+        {toast && <div role="status" style={{ padding: "4px 12px", fontSize: 11, color: T.green, background: T.green + "1a", borderBottom: `1px solid ${T.brSub}`, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}><Check size={14} aria-hidden />{toast}</div>}
 
         {/* Top bar */}
         <div style={{ padding: "8px 12px", borderBottom: `1px solid ${T.brSub}`, display: "flex", alignItems: "center", justifyContent: "space-between", background: T.bg1, flexShrink: 0, gap: 8, flexWrap: "wrap" }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.txPri }}>
-            {view === "agenda" ? `${DIAS[selObj.getDay()]}, ${selObj.getDate()} de ${MESES_FULL[selObj.getMonth()]}` : view === "kanban" ? "Visão Kanban" : "Relatório Geral"}
+            {view === "agenda" ? `${DIAS[selObj.getDay()]}, ${selObj.getDate()} de ${MESES_FULL[selObj.getMonth()]}` : view === "kanban" ? "Visão kanban" : "Relatório geral"}
           </div>
           {view === "agenda" && (
             <div style={{ display: "flex", gap: 4 }}>
               {overdueN > 0 && <Btn small onClick={reschedule}>Reagendar ({overdueN})</Btn>}
-              <Btn small green onClick={() => openWA(buildReport(dayTasks, "Resumo do dia"))}>WA</Btn>
-              <Btn small blue onClick={openNew}>+ Nova</Btn>
+              <Btn small green onClick={() => openWA(buildReport(dayTasks, "Resumo do dia"))}><MessageCircle size={14} aria-hidden />Enviar resumo por WhatsApp</Btn>
+              <Btn small blue onClick={openNew}><Plus size={14} aria-hidden />Nova tarefa</Btn>
             </div>
           )}
-          {view === "relatorio" && <Btn small green onClick={() => openWA(buildReport(tasks, "Relatório Geral"))}>Exportar WA</Btn>}
+          {view === "relatorio" && <Btn small green onClick={() => openWA(buildReport(tasks, "Relatório Geral"))}><MessageCircle size={14} aria-hidden />Enviar por WhatsApp</Btn>}
         </div>
 
         {/* Agenda sub-tabs */}
         {view === "agenda" && (
           <div style={{ display: "flex", borderBottom: `1px solid ${T.brSub}`, padding: "0 12px", background: T.bg1, flexShrink: 0 }}>
-            {[["all","Todas"],["pending","Pend."],["awaiting","Aguard."],["done","Feitas"],["overdue","Vencidas"]].map(([k, l]) => (
-              <div key={k} onClick={() => setTab(k)} style={{ padding: "5px 10px", fontSize: 10, cursor: "pointer", borderBottom: `2px solid ${tab === k ? T.blue : "transparent"}`, color: tab === k ? T.blue : T.txMut, fontWeight: tab === k ? 600 : 400 }}>{l}</div>
+            {[["all","Todas"],["pending","Pendentes"],["awaiting","Aguardando"],["done","Feitas"],["overdue","Vencidas"]].map(([k, l]) => (
+              <button type="button" key={k} onClick={() => setTab(k)} aria-pressed={tab === k} style={{ padding: "5px 10px", fontSize: 11, cursor: "pointer", background: "none", border: "none", borderBottom: `2px solid ${tab === k ? T.blue : "transparent"}`, color: tab === k ? T.blue : T.txMut, fontWeight: tab === k ? 600 : 400 }}>{l}</button>
             ))}
           </div>
         )}
@@ -279,13 +283,13 @@ export default function TabSecretaria() {
           {view === "agenda" && (
             filtered.length === 0
               ? <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", color: T.txMut, gap: 6 }}>
-                  <span style={{ fontSize: 24 }}>📋</span>
-                  <span style={{ fontSize: 11 }}>Nenhuma atividade</span>
+                  <ClipboardList size={24} aria-hidden />
+                  <span style={{ fontSize: 11 }}>Nenhuma tarefa neste dia. Registre uma no campo abaixo.</span>
                 </div>
               : <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {filtered.filter(t => t.priority === "high" && t.status !== "done").length > 0 && (
-                    <div style={{ fontSize: 9, fontWeight: 700, color: T.amber, padding: "2px 0", borderBottom: `1px solid ${T.amberD}` }}>
-                      URGENTES ({filtered.filter(t => t.priority === "high" && t.status !== "done").length})
+                    <div style={{ fontSize: 11, fontWeight: 600, color: T.amber, padding: "2px 0", borderBottom: `1px solid ${T.amberD}` }}>
+                      Urgentes ({filtered.filter(t => t.priority === "high" && t.status !== "done").length})
                     </div>
                   )}
                   {filtered.sort((a, b) => (a.priority === "high" && a.status !== "done" ? -1 : 1) - (b.priority === "high" && b.status !== "done" ? -1 : 1)).map(t => <Row key={t.id} t={t} />)}
@@ -295,19 +299,19 @@ export default function TabSecretaria() {
           {/* KANBAN */}
           {view === "kanban" && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, alignItems: "start" }}>
-              {[{ k: "pending", l: "Pendentes", bg: "#1a1800", c: T.amber }, { k: "awaiting", l: "Aguardando", bg: "#0c1a2e", c: T.blueL }, { k: "overdue", l: "Vencidas", bg: "#1a0808", c: T.red }, { k: "done", l: "Concluídas", bg: "#081a10", c: T.green }].map(col => {
+              {[{ k: "pending", l: "Pendentes", c: T.amber }, { k: "awaiting", l: "Aguardando", c: T.blueL }, { k: "overdue", l: "Vencidas", c: T.red }, { k: "done", l: "Concluídas", c: T.green }].map(col => {
                 const ct = tasks.filter(t => effStatus(t) === col.k).slice(0, 20);
                 return (
                   <div key={col.k} style={{ border: `1px solid ${T.brSub}`, borderRadius: 6, overflow: "hidden" }}>
-                    <div style={{ padding: "6px 8px", fontSize: 10, fontWeight: 600, display: "flex", justifyContent: "space-between", background: col.bg, color: col.c }}><span>{col.l}</span><span>{ct.length}</span></div>
+                    <div style={{ padding: "6px 8px", fontSize: 11, fontWeight: 600, display: "flex", justifyContent: "space-between", background: col.c + "1a", color: col.c }}><span>{col.l}</span><span style={{ color: ct.length ? col.c : T.txMut }}>{ct.length || "—"}</span></div>
                     <div style={{ padding: 4, display: "flex", flexDirection: "column", gap: 3, minHeight: 40 }}>
                       {ct.length ? ct.map(t => (
-                        <div key={t.id} onClick={() => openEdit(t.id)} style={{ background: T.bg2, border: `1px solid ${T.brSub}`, borderRadius: 4, padding: "4px 6px", fontSize: 10, cursor: "pointer", color: T.txPri }}>
-                          {t.client && <span style={{ fontSize: 8, color: T.purple, fontWeight: 700 }}>{t.client} · </span>}
+                        <button type="button" key={t.id} onClick={() => openEdit(t.id)} title="Editar tarefa" style={{ background: T.bg2, border: `1px solid ${T.brSub}`, borderRadius: 4, padding: "4px 6px", fontSize: 11, cursor: "pointer", color: T.txPri, textAlign: "left" }}>
+                          {t.client && <span style={{ fontSize: 11, color: T.txSec, fontWeight: 600, marginRight: 6 }}>{t.client}</span>}
                           {t.desc.substring(0, 40)}{t.desc.length > 40 ? "…" : ""}
-                          {t.priority === "high" && t.status !== "done" && <span style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: T.red, marginLeft: 3, verticalAlign: "middle" }} />}
-                        </div>
-                      )) : <div style={{ fontSize: 9, color: T.txDis, padding: 4 }}>Vazio</div>}
+                          {t.priority === "high" && t.status !== "done" && <span aria-label="Urgente" style={{ display: "inline-block", width: 4, height: 4, borderRadius: "50%", background: T.red, marginLeft: 3, verticalAlign: "middle" }} />}
+                        </button>
+                      )) : <div style={{ fontSize: 11, color: T.txDis, padding: 4 }}>Vazio</div>}
                     </div>
                   </div>
                 );
@@ -319,10 +323,10 @@ export default function TabSecretaria() {
           {view === "relatorio" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-                {[["Total", rpt.total, T.blue], ["Concluídas", rpt.done, T.green], ["Pendentes", rpt.pending, T.amber], ["Vencidas", rpt.overdue, T.red]].map(([l, v, c]) => (
+                {[["Total", rpt.total, T.txPri], ["Concluídas", rpt.done, T.green], ["Pendentes", rpt.pending, T.amber], ["Vencidas", rpt.overdue, T.red]].map(([l, v, c]) => (
                   <div key={l as string} style={{ background: T.bg3, border: `1px solid ${T.brSub}`, borderRadius: 6, padding: "8px 10px" }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: c as string }}>{v as number}</div>
-                    <div style={{ fontSize: 9, color: T.txMut, marginTop: 1 }}>{l as string}</div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: v ? c as string : T.txMut }}>{(v as number) || "—"}</div>
+                    <div style={{ fontSize: 11, color: T.txMut, marginTop: 1 }}>{l as string}</div>
                   </div>
                 ))}
               </div>
@@ -331,16 +335,16 @@ export default function TabSecretaria() {
                 {Object.entries(rpt.byClient).map(([cl, d]) => {
                   const pct = d.total ? Math.round(d.done / d.total * 100) : 0;
                   return <div key={cl} style={{ marginBottom: 6 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, marginBottom: 2 }}><span style={{ color: T.txPri }}>{cl}</span><span style={{ color: T.txMut }}>{d.done}/{d.total} ({pct}%)</span></div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, marginBottom: 2 }}><span style={{ color: T.txPri }}>{cl}</span><span style={{ color: T.txMut }}>{d.done}/{d.total} ({pct}%)</span></div>
                     <div style={{ height: 4, background: T.bg4, borderRadius: 2, overflow: "hidden" }}><div style={{ height: "100%", width: `${pct}%`, background: T.blue, borderRadius: 2 }} /></div>
                   </div>;
                 })}
               </div>
               <div style={{ background: T.bg2, border: `1px solid ${T.brSub}`, borderRadius: 6, padding: "10px 12px" }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: T.txPri, marginBottom: 4 }}>Concluídas 7 dias ({rpt.done7.length})</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: T.txPri, marginBottom: 4 }}>Concluídas nos últimos 7 dias ({rpt.done7.length})</div>
                 {rpt.done7.length ? rpt.done7.slice(0, 10).map(t => (
-                  <div key={t.id} style={{ fontSize: 10, color: T.txSec, padding: "2px 0", borderBottom: `1px solid ${T.brSub}` }}>✅ {t.desc}{t.client ? ` [${t.client}]` : ""}</div>
-                )) : <div style={{ fontSize: 10, color: T.txMut }}>Nenhuma</div>}
+                  <div key={t.id} style={{ fontSize: 11, color: T.txSec, padding: "2px 0", borderBottom: `1px solid ${T.brSub}`, display: "flex", alignItems: "center", gap: 6 }}><Check size={14} aria-hidden style={{ color: T.green, flexShrink: 0 }} /><span>{t.desc}</span>{t.client && <span style={{ color: T.txMut }}>{t.client}</span>}</div>
+                )) : <div style={{ fontSize: 11, color: T.txMut }}>Nenhuma</div>}
               </div>
             </div>
           )}
@@ -350,14 +354,14 @@ export default function TabSecretaria() {
         {view === "agenda" && (
           <div style={{ borderTop: `1px solid ${T.brSub}`, padding: "6px 10px", background: T.bg1, flexShrink: 0 }}>
             <div style={{ display: "flex", gap: 4, marginBottom: 4, flexWrap: "wrap" }}>
-              <Select value={qSt} onChange={(e: any) => setQSt(e.target.value)}><option value="pending">Pend.</option><option value="awaiting">Aguard.</option><option value="done">Feita</option></Select>
-              <Select value={qPr} onChange={(e: any) => setQPr(e.target.value)}><option value="normal">Normal</option><option value="high">Urgente</option><option value="low">Baixa</option></Select>
-              <Select value={qCl} onChange={(e: any) => setQCl(e.target.value)}><option value="">Cliente</option>{CLIENTES.map(c => <option key={c}>{c}</option>)}</Select>
-              <Select value={qTy} onChange={(e: any) => setQTy(e.target.value)}><option value="">Tipo</option>{TIPOS.map(t => <option key={t}>{t}</option>)}</Select>
-              <input type="time" value={qTm} onChange={e => setQTm(e.target.value)} style={{ padding: "3px 5px", fontSize: 10, border: `1px solid ${T.brBase}`, borderRadius: 5, background: T.bg3, color: T.txPri, width: 70 }} />
+              <Select aria-label="Status" value={qSt} onChange={(e: any) => setQSt(e.target.value)}><option value="pending">Pendente</option><option value="awaiting">Aguardando</option><option value="done">Feita</option></Select>
+              <Select aria-label="Prioridade" value={qPr} onChange={(e: any) => setQPr(e.target.value)}><option value="normal">Normal</option><option value="high">Urgente</option><option value="low">Baixa</option></Select>
+              <Select aria-label="Cliente" value={qCl} onChange={(e: any) => setQCl(e.target.value)}><option value="">Cliente</option>{CLIENTES.map(c => <option key={c}>{c}</option>)}</Select>
+              <Select aria-label="Tipo" value={qTy} onChange={(e: any) => setQTy(e.target.value)}><option value="">Tipo</option>{TIPOS.map(t => <option key={t}>{t}</option>)}</Select>
+              <input type="time" aria-label="Horário" value={qTm} onChange={e => setQTm(e.target.value)} style={{ padding: "3px 5px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 5, background: T.bg3, color: T.txPri, width: 70 }} />
             </div>
             <div style={{ display: "flex", gap: 4 }}>
-              <input value={qDesc} onChange={e => setQDesc(e.target.value)} onKeyDown={e => { if (e.key === "Enter") quickSave(); }} placeholder="Registrar atividade... (Enter)" style={{ flex: 1, padding: "5px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 5, background: T.bg3, color: T.txPri, outline: "none" }} />
+              <input aria-label="Descrição da nova tarefa" value={qDesc} onChange={e => setQDesc(e.target.value)} onKeyDown={e => { if (e.key === "Enter") quickSave(); }} placeholder="Registrar tarefa... (Enter)" style={{ flex: 1, padding: "5px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 5, background: T.bg3, color: T.txPri, outline: "none" }} />
               <Btn small blue onClick={quickSave}>Registrar</Btn>
             </div>
           </div>
@@ -368,23 +372,23 @@ export default function TabSecretaria() {
       {modal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setModal(false)}>
           <div style={{ background: T.bg2, borderRadius: 10, border: `1px solid ${T.brBase}`, padding: 16, width: 380, maxWidth: "95vw", maxHeight: "85vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: 13, fontWeight: 600, color: T.txPri, marginBottom: 12 }}>{editId ? "Editar" : "Nova atividade"}</h3>
-            <div style={{ marginBottom: 8 }}><Label>Descrição</Label><textarea value={fD} onChange={e => setFD(e.target.value)} rows={2} style={{ padding: "5px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, outline: "none", width: "100%", resize: "vertical", fontFamily: "inherit" }} /></div>
+            <h3 style={{ fontSize: 13, fontWeight: 600, color: T.txPri, marginBottom: 12 }}>{editId ? "Editar tarefa" : "Nova tarefa"}</h3>
+            <div style={{ marginBottom: 8 }}><Label htmlFor="sec-desc">Descrição</Label><textarea id="sec-desc" value={fD} onChange={e => setFD(e.target.value)} rows={2} style={{ padding: "5px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, outline: "none", width: "100%", resize: "vertical", fontFamily: "inherit" }} /></div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              <div style={{ marginBottom: 8 }}><Label>Status</Label><Select value={fSt} onChange={(e: any) => setFSt(e.target.value)} style={{ width: "100%" }}><option value="pending">Pendente</option><option value="awaiting">Aguard.</option><option value="done">Concluída</option></Select></div>
-              <div style={{ marginBottom: 8 }}><Label>Prioridade</Label><Select value={fPr} onChange={(e: any) => setFPr(e.target.value)} style={{ width: "100%" }}><option value="normal">Normal</option><option value="high">Urgente</option><option value="low">Baixa</option></Select></div>
+              <div style={{ marginBottom: 8 }}><Label htmlFor="sec-status">Status</Label><Select id="sec-status" value={fSt} onChange={(e: any) => setFSt(e.target.value)} style={{ width: "100%" }}><option value="pending">Pendente</option><option value="awaiting">Aguardando</option><option value="done">Concluída</option></Select></div>
+              <div style={{ marginBottom: 8 }}><Label htmlFor="sec-prioridade">Prioridade</Label><Select id="sec-prioridade" value={fPr} onChange={(e: any) => setFPr(e.target.value)} style={{ width: "100%" }}><option value="normal">Normal</option><option value="high">Urgente</option><option value="low">Baixa</option></Select></div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              <div style={{ marginBottom: 8 }}><Label>Cliente</Label><Select value={fCl} onChange={(e: any) => setFCl(e.target.value)} style={{ width: "100%" }}><option value="">—</option>{CLIENTES.map(c => <option key={c}>{c}</option>)}</Select></div>
-              <div style={{ marginBottom: 8 }}><Label>Tipo</Label><Select value={fTy} onChange={(e: any) => setFTy(e.target.value)} style={{ width: "100%" }}><option value="">—</option>{TIPOS.map(t => <option key={t}>{t}</option>)}</Select></div>
+              <div style={{ marginBottom: 8 }}><Label htmlFor="sec-cliente">Cliente</Label><Select id="sec-cliente" value={fCl} onChange={(e: any) => setFCl(e.target.value)} style={{ width: "100%" }}><option value="">—</option>{CLIENTES.map(c => <option key={c}>{c}</option>)}</Select></div>
+              <div style={{ marginBottom: 8 }}><Label htmlFor="sec-tipo">Tipo</Label><Select id="sec-tipo" value={fTy} onChange={(e: any) => setFTy(e.target.value)} style={{ width: "100%" }}><option value="">—</option>{TIPOS.map(t => <option key={t}>{t}</option>)}</Select></div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
-              <div style={{ marginBottom: 8 }}><Label>Data</Label><Input type="date" value={fDt} onChange={(e: any) => setFDt(e.target.value)} style={{ fontSize: 11, padding: "4px 6px" }} /></div>
-              <div style={{ marginBottom: 8 }}><Label>Horário</Label><Input type="time" value={fTm} onChange={(e: any) => setFTm(e.target.value)} style={{ fontSize: 11, padding: "4px 6px" }} /></div>
+              <div style={{ marginBottom: 8 }}><Label htmlFor="sec-data">Data</Label><Input id="sec-data" type="date" value={fDt} onChange={(e: any) => setFDt(e.target.value)} style={{ fontSize: 11, padding: "4px 6px" }} /></div>
+              <div style={{ marginBottom: 8 }}><Label htmlFor="sec-horario">Horário</Label><Input id="sec-horario" type="time" value={fTm} onChange={(e: any) => setFTm(e.target.value)} style={{ fontSize: 11, padding: "4px 6px" }} /></div>
             </div>
-            <div style={{ marginBottom: 8 }}><Label>Responsável</Label><Input value={fRp} onChange={(e: any) => setFRp(e.target.value)} placeholder="Ex: Dra. Ana, PV..." style={{ fontSize: 11, padding: "4px 6px" }} /></div>
-            <div style={{ marginBottom: 8 }}><Label>Prazo limite</Label><Input type="date" value={fDl} onChange={(e: any) => setFDl(e.target.value)} style={{ fontSize: 11, padding: "4px 6px" }} /></div>
-            <div style={{ marginBottom: 8 }}><Label>Observação</Label><Input value={fNt} onChange={(e: any) => setFNt(e.target.value)} placeholder="Obs..." style={{ fontSize: 11, padding: "4px 6px" }} /></div>
+            <div style={{ marginBottom: 8 }}><Label htmlFor="sec-resp">Responsável</Label><Input id="sec-resp" value={fRp} onChange={(e: any) => setFRp(e.target.value)} placeholder="Ex: Dra. Ana, PV..." style={{ fontSize: 11, padding: "4px 6px" }} /></div>
+            <div style={{ marginBottom: 8 }}><Label htmlFor="sec-prazo">Prazo limite</Label><Input id="sec-prazo" type="date" value={fDl} onChange={(e: any) => setFDl(e.target.value)} style={{ fontSize: 11, padding: "4px 6px" }} /></div>
+            <div style={{ marginBottom: 8 }}><Label htmlFor="sec-obs">Observação</Label><Input id="sec-obs" value={fNt} onChange={(e: any) => setFNt(e.target.value)} placeholder="Obs..." style={{ fontSize: 11, padding: "4px 6px" }} /></div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginTop: 10 }}>
               <Btn small onClick={() => setModal(false)}>Cancelar</Btn>
               <Btn small blue onClick={saveModal}>Salvar</Btn>
@@ -398,8 +402,8 @@ export default function TabSecretaria() {
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setWaModal(false)}>
           <div style={{ background: T.bg2, borderRadius: 10, border: `1px solid ${T.brBase}`, padding: 16, width: 380, maxWidth: "95vw" }} onClick={e => e.stopPropagation()}>
             <h3 style={{ fontSize: 13, fontWeight: 600, color: T.txPri, marginBottom: 12 }}>Enviar via WhatsApp</h3>
-            <div style={{ marginBottom: 8 }}><Label>Número (DDI+DDD+número)</Label><Input value={waNum} onChange={(e: any) => setWaNum(e.target.value)} placeholder="5511999999999" style={{ fontSize: 11, padding: "4px 6px" }} /></div>
-            <div style={{ marginBottom: 8 }}><Label>Pré-visualização</Label><textarea value={waMsg} readOnly rows={6} style={{ padding: "5px 8px", fontSize: 10, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txSec, outline: "none", width: "100%", resize: "none", fontFamily: "inherit" }} /></div>
+            <div style={{ marginBottom: 8 }}><Label htmlFor="sec-wa-num">Número (DDI+DDD+número)</Label><Input id="sec-wa-num" value={waNum} onChange={(e: any) => setWaNum(e.target.value)} placeholder="5511999999999" style={{ fontSize: 11, padding: "4px 6px" }} /></div>
+            <div style={{ marginBottom: 8 }}><Label htmlFor="sec-wa-msg">Pré-visualização</Label><textarea id="sec-wa-msg" value={waMsg} readOnly rows={6} style={{ padding: "5px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txSec, outline: "none", width: "100%", resize: "none", fontFamily: "inherit" }} /></div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 4, marginTop: 10 }}>
               <Btn small onClick={() => setWaModal(false)}>Cancelar</Btn>
               <Btn small green onClick={sendWA}>Abrir WhatsApp Web</Btn>

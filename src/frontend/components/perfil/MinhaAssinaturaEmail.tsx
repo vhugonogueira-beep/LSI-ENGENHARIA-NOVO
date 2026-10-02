@@ -105,11 +105,11 @@ export default function MinhaAssinaturaEmail() {
             <div className="flex shrink-0 flex-wrap gap-2">
                 <input ref={inputRef} type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" className="hidden" onChange={event => { const file = event.target.files?.[0]; event.target.value = ''; if (file) upload(file); }}/>
                 <button type="button" className={btn} disabled={saving} onClick={() => inputRef.current?.click()}><Upload size={14}/>{metadata ? 'Substituir assinatura' : 'Adicionar assinatura'}</button>
-                {metadata && <button type="button" className={`${btn} text-red-400`} disabled={saving} onClick={remove}><Trash2 size={14}/>Remover</button>}
+                {metadata && <button type="button" className={`${btn} text-crit`} disabled={saving} onClick={remove}><Trash2 size={14}/>Remover</button>}
             </div>
         </div>
 
-        {error && <div className="mt-4 rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-xs text-red-400">{error}</div>}
+        {error && <div className="mt-4 rounded-lg border border-crit/40 bg-crit/10 px-3 py-2 text-xs text-crit">{error}</div>}
         {loading ? <div className="mt-5 text-xs text-muted-foreground">Carregando assinatura...</div> : metadata && imageUrl ? <div className="mt-5">
             <div className="rounded-xl border border-border bg-white p-4">
                 <img src={imageUrl} alt="Sua assinatura de e-mail" className="block h-auto max-w-full" style={{ maxWidth: 590 }}/>

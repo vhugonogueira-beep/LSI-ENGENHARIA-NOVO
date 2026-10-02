@@ -4,6 +4,7 @@ import { lerTemplatesLocaisPendentes, marcarMigracaoConcluida } from "./lpuTempl
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
 import { useEhAdmin } from '../lib/permissoes';
+import { AlertTriangle, Check, Library, Pencil, Plus, Star, Trash2, X } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bases (LPUs) — tela única, ligada ao banco.
@@ -23,9 +24,9 @@ import { useEhAdmin } from '../lib/permissoes';
 
 
 const S = {
-  card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "14px 16px", boxShadow: "0 6px 16px rgba(0, 0, 0, 0.35)" } as React.CSSProperties,
+  card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 8, padding: "14px 16px" } as React.CSSProperties,
   input: { padding: "8px 10px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", width: "100%", boxSizing: "border-box", transition: "all 0.15s" } as React.CSSProperties,
-  label: { fontSize: 10, color: T.txSec, display: "block", marginBottom: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" } as React.CSSProperties,
+  label: { fontSize: 11, color: T.txSec, display: "block", marginBottom: 4, fontWeight: 600 } as React.CSSProperties,
   btn: { padding: "8px 14px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg1, cursor: "pointer", color: T.txPri, fontWeight: 700, transition: "all 0.15s" } as React.CSSProperties,
   btnBlue: { background: T.blue, color: "#fff", borderColor: T.blue } as React.CSSProperties,
   select: { padding: "4px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, outline: "none" } as React.CSSProperties,
@@ -125,8 +126,10 @@ interface GrupoDuplicado {
 const moeda = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const th = (w?: number, alinha?: "right" | "center"): React.CSSProperties =>
-  ({ padding: "9px 8px", fontWeight: 700, fontSize: 9.5, letterSpacing: "0.05em", ...(w ? { width: w } : {}), ...(alinha ? { textAlign: alinha } : {}) });
+  ({ padding: "9px 8px", fontWeight: 600, fontSize: 11, ...(w ? { width: w } : {}), ...(alinha ? { textAlign: alinha } : {}) });
 const td = (): React.CSSProperties => ({ padding: "7px 8px", verticalAlign: "top" });
+const MONO = "'IBM Plex Mono', ui-monospace, monospace";
+const iconeBtn: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 4, display: "inline-flex", alignItems: "center", borderRadius: 6 };
 
 export default function TabLpus() {
   const ehAdmin = useEhAdmin();
@@ -404,6 +407,10 @@ export default function TabLpus() {
   }, [itens, busca, categoria, filtroValor, valorDoItem]);
 
   const comValor = itens.filter(i => valorDoItem(i) > 0).length;
+  // Custo e margem da PV vêm da LPU de custo ligada ao item. Sem nenhum vínculo,
+  // as duas colunas seriam só traços: somem e a explicação aparece uma vez.
+  const temVinculo = itens.some(i => !!i.pv_item_id || (i.derivados?.length ?? 0) > 0);
+  const mostrarCustoPv = ehPv && temVinculo;
   const itensDuplicados = new Set(duplicados.flatMap(g => g.ocorrencias.map(o => o.id)));
 
   // Lista organizada como a atividade escolhe: ÁREA → CLIENTE. Base sem
@@ -432,7 +439,7 @@ export default function TabLpus() {
       {pendentes.length > 0 && (
         <div style={{ ...S.card, borderColor: T.amber + "77", background: T.amber + "12", display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", padding: "11px 16px" }}>
           <div style={{ flex: 1, minWidth: 300 }}>
-            <div style={{ fontSize: 12.5, fontWeight: 800, color: T.amber }}>{pendentes.length} LPU(s) ainda estão só no seu navegador</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.amber }}>{pendentes.length} LPU(s) ainda estão só no seu navegador</div>
             <div style={{ fontSize: 11, color: T.txSec, marginTop: 2 }}>
               Só existem nesta máquina e não chegam na Atividade. Entram como base de <strong>Preço Cliente</strong>; nada já preenchido é sobrescrito.
             </div>
@@ -444,9 +451,9 @@ export default function TabLpus() {
       )}
 
       {erro && (
-        <div style={{ ...S.card, borderColor: T.red + "66", background: T.red + "12", color: "#fca5a5", fontSize: 12, display: "flex", justifyContent: "space-between", gap: 10, padding: "10px 14px" }}>
+        <div style={{ ...S.card, borderColor: T.red + "66", background: T.red + "12", color: T.red, fontSize: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, padding: "10px 14px" }}>
           <span>{erro}</span>
-          <button onClick={() => setErro("")} style={{ background: "none", border: "none", color: "#fca5a5", cursor: "pointer", fontWeight: 700 }}>✕</button>
+          <button onClick={() => setErro("")} aria-label="Fechar aviso" title="Fechar aviso" style={{ ...iconeBtn, color: T.red }}><X size={14} aria-hidden /></button>
         </div>
       )}
 
@@ -454,34 +461,43 @@ export default function TabLpus() {
         {/* ── Lista de bases, agrupada por natureza ── */}
         <div style={{ ...S.card, width: 264, display: "flex", flexDirection: "column", gap: 10, padding: 14, overflow: "hidden", flexShrink: 0 }}>
           <h3 style={{ margin: 0, fontSize: 13, color: T.txPri, display: "flex", alignItems: "center", gap: 8 }}>
-            <span>📚</span> Bases e LPUs
+            <Library size={15} aria-hidden style={{ color: T.txMut }} /> Bases e LPUs
           </h3>
           <div className="scroll-min" style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 13 }}>
             {carregandoBases && <div style={{ color: T.txMut, fontSize: 12 }}>Carregando...</div>}
             {grupos.map(g => (
               <div key={g.id || "AMBAS"}>
-                <div style={{ fontSize: 10, fontWeight: 800, color: g.cor, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6, borderBottom: `1px solid ${g.cor}44`, paddingBottom: 4 }}>
-                  {g.rotulo} <span style={{ color: T.txMut, fontWeight: 600 }}>· {g.total}</span>
+                <div style={{ fontSize: 12, fontWeight: 600, color: T.txPri, marginBottom: 6, borderBottom: `1px solid ${T.brSub}`, paddingBottom: 4, display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <span>{g.rotulo}</span>
+                  <span style={{ color: T.txMut, fontWeight: 500 }}>{g.total}</span>
                 </div>
                 {g.clientes.map(c => (
                   <div key={c.nome} style={{ marginBottom: 8 }}>
-                    <div style={{ fontSize: 9.5, fontWeight: 700, color: T.txMut, margin: "0 0 4px 2px" }}>{c.nome}</div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: T.txMut, margin: "0 0 4px 2px" }}>{c.nome}</div>
                     {c.itens.map(b => {
                       const ativa = b.id === baseId;
                       const nat = natureza(b.origem);
                       return (
                         <button key={b.id} onClick={() => setBaseId(b.id)} style={{
                           width: "100%", textAlign: "left", marginBottom: 4, cursor: "pointer",
-                          padding: "7px 10px", borderRadius: 8, fontSize: 11.5,
+                          padding: "7px 10px", borderRadius: 8, fontSize: 12,
                           background: ativa ? nat.cor + "22" : T.bg3,
                           border: `1px solid ${ativa ? nat.cor : T.brSub}`,
                           borderLeft: `3px solid ${nat.cor}`,
                           color: ativa ? T.txPri : T.txSec, fontWeight: ativa ? 700 : 500,
                         }}>
-                          <div style={{ lineHeight: 1.3 }}>{b.padrao ? "★ " : ""}{b.nome_lpu}</div>
-                          <div style={{ fontSize: 10, color: T.txMut, marginTop: 3 }}>
-                            <span style={{ color: nat.cor }}>{nat.curto}</span> · {b._count?.items ?? 0} itens
-                            {b.supplier ? ` · ${b.supplier.nome}` : ""}
+                          <div style={{ lineHeight: 1.3, display: "flex", alignItems: "flex-start", gap: 5 }}>
+                            {b.padrao && (
+                              <span title="Padrão para este cliente e área" style={{ display: "inline-flex", marginTop: 1 }}>
+                                <Star size={13} aria-label="Padrão para este cliente e área" style={{ color: T.amber, fill: T.amber, flexShrink: 0 }} />
+                              </span>
+                            )}
+                            <span>{b.nome_lpu}</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: T.txMut, marginTop: 3, display: "flex", flexWrap: "wrap", columnGap: 10, rowGap: 2 }}>
+                            <span style={{ color: nat.cor }}>{nat.curto}</span>
+                            <span>{b._count?.items ?? 0} itens</span>
+                            {b.supplier && <span>{b.supplier.nome}</span>}
                           </div>
                         </button>
                       );
@@ -491,8 +507,9 @@ export default function TabLpus() {
               </div>
             ))}
             {bases.length > 0 && (
-              <div style={{ fontSize: 10, color: T.txDis, lineHeight: 1.5 }}>
-                ★ padrão do cliente na área. A atividade usa a base do seu cliente; sem ela, a genérica da área.
+              <div style={{ fontSize: 11, color: T.txDis, lineHeight: 1.5 }}>
+                <Star size={12} aria-hidden style={{ color: T.amber, fill: T.amber, verticalAlign: "-2px", marginRight: 4 }} />
+                Padrão do cliente na área. A atividade usa a base do seu cliente; sem ela, a genérica da área.
               </div>
             )}
           </div>
@@ -504,59 +521,62 @@ export default function TabLpus() {
 
           {base && (
             <>
-              <div style={{ ...S.card, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "12px 16px", borderTop: `3px solid ${natureza(base.origem).cor}` }}>
+              <div style={{ ...S.card, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "12px 16px" }}>
                 <div style={{ minWidth: 280, flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 9, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: T.txPri }}>{base.nome_lpu}</span>
-                    <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.06em", color: natureza(base.origem).cor, border: `1px solid ${natureza(base.origem).cor}66`, background: natureza(base.origem).cor + "1a", borderRadius: 20, padding: "2px 9px", textTransform: "uppercase" }}>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>{base.nome_lpu}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: natureza(base.origem).cor, border: `1px solid ${natureza(base.origem).cor}66`, background: natureza(base.origem).cor + "1a", borderRadius: 20, padding: "2px 9px" }}>
                       {natureza(base.origem).grupo}
                     </span>
                   </div>
-                  <div style={{ fontSize: 11.5, color: T.txMut, marginTop: 5, lineHeight: 1.5, maxWidth: 720 }}>{natureza(base.origem).explica}</div>
-                  <div style={{ fontSize: 10.5, color: T.txDis, marginTop: 5 }}>
-                    {base.versao} · {base.regiao} · {base.status}
-                    {base.supplier ? ` · Fornecedor: ${base.supplier.nome}` : ""}
-                    {base.contratante ? ` · Contratante: ${base.contratante.nome}` : ""}
+                  <div style={{ fontSize: 12, color: T.txMut, marginTop: 5, lineHeight: 1.5, maxWidth: 720 }}>{natureza(base.origem).explica}</div>
+                  <div style={{ fontSize: 11, color: T.txMut, marginTop: 5, display: "flex", flexWrap: "wrap", columnGap: 14, rowGap: 2 }}>
+                    <span>Versão {base.versao}</span>
+                    <span>Região {base.regiao}</span>
+                    <span>Status {base.status}</span>
+                    {base.supplier && <span>Fornecedor: {base.supplier.nome}</span>}
+                    {base.contratante && <span>Contratante: {base.contratante.nome}</span>}
                   </div>
                   {/* Classificação: é por ela que a atividade escolhe a base sozinha */}
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 9 }}>
-                    <label style={{ fontSize: 10.5, color: T.txMut }}>Área
+                    <label style={{ fontSize: 11, color: T.txMut }}>Área
                       <select value={base.tipo || ""} onChange={e => classificar({ tipo: e.target.value || null })} style={{ ...S.select, marginLeft: 5 }}>
                         <option value="IMPLANTACAO">Implantação</option>
                         <option value="OPERACAO">Operação</option>
                         <option value="">Serve às duas</option>
                       </select>
                     </label>
-                    <label style={{ fontSize: 10.5, color: T.txMut }}>Cliente
+                    <label style={{ fontSize: 11, color: T.txMut }}>Cliente
                       <select value={base.contratante?.id || ""} onChange={e => classificar({ contratante_id: e.target.value || null })} style={{ ...S.select, marginLeft: 5 }}>
                         <option value="">Genérica (sem cliente)</option>
                         {clientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                       </select>
                     </label>
-                    <label style={{ fontSize: 10.5, color: T.txMut }}>Natureza
+                    <label style={{ fontSize: 11, color: T.txMut }}>Natureza
                       <select value={base.origem} onChange={e => classificar({ origem: e.target.value })} style={{ ...S.select, marginLeft: 5 }}>
                         <option value="PV_CLIENTE">Preço ao cliente</option>
                         <option value="LPU_LS_OFFICE">Custo LS</option>
                         <option value="FORNECEDOR">Fornecedor</option>
                       </select>
                     </label>
-                    <label style={{ fontSize: 10.5, color: base.padrao ? T.amber : T.txMut, display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}
+                    <label style={{ fontSize: 11, color: base.padrao ? T.amber : T.txMut, display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}
                       title="A atividade usa a base padrão quando há mais de uma para o mesmo cliente e área">
                       <input type="checkbox" checked={!!base.padrao} onChange={e => classificar({ padrao: e.target.checked })} />
-                      ★ Padrão para este cliente e área
+                      <Star size={13} aria-hidden style={{ color: base.padrao ? T.amber : T.txMut, fill: base.padrao ? T.amber : "none" }} />
+                      Padrão para este cliente e área
                     </label>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 9 }}>
-                  <Indicador rotulo="ITENS" valor={String(itens.length)} cor={T.blue} />
-                  {ehPv && <Indicador rotulo="CATEGORIAS" valor={String(categorias.length)} cor={T.cyan} />}
-                  {ehLsoc && <Indicador rotulo="COM VENDA" valor={String(itens.filter(i => (i.valor_venda || 0) > 0).length)} cor={T.amber} />}
-                  <Indicador rotulo={ehLsoc ? "COM CUSTO" : "COM PREÇO"} valor={String(comValor)} cor={T.green} />
-                  <Indicador rotulo={ehLsoc ? "SEM CUSTO" : "A PREENCHER"} valor={String(itens.length - comValor)} cor={T.red} />
+                <div style={{ display: "flex", gap: 22, alignItems: "center", flexWrap: "wrap" }}>
+                  <Indicador rotulo="Itens" valor={itens.length} />
+                  {ehPv && <Indicador rotulo="Categorias" valor={categorias.length} />}
+                  {ehLsoc && <Indicador rotulo="Com venda" valor={itens.filter(i => (i.valor_venda || 0) > 0).length} />}
+                  <Indicador rotulo={ehLsoc ? "Com custo" : "Com preço"} valor={comValor} />
+                  <Indicador rotulo={ehLsoc ? "Sem custo" : "A preencher"} valor={itens.length - comValor} alerta />
                   {ehAdmin && (
                     <button onClick={excluirBase} title="Excluir esta base (só administrador)"
-                      style={{ ...S.btn, alignSelf: "center", padding: "6px 11px", fontSize: 11, color: T.red, borderColor: T.red + "66", background: T.red + "12" }}>
-                      🗑 Excluir base
+                      style={{ ...S.btn, alignSelf: "center", padding: "6px 11px", fontSize: 11, color: T.red, borderColor: T.red + "66", background: "transparent", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <Trash2 size={14} aria-hidden /> Excluir base
                     </button>
                   )}
                 </div>
@@ -565,8 +585,8 @@ export default function TabLpus() {
               {duplicados.length > 0 && (
                 <div style={{ ...S.card, padding: "10px 14px", borderColor: T.amber + "66", background: T.amber + "0e" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: T.amber }}>
-                      ⚠ {duplicados.length} código(s) repetido(s) no documento original
+                    <span style={{ fontSize: 12, fontWeight: 700, color: T.amber, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <AlertTriangle size={14} aria-hidden /> {duplicados.length} código(s) repetido(s) no documento original
                     </span>
                     <span style={{ fontSize: 11, color: T.txSec, flex: 1, minWidth: 260 }}>
                       Nada foi fundido nem sobrescrito — cada ocorrência mantém a descrição original até o cadastro ser normalizado.
@@ -579,7 +599,7 @@ export default function TabLpus() {
                     <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
                       {duplicados.map(g => (
                         <div key={g.codigo} style={{ background: T.bg3, borderRadius: 8, padding: "8px 11px", border: `1px solid ${T.brSub}` }}>
-                          <div style={{ fontSize: 11.5, fontWeight: 800, color: T.txPri, fontFamily: "monospace" }}>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: T.txPri, fontFamily: MONO }}>
                             {g.codigo}
                             <span style={{ marginLeft: 8, fontFamily: "inherit", fontWeight: 600, color: g.descricoesDistintas ? T.amber : T.txMut }}>
                               {g.descricoesDistintas ? "itens diferentes com o mesmo código" : "linha repetida"}
@@ -587,7 +607,7 @@ export default function TabLpus() {
                           </div>
                           {g.ocorrencias.map(o => (
                             <div key={o.id} style={{ fontSize: 11, color: T.txSec, marginTop: 3 }}>
-                              <span style={{ color: T.txDis }}>linha {o.highline_template_row ?? "—"}</span> · {o.descricao}
+                              <span style={{ color: T.txMut, marginRight: 10 }}>linha {o.highline_template_row ?? "—"}</span>{o.descricao}
                             </div>
                           ))}
                         </div>
@@ -644,36 +664,38 @@ export default function TabLpus() {
                     <div style={{ width: 118 }}><label style={S.label}>Preço</label><input style={S.input} type="number" step="0.01" min="0" value={novo.valor_unitario ?? ""} onChange={e => setNovo({ ...novo, valor_unitario: Number(e.target.value) })} /></div>
                   </>
                 )}
-                <button onClick={adicionarItem} style={{ ...S.btn, ...S.btnBlue, height: 34 }}>+ Adicionar</button>
+                <button onClick={adicionarItem} style={{ ...S.btn, ...S.btnBlue, height: 34, display: "inline-flex", alignItems: "center", gap: 6 }}><Plus size={14} aria-hidden /> Adicionar item</button>
               </div>
 
               {/* tabela */}
               <div style={{ ...S.card, padding: 0, flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 <div className="scroll-min" style={{ overflow: "auto", flex: 1 }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11.5 }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                     <thead style={{ position: "sticky", top: 0, background: T.bg3, zIndex: 1 }}>
                       <tr style={{ textAlign: "left", color: T.txMut }}>
-                        <th style={th(104)}>CÓDIGO</th>
-                        <th style={th()}>DESCRIÇÃO</th>
-                        <th style={th(146)}>{ehLsoc ? "FAMÍLIA" : "CATEGORIA"}</th>
-                        <th style={th(56)}>UNID.</th>
+                        <th style={th(104)}>Código</th>
+                        <th style={th()}>Descrição</th>
+                        <th style={th(146)}>{ehLsoc ? "Família" : "Categoria"}</th>
+                        <th style={th(56)}>Unid.</th>
                         {ehPv && <>
-                          <th style={{ ...th(124, "right"), color: T.amber }}>PREÇO LS AO CLIENTE</th>
-                          <th style={{ ...th(196), color: T.txMut }}>ORIGEM DO PREÇO</th>
-                          <th style={{ ...th(104, "right"), color: T.green }}>CUSTO LS</th>
-                          <th style={{ ...th(114, "right"), color: T.cyan }}>MARGEM</th>
+                          <th style={th(124, "right")}>Preço LS ao cliente</th>
+                          <th style={th(196)}>Origem do preço</th>
+                          {mostrarCustoPv && <>
+                            <th style={th(104, "right")}>Custo LS</th>
+                            <th style={th(114, "right")}>Margem</th>
+                          </>}
                         </>}
                         {ehLsoc && <>
-                          <th style={{ ...th(124, "right"), color: T.amber }}>VALOR VENDA</th>
-                          <th style={{ ...th(112, "right"), color: T.green }}>CUSTO LS</th>
-                          <th style={{ ...th(112, "right"), color: T.cyan }}>MARGEM</th>
+                          <th style={th(124, "right")}>Valor venda</th>
+                          <th style={th(112, "right")}>Custo LS</th>
+                          <th style={th(112, "right")}>Margem</th>
                         </>}
                         {!ehPv && !ehLsoc && <>
-                          <th style={th(104)}>TIPO CUSTO</th>
-                          <th style={{ ...th(120, "right"), color: T.amber }}>PREÇO CLIENTE</th>
-                          <th style={th(186)}>ORIGEM DO PREÇO</th>
+                          <th style={th(104)}>Tipo de custo</th>
+                          <th style={th(120, "right")}>Preço cliente</th>
+                          <th style={th(186)}>Origem do preço</th>
                         </>}
-                        <th style={th(62)}></th>
+                        <th style={th(70)}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Ações</span></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -698,13 +720,17 @@ export default function TabLpus() {
                             <td style={td()}>
                               {editando ? (
                                 <input autoFocus value={rascunho.codigo_item || ""} onChange={e => setRascunho({ ...rascunho, codigo_item: e.target.value })}
-                                  onKeyDown={teclas(item)} style={{ ...S.input, padding: "5px 6px", fontSize: 11, fontFamily: "monospace" }} />
+                                  onKeyDown={teclas(item)} style={{ ...S.input, padding: "5px 6px", fontSize: 11, fontFamily: MONO }} />
                               ) : (
                                 <>
-                                  <span style={{ fontFamily: "monospace", fontWeight: 700, color: dup ? T.amber : T.txSec }}>{item.codigo_item || "—"}</span>
-                                  {dup && <span title="Código repetido no documento original" style={{ marginLeft: 5, color: T.amber, fontSize: 10 }}>⚠</span>}
+                                  <span style={{ fontFamily: MONO, fontWeight: 700, color: dup ? T.amber : T.txSec }}>{item.codigo_item || "—"}</span>
+                                  {dup && (
+                                    <span title="Código repetido no documento original" style={{ marginLeft: 5, color: T.amber, display: "inline-flex", verticalAlign: "-2px" }}>
+                                      <AlertTriangle size={13} aria-label="Código repetido no documento original" />
+                                    </span>
+                                  )}
                                   {item.codigo_origem && (
-                                    <div style={{ fontSize: 9.5, color: T.txDis, marginTop: 2 }} title="Linha na planilha de origem">
+                                    <div style={{ fontSize: 11, color: T.txDis, marginTop: 2 }} title="Linha na planilha de origem">
                                       linha {item.codigo_origem}
                                     </div>
                                   )}
@@ -715,15 +741,15 @@ export default function TabLpus() {
                               {editando ? (
                                 <>
                                   <input value={rascunho.descricao || ""} onChange={e => setRascunho({ ...rascunho, descricao: e.target.value })}
-                                    onKeyDown={teclas(item)} style={{ ...S.input, padding: "5px 6px", fontSize: 11.5 }} />
+                                    onKeyDown={teclas(item)} style={{ ...S.input, padding: "5px 6px", fontSize: 12 }} />
                                   <input value={rascunho.detalhamento || ""} placeholder="detalhamento / configuração (opcional)"
                                     onChange={e => setRascunho({ ...rascunho, detalhamento: e.target.value })} onKeyDown={teclas(item)}
-                                    style={{ ...S.input, padding: "4px 6px", fontSize: 10.5, marginTop: 4 }} />
+                                    style={{ ...S.input, padding: "4px 6px", fontSize: 11, marginTop: 4 }} />
                                 </>
                               ) : (
                                 <>
                                   {item.descricao}
-                                  {item.detalhamento && <div style={{ fontSize: 10, color: T.txDis, marginTop: 2 }}>{item.detalhamento}</div>}
+                                  {item.detalhamento && <div style={{ fontSize: 11, color: T.txDis, marginTop: 2 }}>{item.detalhamento}</div>}
                                 </>
                               )}
                             </td>
@@ -746,34 +772,36 @@ export default function TabLpus() {
 
                             {ehPv && <>
                               <td style={{ padding: "4px 8px", textAlign: "right" }}>
-                                <CampoNumero valor={item.valor_unitario} cor={T.amber} aoSalvar={v => salvarCampo(item, "valor_unitario", v)} />
+                                <CampoNumero valor={item.valor_unitario} rotulo="preço LS ao cliente" aoSalvar={v => salvarCampo(item, "valor_unitario", v)} />
                               </td>
-                              <td style={{ ...td(), color: T.txDis, fontSize: 10, lineHeight: 1.4 }}>
+                              <td style={{ ...td(), color: T.txMut, fontSize: 11, lineHeight: 1.4 }}>
                                 {item.observacoes || (preco > 0 ? "preenchido nesta tela" : "—")}
                               </td>
-                              <td style={{ ...td(), textAlign: "right", color: custo > 0 ? T.green : T.txDis, fontWeight: custo > 0 ? 700 : 400 }}>{custo > 0 ? moeda(custo) : "—"}</td>
-                              <td style={{ ...td(), textAlign: "right" }}>
-                                {margem == null
-                                  ? <span style={{ color: T.txDis }}>—</span>
-                                  : <span style={{ color: margem >= 0 ? T.cyan : T.red, fontWeight: 700 }}>
-                                    {moeda(margem)}<span style={{ color: T.txMut, fontWeight: 500, marginLeft: 5, fontSize: 10 }}>{((margem / preco) * 100).toFixed(1)}%</span>
-                                  </span>}
-                              </td>
+                              {mostrarCustoPv && <>
+                                <td style={{ ...td(), textAlign: "right", color: custo > 0 ? T.txPri : T.txMut }}>{custo > 0 ? moeda(custo) : "—"}</td>
+                                <td style={{ ...td(), textAlign: "right" }}>
+                                  {margem == null
+                                    ? <span style={{ color: T.txMut }}>—</span>
+                                    : <span style={{ color: margem >= 0 ? T.txPri : T.red, fontWeight: 600 }}>
+                                      {moeda(margem)}<span style={{ color: T.txMut, fontWeight: 400, marginLeft: 5, fontSize: 11 }}>{((margem / preco) * 100).toFixed(1)}%</span>
+                                    </span>}
+                                </td>
+                              </>}
                             </>}
 
                             {ehLsoc && <>
                               <td style={{ padding: "4px 8px", textAlign: "right" }}>
-                                <CampoNumero valor={item.valor_venda} cor={T.amber} aoSalvar={v => salvarCampo(item, "valor_venda", v)} />
+                                <CampoNumero valor={item.valor_venda} rotulo="valor de venda" aoSalvar={v => salvarCampo(item, "valor_venda", v)} />
                               </td>
                               <td style={{ padding: "4px 8px", textAlign: "right" }}>
-                                <CampoNumero valor={item.custo_ls} cor={T.green} aoSalvar={v => salvarCampo(item, "custo_ls", v)} />
+                                <CampoNumero valor={item.custo_ls} rotulo="custo LS" aoSalvar={v => salvarCampo(item, "custo_ls", v)} />
                               </td>
                               <td style={{ ...td(), textAlign: "right" }}>
                                 {margemLsoc == null
-                                  ? <span style={{ color: T.txDis }} title="Precisa de valor de venda e custo LS">—</span>
-                                  : <span style={{ color: margemLsoc >= 0 ? T.cyan : T.red, fontWeight: 700 }}>
+                                  ? <span style={{ color: T.txMut }} title="Precisa de valor de venda e custo LS">—</span>
+                                  : <span style={{ color: margemLsoc >= 0 ? T.txPri : T.red, fontWeight: 600 }}>
                                     {moeda(margemLsoc)}
-                                    <span style={{ color: T.txMut, fontWeight: 500, marginLeft: 5, fontSize: 10 }}>
+                                    <span style={{ color: T.txMut, fontWeight: 400, marginLeft: 5, fontSize: 11 }}>
                                       {((margemLsoc / (item.valor_venda || 1)) * 100).toFixed(0)}%
                                     </span>
                                   </span>}
@@ -788,25 +816,25 @@ export default function TabLpus() {
                                 </select>
                               </td>
                               <td style={{ padding: "4px 8px", textAlign: "right" }}>
-                                <CampoNumero valor={item.valor_unitario} cor={T.amber} aoSalvar={v => salvarCampo(item, "valor_unitario", v)} />
+                                <CampoNumero valor={item.valor_unitario} rotulo="preço" aoSalvar={v => salvarCampo(item, "valor_unitario", v)} />
                               </td>
-                              <td style={{ ...td(), color: T.txDis, fontSize: 10 }}>{item.observacoes || (item.valor_unitario > 0 ? "preenchido nesta tela" : "—")}</td>
+                              <td style={{ ...td(), color: T.txMut, fontSize: 11 }}>{item.observacoes || (item.valor_unitario > 0 ? "preenchido nesta tela" : "—")}</td>
                             </>}
 
                             <td style={{ padding: "4px 6px", whiteSpace: "nowrap", textAlign: "right" }}>
                               {editando ? (
                                 <>
-                                  <button onClick={() => salvarEdicao(item)} title="Salvar (Enter)"
-                                    style={{ background: "none", border: "none", color: T.green, cursor: "pointer", fontSize: 13 }}>✓</button>
-                                  <button onClick={fecharEdicao} title="Cancelar (Esc)"
-                                    style={{ background: "none", border: "none", color: T.txMut, cursor: "pointer", fontSize: 13 }}>✕</button>
+                                  <button onClick={() => salvarEdicao(item)} aria-label="Salvar item" title="Salvar item (Enter)"
+                                    style={{ ...iconeBtn, color: T.green }}><Check size={15} aria-hidden /></button>
+                                  <button onClick={fecharEdicao} aria-label="Cancelar edição" title="Cancelar edição (Esc)"
+                                    style={{ ...iconeBtn, color: T.txMut }}><X size={15} aria-hidden /></button>
                                 </>
                               ) : (
                                 <>
-                                  <button onClick={() => abrirEdicao(item)} title="Editar código, descrição, categoria e unidade"
-                                    style={{ background: "none", border: "none", color: T.txMut, cursor: "pointer", fontSize: 12 }}>✏️</button>
-                                  <button onClick={() => removerItem(item)} title="Remover item"
-                                    style={{ background: "none", border: "none", color: T.txDis, cursor: "pointer", fontSize: 12 }}>🗑</button>
+                                  <button onClick={() => abrirEdicao(item)} aria-label="Editar item" title="Editar código, descrição, categoria e unidade"
+                                    style={{ ...iconeBtn, color: T.txMut }}><Pencil size={14} aria-hidden /></button>
+                                  <button onClick={() => removerItem(item)} aria-label="Remover item" title="Remover item"
+                                    style={{ ...iconeBtn, color: T.txMut }}><Trash2 size={14} aria-hidden /></button>
                                 </>
                               )}
                             </td>
@@ -819,9 +847,10 @@ export default function TabLpus() {
                     </tbody>
                   </table>
                 </div>
-                <div style={{ padding: "7px 14px", borderTop: `1px solid ${T.brSub}`, fontSize: 10.5, color: T.txMut, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                  <span>Mostrando {visiveis.length} de {itens.length} itens. Os campos são salvos ao sair.</span>
-                  {ehPv && <span>O custo LS vem da LPU LS Office Geral ligada a este item — só o preço é editado aqui.</span>}
+                <div style={{ padding: "7px 14px", borderTop: `1px solid ${T.brSub}`, fontSize: 11, color: T.txMut, display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+                  <span>Mostrando {visiveis.length} de {itens.length} itens. Clique no valor para editar; ele é salvo ao sair do campo.</span>
+                  {mostrarCustoPv && <span>O custo LS vem da LPU LS Office Geral ligada a este item — só o preço é editado aqui.</span>}
+                  {ehPv && !temVinculo && <span>Sem vínculo com a LPU de custo: custo e margem aparecem quando os itens forem vinculados.</span>}
                 </div>
               </div>
             </>
@@ -832,27 +861,50 @@ export default function TabLpus() {
   );
 }
 
-function CampoNumero({ valor, cor, aoSalvar }: { valor: number | null; cor: string; aoSalvar: (v: number) => void }) {
+/**
+ * Valor editável em linha. Em repouso é só o número (ou "—" quando vazio);
+ * o campo aparece ao clicar ou ao chegar pelo teclado, e salva ao sair.
+ */
+function CampoNumero({ valor, rotulo, aoSalvar }: { valor: number | null; rotulo: string; aoSalvar: (v: number) => void }) {
+  const [editando, setEditando] = useState(false);
   const vazio = !(valor && valor > 0);
+  if (editando) {
+    return (
+      <input type="number" step="0.01" min="0" autoFocus
+        aria-label={`Valor de ${rotulo}`}
+        defaultValue={vazio ? "" : valor!}
+        onBlur={e => { const v = parseFloat(e.target.value); setEditando(false); if (Number.isFinite(v) && v >= 0) aoSalvar(v); }}
+        onKeyDown={e => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+          if (e.key === "Escape") { e.preventDefault(); setEditando(false); }
+        }}
+        style={{
+          width: 104, padding: "5px 8px", fontSize: 12, textAlign: "right", borderRadius: 6,
+          background: T.bg3, color: T.txPri, border: `1px solid ${T.blue}`,
+        }} />
+    );
+  }
   return (
-    <input type="number" step="0.01" min="0"
-      defaultValue={vazio ? "" : valor!}
-      placeholder="a preencher"
-      onBlur={e => { const v = parseFloat(e.target.value); if (Number.isFinite(v) && v >= 0) aoSalvar(v); }}
-      onKeyDown={e => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+    <button type="button" onClick={() => setEditando(true)} onFocus={() => setEditando(true)}
+      aria-label={`Editar ${rotulo}`} title={`Editar ${rotulo}`}
       style={{
-        width: 104, padding: "6px 8px", fontSize: 11.5, textAlign: "right", borderRadius: 6,
-        background: vazio ? "transparent" : T.bg3, color: vazio ? T.txMut : cor, fontWeight: 700,
-        border: `1px solid ${vazio ? T.brSub : T.brBase}`, outline: "none",
-      }} />
+        width: 104, padding: "5px 8px", fontSize: 12, textAlign: "right", borderRadius: 6, cursor: "text",
+        background: "transparent", border: "1px solid transparent", color: vazio ? T.txMut : T.txPri,
+        fontWeight: vazio ? 400 : 500, fontFamily: "inherit",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = T.brBase; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = "transparent"; }}>
+      {vazio ? "—" : moeda(valor!)}
+    </button>
   );
 }
 
-function Indicador({ rotulo, valor, cor }: { rotulo: string; valor: string; cor: string }) {
+function Indicador({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
+  const cor = alerta && valor > 0 ? T.amber : T.txPri;
   return (
-    <div style={{ background: T.bg3, border: `1px solid ${T.brBase}`, borderTop: `3px solid ${cor}`, borderRadius: 10, padding: "7px 13px", minWidth: 84 }}>
-      <div style={{ fontSize: 9, color: T.txMut, fontWeight: 700, letterSpacing: "0.07em" }}>{rotulo}</div>
-      <div style={{ fontSize: 18, fontWeight: 900, color: cor }}>{valor}</div>
+    <div style={{ minWidth: 56 }}>
+      <div style={{ fontSize: 11, color: T.txMut }}>{rotulo}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: valor > 0 ? cor : T.txMut }}>{valor > 0 ? valor : "—"}</div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Layers, PencilLine, Send, CheckCircle2, Banknote, Play, Trophy, Plus } from 'lucide-react';
 // Mesmos rótulos das telas de Atividades — evita a Visão Geral chamar o mesmo
 // status por outro nome.
 import { STATUS_OPERACIONAL } from '../components/atividades/constants';
@@ -6,8 +7,9 @@ import { STATUS_OPERACIONAL } from '../components/atividades/constants';
 import { T } from '../theme';
 
 
+// Ausência não tem cor nem número: zero sai como "—" (docs/DESIGN-SYSTEM.md).
 function fmtMoeda(v?: number | null) {
-  if (v == null || v === 0) return 'R$ 0';
+  if (v == null || v === 0) return null;
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 }
 
@@ -81,12 +83,12 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
 
 
   return (
-    <div style={{ padding: '24px 28px', minHeight: '100vh', background: T.bg0, color: T.txPri, fontFamily: "'Inter','DM Sans',system-ui,sans-serif" }}>
+    <div style={{ padding: '24px 28px', minHeight: '100vh', background: T.bg0, color: T.txPri }}>
 
       {/* ── Header ── */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Dashboard</h1>
-        <p style={{ fontSize: 12, color: T.txMut, margin: '4px 0 0' }}>Visão geral — Orçamentos · Atividades · Receita</p>
+        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Dashboard</h1>
+        <p style={{ fontSize: 12, color: T.txMut, margin: '4px 0 0' }}>Visão geral de orçamentos, atividades e receita</p>
       </div>
 
       {orfaos > 0 && (
@@ -94,36 +96,36 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
           marginBottom: 18, padding: '10px 14px', borderRadius: 10,
           background: `${T.amber}12`, border: `1px solid ${T.amber}55`, fontSize: 12, color: T.txSec,
         }}>
-          <strong style={{ color: T.amber }}>{orfaos} orçamento(s) sem atividade</strong> — do fluxo antigo, quando
-          o orçamento podia ser criado solto. Não entram nos indicadores acima.
+          <strong style={{ color: T.amber }}>{orfaos} orçamento(s) sem atividade</strong>, do fluxo antigo, quando
+          o orçamento podia ser criado solto. Não entram nos indicadores abaixo.
         </div>
       )}
 
       {/* ── KPI Row — Orçamentos ── */}
       <div style={{ marginBottom: 8 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: T.txDis, marginBottom: 10 }}>ORÇAMENTOS DAS ATIVIDADES</div>
+        <h2 style={secaoStyle}>Orçamentos das atividades</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
           {[
-            { label: 'Total',     value: totalOrc,            color: T.blue,   icon: '◈' },
-            { label: 'Rascunhos', value: rascunhos,           color: T.txMut,  icon: '✎' },
-            { label: 'Enviados',  value: enviados,            color: T.cyan,   icon: '↗' },
-            { label: 'Aprovados', value: aprovados,           color: T.green,  icon: '✓' },
-            { label: 'Receita Aprovada', value: fmtMoeda(receitaAprov), color: T.amber, icon: '$', small: true },
+            { label: 'Total',            value: totalOrc,               icon: <Layers size={16} aria-hidden /> },
+            { label: 'Rascunhos',        value: rascunhos,              icon: <PencilLine size={16} aria-hidden /> },
+            { label: 'Enviados',         value: enviados,               icon: <Send size={16} aria-hidden /> },
+            { label: 'Aprovados',        value: aprovados,              icon: <CheckCircle2 size={16} aria-hidden /> },
+            { label: 'Receita aprovada', value: fmtMoeda(receitaAprov), icon: <Banknote size={16} aria-hidden />, small: true },
           ].map(k => (
             <KpiCard key={k.label} {...k} loading={loading} />
           ))}
         </div>
       </div>
 
-      {/* ── KPI Row — Demandas ── */}
+      {/* ── KPI Row — Atividades ── */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', color: T.txDis, marginBottom: 10, marginTop: 20 }}>ATIVIDADES</div>
+        <h2 style={{ ...secaoStyle, marginTop: 20 }}>Atividades</h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           {[
-            { label: 'Total Atividades', value: totalAtividades,              color: T.indigo, icon: '◈' },
-            { label: 'Em Execução',      value: emExecucao,                   color: T.blue,   icon: '▶' },
-            { label: 'Valor Contratado', value: fmtMoeda(receitaAtividades),  color: T.green,  icon: '$', small: true },
-            { label: 'Sharing em +',     value: topSharing(porSharing),       color: T.purple, icon: '★', small: true },
+            { label: 'Total de atividades',          value: totalAtividades,             icon: <Layers size={16} aria-hidden /> },
+            { label: 'Em execução',                  value: emExecucao,                  icon: <Play size={16} aria-hidden /> },
+            { label: 'Valor contratado',             value: fmtMoeda(receitaAtividades), icon: <Banknote size={16} aria-hidden />, small: true },
+            { label: 'Sharing com mais atividades',  value: topSharing(porSharing),      icon: <Trophy size={16} aria-hidden />, small: true },
           ].map(k => (
             <KpiCard key={k.label} {...k} loading={loading} />
           ))}
@@ -135,10 +137,10 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
         {/* ── Últimos Orçamentos ── */}
         <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.brBase}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>Últimos Orçamentos</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>Últimos orçamentos</span>
             {onNavigateTo && (
               <button onClick={() => onNavigateTo('historico')} style={linkBtnStyle}>
-                Ver todos →
+                Ver todos os orçamentos
               </button>
             )}
           </div>
@@ -150,7 +152,7 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
               {onNavigateTo && (
                 <div style={{ marginTop: 10 }}>
                   <button onClick={() => onNavigateTo('orcv2')} style={{ ...linkBtnStyle, fontSize: 13 }}>
-                    + Criar primeiro orçamento
+                    <Plus size={14} aria-hidden /> Criar primeiro orçamento
                   </button>
                 </div>
               )}
@@ -169,12 +171,13 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
                       <div style={{ fontSize: 13, fontWeight: 600, color: T.txPri, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {b.assunto || b.contratante?.nome || '—'}
                       </div>
-                      <div style={{ fontSize: 11, color: T.txMut, marginTop: 2 }}>
-                        {b.site?.id_site ?? '—'} · {fmtData(b.created_at)}
+                      <div style={{ fontSize: 11, color: T.txMut, marginTop: 2, display: 'flex', gap: 12 }}>
+                        <span className="font-id">{b.site?.id_site ?? '—'}</span>
+                        <span>{fmtData(b.created_at)}</span>
                       </div>
                     </div>
                     <span style={{
-                      fontSize: 10, fontWeight: 700, padding: '2px 9px', borderRadius: 20,
+                      fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20,
                       background: `${st.color}18`, color: st.color, flexShrink: 0,
                     }}>
                       {st.label}
@@ -186,13 +189,13 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
           )}
         </div>
 
-        {/* ── Pipeline de Demandas ── */}
+        {/* ── Pipeline de Atividades ── */}
         <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, overflow: 'hidden' }}>
           <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.brBase}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>Pipeline de Atividades</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>Pipeline de atividades</span>
             {onNavigateTo && (
               <button onClick={() => onNavigateTo('atividades')} style={linkBtnStyle}>
-                Abrir →
+                Abrir atividades
               </button>
             )}
           </div>
@@ -204,7 +207,7 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
               {onNavigateTo && (
                 <div style={{ marginTop: 10 }}>
                   <button onClick={() => onNavigateTo('atividades')} style={{ ...linkBtnStyle, fontSize: 13 }}>
-                    + Criar primeira atividade
+                    <Plus size={14} aria-hidden /> Criar primeira atividade
                   </button>
                 </div>
               )}
@@ -218,11 +221,11 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
                 const pct = Math.round((count / maxCount) * 100);
                 return (
                   <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 80, fontSize: 11, color: info.color, fontWeight: 600, flexShrink: 0 }}>{info.label}</div>
+                    <div style={{ width: 80, fontSize: 11, color: count > 0 ? T.txSec : T.txMut, fontWeight: 600, flexShrink: 0 }}>{info.label}</div>
                     <div style={{ flex: 1, background: T.bg3, borderRadius: 4, height: 6, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, height: '100%', background: info.color, borderRadius: 4, transition: 'width 0.4s ease' }} />
                     </div>
-                    <div style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 700, color: count > 0 ? info.color : T.txDis }}>{count}</div>
+                    <div style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 700, color: count > 0 ? T.txPri : T.txMut }}>{count > 0 ? count : '—'}</div>
                   </div>
                 );
               })}
@@ -235,15 +238,15 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
       {/* ── Por Sharing ── */}
       {!loading && porSharing.length > 0 && (
         <div style={{ marginTop: 20, background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: '16px 18px' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>Atividades por Sharing</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>Atividades por sharing</div>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {porSharing.map(s => (
               <div key={s.sharing} style={{
                 background: T.bg3, border: `1px solid ${T.brBase}`, borderRadius: 10,
                 padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10,
               }}>
-                <div style={{ fontSize: 24, fontWeight: 800, color: sharingColor(s.sharing), fontFamily: 'JetBrains Mono, monospace' }}>{s._count}</div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: sharingColor(s.sharing) }}>{s.sharing}</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: T.txPri }}>{s._count}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: T.txSec }}>{s.sharing}</div>
               </div>
             ))}
           </div>
@@ -254,27 +257,24 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
   );
 }
 
-function KpiCard({ label, value, color, icon, loading, small }: { label: string; value: any; color: string; icon: string; loading?: boolean; small?: boolean }) {
+function KpiCard({ label, value, icon, loading, small }: { label: string; value: any; icon: React.ReactNode; loading?: boolean; small?: boolean }) {
+  // Zero, vazio e "sem dado" aparecem como "—" em texto apagado.
+  const vazio = value == null || value === 0 || value === '—';
   return (
     <div style={{
       background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12,
       padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
     }}>
-      <div style={{
-        width: 36, height: 36, borderRadius: 9, flexShrink: 0,
-        background: `${color}18`, border: `1px solid ${color}28`,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 15, color,
-      }}>
+      <div style={{ color: T.txMut, flexShrink: 0, display: 'flex' }}>
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: 10, color: T.txDis, fontWeight: 600, letterSpacing: '0.04em' }}>{label.toUpperCase()}</div>
+        <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{label}</div>
         <div style={{
-          fontSize: small ? 15 : 26, fontWeight: 800, color: T.txPri,
-          fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.1, marginTop: 2,
+          fontSize: small ? 15 : 24, fontWeight: 700, color: vazio ? T.txMut : T.txPri,
+          lineHeight: 1.1, marginTop: 2,
         }}>
-          {loading ? '…' : value}
+          {loading ? '…' : vazio ? '—' : value}
         </div>
       </div>
     </div>
@@ -287,15 +287,12 @@ function topSharing(porSharing: { sharing: string; _count: number }[]) {
   return top ? `${top.sharing} (${top._count})` : '—';
 }
 
-function sharingColor(s: string) {
-  if (s === 'HIGHLINE') return '#ef4444';
-  if (s === 'IHS')      return '#f59e0b';
-  if (s === 'WINITY')   return '#8b5cf6';
-  if (s === 'SBA')      return '#06b6d4';
-  return T.txMut;
-}
+const secaoStyle: React.CSSProperties = {
+  fontSize: 12, fontWeight: 600, color: T.txMut, margin: '0 0 10px',
+};
 
 const linkBtnStyle: React.CSSProperties = {
   background: 'transparent', border: 'none', cursor: 'pointer',
-  color: T.blue, fontSize: 11, fontWeight: 600, padding: 0,
+  color: T.blue, fontSize: 12, fontWeight: 600, padding: 0,
+  display: 'inline-flex', alignItems: 'center', gap: 4,
 };

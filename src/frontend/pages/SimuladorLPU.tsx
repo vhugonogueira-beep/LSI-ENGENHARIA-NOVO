@@ -1,23 +1,25 @@
 ﻿import React, { useState, useMemo } from "react";
-import Sidebar from "../components/Sidebar";
-import Atividades from "./Atividades";
-import Configuracoes from "./Configuracoes";
-import MeuPerfil from "./MeuPerfil";
-import Clientes from "./Clientes";
-import DashboardFinanceiro from "./DashboardFinanceiro";
-import ControlePagamentos from "./ControlePagamentos";
-import PessoasPrestadores from "./PessoasPrestadores";
-import FaturamentoReal from "./Faturamento";
-import { Dashboard } from "./Dashboard";
 import { gerarPdfOrcamento } from "./gerarPdfOrcamento";
 import TabOrcamentoV2 from "../budget/TabOrcamentoV2";
-import TabLpus from "../budget/TabLpus";
+import AppShell from "../shell/AppShell";
+import {
+  AlertTriangle, ArrowLeft, BarChart3, Building2, Calendar, Check, CheckCircle2, ClipboardList,
+  Download, FileDown, FileSpreadsheet, FileText, Folder, FolderOpen, HardHat, Lightbulb, Link2,
+  Loader2, MapPin, Package, Pencil, Plus, Puzzle, RadioTower, Save, Send, Settings, ShieldCheck,
+  Trash2, TrendingUp, Wallet, Wrench, X, XCircle, type LucideIcon,
+} from "lucide-react";
+import { caixaIcone } from "../shell/caixaIcone";
 import { calcBudgetTotals, calcItemTotal, calcItemFinancials, roundCurrency, type Budget } from "../budget/types";
 import { calcLegacyBudgetItemTotals, calcLegacyBudgetTotals, hydrateLegacyBudget, isLegacyBudget } from "../budget/legacyBudgetMath";
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import * as XLSX from "xlsx";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
-import { T, TMenu, tema, aplicarTema } from '../theme';
+import { T } from '../theme';
+
+// Ícone lucide alinhado ao texto, no lugar dos emojis que as telas legadas usavam.
+const Ico = ({ as: Icone, size = 15 }: { as: LucideIcon; size?: number }) => (
+  <Icone size={size} aria-hidden="true" style={{ verticalAlign: "-0.125em", flexShrink: 0 }} />
+);
 
 function normalizeHistoricBudgetEntry(budget) {
   return isLegacyBudget(budget) ? hydrateLegacyBudget(budget) : budget;
@@ -28,168 +30,8 @@ const XLSX_TEMPLATE_PV_B64 = "UEsDBBQAAAAIAMmUdVxGx01IlQAAAM0AAAAQAAAAZG9jUHJvcH
 
 
 // ── Login Screen
-const LoginScreen = ({ onLogin }) => {
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // Usuários permitidos (simples, client-side)
-  const USERS = [
-    { email: "victor.silva@lsoffice.com.br", senha: "LS2026", nome: "Administrador" },
-    { email: "rs@lsoffice.com.br", senha: "LS2026", nome: "Rodolfo" },
-    { email: "kf@lsoffice.com.br", senha: "LS2026", nome: "Kayky" },
-  ];
-
-  const handleLogin = () => {
-    if (!email || !senha) { setErro("Preencha e-mail e senha."); return; }
-    setLoading(true);
-    setTimeout(() => {
-      const user = USERS.find(u => u.email === email.toLowerCase().trim() && u.senha === senha);
-      if (user) { onLogin(user); }
-      else { setErro("E-mail ou senha incorretos."); setLoading(false); }
-    }, 700);
-  };
-
-  const T = {
-    bg0: "#0A1422", bg1: "#0E1A2B", bg2: "#122238", bg3: "#182B43", bg4: "#203651",
-    brBase: "#2B4059", blue: "#1768D5", txPri: "#EAF1FA", txSec: "#A6B7CC", txMut: "#8497AE",
-    red: "#f87171", green: "#34d399",
-  };
-
-  return (
-    <div style={{
-      minHeight: "100vh", background: T.bg0,
-      display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      fontFamily: "'Inter','DM Sans',system-ui,sans-serif",
-      position: "relative", overflow: "hidden",
-    }}>
-      {/* Background glow */}
-      <div style={{
-        position: "absolute", top: "20%", left: "50%", transform: "translateX(-50%)",
-        width: 500, height: 500, borderRadius: "50%",
-        background: "radial-gradient(circle, #1768D510 0%, transparent 70%)",
-        pointerEvents: "none"
-      }} />
-
-      {/* Logo */}
-      <div style={{ marginBottom: 28, textAlign: "center" }}>
-        <div style={{
-          width: 80, height: 80, borderRadius: 18, overflow: "hidden",
-          margin: "0 auto 16px",
-          border: `1px solid ${T.brBase}`,
-          boxShadow: "0 0 40px #1768D520",
-        }}>
-          <img src={LOGO_B64} style={{ width: "100%", height: "100%", objectFit: "cover" }} alt="LSI" />
-        </div>
-        <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em", color: T.txPri }}>
-          <span style={{ color: T.blue }}>LSI</span>
-          <span style={{ fontWeight: 300, color: T.txSec }}> Engenharia</span>
-        </div>
-        <div style={{ fontSize: 13, color: T.txMut, marginTop: 4, letterSpacing: "0.04em" }}>
-          SISTEMA DE GESTÃO ERP
-        </div>
-      </div>
-
-      {/* Card */}
-      <div style={{
-        background: T.bg2, borderRadius: 18,
-        border: `1px solid ${T.brBase}`,
-        padding: "32px 36px", width: 400, maxWidth: "92vw",
-        boxShadow: "0 24px 80px #00000060",
-      }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri, marginBottom: 6 }}>Bem-vindo</div>
-        <div style={{ fontSize: 12, color: T.txMut, marginBottom: 24 }}>Acesse o portal de gestão de obras</div>
-
-        {/* E-mail */}
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: T.txMut, letterSpacing: "0.08em", marginBottom: 6 }}>
-            E-MAIL
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={e => { setEmail(e.target.value); setErro(""); }}
-            onKeyDown={e => e.key === "Enter" && handleLogin()}
-            placeholder="nome@lsiengenharia.com.br"
-            style={{
-              width: "100%", boxSizing: "border-box",
-              padding: "11px 14px", borderRadius: 10,
-              border: `1px solid ${erro ? T.red : email ? T.blue + "60" : T.brBase}`,
-              background: T.bg3, color: T.txPri, fontSize: 13, outline: "none",
-              transition: "border-color 0.15s",
-            }} />
-        </div>
-
-        {/* Senha */}
-        <div style={{ marginBottom: 22 }}>
-          <label style={{ display: "block", fontSize: 10, fontWeight: 700, color: T.txMut, letterSpacing: "0.08em", marginBottom: 6 }}>
-            SENHA
-          </label>
-          <input
-            type="password"
-            value={senha}
-            onChange={e => { setSenha(e.target.value); setErro(""); }}
-            onKeyDown={e => e.key === "Enter" && handleLogin()}
-            placeholder="••••••••"
-            style={{
-              width: "100%", boxSizing: "border-box",
-              padding: "11px 14px", borderRadius: 10,
-              border: `1px solid ${erro ? T.red : senha ? T.blue + "60" : T.brBase}`,
-              background: T.bg3, color: T.txPri, fontSize: 13, outline: "none",
-              transition: "border-color 0.15s",
-            }} />
-        </div>
-
-        {/* Erro */}
-        {erro && (
-          <div style={{
-            background: T.red + "15", border: `1px solid ${T.red}40`,
-            borderRadius: 8, padding: "9px 14px", marginBottom: 16,
-            fontSize: 12, color: T.red, display: "flex", alignItems: "center", gap: 8,
-          }}>
-            ⚠️ {erro}
-          </div>
-        )}
-
-        {/* Botão */}
-        <button
-          onClick={handleLogin}
-          disabled={loading}
-          style={{
-            width: "100%", padding: "13px", borderRadius: 10, border: "none",
-            background: loading ? T.bg3 : "linear-gradient(135deg,#0F4EA3,#1768D5)",
-            color: loading ? T.txMut : "#fff",
-            fontSize: 14, fontWeight: 700, cursor: loading ? "default" : "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-            transition: "all 0.15s",
-            boxShadow: loading ? "none" : "0 4px 20px #1768D540",
-          }}>
-          {loading ? (
-            <>
-              <div style={{ width: 16, height: 16, border: "2px solid #ffffff40", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-              Entrando...
-            </>
-          ) : (
-            <>→ ENTRAR</>
-          )}
-        </button>
-
-        <div style={{ textAlign: "center", marginTop: 18, fontSize: 11, color: T.txMut }}>
-          Problemas de acesso? Fale com o administrador.
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div style={{ position: "absolute", bottom: 20, fontSize: 11, color: T.txMut, letterSpacing: "0.04em" }}>
-        LSI ENGENHARIA © {new Date().getFullYear()}
-      </div>
-
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-    </div>
-  );
-};
+// A tela de login local (senhas no próprio código) foi removida em 02/10/2026:
+// o login é feito pela API (/api/auth/login) em Login.tsx, antes de chegar aqui.
 
 const LOGO_B64 = "data:image/png;base64,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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH//Z";
 
@@ -390,9 +232,9 @@ const PROJETOS_INIT = [
 
 const AREAS = [
   { id: "implantacao", label: "Implantação", icon: "🔧", desc: "Construção civil, estrutura metálica, fundação, elétrica e SPDA.", color: "#1768D5", gradient: "linear-gradient(135deg,#1e3a5f,#0F4EA3)", lpu: "LPU ADEQUAÇÃO", hasLPU: true },
-  { id: "operacao", label: "Operação", icon: "⚙️", desc: "Manutenção preventiva, corretiva e operação de sites.", color: "#34d399", gradient: "linear-gradient(135deg,#064e3b,#059669)", lpu: "LPU OPERAÇÃO", hasLPU: false },
-  { id: "aquisicao", label: "Aquisição", icon: "📋", desc: "Processos de aquisição de área, SAR e contratos.", color: "#f59e0b", gradient: "linear-gradient(135deg,#78350f,#d97706)", lpu: "LPU AQUISIÇÃO", hasLPU: false },
-  { id: "licenciamento", label: "Licenciamento", icon: "📜", desc: "Processos de licenciamento urbanístico e ambiental.", color: "#a78bfa", gradient: "linear-gradient(135deg,#3b0764,#7c3aed)", lpu: "LPU LICENCIAMENTO", hasLPU: false },
+  { id: "operacao", label: "Operação", icon: "⚙️", desc: "Manutenção preventiva, corretiva e operação de sites.", color: "#34d399", gradient: "linear-gradient(135deg,#064e3b,#22C55E)", lpu: "LPU OPERAÇÃO", hasLPU: false },
+  { id: "aquisicao", label: "Aquisição", icon: "📋", desc: "Processos de aquisição de área, SAR e contratos.", color: "#f59e0b", gradient: "linear-gradient(135deg,#78350f,#F59E0B)", lpu: "LPU AQUISIÇÃO", hasLPU: false },
+  { id: "licenciamento", label: "Licenciamento", icon: "📜", desc: "Processos de licenciamento urbanístico e ambiental.", color: "#a78bfa", gradient: "linear-gradient(135deg,#3b0764,#8B5CF6)", lpu: "LPU LICENCIAMENTO", hasLPU: false },
 ];
 const SHARINGS = ["Highline", "SBA Torres", "IHS", "American Tower", "Grupo TôrresTelecom", "Própria"];
 const OPERADORAS = ["Vivo", "Claro", "TIM", "Oi", "Outros"];
@@ -523,9 +365,9 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, info) { console.error("ErrorBoundary caught:", error, info); }
   render() {
     if (this.state.hasError) {
-      return (<div style={{ padding: 40, color: "#f87171", background: "#07090f", minHeight: "100vh", fontFamily: "monospace" }}>
-        <h2>⚠️ Erro no componente App</h2>
-        <pre style={{ whiteSpace: "pre-wrap", fontSize: 14 }}>{String(this.state.error)}</pre>
+      return (<div style={{ padding: 40, color: "#f87171", background: "#07090f", minHeight: "100vh", fontFamily: "'IBM Plex Mono', ui-monospace, monospace" }}>
+        <h2><Ico as={AlertTriangle} /> Erro no componente App</h2>
+        <pre style={{ whiteSpace: "pre-wrap", fontSize: 15 }}>{String(this.state.error)}</pre>
         <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, color: "#9aa5bb", marginTop: 20 }}>{this.state.error?.stack}</pre>
         <button onClick={() => window.location.reload()} style={{ marginTop: 20, padding: "10px 20px", background: "#1768D5", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer" }}>Recarregar</button>
       </div>);
@@ -543,7 +385,8 @@ export default function Root({ authUser = null, onLogout: externalLogout = null 
     if (externalLogout) externalLogout();
   }
 
-  if (!user) return <LoginScreen onLogin={setUser} />;
+  // Sem sessão não há o que mostrar: o App já desviou para Login.tsx.
+  if (!user) return null;
   return <ErrorBoundary><App user={user} onLogout={handleLogout} /></ErrorBoundary>;
 }
 
@@ -1471,7 +1314,7 @@ function App({ user, onLogout }) {
     const fmtV = (v) => `R$ ${Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
     const site = obraRef?.siteIdSharing || "";
     const loc = `${obraRef?.municipio || ""}/${obraRef?.uf || ""}`;
-    const RED = "#dc2626"; const LABEL = "#111827";
+    const RED = "#EF4444"; const LABEL = "#111827";
 
     const row = (label: string, value: string) =>
       `<p style="margin:4px 0">• <strong style="color:${LABEL}">${label}:</strong> <span style="color:${RED}">${value}</span></p>`;
@@ -1647,10 +1490,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
   // ── Styles
   const S = {
     card: { background: T.bg2, borderRadius: 12, border: `1px solid ${T.brSub}`, padding: 14, boxShadow: "0 4px 20px rgba(0,0,0,0.25)" },
-    input: { padding: "10px 14px", borderRadius: 8, border: `1px solid ${T.brBase}`, background: T.bg3, color: T.txPri, fontSize: 14, outline: "none", width: "100%", boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" },
+    input: { padding: "10px 14px", borderRadius: 8, border: `1px solid ${T.brBase}`, background: T.bg3, color: T.txPri, fontSize: 15, outline: "none", width: "100%", boxSizing: "border-box", transition: "border-color 0.15s, box-shadow 0.15s" },
     label: { fontSize: 11, color: T.txSec, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", display: "block", marginBottom: 6 },
-    btn: { background: `linear-gradient(135deg, ${T.blueD}, ${T.blue})`, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontSize: 14, boxShadow: `0 2px 10px ${T.blue}35`, transition: "all 0.15s" },
-    ghost: { background: "transparent", border: `1px solid ${T.brBase}`, color: T.txSec, borderRadius: 8, padding: "10px 16px", cursor: "pointer", fontSize: 14, transition: "all 0.15s" },
+    btn: { background: `linear-gradient(135deg, ${T.blueD}, ${T.blue})`, color: "#fff", border: "none", borderRadius: 8, padding: "10px 20px", cursor: "pointer", fontWeight: 700, fontSize: 15, boxShadow: `0 2px 10px ${T.blue}35`, transition: "all 0.15s" },
+    ghost: { background: "transparent", border: `1px solid ${T.brBase}`, color: T.txSec, borderRadius: 8, padding: "10px 16px", cursor: "pointer", fontSize: 15, transition: "all 0.15s" },
   };
 
   const cardTint = (c: string) => ({
@@ -1659,26 +1502,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
     boxShadow: `0 8px 24px ${c}08, 0 2px 8px rgba(15,23,42,0.04)`,
   });
 
-  // `menu` = caixa de icone dentro do menu lateral. No item ativo o fundo ja e
-  // azul solido, entao a caixa some e o icone fica branco; fora do menu o
-  // comportamento antigo (veu da cor de acento) e preservado.
-  const caixaIcone = (p: typeof T, menu = false) => (c: string, active = false) => ({
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    background: active ? (menu ? "transparent" : `${c}15`) : p.bg1,
-    border: `1px solid ${active ? (menu ? "transparent" : `${c}40`) : p.brBase}`,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    color: active ? (menu ? "#FFFFFF" : c) : p.txSec,
-    transition: "all 0.2s",
-  });
+  // caixaIcone foi movido para ../shell/caixaIcone.ts (Fase 4 — shell).
   const iconBox = caixaIcone(T);
-  // O menu lateral e marinho nos dois temas: usa a paleta propria, senao no
-  // tema claro o texto quase preto cairia sobre o fundo marinho.
-  const iconBoxMenu = caixaIcone(TMenu, true);
 
   // Badge de status premium: pill shape + dot indicator
   const StatusBadge = ({ status, color = null }) => {
@@ -1717,119 +1542,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
     );
   };
 
-  const TAB_LABELS = {
-    dashboard: "Dashboard Financeiro",
-    orcv2: "Orçamento",
-    orcamento: "Orçamento (LPU)",
-    historico: "Orçamentos Salvos",
-    projetos: "Projetos",
-    controle: "Controle de Obras",
-    fornecedores: "Fornecedores",
-    funcionarios: "Funcionários",
-    relatorios: "Relatórios",
-    faturamento: "Faturamento",
-    clientes: "Clientes",
-    secretaria: "Secretária",
-    resumo: "Resumo",
-    pvhighline: "PV Highline",
-    tabela: "Tabela",
-    faturas: "Faturas",
-  };
-
-  const TopBar = () => {
-    const tabLabel = TAB_LABELS[tab] || "Painel";
-    const pills: { icon: string; label: string; color?: string }[] = [
-      { icon: "▣", label: tabLabel, color: T.txPri },
-    ];
-
-    if (tab === "controle" && obra) {
-      pills.push({ icon: "🏗️", label: obra.siteIdSharing || obra.siteIdOperadora || "Obra", color: T.blue });
-    }
-    if (tab === "orcv2" && activeBudgetV2?.siteInfo?.siteId) {
-      pills.push({ icon: "📍", label: activeBudgetV2.siteInfo.siteId, color: T.blue });
-    }
-    if (tab === "orcamento") {
-      pills.push({ icon: "⚙️", label: orcArea === "implantacao" ? "Implantação" : "Operação", color: T.green });
-    }
-
-    const IconButton = ({ title, icon }) => (
-      <button
-        title={title}
-        style={{
-          width: 32, height: 32, borderRadius: 10,
-          background: T.bg2, border: `1px solid ${T.brBase}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          color: T.txMut, cursor: "pointer", transition: "all 0.15s",
-        }}
-        onMouseEnter={e => (e.currentTarget.style.borderColor = T.blue)}
-        onMouseLeave={e => (e.currentTarget.style.borderColor = T.brBase)}
-      >
-        <span style={{ fontSize: 13, filter: "grayscale(1)" }}>{icon}</span>
-      </button>
-    );
-
-    return (
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        gap: 12, marginBottom: 12, padding: "6px 6px 4px",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          {pills.map((p, i) => (
-            <div key={i} style={{
-              display: "flex", alignItems: "center", gap: 8,
-              background: T.bg2, border: `1px solid ${T.brBase}`,
-              padding: "6px 14px", borderRadius: 10,
-              fontSize: 12, fontWeight: 700, color: p.color || T.txPri,
-              boxShadow: "0 4px 12px rgba(15, 23, 42, 0.04)",
-            }}>
-              <span style={{ fontSize: 13, opacity: 0.8, filter: "grayscale(1)" }}>{p.icon}</span>
-              <span style={{ whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>{p.label}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {/* Alternador de tema. A paleta e resolvida no carregamento do modulo,
-              entao trocar de tema recarrega a pagina — ver src/frontend/theme.ts. */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: 2, padding: 2,
-            borderRadius: 9, background: T.bg1, border: `1px solid ${T.brBase}`,
-          }}>
-            {([["claro", "☀", "Claro"], ["escuro", "☾", "Escuro"]] as const).map(([id, icone, rotulo]) => (
-              <button
-                key={id}
-                type="button"
-                title={`Tema ${rotulo.toLowerCase()}`}
-                aria-pressed={tema === id}
-                onClick={() => tema !== id && aplicarTema(id)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 5,
-                  padding: "5px 10px", borderRadius: 7, border: "none", cursor: "pointer",
-                  fontSize: 11.5, fontWeight: 700,
-                  background: tema === id ? T.blue : "transparent",
-                  color: tema === id ? "#fff" : T.txMut,
-                  transition: "all 0.15s",
-                }}
-              >
-                <span style={{ fontSize: 12 }}>{icone}</span>{rotulo}
-              </button>
-            ))}
-          </div>
-          <IconButton title="Buscar" icon="🔍" />
-          <IconButton title="Alertas" icon="🔔" />
-          <IconButton title="Atualizar" icon="⟳" />
-          <div title={user?.nome || "Usuário"} style={{
-            width: 34, height: 34, borderRadius: "50%",
-            background: `linear-gradient(135deg, ${T.blueD}, ${T.blue})`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#fff", fontWeight: 700, fontSize: 12,
-            border: `1px solid ${T.blue}66`, boxShadow: `0 4px 12px ${T.blue}40`,
-          }}>
-            {(user?.nome || "U").charAt(0)}
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // TAB_LABELS e TopBar foram movidos para ../shell/TopBar.tsx (Fase 4 — shell).
 
   // ════════════════════════════════════════════════════════════════════
   // AREA SELECT SCREEN
@@ -1838,8 +1551,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
     <div style={{ fontFamily: "'Inter','DM Sans',system-ui,sans-serif", minHeight: "100vh", background: T.bg0, color: T.txPri, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 32 }}>
       <div style={{ textAlign: "center", marginBottom: 44 }}>
         <img src={LOGO_B64} alt="LS Office" style={{ width: 90, height: 90, objectFit: "contain", borderRadius: 12, marginBottom: 16 }} />
-        <div style={{ fontSize: 28, fontWeight: 900, color: T.txPri, letterSpacing: "-0.03em" }}>LS Office · Sistema</div>
-        <div style={{ fontSize: 14, color: T.txMut, marginTop: 4 }}>Selecione a área para iniciar um orçamento</div>
+        <div style={{ fontSize: 32, fontWeight: 700, color: T.txPri, letterSpacing: "-0.03em" }}>LS Office · Sistema</div>
+        <div style={{ fontSize: 15, color: T.txMut, marginTop: 4 }}>Selecione a área para iniciar um orçamento</div>
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2,320px)", gap: 18, maxWidth: 680 }}>
         {AREAS.map(area => (
@@ -1848,10 +1561,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
             onMouseEnter={e => { e.currentTarget.style.background = T.bg3; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 8px 32px ${area.color}15`; }}
             onMouseLeave={e => { e.currentTarget.style.background = T.bg2; e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "none"; }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 46, height: 46, borderRadius: 10, background: area.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>{area.icon}</div>
+              <div style={{ width: 46, height: 46, borderRadius: 10, background: area.gradient, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{area.icon}</div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: area.color }}>{area.label}</div>
-                <span style={{ background: T.bg3, color: area.hasLPU ? T.blue : T.amber, padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700 }}>{area.hasLPU ? area.lpu : "EM BREVE"}</span>
+                <div style={{ fontSize: 15, fontWeight: 700, color: area.color }}>{area.label}</div>
+                <span style={{ background: T.bg3, color: area.hasLPU ? T.blue : T.amber, padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>{area.hasLPU ? area.lpu : "EM BREVE"}</span>
               </div>
             </div>
             <div style={{ fontSize: 12, color: T.txSec, lineHeight: 1.6 }}>{area.desc}</div>
@@ -1859,7 +1572,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         ))}
       </div>
       <button onClick={() => setMainView("main")} style={{ marginTop: 24, background: "transparent", border: `1px solid ${T.brBase}`, color: T.txMut, borderRadius: 8, padding: "10px 28px", cursor: "pointer", fontSize: 13 }}>
-        Entrar sem área → Controle de Obras
+        Entrar sem área (Controle de Obras)
       </button>
     </div>
   );
@@ -1879,13 +1592,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
           <div style={{ background: areaInfo.color + "18", border: `1px solid ${areaInfo.color}40`, borderRadius: 8, padding: "4px 12px", display: "flex", alignItems: "center", gap: 6 }}>
             <span style={{ fontSize: 13 }}>{areaInfo.icon}</span>
-            <span style={{ fontSize: 12, fontWeight: 800, color: areaInfo.color }}>{areaInfo.label}</span>
-            <span style={{ fontSize: 9, color: T.txMut, background: T.bg3, borderRadius: 4, padding: "1px 6px", border: `1px solid ${T.brBase}` }}>{areaInfo.lpu}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: areaInfo.color }}>{areaInfo.label}</span>
+            <span style={{ fontSize: 11, color: T.txMut, background: T.bg3, borderRadius: 4, padding: "1px 6px", border: `1px solid ${T.brBase}` }}>{areaInfo.lpu}</span>
           </div>
           <div style={{ display: "flex", gap: 4 }}>
             {[{ id: "implantacao", icon: "🔧", label: "Implantação", c: T.blue }, { id: "operacao", icon: "⚙️", label: "Operação", c: T.green }].map(a => (
               <button key={a.id} onClick={() => { setOrcArea(a.id); setCatFilter("TODOS"); setSearchTerm(""); }}
-                style={{ background: orcArea === a.id ? a.c + "22" : "transparent", border: `1px solid ${orcArea === a.id ? a.c + "60" : T.brBase}`, color: orcArea === a.id ? a.c : T.txMut, borderRadius: 6, padding: "3px 10px", cursor: "pointer", fontSize: 10, fontWeight: orcArea === a.id ? 700 : 400 }}>
+                style={{ background: orcArea === a.id ? a.c + "22" : "transparent", border: `1px solid ${orcArea === a.id ? a.c + "60" : T.brBase}`, color: orcArea === a.id ? a.c : T.txMut, borderRadius: 6, padding: "3px 10px", cursor: "pointer", fontSize: 11, fontWeight: orcArea === a.id ? 700 : 400 }}>
                 {a.icon} {a.label}
               </button>
             ))}
@@ -1903,12 +1616,12 @@ ${row("Forma Pgto", pagtoInfo)}`;
             {siteInfo.siteId && orcItems.length > 0 ? (
               <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                 {[{ l: "Site", v: siteInfo.siteId }, { l: "Sharing", v: siteInfo.sharingNome }, { l: "Operadora", v: siteInfo.operadora }, { l: "UF", v: siteInfo.uf }, { l: "Município", v: siteInfo.municipio }, { l: "Endereço", v: siteInfo.endereco }].filter(x => x.v).map(({ l, v }) => (
-                  <span key={l} style={{ fontSize: 14 }}><span style={{ color: T.txMut }}>{l}: </span><span style={{ color: T.txPri, fontWeight: 600 }}>{v}</span></span>
+                  <span key={l} style={{ fontSize: 15 }}><span style={{ color: T.txMut }}>{l}: </span><span style={{ color: T.txPri, fontWeight: 600 }}>{v}</span></span>
                 ))}
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 14, opacity: 0.3 }}>📍</span>
+                <span style={{ fontSize: 15, opacity: 0.3 }}>📍</span>
                 <div>
                   <div style={{ fontSize: 12, color: T.txDis, fontStyle: "italic" }}>Nenhum orçamento ativo</div>
                   <div style={{ fontSize: 11, color: T.txDis, marginTop: 1 }}>Clique em <strong style={{ color: T.txMut }}>➕ Novo Orçamento</strong> para começar</div>
@@ -1980,8 +1693,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
             { icon: "💰", label: "Total Final", val: fmt(totalFinal), sub: `BDI ${bdi}% · Lucro ${lucro}%`, color: T.amber },
           ].map(({ icon, label, val, sub, color }) => (
             <div key={label} style={{ ...S.card, borderLeft: `3px solid ${color}`, padding: "8px 10px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}><span style={{ fontSize: 14 }}>{icon}</span><span style={{ fontSize: 11, color: T.txMut, fontWeight: 700 }}>{label}</span></div>
-              <div style={{ fontSize: 16, fontWeight: 900, color, letterSpacing: "-0.02em" }}>{val}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}><span style={{ fontSize: 15 }}>{icon}</span><span style={{ fontSize: 11, color: T.txMut, fontWeight: 700 }}>{label}</span></div>
+              <div style={{ fontSize: 15, fontWeight: 700, color, letterSpacing: "-0.02em" }}>{val}</div>
               <div style={{ fontSize: 11, color: T.txDis, marginTop: 2 }}>{sub}</div>
             </div>
           ))}
@@ -2000,7 +1713,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           ))}
           {totalFinal > 0 && <div style={{ marginLeft: "auto", background: T.bg3, borderRadius: 6, padding: "4px 10px", border: `1px solid ${T.amber}30` }}>
             <span style={{ fontSize: 11, color: T.txMut }}>{`Desc ${fmt(totalDesconto)} · Total: `}</span>
-            <span style={{ fontSize: 14, fontWeight: 900, color: T.amber }}>{fmt(totalFinal)}</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: T.amber }}>{fmt(totalFinal)}</span>
           </div>}
         </div>
 
@@ -2048,7 +1761,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, color: T.blue }}>🛒 Selecionados ({orcItems.length})</div>
               {orcItems.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "20px 10px", color: T.txDis }}>
-                  <div style={{ fontSize: 20, marginBottom: 4 }}>📋</div>
+                  <div style={{ fontSize: 18, marginBottom: 4 }}>📋</div>
                   <div style={{ fontSize: 12 }}>Adicione itens do catálogo</div>
                 </div>
               ) : (
@@ -2059,7 +1772,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     <div key={item.cod} style={{ background: T.bg0, borderRadius: 6, padding: "6px 8px", marginBottom: 4, border: `1px solid ${T.brBase}` }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
                         <div><span style={{ color: T.blue, fontWeight: 700, fontSize: 12 }}>{item.cod}</span><span style={{ color: T.txMut, fontSize: 11, marginLeft: 4 }}>{item.resumo}</span></div>
-                        <button onClick={() => removeItem(item.cod)} style={{ background: "none", border: "none", color: T.red, cursor: "pointer", fontSize: 14 }}>✕</button>
+                        <button aria-label="Remover item" title="Remover item" onClick={() => removeItem(item.cod)} style={{ background: "none", border: "none", color: T.red, cursor: "pointer", fontSize: 15 }}><Ico as={X} /></button>
                       </div>
                       <div style={{ fontSize: 12, color: T.txMut, marginBottom: 8, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.solucao}</div>
                       <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>
@@ -2082,7 +1795,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         ))}
                         <div style={{ flex: 1.5, textAlign: "right" }}>
                           <div style={S.label}>Proposta</div>
-                          <div style={{ color: T.amber, fontWeight: 800, fontSize: 14, paddingTop: 4 }}>{fmt(itemTotals.totalFinal)}</div>
+                          <div style={{ color: T.amber, fontWeight: 700, fontSize: 15, paddingTop: 4 }}>{fmt(itemTotals.totalFinal)}</div>
                         </div>
                       </div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginTop: 6 }}>
@@ -2133,7 +1846,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: T.cyan, marginBottom: 4 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: T.cyan, marginBottom: 4 }}>
                       📑 Gerar PV Highline
                     </div>
                     <div style={{ fontSize: 11, color: T.txSec, lineHeight: 1.6 }}>
@@ -2141,7 +1854,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       O sistema irá mapear automaticamente para o formato PV Highline
                       e gerar o arquivo <strong>.xlsx</strong> pronto para envio.
                     </div>
-                    <div style={{ fontSize: 10, color: T.txMut, marginTop: 4 }}>
+                    <div style={{ fontSize: 11, color: T.txMut, marginTop: 4 }}>
                       ⚡ Mapeamento automático · Preços Highline · Resumo por categoria
                     </div>
                   </div>
@@ -2151,13 +1864,12 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       background: `linear-gradient(135deg,#0e7490,${T.cyan})`,
                       color: "#fff", border: "none", borderRadius: 10,
                       padding: "12px 24px", cursor: "pointer",
-                      fontSize: 13, fontWeight: 800,
+                      fontSize: 13, fontWeight: 700,
                       boxShadow: `0 4px 20px ${T.cyan}40`,
                       whiteSpace: "nowrap", flexShrink: 0,
                       display: "flex", alignItems: "center", gap: 8,
                     }}>
-                    📊 Abrir PV Highline
-                    <span style={{ fontSize: 16 }}>→</span>
+                    <Ico as={BarChart3} /> Abrir PV Highline
                   </button>
                 </div>
                 {/* Prévia dos itens mapeados */}
@@ -2182,7 +1894,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                           fontWeight: 600,
                         }}>
                           {item.cod}
-                          {mapped && <span style={{ marginLeft: 4, fontSize: 8 }}>→ {maps[0].itemHL}</span>}
+                          {mapped && <span style={{ marginLeft: 4, fontSize: 11 }}>→ {maps[0].itemHL}</span>}
                         </div>
                       );
                     })}
@@ -2566,10 +2278,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" }}>{l}</span>
                 <span style={{ ...iconBox(c, true), width: 28, height: 28, borderRadius: 8 }}>
-                  <span style={{ fontSize: 14, filter: "grayscale(1)" }}>{icon}</span>
+                  <span style={{ fontSize: 15, filter: "grayscale(1)" }}>{icon}</span>
                 </span>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: c, letterSpacing: "-0.03em", textShadow: `0 0 20px ${c}40` }}>{v}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: c, letterSpacing: "-0.03em", textShadow: `0 0 20px ${c}40` }}>{v}</div>
             </div>
           ))}
         </div>
@@ -2599,7 +2311,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <div>
                     <div style={{ marginBottom: 6 }}>
                       <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>SHARING</div>
-                      <div style={{ fontSize: 14, fontWeight: 900, color: T.purple, letterSpacing: "-0.01em" }}>{proj.siteIdSharing || "—"}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: T.purple, letterSpacing: "-0.01em" }}>{proj.siteIdSharing || "—"}</div>
                       {proj.siteIdOperadora && (
                         <div style={{ fontSize: 13, fontWeight: 700, color: T.blue, marginTop: 1 }}>Op: {proj.siteIdOperadora}</div>
                       )}
@@ -2623,11 +2335,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 {/* Mini financeiro */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, marginBottom: 8 }}>
                   <div style={{ background: T.bg4, borderRadius: 6, padding: "5px 8px" }}>
-                    <div style={{ fontSize: 8, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>BUDGET</div>
+                    <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>BUDGET</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri }}>{fmt(budget)}</div>
                   </div>
                   <div style={{ background: T.bg4, borderRadius: 6, padding: "5px 8px" }}>
-                    <div style={{ fontSize: 8, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>CUSTO PAGO</div>
+                    <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>CUSTO PAGO</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: T.amber }}>{fmt(custoPago)}</div>
                   </div>
                 </div>
@@ -2643,10 +2355,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 <div style={{ display: "flex", gap: 6 }}>
                   <button onClick={() => { setProjetoSel(proj.id); setObraTab("resumo"); setTab("controle"); setSideControleOpen(true); }}
                     style={{ ...S.btn, flex: 1, fontSize: 12, padding: "5px 8px" }}>📊 Controle</button>
-                  <button onClick={e => { e.stopPropagation(); openProj(proj); }}
-                    style={{ ...S.ghost, padding: "5px 9px", fontSize: 13 }}>✏️</button>
-                  <button onClick={e => { e.stopPropagation(); setProjetos(prev => prev.filter(p => p.id !== proj.id)); }}
-                    style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "5px 9px", fontSize: 13 }}>🗑️</button>
+                  <button aria-label="Editar projeto" title="Editar projeto" onClick={e => { e.stopPropagation(); openProj(proj); }}
+                    style={{ ...S.ghost, padding: "5px 9px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                  <button aria-label="Excluir projeto" title="Excluir projeto" onClick={e => { e.stopPropagation(); setProjetos(prev => prev.filter(p => p.id !== proj.id)); }}
+                    style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "5px 9px", fontSize: 13 }}><Ico as={Trash2} /></button>
                 </div>
               </div>
             );
@@ -2671,7 +2383,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         <span style={{ fontSize: 13, filter: "grayscale(1)" }}>{col.icon}</span>
                       </span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: col.color }}>{col.status}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: col.color }}>{col.status}</div>
                         <div style={{ fontSize: 12, color: T.txMut }}>{colProjetos.length} obra(s) · {fmt(colTotal)}</div>
                       </div>
                       <span style={{
@@ -2679,7 +2391,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         border: `1px solid ${col.color}50`,
                         borderRadius: "50%", width: 22, height: 22,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 11, fontWeight: 800,
+                        fontSize: 11, fontWeight: 700,
                       }}>{colProjetos.length}</span>
                     </div>
                     {/* Cards */}
@@ -2707,9 +2419,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
   const TabControle = () => {
     if (!obra) return (
       <div style={{ ...S.card, textAlign: "center", padding: 60 }}>
-        <div style={{ fontSize: 36, marginBottom: 12 }}>📊</div>
-        <div style={{ color: T.txMut, fontSize: 14 }}>Selecione uma obra no menu lateral ou na aba Projetos</div>
-        <button onClick={() => setTab("projetos")} style={{ ...S.btn, marginTop: 16 }}>Ver Kanban →</button>
+        <div style={{ fontSize: 32, marginBottom: 12 }}>📊</div>
+        <div style={{ color: T.txMut, fontSize: 15 }}>Selecione uma obra no menu lateral ou na aba Projetos</div>
+        <button onClick={() => setTab("projetos")} style={{ ...S.btn, marginTop: 16 }}>Ver Kanban</button>
       </div>
     );
 
@@ -2738,9 +2450,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
       <div>
         {/* Breadcrumb */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
-          <button onClick={() => setTab("projetos")} style={{ ...S.ghost, fontSize: 13, padding: "5px 12px" }}>← Projetos</button>
+          <button onClick={() => setTab("projetos")} style={{ ...S.ghost, fontSize: 13, padding: "5px 12px" }}><Ico as={ArrowLeft} /> Projetos</button>
           <span style={{ color: T.txMut }}>›</span>
-          <span style={{ color: T.purple, fontWeight: 700, fontSize: 14 }}>{obra.siteIdSharing || ""}</span>
+          <span style={{ color: T.purple, fontWeight: 700, fontSize: 15 }}>{obra.siteIdSharing || ""}</span>
           {obra.siteIdOperadora && (
             <span style={{ color: T.blue, fontWeight: 500, fontSize: 13 }}>/ Op: {obra.siteIdOperadora}</span>
           )}
@@ -2756,7 +2468,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 display: "flex", alignItems: "center", gap: 5,
               }}>
               {obra.status}
-              <span style={{ fontSize: 8, opacity: 0.7 }}>▼</span>
+              <span style={{ fontSize: 11, opacity: 0.7 }}>▼</span>
             </button>
             {showStatusDrop && (
               <>
@@ -2783,7 +2495,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                           border: "none", cursor: "pointer", textAlign: "left",
                           background: isAtual ? c2 + "20" : "transparent",
                           color: isAtual ? c2 : T.txSec,
-                          fontWeight: isAtual ? 700 : 400, fontSize: 14,
+                          fontWeight: isAtual ? 700 : 400, fontSize: 15,
                           marginBottom: 2,
                         }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: c2, flexShrink: 0 }} />
@@ -2801,7 +2513,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               background: obra.segmento === "Implantação" ? T.blue + "20" : T.green + "20",
               color: obra.segmento === "Implantação" ? T.blue : T.green,
               border: `1px solid ${obra.segmento === "Implantação" ? T.blue : T.green}40`,
-              padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 800,
+              padding: "3px 10px", borderRadius: 6, fontSize: 12, fontWeight: 700,
             }}>
               {obra.segmento === "Implantação" ? "🔧" : "⚙️"} {obra.segmento}
             </span>
@@ -2822,13 +2534,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
             <div>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 16, flexWrap: "wrap", marginBottom: 6 }}>
                 <div>
-                  <div style={{ fontSize: 10, color: T.txSec, fontWeight: 600, letterSpacing: "0.08em", marginBottom: 2 }}>SITE ID SHARING</div>
+                  <div style={{ fontSize: 11, color: T.txSec, fontWeight: 600, letterSpacing: "0.08em", marginBottom: 2 }}>SITE ID SHARING</div>
                   <div style={{ fontSize: 24, fontWeight: 700, color: T.txPri, letterSpacing: "-0.01em" }}>{obra.siteIdSharing || "—"}</div>
                 </div>
                 {obra.siteIdOperadora && (
                   <div>
-                    <div style={{ fontSize: 10, color: T.txSec, fontWeight: 600, letterSpacing: "0.08em", marginBottom: 2 }}>SITE ID OPERADORA</div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: T.blue, letterSpacing: "-0.01em" }}>{obra.siteIdOperadora}</div>
+                    <div style={{ fontSize: 11, color: T.txSec, fontWeight: 600, letterSpacing: "0.08em", marginBottom: 2 }}>SITE ID OPERADORA</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: T.blue, letterSpacing: "-0.01em" }}>{obra.siteIdOperadora}</div>
                   </div>
                 )}
               </div>
@@ -2855,7 +2567,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 return (
                   <>
                     <div style={{ fontSize: 11, color: T.txSec, marginBottom: 2, fontWeight: 600, letterSpacing: "0.04em" }}>{eacLabel.toUpperCase()}</div>
-                    <div style={{ fontSize: 26, fontWeight: 900, color: temDados ? (eac > budget ? T.red : T.green) : T.blue, letterSpacing: "-0.01em" }}>{fmt(eac)}</div>
+                    <div style={{ fontSize: 24, fontWeight: 700, color: temDados ? (eac > budget ? T.red : T.green) : T.blue, letterSpacing: "-0.01em" }}>{fmt(eac)}</div>
                     {temDados && (
                       <div style={{ fontSize: 11, color: eacDiff > 0 ? T.red : T.green, marginTop: 2 }}>
                         {eacDiff > 0 ? `+${fmt(eacDiff)} acima do orçado` : `${fmt(Math.abs(eacDiff))} abaixo do orçado`}
@@ -2880,7 +2592,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div key={l}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                   <span style={{ fontSize: 13, color: T.txMut }}>{l}</span>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: c }}>{fmt(v)}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: c }}>{fmt(v)}</span>
                 </div>
                 <ProgBar v={Math.abs(v)} max={budget} color={c} />
                 <div style={{ fontSize: 12, color: T.txMut, marginTop: 2 }}>{`${pct(Math.abs(v), budget)}% do budget`}</div>
@@ -2891,7 +2603,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           {/* Avanço físico */}
           <div style={{ background: T.bg3, borderRadius: 9, padding: "11px 14px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 14, color: T.txSec, fontWeight: 600 }}>Avanço Físico</span>
+              <span style={{ fontSize: 15, color: T.txSec, fontWeight: 600 }}>Avanço Físico</span>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {(() => {
                   const fromEtapas = calcAvancoFisicoEtapas(obra.etapas || []);
@@ -2908,7 +2620,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       <button title="Recalcular automaticamente" onClick={() => updateProjectRecord(obra.id, project => ({ ...project, avancoFisicoManual: false }))}
                         style={{ fontSize: 11, color: T.amber, background: "none", border: `1px solid ${T.amber}40`, borderRadius: 4, padding: "2px 6px", cursor: "pointer" }}>↺ auto</button>
                     )}
-                    <span style={{ fontSize: 18, fontWeight: 900, color: efetivo === 100 ? T.green : T.blue, minWidth: 40, textAlign: "right" }}>{efetivo}%</span>
+                    <span style={{ fontSize: 18, fontWeight: 700, color: efetivo === 100 ? T.green : T.blue, minWidth: 40, textAlign: "right" }}>{efetivo}%</span>
                   </>;
                 })()}
               </div>
@@ -2930,7 +2642,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
             <button key={id} onClick={() => setObraTab(id)}
               style={{ padding: "7px 16px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 13, fontWeight: obraTab === id ? 700 : 400, background: obraTab === id ? T.bg0 : "transparent", color: obraTab === id ? T.blue : T.txMut, display: "flex", alignItems: "center", gap: 5 }}>
               {l}
-              {badge > 0 && <span style={{ background: T.amber, color: "#000", borderRadius: 8, padding: "0 5px", fontSize: 11, fontWeight: 800 }}>{badge}</span>}
+              {badge > 0 && <span style={{ background: T.amber, color: "#000", borderRadius: 8, padding: "0 5px", fontSize: 11, fontWeight: 700 }}>{badge}</span>}
             </button>
           ))}
         </div>
@@ -2949,7 +2661,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               {orcVinculado?.blocos?.length > 0 ? (() => {
                 const todosItens = orcVinculado.blocos.flatMap(b => b.itens.map(it => ({ ...it, blocoNome: b.sharingNome || b.tipo, bloco: b, _fin: calcItemFinancials(it) })));
                 return todosItens.length === 0
-                  ? <div style={{ color: T.txMut, fontSize: 14, textAlign: "center", padding: 20 }}>Orçamento vinculado sem itens.</div>
+                  ? <div style={{ color: T.txMut, fontSize: 15, textAlign: "center", padding: 20 }}>Orçamento vinculado sem itens.</div>
                   : todosItens.map((item, idx) => {
                     const f = item._fin;
                     const hasDisc = f.discountPct > 0;
@@ -2990,7 +2702,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   );
                 }) : (
                 <div style={{ textAlign: "center", padding: "20px 0" }}>
-                  <div style={{ fontSize: 28, marginBottom: 6 }}>📋</div>
+                  <div style={{ fontSize: 32, marginBottom: 6 }}>📋</div>
                   <div style={{ color: T.txMut, fontSize: 13 }}>Nenhum orçamento vinculado.</div>
                   <div style={{ color: T.txDis, fontSize: 12, marginTop: 4 }}>Vincule um orçamento ou adicione itens na aba Medição.</div>
                 </div>
@@ -3000,9 +2712,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div style={S.card}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri }}>💳 Últimas NFs</div>
-                  <button onClick={() => setObraTab("nfs")} style={{ fontSize: 13, color: T.blue, background: "none", border: "none", cursor: "pointer" }}>ver todas →</button>
+                  <button onClick={() => setObraTab("nfs")} style={{ fontSize: 13, color: T.blue, background: "none", border: "none", cursor: "pointer" }}>Ver todas</button>
                 </div>
-                {(obra.nfs || []).length === 0 ? <div style={{ color: T.txMut, fontSize: 14, textAlign: "center", padding: 20 }}>Nenhuma NF lançada</div> :
+                {(obra.nfs || []).length === 0 ? <div style={{ color: T.txMut, fontSize: 15, textAlign: "center", padding: 20 }}>Nenhuma NF lançada</div> :
                   (obra.nfs || []).slice(-5).reverse().map(nf => {
                     const c = NF_COLOR[nf.status] || T.txMut;
                     return (
@@ -3012,7 +2724,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                           <div style={{ fontSize: 12, color: T.txMut }}>{nf.fornecedor} · {nf.emissao}</div>
                         </div>
                         <div style={{ textAlign: "right" }}>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>{fmt(nf.valor)}</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>{fmt(nf.valor)}</div>
                           <span style={{ fontSize: 12, background: c + "18", color: c, border: `1px solid ${c}40`, padding: "1px 7px", borderRadius: 4 }}>{nf.status}</span>
                         </div>
                       </div>
@@ -3020,8 +2732,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   })
                 }
                 <div style={{ marginTop: 12, background: T.bg3, borderRadius: 8, padding: "10px 14px", display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 14, color: T.txMut }}>Total Pago</span>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: T.green }}>{fmt(nfPago)}</span>
+                  <span style={{ fontSize: 15, color: T.txMut }}>Total Pago</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: T.green }}>{fmt(nfPago)}</span>
                 </div>
               </div>
 
@@ -3029,11 +2741,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div style={S.card}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri }}>💬 Últimas Atualizações</div>
-                  <button onClick={() => setObraTab("comentarios")} style={{ fontSize: 13, color: T.blue, background: "none", border: "none", cursor: "pointer" }}>ver todas →</button>
+                  <button onClick={() => setObraTab("comentarios")} style={{ fontSize: 13, color: T.blue, background: "none", border: "none", cursor: "pointer" }}>Ver todas</button>
                 </div>
                 {(obra.comentarios || []).length === 0 ? (
                   <div style={{ textAlign: "center", padding: "16px 0" }}>
-                    <div style={{ fontSize: 20, marginBottom: 6 }}>💬</div>
+                    <div style={{ fontSize: 18, marginBottom: 6 }}>💬</div>
                     <div style={{ fontSize: 13, color: T.txMut }}>Nenhuma atualização ainda</div>
                     <button onClick={() => setObraTab("comentarios")}
                       style={{ ...S.ghost, marginTop: 8, padding: "5px 14px", fontSize: 13 }}>+ Registrar</button>
@@ -3060,7 +2772,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     {(obra.comentarios || []).length > 3 && (
                       <button onClick={() => setObraTab("comentarios")}
                         style={{ ...S.ghost, width: "100%", marginTop: 8, padding: "5px", fontSize: 13, textAlign: "center" }}>
-                        +{(obra.comentarios || []).length - 3} comentário(s) →
+                        +{(obra.comentarios || []).length - 3} comentário(s)
                       </button>
                     )}
                   </div>
@@ -3075,7 +2787,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 900, color: T.txPri }}>📦 Itens do Orçamento Vinculado</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>📦 Itens do Orçamento Vinculado</div>
                 <div style={{ fontSize: 13, color: T.txMut, marginTop: 2 }}>
                   {orcVinculado ? `Orçamento: ${orcVinculado.id}` : "Nenhum orçamento vinculado"}
                 </div>
@@ -3088,7 +2800,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
 
             {!orcVinculado ? (
               <div style={{ ...S.card, textAlign: "center", padding: 60 }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>📋</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: T.txSec, marginBottom: 6 }}>Nenhum orçamento vinculado a esta atividade</div>
                 <div style={{ fontSize: 13, color: T.txMut, marginBottom: 20 }}>Vincule um orçamento aprovado para visualizar os itens, controlar gastos por item e comparar planejado × executado.</div>
                 <button onClick={() => { setBudgetLinkTargetId(null); setBudgetLinkProjectId(obra.id); setShowBudgetLinkModal(true); }}
@@ -3111,7 +2823,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     ].map(({ l, v, c }) => (
                       <div key={l} style={{ ...cardTint(c), borderRadius: 9, padding: "10px 16px", borderLeft: `3px solid ${c}` }}>
                         <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.07em", marginBottom: 4 }}>{l.toUpperCase()}</div>
-                        <div style={{ fontSize: 18, fontWeight: 900, color: c }}>{v}</div>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: c }}>{v}</div>
                       </div>
                     ))}
                   </div>
@@ -3161,7 +2873,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         <tfoot>
                           <tr style={{ borderTop: `2px solid ${T.brBase}`, background: T.bg3 }}>
                             <td colSpan={8} style={{ padding: "10px 12px", fontSize: 13, fontWeight: 700, color: T.txMut }}>TOTAL GERAL</td>
-                            <td style={{ padding: "10px 12px", fontSize: 15, fontWeight: 900, color: T.blue, textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalOrc)}</td>
+                            <td style={{ padding: "10px 12px", fontSize: 15, fontWeight: 700, color: T.blue, textAlign: "right", whiteSpace: "nowrap" }}>{fmt(totalOrc)}</td>
                             <td />
                           </tr>
                         </tfoot>
@@ -3206,7 +2918,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       <span>{l.toUpperCase()}</span>
                       {n != null && <span style={{ background: c + "20", color: c, borderRadius: 8, padding: "0 6px" }}>{n}</span>}
                     </div>
-                    <div style={{ fontSize: 16, fontWeight: 800, color: c }}>{v}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: c }}>{v}</div>
                   </div>
                 ))}
               </div>
@@ -3227,7 +2939,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       display: "flex", alignItems: "center", gap: 5
                     }}>
                     {l}
-                    {badge > 0 && <span style={{ background: cor, color: "#000", borderRadius: 8, padding: "0 5px", fontSize: 11, fontWeight: 800 }}>{badge}</span>}
+                    {badge > 0 && <span style={{ background: cor, color: "#000", borderRadius: 8, padding: "0 5px", fontSize: 11, fontWeight: 700 }}>{badge}</span>}
                   </button>
                 ))}
               </div>
@@ -3236,13 +2948,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
               {subTab === "materiais" && (
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <span style={{ fontSize: 14, color: T.txSec }}>{(obra.nfs || []).length} documento(s) · <span style={{ color: T.green, fontWeight: 700 }}>{fmt(nfPago)} pago</span></span>
+                    <span style={{ fontSize: 15, color: T.txSec }}>{(obra.nfs || []).length} documento(s) · <span style={{ color: T.green, fontWeight: 700 }}>{fmt(nfPago)} pago</span></span>
                     <button onClick={() => { setDespesaForm(despesaFormInit); setNfModalTipo("nf"); setShowNFModal(true); }} style={S.btn}>+ Registrar NF Paga / Recibo</button>
                   </div>
                   {(obra.nfs || []).length === 0 ? (
                     <div style={{ ...S.card, textAlign: "center", padding: 50 }}>
                       <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
-                      <div style={{ color: T.txMut, fontSize: 14 }}>Nenhuma NF paga registrada.</div>
+                      <div style={{ color: T.txMut, fontSize: 15 }}>Nenhuma NF paga registrada.</div>
                     </div>
                   ) : (obra.nfs || []).map(nf => {
                     const c = NF_COLOR[nf.status] || T.txMut;
@@ -3254,11 +2966,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 16 }}>
                           <div>
                             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
-                              <span style={{ fontSize: 14, fontWeight: 800, color: T.txPri }}>NF {nf.num}</span>
+                              <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>NF {nf.num}</span>
                               <span style={{ background: c + "18", color: c, border: `1px solid ${c}40`, padding: "2px 9px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{nf.status}</span>
                               <span style={{ background: cc + "18", color: cc, padding: "2px 9px", borderRadius: 5, fontSize: 12 }}>{nf.categoria}</span>
                             </div>
-                            <div style={{ fontSize: 14, color: T.txSec, marginBottom: 6 }}>{nf.desc}</div>
+                            <div style={{ fontSize: 15, color: T.txSec, marginBottom: 6 }}>{nf.desc}</div>
                             <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
                               {[{ l: "Fornecedor", v: nf.fornecedor }, { l: "CNPJ", v: nf.cnpj }, { l: "Emissão", v: nf.emissao }, { l: "Vencimento", v: nf.vencimento }].filter(x => x.v).map(({ l, v }) => (
                                 <span key={l} style={{ fontSize: 13 }}><span style={{ color: T.txMut }}>{l}: </span><span style={{ color: nf.status === "Em Atraso" && l === "Vencimento" ? T.red : T.txSec }}>{v}</span></span>
@@ -3267,7 +2979,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             </div>
                           </div>
                           <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <div style={{ fontSize: 22, fontWeight: 900, color: c, letterSpacing: "-0.02em" }}>{fmt(nf.valor)}</div>
+                            <div style={{ fontSize: 24, fontWeight: 700, color: c, letterSpacing: "-0.02em" }}>{fmt(nf.valor)}</div>
                             <div style={{ display: "flex", gap: 6, justifyContent: "flex-end", marginTop: 8 }}>
                               {["Aguardando Pagamento", "Lançada", "A Pagar", "Pendente"].includes(nf.status) && (
                                 <button onClick={() => pagarNF(obra.id, nf.id)} style={{ ...S.btn, padding: "5px 12px", fontSize: 13, background: T.greenD }}>✓ Pagar</button>
@@ -3285,10 +2997,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
                                   ✅ {comprovanteNF.name.substring(0, 15)}{comprovanteNF.name.length > 15 ? "…" : ""}
                                 </a>
                               )}
-                              <button onClick={() => openEditDespesa(nf, "nf")}
-                                style={{ ...S.ghost, padding: "5px 10px", fontSize: 13 }}>✏️</button>
-                              <button onClick={() => setProjetos(prev => prev.map(p => p.id === obra.id ? { ...p, nfs: p.nfs.filter(n => n.id !== nf.id) } : p))}
-                                style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "5px 10px", fontSize: 13 }}>🗑️</button>
+                              <button aria-label="Editar NF" title="Editar NF" onClick={() => openEditDespesa(nf, "nf")}
+                                style={{ ...S.ghost, padding: "5px 10px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                              <button aria-label="Excluir NF" title="Excluir NF" onClick={() => setProjetos(prev => prev.map(p => p.id === obra.id ? { ...p, nfs: p.nfs.filter(n => n.id !== nf.id) } : p))}
+                                style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "5px 10px", fontSize: 13 }}><Ico as={Trash2} /></button>
                             </div>
                           </div>
                         </div>
@@ -3303,7 +3015,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                      <span style={{ fontSize: 14, color: T.txSec }}>{adts.length} pagamento(s) · <span style={{ color: T.amber, fontWeight: 700 }}>{fmt(totalAdts)}</span></span>
+                      <span style={{ fontSize: 15, color: T.txSec }}>{adts.length} pagamento(s) · <span style={{ color: T.amber, fontWeight: 700 }}>{fmt(totalAdts)}</span></span>
                       {pendentes > 0 && <span style={{ background: T.amber + "20", color: T.amber, border: `1px solid ${T.amber}40`, borderRadius: 7, padding: "2px 8px", fontSize: 12, fontWeight: 700 }}>⏳ {pendentes} pendente(s)</span>}
                       {/* Filtro tipo favorecido */}
                       <div style={{ display: "flex", gap: 3 }}>
@@ -3314,7 +3026,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       </div>
                     </div>
                     <button onClick={() => { setDespesaForm(despesaFormInit); setNfModalTipo("pagamento"); setShowNFModal(true); }}
-                      style={{ ...S.btn, background: "linear-gradient(135deg,#d97706,#f59e0b)" }}>
+                      style={{ ...S.btn, background: "linear-gradient(135deg,#F59E0B,#f59e0b)" }}>
                       💸 Registrar Pagamento
                     </button>
                   </div>
@@ -3330,7 +3042,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         <div style={{ fontSize: 13, color: T.txSec, marginBottom: 4 }}>Nenhum pagamento registrado</div>
                         <div style={{ fontSize: 13, color: T.txMut, marginBottom: 16 }}>Prestador, funcionário, mão de obra, diárias e reembolsos</div>
                         <button onClick={() => { setDespesaForm(despesaFormInit); setNfModalTipo("pagamento"); setShowNFModal(true); }}
-                          style={{ ...S.btn, background: "linear-gradient(135deg,#d97706,#f59e0b)" }}>💸 Registrar Primeiro Pagamento</button>
+                          style={{ ...S.btn, background: "linear-gradient(135deg,#F59E0B,#f59e0b)" }}>💸 Registrar Primeiro Pagamento</button>
                       </div>
                     ) : adtsFiltrados.map(adt => {
                       const sc = PAG_COLOR[adt.status] || T.txMut;
@@ -3343,7 +3055,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                           <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 16, alignItems: "start" }}>
                             <div>
                               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6, flexWrap: "wrap" }}>
-                                <span style={{ fontSize: 13, fontWeight: 800, color: T.txPri }}>{adt.funcionario}</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: T.txPri }}>{adt.funcionario}</span>
                                 <span style={{ background: (isFuncCad ? T.blue : T.purple) + "18", color: isFuncCad ? T.blue : T.purple, border: `1px solid ${isFuncCad ? T.blue : T.purple}40`, padding: "1px 7px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>{isFuncCad ? "👷 Funcionário" : "🏢 Prestador"}</span>
                                 <span style={{ background: sc + "18", color: sc, border: `1px solid ${sc}40`, padding: "2px 9px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{adt.status}</span>
                                 <span style={{ fontSize: 12, color: T.txMut, background: T.bg3, borderRadius: 4, padding: "1px 7px" }}>{tipoLabel}</span>
@@ -3360,7 +3072,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                               )}
                             </div>
                             <div style={{ textAlign: "right", flexShrink: 0 }}>
-                              <div style={{ fontSize: 20, fontWeight: 900, color: sc, marginBottom: 8 }}>{fmt(adt.valor)}</div>
+                              <div style={{ fontSize: 18, fontWeight: 700, color: sc, marginBottom: 8 }}>{fmt(adt.valor)}</div>
                               <div style={{ display: "flex", gap: 5, justifyContent: "flex-end", flexWrap: "wrap" }}>
                                 {["Solicitado", "Pendente Aprovação"].includes(adt.status) && <button onClick={() => aprovarAdiantamento(obra.id, adt.id)} style={{ ...S.btn, padding: "5px 10px", fontSize: 12, background: T.blueD }}>✓ Aprovar</button>}
                                 {adt.status === "Aprovado" && <button onClick={() => pagarAdiantamento(obra.id, adt.id)} style={{ ...S.btn, padding: "5px 10px", fontSize: 12, background: T.greenD }}>💰 Pagar</button>}
@@ -3393,9 +3105,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
                                     ✅ {comprovanteAdt.name.substring(0, 12)}{comprovanteAdt.name.length > 12 ? "…" : ""}
                                   </a>
                                 )}
-                                <button onClick={() => openEditDespesa(adt, "pagamento")}
-                                  style={{ ...S.ghost, padding: "5px 9px", fontSize: 13 }}>✏️</button>
-                                <button onClick={() => deletarAdiantamento(obra.id, adt.id)} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "5px 9px", fontSize: 13 }}>🗑️</button>
+                                <button aria-label="Editar pagamento" title="Editar pagamento" onClick={() => openEditDespesa(adt, "pagamento")}
+                                  style={{ ...S.ghost, padding: "5px 9px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                                <button aria-label="Excluir pagamento" title="Excluir pagamento" onClick={() => deletarAdiantamento(obra.id, adt.id)} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "5px 9px", fontSize: 13 }}><Ico as={Trash2} /></button>
                               </div>
                             </div>
                           </div>
@@ -3410,7 +3122,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               {subTab === "despesas" && (
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                    <span style={{ fontSize: 14, color: T.txSec }}>{despGs.length} despesa(s) · <span style={{ color: T.orange, fontWeight: 700 }}>{fmt(totalDespGs)}</span></span>
+                    <span style={{ fontSize: 15, color: T.txSec }}>{despGs.length} despesa(s) · <span style={{ color: T.orange, fontWeight: 700 }}>{fmt(totalDespGs)}</span></span>
                     <button onClick={() => { setDespesaForm(despesaFormInit); setNfModalTipo("despesa"); setShowNFModal(true); }}
                       style={{ ...S.btn, background: "linear-gradient(135deg,#b45309,#f59e0b)" }}>
                       🧾 Lançar Despesa
@@ -3433,7 +3145,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 5, flexWrap: "wrap" }}>
-                              <span style={{ fontSize: 16 }}>{ic}</span>
+                              <span style={{ fontSize: 15 }}>{ic}</span>
                               <span style={{ fontSize: 13, fontWeight: 700, color: T.txPri }}>{dg.despesaTipo}</span>
                               <span style={{ background: sc + "18", color: sc, border: `1px solid ${sc}40`, padding: "2px 8px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{dg.status}</span>
                             </div>
@@ -3444,7 +3156,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             </div>
                           </div>
                           <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 16 }}>
-                            <div style={{ fontSize: 18, fontWeight: 900, color: sc, marginBottom: 6 }}>{fmt(dg.valor)}</div>
+                            <div style={{ fontSize: 18, fontWeight: 700, color: sc, marginBottom: 6 }}>{fmt(dg.valor)}</div>
                             <div style={{ display: "flex", gap: 5, justifyContent: "flex-end" }}>
                               {dg.status === "Lançada" && <button onClick={() => setProjetos(prev => prev.map(p => p.id === obra.id ? { ...p, despesasGerais: (p.despesasGerais || []).map(d => d.id === dg.id ? { ...d, status: "Validada" } : d) } : p))}
                                 style={{ ...S.btn, padding: "4px 10px", fontSize: 12, background: T.greenD }}>✓ Validar</button>}
@@ -3465,10 +3177,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
                                   ✅
                                 </a>
                               )}
-                              <button onClick={() => openEditDespesa(dg, "despesa")}
-                                style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}>✏️</button>
-                              <button onClick={() => setProjetos(prev => prev.map(p => p.id === obra.id ? { ...p, despesasGerais: (p.despesasGerais || []).filter(d => d.id !== dg.id) } : p))}
-                                style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}>🗑️</button>
+                              <button aria-label="Editar despesa" title="Editar despesa" onClick={() => openEditDespesa(dg, "despesa")}
+                                style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                              <button aria-label="Excluir despesa" title="Excluir despesa" onClick={() => setProjetos(prev => prev.map(p => p.id === obra.id ? { ...p, despesasGerais: (p.despesasGerais || []).filter(d => d.id !== dg.id) } : p))}
+                                style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}><Ico as={Trash2} /></button>
                             </div>
                           </div>
                         </div>
@@ -3585,7 +3297,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               {/* Header */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>📅 Cronograma da Obra</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>📅 Cronograma da Obra</div>
                   <div style={{ fontSize: 13, color: T.txMut, marginTop: 2 }}>{etapas.length} etapa(s) cadastrada(s)</div>
                 </div>
                 <button onClick={openNewEtapa} style={S.btn}>+ Nova Etapa</button>
@@ -3594,7 +3306,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 12, marginBottom: 16 }}>
                 <div style={{ ...S.card, padding: "12px 14px" }}>
                   <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.08em", marginBottom: 6 }}>DATA DE ACIONAMENTO</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: T.txPri }}>{dataAcionamento || "—"}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: T.txPri }}>{dataAcionamento || "—"}</div>
                   <div style={{ fontSize: 12, color: T.txMut, marginTop: 6 }}>Registrada na criação da atividade</div>
                 </div>
                 <div style={{ ...S.card, padding: "12px 14px" }}>
@@ -3619,7 +3331,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
 
               {etapas.length === 0 ? (
                 <div style={{ ...S.card, textAlign: "center", padding: 60 }}>
-                  <div style={{ fontSize: 36, marginBottom: 10 }}>📅</div>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>📅</div>
                   <div style={{ fontSize: 13, color: T.txSec, marginBottom: 6 }}>Nenhuma etapa cadastrada</div>
                   <div style={{ fontSize: 13, color: T.txMut, marginBottom: 18 }}>Adicione as etapas do cronograma para visualizar o Gantt</div>
                   <button onClick={openNewEtapa} style={S.btn}>+ Adicionar Primeira Etapa</button>
@@ -3628,8 +3340,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 <>
                   {/* ── Lista de etapas ── */}
                   <div style={{ ...S.card, marginBottom: 16 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: T.txMut, marginBottom: 12, letterSpacing: "0.05em" }}>LISTA DE ETAPAS</div>
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.txMut, marginBottom: 12, letterSpacing: "0.05em" }}>LISTA DE ETAPAS</div>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
                       <thead><tr style={{ borderBottom: `1px solid ${T.brBase}` }}>
                         {["Etapa", "Grupo", "Responsável", "Início", "Fim", "Progresso", ""].map(h => (
                           <th key={h} style={{ padding: "6px 10px", textAlign: "left", color: T.txMut, fontWeight: 700, fontSize: 12, letterSpacing: "0.05em" }}>{h}</th>
@@ -3663,8 +3375,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             </td>
                             <td style={{ padding: "8px 10px" }}>
                               <div style={{ display: "flex", gap: 6 }}>
-                                <button onClick={() => openEditEtapa(e)} style={{ ...S.ghost, padding: "3px 8px", fontSize: 13 }}>✏️</button>
-                                <button onClick={() => deleteEtapa(e.id)} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "3px 8px", fontSize: 13 }}>🗑️</button>
+                                <button aria-label="Editar etapa" title="Editar etapa" onClick={() => openEditEtapa(e)} style={{ ...S.ghost, padding: "3px 8px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                                <button aria-label="Excluir etapa" title="Excluir etapa" onClick={() => deleteEtapa(e.id)} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "3px 8px", fontSize: 13 }}><Ico as={Trash2} /></button>
                               </div>
                             </td>
                           </tr>
@@ -3675,7 +3387,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
 
                   {/* ── Gantt ── */}
                   <div style={{ ...S.card, overflowX: "auto" }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: T.txMut, marginBottom: 14, letterSpacing: "0.05em" }}>GRÁFICO DE GANTT</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.txMut, marginBottom: 14, letterSpacing: "0.05em" }}>GRÁFICO DE GANTT</div>
                     {/* Cabeçalho de datas */}
                     {(() => {
                       const labels = [];
@@ -3761,7 +3473,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               {showEtapaModal && (
                 <div style={{ position: "fixed", inset: 0, background: "#000000c0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 700, padding: 16 }}>
                   <div style={{ background: T.bg2, borderRadius: 14, border: `1px solid ${T.brBase}`, padding: 26, width: 480, maxWidth: "100%" }}>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: T.blue, marginBottom: 18 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: T.blue, marginBottom: 18 }}>
                       {editingEtapaId ? "✏️ Editar Etapa do Cronograma" : "📅 Nova Etapa do Cronograma"}
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -3807,13 +3519,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
             </div>
             {obra.itens.length === 0 ? (
               <div style={{ ...S.card, textAlign: "center", padding: 60 }}>
-                <div style={{ fontSize: 36, marginBottom: 10 }}>📏</div>
+                <div style={{ fontSize: 32, marginBottom: 10 }}>📏</div>
                 <div style={{ color: T.txMut }}>Adicione itens do orçamento para iniciar a medição</div>
               </div>
             ) : (
               <div style={S.card}>
                 <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
                     <thead><tr style={{ borderBottom: `1px solid ${T.brBase}` }}>
                       {["Descrição", "Tipo", "Unid", "Orc.", "Medido", "Saldo", "% Físico", "VL Orc.", "VL Med.", "VL Saldo", "Ação"].map(h => (
                         <th key={h} style={{ padding: "8px 10px", textAlign: "left", color: T.txMut, fontWeight: 700, fontSize: 12, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
@@ -3850,8 +3562,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             <td style={{ padding: "9px 10px", color: vlOrc - vlMed === 0 ? T.green : T.amber, fontWeight: 600, whiteSpace: "nowrap" }}>{fmt(vlOrc - vlMed)}</td>
                             <td style={{ padding: "9px 10px" }}>
                               <div style={{ display: "flex", gap: 6 }}>
-                                <button onClick={() => { setEditItem(item); setItemForm({ ...item }); setShowItemModal(true); }} style={{ ...S.ghost, padding: "3px 8px", fontSize: 13 }}>✏️</button>
-                                <button onClick={() => setProjetos(prev => prev.map(p => p.id === obra.id ? { ...p, itens: p.itens.filter(i => i.id !== item.id) } : p))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "3px 8px", fontSize: 13 }}>🗑️</button>
+                                <button aria-label="Editar item" title="Editar item" onClick={() => { setEditItem(item); setItemForm({ ...item }); setShowItemModal(true); }} style={{ ...S.ghost, padding: "3px 8px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                                <button aria-label="Excluir item" title="Excluir item" onClick={() => setProjetos(prev => prev.map(p => p.id === obra.id ? { ...p, itens: p.itens.filter(i => i.id !== item.id) } : p))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "3px 8px", fontSize: 13 }}><Ico as={Trash2} /></button>
                               </div>
                             </td>
                           </tr>
@@ -3860,10 +3572,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     </tbody>
                     <tfoot>
                       <tr style={{ borderTop: `2px solid ${T.brStrong}`, background: T.bg3 }}>
-                        <td colSpan={7} style={{ padding: "10px", fontWeight: 800, color: T.txPri, fontSize: 14 }}>TOTAIS</td>
-                        <td style={{ padding: "10px", fontWeight: 800, color: T.txPri, whiteSpace: "nowrap" }}>{fmt(obra.itens.reduce((s, i) => s + i.qtde * i.vlUnit, 0))}</td>
-                        <td style={{ padding: "10px", fontWeight: 800, color: T.green, whiteSpace: "nowrap" }}>{fmt(obra.itens.reduce((s, i) => s + (i.qtdeMed || 0) * i.vlUnit, 0))}</td>
-                        <td style={{ padding: "10px", fontWeight: 800, color: T.amber, whiteSpace: "nowrap" }}>{fmt(obra.itens.reduce((s, i) => s + (i.qtde - (i.qtdeMed || 0)) * i.vlUnit, 0))}</td>
+                        <td colSpan={7} style={{ padding: "10px", fontWeight: 700, color: T.txPri, fontSize: 15 }}>TOTAIS</td>
+                        <td style={{ padding: "10px", fontWeight: 700, color: T.txPri, whiteSpace: "nowrap" }}>{fmt(obra.itens.reduce((s, i) => s + i.qtde * i.vlUnit, 0))}</td>
+                        <td style={{ padding: "10px", fontWeight: 700, color: T.green, whiteSpace: "nowrap" }}>{fmt(obra.itens.reduce((s, i) => s + (i.qtdeMed || 0) * i.vlUnit, 0))}</td>
+                        <td style={{ padding: "10px", fontWeight: 700, color: T.amber, whiteSpace: "nowrap" }}>{fmt(obra.itens.reduce((s, i) => s + (i.qtde - (i.qtdeMed || 0)) * i.vlUnit, 0))}</td>
                         <td />
                       </tr>
                     </tfoot>
@@ -3876,7 +3588,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
             {showItemModal && (
               <div style={{ position: "fixed", inset: 0, background: "#000000b0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 500 }}>
                 <div style={{ background: T.bg2, borderRadius: 14, border: `1px solid ${T.brBase}`, padding: 26, width: 480, maxWidth: "95vw" }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: T.blue, marginBottom: 18 }}>{editItem ? "✏️ Editar Item" : "➕ Novo Item de Medição"}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: T.blue, marginBottom: 18 }}>{editItem ? "✏️ Editar Item" : "➕ Novo Item de Medição"}</div>
                   <div style={{ marginBottom: 12 }}><label style={S.label}>Descrição</label>
                     <input value={itemForm.descricao} onChange={e => setItemField("descricao", e.target.value)} style={S.input} placeholder="Ex: Esteira Metálica L=400mm" /></div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 12 }}>
@@ -3889,8 +3601,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     <select value={itemForm.tipo} onChange={e => setItemField("tipo", e.target.value)} style={S.input}>
                       {CATEG_TIPO.map(c => <option key={c}>{c}</option>)}</select></div>
                   {itemForm.qtde > 0 && itemForm.vlUnit > 0 && <div style={{ background: T.bg3, borderRadius: 8, padding: "10px 14px", marginBottom: 14, display: "flex", justifyContent: "space-between", border: `1px solid ${T.amber}30` }}>
-                    <span style={{ fontSize: 14, color: T.txMut }}>Total do Item</span>
-                    <span style={{ fontSize: 15, fontWeight: 800, color: T.amber }}>{fmt(itemForm.qtde * itemForm.vlUnit)}</span>
+                    <span style={{ fontSize: 15, color: T.txMut }}>Total do Item</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: T.amber }}>{fmt(itemForm.qtde * itemForm.vlUnit)}</span>
                   </div>}
                   <div style={{ display: "flex", gap: 10 }}>
                     <button onClick={() => { setShowItemModal(false); setEditItem(null); }} style={{ ...S.ghost, flex: 1, padding: 10 }}>Cancelar</button>
@@ -3936,7 +3648,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
             <div>
               {/* Input área */}
               <div style={{ ...S.card, marginBottom: 20, border: `1px solid ${tipoAtual.color}30` }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: T.txPri, marginBottom: 12 }}>💬 Registrar Atualização</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri, marginBottom: 12 }}>💬 Registrar Atualização</div>
 
                 {/* Tipo */}
                 <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
@@ -3988,7 +3700,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               {/* Feed */}
               {comentarios.length === 0 ? (
                 <div style={{ ...S.card, textAlign: "center", padding: 50 }}>
-                  <div style={{ fontSize: 36, marginBottom: 10 }}>💬</div>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>💬</div>
                   <div style={{ fontSize: 13, color: T.txSec, marginBottom: 4 }}>Nenhum comentário ainda</div>
                   <div style={{ fontSize: 13, color: T.txMut }}>Registre o andamento, alertas e ocorrências da obra</div>
                 </div>
@@ -4015,8 +3727,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                           </div>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <span style={{ fontSize: 12, color: T.txMut }}>{c.dataHora}</span>
-                            <button onClick={() => delComentario(c.id)}
-                              style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "2px 7px", fontSize: 13 }}>🗑️</button>
+                            <button aria-label="Excluir comentário" title="Excluir comentário" onClick={() => delComentario(c.id)}
+                              style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "2px 7px", fontSize: 13 }}><Ico as={Trash2} /></button>
                           </div>
                         </div>
                         <div style={{ fontSize: 13, color: T.txPri, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
@@ -4066,7 +3778,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
             const isNFPrimary = fieldKey === "anexoOrcamento" && isNF;
             return (
               <div style={{ background: T.bg3, border: `1px dashed ${arq ? acColor : T.brBase}`, borderRadius: 9, padding: "10px 14px", display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 20 }}>{icon}</span>
+                <span style={{ fontSize: 18 }}>{icon}</span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12, color: T.txMut, fontWeight: 700, letterSpacing: "0.07em", marginBottom: 2 }}>
                     {label.toUpperCase()}
@@ -4082,8 +3794,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" style={{ display: "none" }}
                     onChange={e => handleAnexo(fieldKey, e.target.files[0])} />
                 </label>
-                {arq && <button onClick={() => setDespesaForm(p => ({ ...p, [fieldKey]: null }))}
-                  style={{ background: "transparent", border: "none", color: T.red, cursor: "pointer", fontSize: 14, padding: "0 4px" }}>✕</button>}
+                {arq && <button aria-label="Remover anexo" title="Remover anexo" onClick={() => setDespesaForm(p => ({ ...p, [fieldKey]: null }))}
+                  style={{ background: "transparent", border: "none", color: T.red, cursor: "pointer", fontSize: 15, padding: "0 4px" }}><Ico as={X} /></button>}
               </div>
             );
           };
@@ -4096,7 +3808,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 <div style={{ background: `linear-gradient(135deg,${acColor}18,${T.bg2})`, borderRadius: "16px 16px 0 0", padding: "22px 28px", borderBottom: `1px solid ${acColor}30` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <div style={{ fontSize: 17, fontWeight: 900, color: acColor, marginBottom: 4 }}>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: acColor, marginBottom: 4 }}>
                         {isNF ? "📄 Registrar NF Paga de Material" : isPag ? "💸 Registrar Pagamento de Serviço" : "🧾 Lançar Despesa Geral"}
                       </div>
                       <div style={{ fontSize: 13, color: T.txMut }}>
@@ -4268,9 +3980,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                     <div><label style={S.label}>Valor Total (R$)</label>
                       <input type="number" value={despesaForm.valor} onChange={e => DF("valor", e.target.value)}
-                        style={{ ...S.input, color: acColor, fontWeight: 800, fontSize: 16 }} placeholder="0.00" /></div>
+                        style={{ ...S.input, color: acColor, fontWeight: 700, fontSize: 15 }} placeholder="0.00" /></div>
                     {isNF && <div><label style={S.label}>Status da NF</label>
-                      <div style={{ ...S.input, display: "flex", alignItems: "center", fontWeight: 800, color: T.green, background: T.green + "12", borderColor: T.green + "35" }}>
+                      <div style={{ ...S.input, display: "flex", alignItems: "center", fontWeight: 700, color: T.green, background: T.green + "12", borderColor: T.green + "35" }}>
                         Pago automaticamente no lançamento
                       </div></div>}
                     {isPag && <div><label style={S.label}>Status do Pagamento</label>
@@ -4340,7 +4052,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         <div style={{ fontSize: 12, color: T.txMut, fontWeight: 700, letterSpacing: "0.06em" }}>VALOR A SOLICITAR</div>
                         {despesaForm.tipoPagto && <div style={{ fontSize: 12, color: acColor, marginTop: 2 }}>via {despesaForm.tipoPagto}</div>}
                       </div>
-                      <div style={{ fontSize: 24, fontWeight: 900, color: acColor, letterSpacing: "-0.03em" }}>{fmt(Number(despesaForm.valor))}</div>
+                      <div style={{ fontSize: 24, fontWeight: 700, color: acColor, letterSpacing: "-0.03em" }}>{fmt(Number(despesaForm.valor))}</div>
                     </div>
                   )}
 
@@ -4361,7 +4073,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     <button onClick={addDespesa}
                       style={{
                         ...S.btn, flex: 3, padding: 11, fontSize: 13,
-                        background: isNF ? "linear-gradient(135deg,#0F4EA3,#1768D5)" : isPag ? "linear-gradient(135deg,#d97706,#f59e0b)" : "linear-gradient(135deg,#b45309,#f59e0b)",
+                        background: isNF ? "linear-gradient(135deg,#0F4EA3,#1768D5)" : isPag ? "linear-gradient(135deg,#F59E0B,#f59e0b)" : "linear-gradient(135deg,#b45309,#f59e0b)",
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 8
                       }}>
                       {isNF ? "✓ Registrar NF Paga & Gerar E-mail (.msg)" : isPag ? "💸 Registrar Pagamento & Gerar E-mail (.msg)" : "🧾 Lançar Despesa & Gerar E-mail (.msg)"}
@@ -4389,7 +4101,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
 
         {nfsAtraso.length > 0 && (
           <div style={{ ...S.card, marginBottom: 18, borderLeft: `3px solid ${T.red}` }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: T.red, marginBottom: 10 }}>⚠️ ALERTAS — NFs EM ATRASO</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.red, marginBottom: 10 }}>⚠️ ALERTAS — NFs EM ATRASO</div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               {nfsAtraso.map(nf => (
                 <div key={nf.id} style={{ background: T.red + "12", border: `1px solid ${T.red}30`, borderRadius: 8, padding: "8px 14px" }}>
@@ -4412,10 +4124,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.09em", textTransform: "uppercase" }}>{l}</span>
                 <span style={{ ...iconBox(c, true), width: 28, height: 28, borderRadius: 8 }}>
-                  <span style={{ fontSize: 14, filter: "grayscale(1)" }}>{icon}</span>
+                  <span style={{ fontSize: 15, filter: "grayscale(1)" }}>{icon}</span>
                 </span>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 900, color: c, letterSpacing: "-0.03em", textShadow: `0 0 20px ${c}40` }}>{v}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: c, letterSpacing: "-0.03em", textShadow: `0 0 20px ${c}40` }}>{v}</div>
             </div>
           ))}
         </div>
@@ -4423,7 +4135,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         <div style={S.card}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>📋 Carteira de Obras</div>
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
               <thead><tr style={{ background: T.bg3, borderBottom: `1px solid ${T.brStrong}` }}>
                 {["Site ID Sharing / Operadora", "Cliente / Sharing", "Operadora", "Fornecedor", "Gestor", "PO", "Status", "Budget", "Custo", "Saldo", "Avanço", ""].map(h => (
                   <th key={h} style={{ padding: "9px 10px", textAlign: "left", color: T.txMut, fontWeight: 700, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
@@ -4444,12 +4156,12 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       <td style={{ padding: "9px 10px", minWidth: 160 }}>
                         <div style={{ marginBottom: 3 }}>
                           <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.06em" }}>SHARING</div>
-                          <div style={{ fontWeight: 900, color: T.purple, fontSize: 13 }}>{p.siteIdSharing || "—"}</div>
+                          <div style={{ fontWeight: 700, color: T.purple, fontSize: 13 }}>{p.siteIdSharing || "—"}</div>
                         </div>
                         {p.siteIdOperadora && (
                           <div style={{ marginBottom: 3 }}>
                             <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.06em" }}>OPERADORA</div>
-                            <div style={{ fontWeight: 700, color: T.blue, fontSize: 14 }}>{p.siteIdOperadora}</div>
+                            <div style={{ fontWeight: 700, color: T.blue, fontSize: 15 }}>{p.siteIdOperadora}</div>
                           </div>
                         )}
                         <div style={{ fontSize: 12, color: T.txMut }}>{p.municipio}{p.uf ? `/${p.uf}` : ""}</div>
@@ -4460,9 +4172,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         </div>}
                       </td>
                       <td style={{ padding: "9px 10px" }}>
-                        <div style={{ fontWeight: 700, color: T.purple, fontSize: 14 }}>{clienteNome}</div>
+                        <div style={{ fontWeight: 700, color: T.purple, fontSize: 15 }}>{clienteNome}</div>
                       </td>
-                      <td style={{ padding: "9px 10px", color: OP_COLOR[p.operadora] || T.txMut, fontWeight: 700, fontSize: 14 }}>{p.operadora}</td>
+                      <td style={{ padding: "9px 10px", color: OP_COLOR[p.operadora] || T.txMut, fontWeight: 700, fontSize: 15 }}>{p.operadora}</td>
                       <td style={{ padding: "9px 10px" }}>
                         <div style={{ fontSize: 13, color: T.txSec, fontWeight: 600 }}>{p.fornecedor || "—"}</div>
                         {p.contato && <div style={{ fontSize: 12, color: T.txMut }}>{p.contato}</div>}
@@ -4492,7 +4204,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                           </div>
                         ) : (
                           <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", background: T.bg3, border: `1px dashed ${T.brBase}`, borderRadius: 7, padding: "5px 10px" }}>
-                            <span style={{ fontSize: 14 }}>📎</span>
+                            <span style={{ fontSize: 15 }}>📎</span>
                             <span style={{ fontSize: 12, color: T.txMut }}>Anexar PO</span>
                             <input type="file" accept=".pdf" style={{ display: "none" }} onChange={e => e.target.files[0] && parsePO(p.id, e.target.files[0])} />
                           </label>
@@ -4510,7 +4222,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       </td>
                       <td style={{ padding: "9px 10px" }}>
                         <div style={{ display: "flex", gap: 6 }}>
-                          <button onClick={() => { setProjetoSel(p.id); setObraTab("resumo"); setTab("controle"); }} style={{ ...S.btn, padding: "5px 12px", fontSize: 13, background: T.bg4, color: T.blue, border: `1px solid ${T.blue}30` }}>Abrir →</button>
+                          <button onClick={() => { setProjetoSel(p.id); setObraTab("resumo"); setTab("controle"); }} style={{ ...S.btn, padding: "5px 12px", fontSize: 13, background: T.bg4, color: T.blue, border: `1px solid ${T.blue}30` }}>Abrir</button>
                           <button 
                             onClick={() => {
                               const b = {
@@ -4644,10 +4356,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
               background: fornSubTab === id ? color + "12" : T.bg3,
               transition: "all 0.15s",
             }}>
-              <div style={{ fontSize: 22, marginBottom: 4 }}>{icon}</div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: fornSubTab === id ? color : T.txSec }}>{label}</div>
+              <div style={{ fontSize: 24, marginBottom: 4 }}>{icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: fornSubTab === id ? color : T.txSec }}>{label}</div>
               <div style={{ fontSize: 11, color: T.txMut, marginTop: 2 }}>{desc}</div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: fornSubTab === id ? color : T.txPri, marginTop: 8 }}>{count}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: fornSubTab === id ? color : T.txPri, marginTop: 8 }}>{count}</div>
             </button>
           ))}
         </div>
@@ -4678,7 +4390,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {filtered.length === 0 ? (
           <div style={{ ...S.card, textAlign: "center", padding: 50 }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>{fornSubTab === "material" ? "🏭" : "👷"}</div>
-            <div style={{ color: T.txMut, fontSize: 14 }}>
+            <div style={{ color: T.txMut, fontSize: 15 }}>
               {fornSubTab === "material" ? "Nenhum fornecedor de material cadastrado" : "Nenhum prestador de serviço encontrado"}
             </div>
             <button onClick={openNew} style={{ ...S.btn, marginTop: 16 }}>+ Adicionar</button>
@@ -4693,7 +4405,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 <div key={f.id} style={{ ...S.card, ...cardTint(tc), borderLeft: `3px solid ${tc}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: T.txPri, marginBottom: 4 }}>{icon} {f.nome}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri, marginBottom: 4 }}>{icon} {f.nome}</div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         {fornSubTab === "material"
                           ? <span style={{ background: tc + "18", color: tc, border: `1px solid ${tc}40`, padding: "2px 9px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{f.categoriaMaterial || "Material"}</span>
@@ -4706,8 +4418,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 5, flexShrink: 0 }}>
-                      <button onClick={() => openEdit(f)} style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}>✏️</button>
-                      <button onClick={() => setFornecedores((prev: any[]) => prev.filter(x => x.id !== f.id))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}>🗑️</button>
+                      <button aria-label="Editar fornecedor" title="Editar fornecedor" onClick={() => openEdit(f)} style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                      <button aria-label="Excluir fornecedor" title="Excluir fornecedor" onClick={() => setFornecedores((prev: any[]) => prev.filter(x => x.id !== f.id))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}><Ico as={Trash2} /></button>
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -4730,7 +4442,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {showFornModal && (
           <div style={{ position: "fixed", inset: 0, background: "#000000c0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 500, padding: 16, overflowY: "auto" }}>
             <div style={{ background: T.bg2, borderRadius: 14, border: `1px solid ${T.brBase}`, padding: 26, width: 580, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: isMat ? T.green : T.blue, marginBottom: 14 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: isMat ? T.green : T.blue, marginBottom: 14 }}>
                 {editForn ? "✏️ Editar Cadastro" : "➕ Novo Cadastro"}
               </div>
 
@@ -4747,8 +4459,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       border: `2px solid ${fornForm.moduloTipo === id ? color : T.brBase}`,
                       background: fornForm.moduloTipo === id ? color + "18" : T.bg3,
                     }}>
-                      <div style={{ fontSize: 20, marginBottom: 3 }}>{icon}</div>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: fornForm.moduloTipo === id ? color : T.txSec }}>{label}</div>
+                      <div style={{ fontSize: 18, marginBottom: 3 }}>{icon}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: fornForm.moduloTipo === id ? color : T.txSec }}>{label}</div>
                       <div style={{ fontSize: 11, color: T.txMut, marginTop: 2 }}>{desc}</div>
                     </button>
                   ))}
@@ -4909,7 +4621,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div key={t} onClick={() => setFilterTipo(filterTipo === t ? "TODOS" : t)}
                 style={{ ...S.card, borderLeft: `3px solid ${c}`, cursor: "pointer", opacity: filterTipo !== "TODOS" && filterTipo !== t ? 0.4 : 1, transition: "opacity 0.15s" }}>
                 <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.07em", marginBottom: 4 }}>{t.toUpperCase()}</div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: c }}>{n}</div>
+                <div style={{ fontSize: 24, fontWeight: 700, color: c }}>{n}</div>
               </div>
             );
           })}
@@ -4924,7 +4636,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {filtered.length === 0 ? (
           <div style={{ ...S.card, textAlign: "center", padding: 50 }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>🤝</div>
-            <div style={{ color: T.txMut, fontSize: 14 }}>Nenhum cliente encontrado</div>
+            <div style={{ color: T.txMut, fontSize: 15 }}>Nenhum cliente encontrado</div>
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))", gap: 12 }}>
@@ -4941,13 +4653,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         </div>
                       )}
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 14, fontWeight: 800, color: T.txPri, marginBottom: 4 }}>{c.nome}</div>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri, marginBottom: 4 }}>{c.nome}</div>
                         <span style={{ background: tc + "18", color: tc, border: `1px solid ${tc}40`, padding: "2px 9px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{c.tipo}</span>
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 5 }}>
-                      <button onClick={() => openEdit(c)} style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}>✏️</button>
-                      <button onClick={() => setClientes(prev => prev.filter(x => x.id !== c.id))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}>🗑️</button>
+                      <button aria-label="Editar cliente" title="Editar cliente" onClick={() => openEdit(c)} style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                      <button aria-label="Excluir cliente" title="Excluir cliente" onClick={() => setClientes(prev => prev.filter(x => x.id !== c.id))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}><Ico as={Trash2} /></button>
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4, marginBottom: 8 }}>
@@ -4985,7 +4697,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {showClienteModal && (
           <div style={{ position: "fixed", inset: 0, background: "#000000c0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 500, padding: 16 }}>
             <div style={{ background: T.bg2, borderRadius: 14, border: `1px solid ${T.brBase}`, padding: 26, width: 520, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: T.purple, marginBottom: 18 }}>{editCliente ? "✏️ Editar Cliente" : "➕ Novo Cliente"}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.purple, marginBottom: 18 }}>{editCliente ? "✏️ Editar Cliente" : "➕ Novo Cliente"}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div style={{ gridColumn: "1/-1" }}><label style={S.label}>Nome / Razão Social</label>
                   <input value={clienteForm.nome} onChange={e => setClienteField("nome", e.target.value)} style={S.input} placeholder="Nome do cliente" /></div>
@@ -5070,16 +4782,16 @@ ${row("Forma Pgto", pagtoInfo)}`;
 
     return (
       <div>
-        <SectionHeader icon="📈" title="Resumo do Orçamento" subtitle="Composição de custos e totais por categoria" color={T.blue} />
+        <SectionHeader icon={<Ico as={TrendingUp} />} title="Resumo do Orçamento" subtitle="Composição de custos e totais por categoria" color={T.blue} />
         {orcItems.length === 0 ? (
           <div style={{ ...S.card, textAlign: "center", padding: 60 }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>📊</div>
-            <div style={{ color: T.txMut, fontSize: 14 }}>Adicione itens na aba Orçamento para ver o resumo</div>
+            <div style={{ fontSize: 32, marginBottom: 10 }}><BarChart3 size={32} aria-hidden="true" /></div>
+            <div style={{ color: T.txMut, fontSize: 15 }}>Adicione itens na aba Orçamento para ver o resumo</div>
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div style={S.card}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>💰 Composição de Custos</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}><Ico as={Wallet} /> Composição de Custos</div>
               {[ 
                 { l: "Custo Mercado (Médio)", v: totalMercado, c: T.txMut },
                 { l: "TOTAL BRUTO", v: totalCustom, c: T.txSec },
@@ -5090,18 +4802,18 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 { l: "= TOTAL FINAL", v: totalFinal, c: T.amber, bold: true, big: true },
               ].map(({ l, v, c, bold, big }) => (
                 <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: `1px solid ${T.brSub}` }}>
-                  <span style={{ fontSize: 14, color: bold ? T.txSec : T.txMut }}>{l}</span>
+                  <span style={{ fontSize: 15, color: bold ? T.txSec : T.txMut }}>{l}</span>
                   <span style={{ fontSize: big ? 17 : 13, fontWeight: bold ? 900 : 600, color: c }}>{fmt(v)}</span>
                 </div>
               ))}
             </div>
             <div style={S.card}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>📦 Por Categoria</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}><Ico as={Package} /> Por Categoria</div>
               {byCategory.map(({ cat, items, base, final }) => (
                 <div key={cat} style={{ marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                    <span style={{ fontSize: 14, fontWeight: 600, color: T.txSec }}>{cat} <span style={{ color: T.txMut, fontWeight: 400 }}>({items.length})</span></span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: T.amber }}>{fmt(final)}</span>
+                    <span style={{ fontSize: 15, fontWeight: 600, color: T.txSec }}>{cat} <span style={{ color: T.txMut, fontWeight: 400 }}>({items.length})</span></span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: T.amber }}>{fmt(final)}</span>
                   </div>
                   <div style={{ height: 5, borderRadius: 3, background: T.bg4, overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${pct(base, totalCustom)}%`, background: T.blue, borderRadius: 3 }} />
@@ -5110,9 +4822,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
               ))}
             </div>
             <div style={{ ...S.card, gridColumn: "span 2" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>📋 Itens Selecionados</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}><Ico as={ClipboardList} /> Itens Selecionados</div>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
                   <thead><tr style={{ borderBottom: `1px solid ${T.brBase}` }}>
                     {["ITEM", "CATEGORIA", "DESCRIÇÃO", "CONFIG.", "QTD", "UNID", "VL UNITÁRIO", "DESC. R$", "VL UNIT. C/DESC", "VL TOTAL"].map(h => (
                       <th key={h} style={{ padding: "7px 8px", textAlign: h.startsWith("VL") ? "right" : "left", color: T.txMut, fontWeight: 700, fontSize: 12, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>{h}</th>
@@ -5212,10 +4924,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
     const KpiCard = ({ icon, label, value, sub, color, children = null }: any) => (
       <div style={{ ...S.card, borderTop: `3px solid ${color}` }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.09em", color: T.txMut, textTransform: "uppercase" }}>{label}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.09em", color: T.txMut, textTransform: "uppercase" }}>{label}</span>
           <span style={{ ...iconBox(color, true), width: 30, height: 30, borderRadius: 8 }}><span style={{ fontSize: 15 }}>{icon}</span></span>
         </div>
-        <div style={{ fontSize: 23, fontWeight: 900, color, letterSpacing: "-0.03em" }}>{value}</div>
+        <div style={{ fontSize: 24, fontWeight: 700, color, letterSpacing: "-0.03em" }}>{value}</div>
         <div style={{ fontSize: 11, color: T.txDis, marginTop: 4 }}>{sub}</div>
         {children}
       </div>
@@ -5269,8 +4981,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 { label: "Cancelado",    v: stCounts.cancelado,  c: T.red },
               ].map(({ label, v, c }) => (
                 <div key={label} style={{ textAlign: "center", background: T.bg3, borderRadius: 10, padding: "12px 6px", border: v > 0 ? `1px solid ${c}30` : "none" }}>
-                  <div style={{ fontSize: 26, fontWeight: 900, color: v > 0 ? c : T.txDis }}>{v}</div>
-                  <div style={{ fontSize: 10, color: T.txMut, fontWeight: 600, marginTop: 3 }}>{label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: v > 0 ? c : T.txDis }}>{v}</div>
+                  <div style={{ fontSize: 11, color: T.txMut, fontWeight: 600, marginTop: 3 }}>{label}</div>
                 </div>
               ))}
             </div>
@@ -5289,7 +5001,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <div key={label}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                       <span style={{ fontSize: 12, color: T.txMut }}>{label}</span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: c }}>{fmt(v)} <span style={{ fontSize: 10, color: T.txDis }}>({pct}%)</span></span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: c }}>{fmt(v)} <span style={{ fontSize: 11, color: T.txDis }}>({pct}%)</span></span>
                     </div>
                     <ProgBar v={Math.abs(v)} max={valorAtividades} color={c} />
                   </div>
@@ -5297,7 +5009,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               </div>
             ) : (
               <div style={{ color: T.txDis, fontSize: 13, textAlign: "center", padding: "24px 0" }}>
-                <div style={{ fontSize: 28, marginBottom: 6 }}>📊</div>
+                <div style={{ fontSize: 32, marginBottom: 6 }}>📊</div>
                 Sem atividades em {fmtMes(mesSel)}
               </div>
             )}
@@ -5315,10 +5027,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
           ].map(({ icon, label, v, valor, c, sub }) => (
             <div key={label} style={{ ...S.card, borderLeft: `3px solid ${c}` }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: T.txMut, textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: T.txMut, textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</span>
                 <span style={{ fontSize: 18 }}>{icon}</span>
               </div>
-              <div style={{ fontSize: 28, fontWeight: 900, color: v > 0 ? c : T.txDis }}>{v}</div>
+              <div style={{ fontSize: 32, fontWeight: 700, color: v > 0 ? c : T.txDis }}>{v}</div>
               {valor > 0 && <div style={{ fontSize: 12, fontWeight: 700, color: c, marginTop: 2 }}>{fmt(valor)}</div>}
               <div style={{ fontSize: 11, color: T.txDis, marginTop: 4 }}>{sub}</div>
             </div>
@@ -5333,7 +5045,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead><tr style={{ background: T.bg3, borderBottom: `1px solid ${T.brStrong}` }}>
                   {["Site / Op.", "Fornecedor", "Status", "Budget", "NF (Mat.)", "MO (Serv.)", "Saldo", "Av."].map(h => (
-                    <th key={h} style={{ padding: "7px 10px", textAlign: "left", color: T.txMut, fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
+                    <th key={h} style={{ padding: "7px 10px", textAlign: "left", color: T.txMut, fontSize: 11, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase", whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr></thead>
                 <tbody>
@@ -5347,11 +5059,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         onMouseLeave={e => (e.currentTarget as HTMLTableRowElement).style.background = i%2===0?"transparent":T.bg3+"80"}
                         onClick={() => { setProjetoSel(p.id); setObraTab("resumo"); setTab("controle"); }}>
                         <td style={{ padding: "8px 10px" }}>
-                          <div style={{ fontWeight: 800, color: T.purple, fontSize: 12 }}>{p.siteIdSharing || "—"}</div>
-                          {p.siteIdOperadora && <div style={{ fontSize: 10, color: T.blue }}>{p.siteIdOperadora}</div>}
+                          <div style={{ fontWeight: 700, color: T.purple, fontSize: 12 }}>{p.siteIdSharing || "—"}</div>
+                          {p.siteIdOperadora && <div style={{ fontSize: 11, color: T.blue }}>{p.siteIdOperadora}</div>}
                         </td>
                         <td style={{ padding: "8px 10px", color: T.txSec, fontSize: 11 }}>{p.fornecedor || "—"}</td>
-                        <td style={{ padding: "8px 10px" }}><span style={{ background: sc+"18", color: sc, border: `1px solid ${sc}40`, borderRadius: 4, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>{p.status}</span></td>
+                        <td style={{ padding: "8px 10px" }}><span style={{ background: sc+"18", color: sc, border: `1px solid ${sc}40`, borderRadius: 4, padding: "1px 7px", fontSize: 11, fontWeight: 700 }}>{p.status}</span></td>
                         <td style={{ padding: "8px 10px", color: T.txPri, fontWeight: 600, whiteSpace: "nowrap", fontSize: 12 }}>{fmt(bud)}</td>
                         <td style={{ padding: "8px 10px", color: T.green,  fontWeight: 700, whiteSpace: "nowrap", fontSize: 12 }}>{fmt(mat)}</td>
                         <td style={{ padding: "8px 10px", color: T.purple, fontWeight: 700, whiteSpace: "nowrap", fontSize: 12 }}>{fmt(mo)}</td>
@@ -5359,7 +5071,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         <td style={{ padding: "8px 10px", minWidth: 70 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                             <div style={{ flex: 1, height: 4, borderRadius: 2, background: T.bg4, overflow: "hidden" }}><div style={{ height: "100%", width: `${av}%`, background: av>=100?T.green:T.blue, borderRadius: 2 }} /></div>
-                            <span style={{ fontSize: 10, fontWeight: 700 }}>{av}%</span>
+                            <span style={{ fontSize: 11, fontWeight: 700 }}>{av}%</span>
                           </div>
                         </td>
                       </tr>
@@ -5382,11 +5094,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 12, background: T.bg3, borderRadius: 8, padding: "10px 14px", cursor: "pointer" }}
                     onClick={() => { setProjetoSel(p.id); setObraTab("resumo"); setTab("controle"); }}>
                     <div style={{ flex: 1 }}>
-                      <span style={{ fontWeight: 800, color: T.purple }}>{p.siteIdSharing || "—"}</span>
+                      <span style={{ fontWeight: 700, color: T.purple }}>{p.siteIdSharing || "—"}</span>
                       {p.siteIdOperadora && <span style={{ color: T.blue, marginLeft: 8, fontSize: 12 }}>{p.siteIdOperadora}</span>}
                       <span style={{ color: T.txDis, fontSize: 12, marginLeft: 8 }}>{p.fornecedor || ""}</span>
                     </div>
-                    <span style={{ background: sc+"18", color: sc, border: `1px solid ${sc}40`, borderRadius: 4, padding: "1px 7px", fontSize: 10, fontWeight: 700 }}>{p.status}</span>
+                    <span style={{ background: sc+"18", color: sc, border: `1px solid ${sc}40`, borderRadius: 4, padding: "1px 7px", fontSize: 11, fontWeight: 700 }}>{p.status}</span>
                     <span style={{ color: T.txPri, fontWeight: 700, fontSize: 13 }}>{fmt(bud)}</span>
                     <span style={{ color: T.amber, fontSize: 11, fontWeight: 600 }}>Sem PO →</span>
                   </div>
@@ -5404,11 +5116,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
   // ════════════════════════════════════════════════════════════════════
   const TabHistorico = () => {
     const STATUS_ORC = {
-      "Rascunho": { color: T.txMut, bg: T.bg3, icon: "✏️", label: "Rascunho" },
-      "Validado": { color: T.green, bg: T.green + "18", icon: "🛡️", label: "Validado" },
-      "Enviado": { color: T.blue, bg: T.blue + "18", icon: "📤", label: "Enviado" },
-      "Aprovado": { color: T.green, bg: T.green + "18", icon: "✅", label: "Aprovado" },
-      "Rejeitado": { color: T.red, bg: T.red + "18", icon: "❌", label: "Rejeitado" },
+      "Rascunho": { color: T.txMut, bg: T.bg3, icon: Pencil, label: "Rascunho" },
+      "Validado": { color: T.green, bg: T.green + "18", icon: ShieldCheck, label: "Validado" },
+      "Enviado": { color: T.blue, bg: T.blue + "18", icon: Send, label: "Enviado" },
+      "Aprovado": { color: T.green, bg: T.green + "18", icon: CheckCircle2, label: "Aprovado" },
+      "Rejeitado": { color: T.red, bg: T.red + "18", icon: XCircle, label: "Rejeitado" },
     };
     const editOrc = null; // não usado — edição é direta no historico state
     const editMsg = orcEditMsg;
@@ -5437,8 +5149,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
         <div>
           {/* Header */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-            <button onClick={() => setOrcSel(null)} style={{ background: T.bg3, border: `1px solid ${T.brBase}`, color: T.txSec, borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 14, display: "flex", alignItems: "center", gap: 5 }}>
-              ← Voltar
+            <button onClick={() => setOrcSel(null)} style={{ background: T.bg3, border: `1px solid ${T.brBase}`, color: T.txSec, borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", gap: 5 }}>
+              <Ico as={ArrowLeft} /> Voltar
             </button>
             <button
               onClick={() => {
@@ -5449,18 +5161,18 @@ ${row("Forma Pgto", pagtoInfo)}`;
               }}
               style={{
                 background: "transparent", border: `1px solid ${T.red}40`, color: T.red,
-                borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 14, fontWeight: 600,
+                borderRadius: 8, padding: "7px 14px", cursor: "pointer", fontSize: 15, fontWeight: 600,
                 display: "flex", alignItems: "center", gap: 5
               }}
               onMouseEnter={e => { e.currentTarget.style.background = T.red + "18"; e.currentTarget.style.borderColor = T.red; }}
               onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = T.red + "40"; }}>
-              🗑 Excluir
+              <Ico as={Trash2} /> Excluir
             </button>
             <div style={{ flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 18, fontWeight: 900, color: T.blue }}>{orc.id}</span>
+                <span style={{ fontSize: 18, fontWeight: 700, color: T.blue }}>{orc.id}</span>
                 <span style={{ background: st.bg, color: st.color, padding: "3px 12px", borderRadius: 20, fontSize: 13, fontWeight: 700, border: `1px solid ${st.color}40` }}>
-                  {st.icon} {st.label}
+                  <Ico as={st.icon} /> {st.label}
                 </span>
                 <span style={{
                   background: orc.projetoId ? T.green + "18" : T.bg3,
@@ -5474,7 +5186,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 {orc.projetoId && (
                   <button onClick={() => openLinkedProject(orc.projetoId)}
                     style={{ background: T.green + "18", color: T.green, border: `1px solid ${T.green}40`, borderRadius: 6, padding: "3px 12px", cursor: "pointer", fontSize: 13, fontWeight: 700 }}>
-                    🏗️ Ver Obra → {orc.projetoId.slice(-6)}
+                    <Ico as={HardHat} /> Ver Obra {orc.projetoId.slice(-6)}
                   </button>
                 )}
               </div>
@@ -5493,54 +5205,54 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   onClick={() => updateHistoricBudgetStatus(orc.id, "Validado")}
                   style={{ ...S.ghost, fontSize: 12, padding: "5px 10px", color: T.green, borderColor: T.green + "40" }}
                 >
-                  🛡️ Validar p/ Cliente
+                  <Ico as={ShieldCheck} /> Validar p/ Cliente
                 </button>
               )}
               {!orc.projetoId && orc.status === "Validado" && (
                 <span
                   style={{ background: T.green + "18", color: T.green, border: `1px solid ${T.green}40`, borderRadius: 8, padding: "6px 10px", fontSize: 12, fontWeight: 700 }}
                 >
-                  🛡️ Orçamento Validado
+                  <Ico as={ShieldCheck} /> Orçamento Validado
                 </span>
               )}
               <button onClick={() => { setEditMsg(""); salvarOrc(legacyOrc); setEditMsg("✅ Salvo!"); setTimeout(() => setEditMsg(""), 3000); }}
                 style={{ ...S.ghost, fontSize: 12, padding: "5px 10px" }}>
-                💾 Salvar edições
+                <Ico as={Save} /> Salvar edições
               </button>
               <button onClick={() => gerarPdfOrcamento(legacyOrc, LOGO_B64)}
                 style={{ ...S.ghost, fontSize: 12, padding: "5px 10px", color: T.amber, borderColor: T.amber + "40" }}>
-                📄 Baixar PDF
+                <Ico as={FileDown} /> Baixar PDF
               </button>
               {!orc.projetoId && (
                 <button onClick={() => openBudgetLinkModal(orc)}
                   style={{ ...S.ghost, fontSize: 12, padding: "5px 10px", color: T.blue, borderColor: T.blue + "40" }}>
-                  🔗 Vincular atividade
+                  <Ico as={Link2} /> Vincular atividade
                 </button>
               )}
               {!orc.projetoId && (
                 <button onClick={() => openCreateActivityFromBudget(orc)}
                   style={{ ...S.ghost, fontSize: 12, padding: "5px 10px", color: T.green, borderColor: T.green + "40" }}>
-                  ➕ Criar atividade
+                  <Ico as={Plus} /> Criar atividade
                 </button>
               )}
               {orc.status === "Aprovado" && !orc.projetoId && (
                 <button onClick={() => aprovarOrcamento(orc)}
                   style={{
                     background: "linear-gradient(135deg,#065f46,#34d399)", color: "#fff", border: "none", borderRadius: 8,
-                    padding: "8px 18px", cursor: "pointer", fontSize: 14, fontWeight: 800,
+                    padding: "8px 18px", cursor: "pointer", fontSize: 15, fontWeight: 700,
                     boxShadow: `0 4px 16px ${T.green}40`
                   }}>
-                  🏗️ Iniciar Obra no Controle
+                  <Ico as={HardHat} /> Iniciar Obra no Controle
                 </button>
               )}
               {orc.status !== "Aprovado" && !orc.projetoId && (
                 <button onClick={() => { updOrc("status", "Aprovado"); setTimeout(() => { }, 100); }}
                   style={{
                     background: "linear-gradient(135deg,#065f46,#34d399)", color: "#fff", border: "none", borderRadius: 8,
-                    padding: "8px 18px", cursor: "pointer", fontSize: 14, fontWeight: 800,
+                    padding: "8px 18px", cursor: "pointer", fontSize: 15, fontWeight: 700,
                     opacity: 0.8
                   }}>
-                  ✅ Marcar como Aprovado
+                  <Ico as={Check} /> Marcar como Aprovado
                 </button>
               )}
             </div>
@@ -5550,7 +5262,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {/* ── Informações do Site */}
             <div style={S.card}>
-              <div style={{ fontWeight: 700, color: T.blue, fontSize: 14, marginBottom: 12 }}>📍 Informações do Site</div>
+              <div style={{ fontWeight: 700, color: T.blue, fontSize: 15, marginBottom: 12 }}><Ico as={MapPin} /> Informações do Site</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {[
                   { l: "Site ID", k: "siteId", ph: "Ex: PAPCJ001" },
@@ -5575,7 +5287,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
             {/* ── Parâmetros + Totais */}
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={S.card}>
-                <div style={{ fontWeight: 700, color: T.purple, fontSize: 14, marginBottom: 12 }}>⚙️ Parâmetros</div>
+                <div style={{ fontWeight: 700, color: T.purple, fontSize: 15, marginBottom: 12 }}><Ico as={Settings} /> Parâmetros</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                   {[
                     { l: "Fornecedor", k: "fornecedor", full: true, type: "text", ph: "LS Office" },
@@ -5601,23 +5313,23 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <div style={{ ...S.card, background: `linear-gradient(135deg,${T.bg3},${T.bg2})`, border: `1px solid ${T.amber}30` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: T.txMut }}>Total Bruto</span>
-                  <span style={{ fontSize: 14, color: T.txSec, fontWeight: 600 }}>{fmt(totalOrc)}</span>
+                  <span style={{ fontSize: 15, color: T.txSec, fontWeight: 600 }}>{fmt(totalOrc)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: T.txMut }}>{`(-) Desconto ${legacyOrc.discount || 0}%`}</span>
-                  <span style={{ fontSize: 14, color: T.red, fontWeight: 600 }}>{fmt(legacyOrc.discountValue || 0)}</span>
+                  <span style={{ fontSize: 15, color: T.red, fontWeight: 600 }}>{fmt(legacyOrc.discountValue || 0)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: T.txMut }}>Total Líquido</span>
-                  <span style={{ fontSize: 14, color: T.cyan, fontWeight: 600 }}>{fmt(legacyOrc.totalLiquido || 0)}</span>
+                  <span style={{ fontSize: 15, color: T.cyan, fontWeight: 600 }}>{fmt(legacyOrc.totalLiquido || 0)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
                   <span style={{ fontSize: 13, color: T.txMut }}>Valor da Proposta</span>
-                  <span style={{ fontSize: 14, color: T.green, fontWeight: 600 }}>{fmt(totalDetalhe)}</span>
+                  <span style={{ fontSize: 15, color: T.green, fontWeight: 600 }}>{fmt(totalDetalhe)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", borderTop: `1px solid ${T.amber}20`, paddingTop: 6 }}>
                   <span style={{ fontSize: 13, fontWeight: 700, color: T.amber }}>TOTAL FINAL</span>
-                  <span style={{ fontSize: 20, fontWeight: 900, color: T.amber }}>{fmt(totalDetalhe)}</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: T.amber }}>{fmt(totalDetalhe)}</span>
                 </div>
               </div>
             </div>
@@ -5626,10 +5338,10 @@ ${row("Forma Pgto", pagtoInfo)}`;
           {/* ── Tabela de Itens editável */}
           <div style={{ ...S.card, marginTop: 16, padding: 0, overflow: "hidden" }}>
             <div style={{ padding: "12px 16px", borderBottom: `1px solid ${T.brBase}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontWeight: 700, fontSize: 14, color: T.txSec }}>📦 Itens do Orçamento ({orc.itens?.length || 0})</span>
+              <span style={{ fontWeight: 700, fontSize: 15, color: T.txSec }}><Ico as={Package} /> Itens do Orçamento ({orc.itens?.length || 0})</span>
               <span style={{ fontSize: 13, color: T.txDis }}>Edite qtde e VL Unit diretamente</span>
             </div>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
               <thead>
                 <tr style={{ background: T.bg3 }}>
                   {["ITEM", "CATEGORIA", "DESCRIÇÃO", "CONFIG.", "QTD", "UNID", "VL UNITÁRIO", "DESC. R$", "VL UNIT. C/DESC", "VL TOTAL", ""].map(h => (
@@ -5650,22 +5362,22 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       <td style={{ padding: "7px 6px", width: 70 }}>
                         <input key={`${orc.id}-${item.cod}-qtde`} type="number" min={0} defaultValue={item.qtde}
                           onBlur={e => updItem(item.cod, "qtde", e.target.value)}
-                          style={{ ...S.input, padding: "3px 6px", width: "100%", textAlign: "center", fontSize: 14 }} />
+                          style={{ ...S.input, padding: "3px 6px", width: "100%", textAlign: "center", fontSize: 15 }} />
                       </td>
                       <td style={{ padding: "7px 10px", color: T.txSec, textAlign: "center" }}>{item.unid}</td>
                         <td style={{ padding: "7px 6px", width: 110 }}>
                           <input key={`${orc.id}-${item.cod}-vl`} type="number" min={0} step={0.01} defaultValue={item.vl_custom}
                             onBlur={e => updItem(item.cod, "vl_custom", e.target.value)}
-                            style={{ ...S.input, padding: "3px 6px", width: "100%", color: T.green, fontSize: 14, textAlign: "right" }} />
+                            style={{ ...S.input, padding: "3px 6px", width: "100%", color: T.green, fontSize: 15, textAlign: "right" }} />
                         </td>
                         <td style={{ padding: "7px 10px", color: T.red, whiteSpace: "nowrap", textAlign: "right" }}>{fmt(itemTotals.discountUnit)}</td>
                         <td style={{ padding: "7px 10px", color: T.green, whiteSpace: "nowrap", textAlign: "right" }}>{fmt(itemTotals.unitNet)}</td>
                         <td style={{ padding: "7px 10px", fontWeight: 700, color: T.amber, whiteSpace: "nowrap", textAlign: "right" }}>{fmt(itemTotals.totalLiquido)}</td>
                         <td style={{ padding: "7px 6px" }}>
-                          <button onClick={() => remItem(item.cod)}
-                            style={{ background: "transparent", border: "none", color: T.red, cursor: "pointer", fontSize: 14, padding: "2px 6px", opacity: 0.6 }}
+                          <button aria-label="Remover item" title="Remover item" onClick={() => remItem(item.cod)}
+                            style={{ background: "transparent", border: "none", color: T.red, cursor: "pointer", fontSize: 15, padding: "2px 6px", opacity: 0.6 }}
                           onMouseEnter={e => e.currentTarget.style.opacity = "1"}
-                          onMouseLeave={e => e.currentTarget.style.opacity = "0.6"}>✕</button>
+                          onMouseLeave={e => e.currentTarget.style.opacity = "0.6"}><Ico as={X} /></button>
                       </td>
                     </tr>
                   );
@@ -5683,7 +5395,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12,
             }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: T.blue, marginBottom: 4 }}>🧩 Controle de Obras</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: T.blue, marginBottom: 4 }}><Ico as={Puzzle} /> Controle de Obras</div>
                 <div style={{ fontSize: 13, color: T.txSec }}>
                   Este orçamento pode continuar como <strong>simples</strong>, ser <strong>vinculado a uma atividade existente</strong> ou
                   abrir uma <strong>nova atividade no Controle de Obras</strong> com site, budget e dados principais preenchidos.
@@ -5697,11 +5409,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     color: T.blue,
                     border: `1px solid ${T.blue}40`,
                     padding: "13px 18px",
-                    fontSize: 14,
-                    fontWeight: 800,
+                    fontSize: 15,
+                    fontWeight: 700,
                     whiteSpace: "nowrap",
                   }}>
-                  🔗 Vincular atividade
+                  <Ico as={Link2} /> Vincular atividade
                 </button>
                 <button
                   onClick={() => openCreateActivityFromBudget(orc)}
@@ -5709,11 +5421,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     background: "linear-gradient(135deg,#065f46,#34d399)",
                     color: "#fff", border: "none", borderRadius: 10,
                     padding: "13px 24px", cursor: "pointer",
-                    fontSize: 14, fontWeight: 800,
+                    fontSize: 15, fontWeight: 700,
                     boxShadow: `0 4px 20px ${T.green}40`,
                     whiteSpace: "nowrap",
                   }}>
-                  ➕ Criar atividade →
+                  <Ico as={Plus} /> Criar atividade
                 </button>
               </div>
             </div>
@@ -5724,14 +5436,14 @@ ${row("Forma Pgto", pagtoInfo)}`;
               background: T.green + "12", border: `1px solid ${T.green}40`,
               display: "flex", alignItems: "center", gap: 14,
             }}>
-              <span style={{ fontSize: 24 }}>🏗️</span>
+              <HardHat size={24} aria-hidden="true" style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 800, color: T.green, fontSize: 13 }}>Obra criada no Controle de Obras</div>
+                <div style={{ fontWeight: 700, color: T.green, fontSize: 13 }}>Obra criada no Controle de Obras</div>
                 <div style={{ fontSize: 13, color: T.txSec }}>Projeto ID: <strong>{orc.projetoId}</strong></div>
               </div>
               <button onClick={() => openLinkedProject(orc.projetoId)}
-                style={{ ...S.btn, background: T.green, color: "#fff", padding: "8px 18px", fontSize: 14 }}>
-                Ver Obra →
+                style={{ ...S.btn, background: T.green, color: "#fff", padding: "8px 18px", fontSize: 15 }}>
+                Ver Obra
               </button>
             </div>
           )}
@@ -5752,7 +5464,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             <div style={{ width: 3, height: 36, borderRadius: 2, background: `linear-gradient(180deg, ${T.blue}, ${T.blue}60)`, flexShrink: 0, marginTop: 2 }} />
             <div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: T.txPri, letterSpacing: "-0.02em" }}>📁 Orçamentos Salvos</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.txPri, letterSpacing: "-0.02em" }}><Ico as={Folder} /> Orçamentos Salvos</div>
             <div style={{ fontSize: 13, color: T.txMut, marginTop: 3 }}>
               {historico.length} orçamento(s) · Clique para abrir e editar
             </div>
@@ -5773,11 +5485,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
 
         {orcsFiltrados.length === 0 ? (
           <div style={{ ...S.card, textAlign: "center", padding: 60 }}>
-            <div style={{ fontSize: 40, marginBottom: 12 }}>📂</div>
-            <div style={{ color: T.txMut, fontSize: 14, fontWeight: 600 }}>Nenhum orçamento encontrado</div>
-            <div style={{ color: T.txDis, fontSize: 14, marginTop: 6 }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}><FolderOpen size={32} aria-hidden="true" /></div>
+            <div style={{ color: T.txMut, fontSize: 15, fontWeight: 600 }}>Nenhum orçamento encontrado</div>
+            <div style={{ color: T.txDis, fontSize: 15, marginTop: 6 }}>
               {historico.length === 0
-                ? <>Monte um orçamento na aba <strong>Orçamento</strong> e clique em <strong>💾 Salvar Orçamento</strong></>
+                ? <>Monte um orçamento na aba <strong>Orçamento</strong> e clique em <strong>Salvar Orçamento</strong></>
                 : "Tente outro filtro de status"}
             </div>
           </div>
@@ -5815,7 +5527,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   onMouseLeave={e => { e.currentTarget.style.background = T.bg2; e.currentTarget.style.transform = "none"; }}>
 
                   {/* Botão excluir */}
-                  <button
+                  <button aria-label="Excluir orçamento"
                     onClick={e => {
                       e.stopPropagation();
                       if (window.confirm(`Excluir o orçamento ${orc.id}?`)) {
@@ -5833,7 +5545,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     }}
                     onMouseEnter={e => { e.currentTarget.style.opacity = "1"; e.currentTarget.style.background = T.red + "18"; }}
                     onMouseLeave={e => { e.currentTarget.style.opacity = "0.45"; e.currentTarget.style.background = "transparent"; }}>
-                    🗑
+                    <Ico as={Trash2} />
                   </button>
 
                   <div onClick={openBudget}
@@ -5841,11 +5553,11 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {/* Linha 1: ID + badges */}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: T.blue }}>{orc.id}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: T.blue }}>{orc.id}</span>
                         <span style={{ background: st.bg, color: st.color, padding: "1px 8px", borderRadius: 20, fontSize: 11, fontWeight: 700, border: `1px solid ${st.color}30` }}>
-                          {st.icon} {st.label}
+                          <Ico as={st.icon} /> {st.label}
                         </span>
-                        {isV2 && <span style={{ background: T.purple + "18", color: T.purple, padding: "1px 6px", borderRadius: 4, fontSize: 8, fontWeight: 700 }}>V2 Multi-Sharing</span>}
+                        {isV2 && <span style={{ background: T.purple + "18", color: T.purple, padding: "1px 6px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>V2 Multi-Sharing</span>}
                         {!isV2 && <span style={{ background: T.bg3, color: T.txMut, padding: "1px 6px", borderRadius: 4, fontSize: 11 }}>{orc.area}</span>}
                         <span style={{
                           background: orc.projetoId ? T.green + "18" : T.bg3,
@@ -5856,18 +5568,18 @@ ${row("Forma Pgto", pagtoInfo)}`;
                           {getBudgetModeLabel(orc)}
                         </span>
                         <span style={{ fontSize: 11, color: T.txDis }}>{orc.data}</span>
-                        {orc.projetoId && <span style={{ background: T.green + "18", color: T.green, padding: "1px 6px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>🏗️ Obra</span>}
+                        {orc.projetoId && <span style={{ background: T.green + "18", color: T.green, padding: "1px 6px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}><Ico as={HardHat} size={12} /> Obra</span>}
                       </div>
                       {/* Linha 2: dados do site */}
                       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
                         {[
-                          { l: "Site", v: si.siteId, icon: "📍" },
-                          { l: "Sharing", v: si.sharingNome, icon: "🏢" },
-                          { l: "Operadora", v: si.operadora, icon: "📡" },
+                          { l: "Site", v: si.siteId, icon: MapPin },
+                          { l: "Sharing", v: si.sharingNome, icon: Building2 },
+                          { l: "Operadora", v: si.operadora, icon: RadioTower },
                           { l: "Município", v: si.municipio && (si.municipio + (si.uf ? ` / ${si.uf}` : "")) },
                         ].filter(x => x.v).map(({ l, v, icon }) => (
                           <div key={l} style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 12 }}>
-                            <span>{icon}</span>
+                            <span>{icon ? <Ico as={icon} size={14} /> : null}</span>
                             <span style={{ color: T.txMut }}>{l}: </span>
                             <span style={{ color: T.txSec, fontWeight: 600 }}>{v}</span>
                           </div>
@@ -5896,7 +5608,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     </div>
                     {/* Totais */}
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontSize: 18, fontWeight: 900, color: T.amber }}>{fmt(totalDisplay)}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: T.amber }}>{fmt(totalDisplay)}</div>
                       {isV2 ? (
                         <div style={{ fontSize: 11, color: T.txMut }}>
                           {(v2Totals?.totalCapex || 0) > 0 && <div>CAPEX: {fmt(v2Totals?.totalCapex || 0)}</div>}
@@ -5923,7 +5635,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             cursor: "pointer",
                           }}
                         >
-                          ✏️ Editar
+                          <Ico as={Pencil} size={12} /> Editar
                         </button>
                         {!orc.projetoId && orc.status !== "Validado" && (
                           <button
@@ -5939,7 +5651,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                               cursor: "pointer",
                             }}
                           >
-                            🛡️ Validar
+                            <Ico as={ShieldCheck} size={12} /> Validar
                           </button>
                         )}
                         {!orc.projetoId && orc.status === "Validado" && (
@@ -5954,7 +5666,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                               fontWeight: 700,
                             }}
                           >
-                            🛡️ Validado
+                            <Ico as={ShieldCheck} size={12} /> Validado
                           </span>
                         )}
                         {/* Botão importar PO */}
@@ -5974,7 +5686,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             userSelect: "none",
                           }}
                         >
-                          {orcPOLoading === orc.id ? "⏳" : "📄"} PO
+                          {orcPOLoading === orc.id ? <Ico as={Loader2} size={12} /> : <Ico as={FileText} size={12} />} PO
                           <input
                             type="file"
                             accept="application/pdf"
@@ -5990,8 +5702,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                         {/* Badge PO vinculada */}
                         {(orc as any).poVinculada && (
                           <span title={`PO ${(orc as any).poVinculada.nrPO} · ${(orc as any).poVinculada.importadoEm}`}
-                            style={{ background: T.green + "18", color: T.green, border: `1px solid ${T.green}40`, borderRadius: 6, padding: "3px 8px", fontSize: 10, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 3 }}>
-                            ✅ PO {(orc as any).poVinculada.nrPO || "vinculada"}
+                            style={{ background: T.green + "18", color: T.green, border: `1px solid ${T.green}40`, borderRadius: 6, padding: "3px 8px", fontSize: 11, fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                            <Ico as={Check} size={12} /> PO {(orc as any).poVinculada.nrPO || "vinculada"}
                           </span>
                         )}
                       </div>
@@ -6011,7 +5723,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             cursor: "pointer",
                           }}
                         >
-                          🏗️ Atividade
+                          <Ico as={HardHat} size={12} /> Atividade
                         </button>
                       ) : (
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
@@ -6019,13 +5731,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
                             onClick={e => { e.stopPropagation(); openBudgetLinkModal(orc); }}
                             style={{ ...S.ghost, padding: "3px 10px", fontSize: 11, color: T.blue, border: `1px solid ${T.blue}30` }}
                           >
-                            🔗 Vincular
+                            <Ico as={Link2} size={12} /> Vincular
                           </button>
                           <button
                             onClick={e => { e.stopPropagation(); openCreateActivityFromBudget(orc); }}
                             style={{ ...S.ghost, padding: "3px 10px", fontSize: 11, color: T.green, border: `1px solid ${T.green}30` }}
                           >
-                            ➕ Atividade
+                            <Ico as={Plus} size={12} /> Atividade
                           </button>
                         </div>
                       )}
@@ -6060,7 +5772,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
       return (
         <div style={{ position: "fixed", inset: 0, background: "#000000b0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 520, padding: 16 }}>
           <div style={{ background: T.bg2, borderRadius: 16, border: `1px solid ${T.blue}40`, padding: 24, width: 600, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ fontSize: 16, fontWeight: 800, color: T.blue, marginBottom: 4 }}>🔗 Vincular Orçamento à Atividade</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.blue, marginBottom: 4 }}><Ico as={Link2} /> Vincular Orçamento à Atividade</div>
             <div style={{ fontSize: 13, color: T.txMut, marginBottom: 16 }}>
               Atividade: <strong style={{ color: T.purple }}>{budgetLinkProjSel?.siteIdSharing || budgetLinkProjectId}</strong>
               {budgetLinkProjSel?.sharing && <span style={{ color: T.txSec }}> · {budgetLinkProjSel.sharing}</span>}
@@ -6068,7 +5780,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
 
             {orcamentosDisponiveis.length === 0 ? (
               <div style={{ textAlign: "center", padding: 30, color: T.txMut }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>📋</div>
+                <div style={{ fontSize: 32, marginBottom: 8 }}><ClipboardList size={32} aria-hidden="true" /></div>
                 <div>Nenhum orçamento salvo encontrado. Crie um orçamento primeiro.</div>
               </div>
             ) : (
@@ -6091,20 +5803,20 @@ ${row("Forma Pgto", pagtoInfo)}`;
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
                           <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: selecionado ? T.blue : T.txPri }}>{orc.id}</span>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: selecionado ? T.blue : T.txPri }}>{orc.id}</span>
                             <span style={{ background: stC + "18", color: stC, border: `1px solid ${stC}40`, padding: "1px 7px", borderRadius: 4, fontSize: 11, fontWeight: 700 }}>{orc.status}</span>
-                            {jaVinculado && <span style={{ fontSize: 11, color: T.amber }}>⚠️ Vinculado a outra atividade</span>}
-                            {selecionado && <span style={{ fontSize: 12, color: T.blue, fontWeight: 700 }}>✓ Selecionado</span>}
+                            {jaVinculado && <span style={{ fontSize: 11, color: T.amber }}><Ico as={AlertTriangle} size={12} /> Vinculado a outra atividade</span>}
+                            {selecionado && <span style={{ fontSize: 12, color: T.blue, fontWeight: 700 }}><Ico as={Check} size={12} /> Selecionado</span>}
                           </div>
                           <div style={{ fontSize: 12, color: T.txMut, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                            {orc.siteInfo?.siteIdSharing && <span>📍 {orc.siteInfo.siteIdSharing}</span>}
-                            {orc.siteInfo?.sharingNome && <span>🏢 {orc.siteInfo.sharingNome}</span>}
-                            {orc.data && <span>📅 {orc.data}</span>}
+                            {orc.siteInfo?.siteIdSharing && <span><Ico as={MapPin} size={12} /> {orc.siteInfo.siteIdSharing}</span>}
+                            {orc.siteInfo?.sharingNome && <span><Ico as={Building2} size={12} /> {orc.siteInfo.sharingNome}</span>}
+                            {orc.data && <span><Ico as={Calendar} size={12} /> {orc.data}</span>}
                             <span>{getBudgetModeLabel(orc)}</span>
                           </div>
                         </div>
                         <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 16 }}>
-                          <div style={{ fontSize: 16, fontWeight: 900, color: selecionado ? T.blue : T.txPri }}>{fmt(total)}</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: selecionado ? T.blue : T.txPri }}>{fmt(total)}</div>
                         </div>
                       </div>
                     </div>
@@ -6118,7 +5830,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
               <button onClick={confirmBudgetLink}
                 disabled={!budgetLinkTargetId}
                 style={{ ...S.btn, flex: 2, padding: 10, opacity: budgetLinkTargetId ? 1 : 0.45 }}>
-                {budgetLinkTargetId ? `🔗 Vincular ${budgetLinkTargetId}` : "Selecione um orçamento acima"}
+                {budgetLinkTargetId ? <><Ico as={Link2} /> Vincular {budgetLinkTargetId}</> : "Selecione um orçamento acima"}
               </button>
             </div>
           </div>
@@ -6131,7 +5843,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
     return (
       <div style={{ position: "fixed", inset: 0, background: "#000000b0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 520, padding: 16 }}>
         <div style={{ background: T.bg2, borderRadius: 16, border: `1px solid ${T.brBase}`, padding: 24, width: 560, maxWidth: "100%" }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: T.blue, marginBottom: 8 }}>🔗 Vincular orçamento à atividade</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: T.blue, marginBottom: 8 }}><Ico as={Link2} /> Vincular orçamento à atividade</div>
           <div style={{ fontSize: 13, color: T.txSec, marginBottom: 16 }}>
             {budgetLinkTarget.id} · {getBudgetModeLabel(budgetLinkTarget)} · {fmt(getSavedBudgetTotal(budgetLinkTarget))}
           </div>
@@ -6152,7 +5864,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button onClick={closeModal} style={{ ...S.ghost, flex: 1, padding: 10 }}>Cancelar</button>
             <button onClick={() => openCreateActivityFromBudget(budgetLinkTarget)} style={{ ...S.ghost, flex: 1, padding: 10, color: T.green, border: `1px solid ${T.green}30` }}>
-              ➕ Nova atividade
+              <Ico as={Plus} /> Nova atividade
             </button>
             <button onClick={confirmBudgetLink} disabled={!budgetLinkProjectId} style={{ ...S.btn, flex: 1.3, padding: 10, opacity: budgetLinkProjectId ? 1 : 0.5 }}>
               Vincular orçamento
@@ -6166,15 +5878,15 @@ ${row("Forma Pgto", pagtoInfo)}`;
   const projectModalJSX = showProjModal ? (
     <div style={{ position: "fixed", inset: 0, background: "#000000b0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 500, padding: 16, overflowY: "auto" }}>
       <div style={{ background: T.bg2, borderRadius: 16, border: `1px solid ${T.brBase}`, padding: 26, width: 580, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: T.blue, marginBottom: 16 }}>{editProj ? "✏️ Editar Projeto" : "➕ Novo Projeto de Obra"}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: T.blue, marginBottom: 16 }}>{editProj ? <><Ico as={Pencil} /> Editar Projeto</> : <><Ico as={Plus} /> Novo Projeto de Obra</>}</div>
 
         {/* ── TIPO DE ATIVIDADE ── campo destacado no topo */}
         <div style={{ marginBottom: 16 }}>
           <label style={S.label}>Tipo de Atividade</label>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 4 }}>
             {[
-              { id: "Implantação", icon: "🔧", desc: "Obras, instalação, estrutura metálica, civil" },
-              { id: "Operação", icon: "⚙️", desc: "Manutenção, O&M, contrato de operação" },
+              { id: "Implantação", icon: Wrench, desc: "Obras, instalação, estrutura metálica, civil" },
+              { id: "Operação", icon: Settings, desc: "Manutenção, O&M, contrato de operação" },
             ].map(({ id, icon, desc }) => (
               <button key={id} onClick={() => setProjForm(p => ({ ...p, segmento: id }))}
                 style={{
@@ -6183,9 +5895,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   background: projForm.segmento === id ? (id === "Implantação" ? T.blue + "18" : T.green + "18") : T.bg3,
                   transition: "all 0.15s",
                 }}>
-                <div style={{ fontSize: 20, marginBottom: 4 }}>{icon}</div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: projForm.segmento === id ? (id === "Implantação" ? T.blue : T.green) : T.txSec }}>{id}</div>
-                <div style={{ fontSize: 10, color: T.txMut, marginTop: 2 }}>{desc}</div>
+                <div style={{ fontSize: 18, marginBottom: 4 }}><Ico as={icon} size={18} /></div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: projForm.segmento === id ? (id === "Implantação" ? T.blue : T.green) : T.txSec }}>{id}</div>
+                <div style={{ fontSize: 11, color: T.txMut, marginTop: 2 }}>{desc}</div>
               </button>
             ))}
           </div>
@@ -6249,7 +5961,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           </div>
 
           <div style={{ fontSize: 12, color: T.txMut, marginTop: 8 }}>
-            📅 {(ETAPAS_POR_TIPO[projForm.tipoProjeto] || []).length} etapas serão criadas automaticamente no cronograma
+            <Ico as={Calendar} /> {(ETAPAS_POR_TIPO[projForm.tipoProjeto] || []).length} etapas serão criadas automaticamente no cronograma
           </div>
         </div>
 
@@ -6262,13 +5974,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
             <div>
               <label style={{ ...S.label, color: T.purple }}>SITE ID SHARING / CLIENTE</label>
               <input value={projForm.siteIdSharing || ""} onChange={e => { setProjField("siteIdSharing", e.target.value); setProjField("siteId", e.target.value); }}
-                style={{ ...S.input, fontWeight: 800, fontSize: 14, color: T.purple }} placeholder="Ex: PAPCJ001" />
+                style={{ ...S.input, fontWeight: 700, fontSize: 15, color: T.purple }} placeholder="Ex: PAPCJ001" />
               <div style={{ fontSize: 11, color: T.txMut, marginTop: 4 }}>ID usado pelo cliente/sharing</div>
             </div>
             <div>
               <label style={{ ...S.label, color: T.blue }}>SITE ID OPERADORA</label>
               <input value={projForm.siteIdOperadora || ""} onChange={e => setProjField("siteIdOperadora", e.target.value)}
-                style={{ ...S.input, fontWeight: 800, fontSize: 14, color: T.blue }} placeholder="Ex: VIV-SP-0042" />
+                style={{ ...S.input, fontWeight: 700, fontSize: 15, color: T.blue }} placeholder="Ex: VIV-SP-0042" />
               <div style={{ fontSize: 11, color: T.txMut, marginTop: 4 }}>ID usado pela operadora (opcional)</div>
             </div>
           </div>
@@ -6352,7 +6064,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         </div>
         {/* ── VÍNCULO COM ORÇAMENTO ── */}
         <div style={{ marginBottom: 16, background: T.bg3, borderRadius: 10, padding: 14, border: `1px solid ${T.brBase}` }}>
-          <label style={{ ...S.label, color: T.green }}>🔗 Orçamento Vinculado (Budget automático)</label>
+          <label style={{ ...S.label, color: T.green }}><Ico as={Link2} /> Orçamento Vinculado (Budget automático)</label>
           <select value={projForm.orcamentoVinculadoId || ""} onChange={e => {
             const orc = historico.find(o => o.id === e.target.value);
             setProjField("orcamentoVinculadoId", e.target.value);
@@ -6371,13 +6083,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
           {projForm.orcamentoVinculadoId && (() => {
             const orc = historico.find(o => o.id === projForm.orcamentoVinculadoId);
             if (!orc) return null;
-            return <div style={{ fontSize: 12, color: T.green, marginTop: 6 }}>✅ Budget puxado automaticamente do orçamento vinculado</div>;
+            return <div style={{ fontSize: 12, color: T.green, marginTop: 6 }}><Ico as={Check} /> Budget puxado automaticamente do orçamento vinculado</div>;
           })()}
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
           <button onClick={() => setShowProjModal(false)} style={{ ...S.ghost, flex: 1, padding: 10 }}>Cancelar</button>
-          <button onClick={saveProj} style={{ ...S.btn, flex: 2, padding: 10, fontSize: 14 }}>{editProj ? "Salvar Alterações" : "Criar Projeto"}</button>
+          <button onClick={saveProj} style={{ ...S.btn, flex: 2, padding: 10, fontSize: 15 }}>{editProj ? "Salvar Alterações" : "Criar Projeto"}</button>
         </div>
       </div>
     </div>
@@ -6388,7 +6100,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
   const siteModalJSX = showSiteModal ? (
     <div style={{ position: "fixed", inset: 0, background: "#000000b0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 600, padding: 16 }}>
       <div style={{ background: T.bg2, borderRadius: 14, border: `1px solid ${T.brBase}`, padding: 26, width: 500, maxWidth: "100%" }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: T.blue, marginBottom: 20 }}>📍 Informações do Site</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: T.blue, marginBottom: 20 }}><Ico as={MapPin} /> Informações do Site</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
           {[{ l: "ID do Site", k: "siteId", ph: "Ex: PAPCJ001" }, { l: "Operadora", k: "operadora", ph: "Ex: Vivo" }, { l: "Nome do Sharing", k: "sharingNome", ph: "Ex: Highline" }, { l: "Site Sharing (ID)", k: "siteIdSharing", ph: "Ex: HIG-001" }, { l: "UF", k: "uf", ph: "SP" }, { l: "Município", k: "municipio", ph: "Ex: Campinas" }].map(({ l, k, ph }) => (
             <div key={k}><label style={S.label}>{l}</label>
@@ -6604,7 +6316,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
             <div style={{ width: 3, height: 36, borderRadius: 2, background: `linear-gradient(180deg, ${T.green}, ${T.green}60)`, flexShrink: 0, marginTop: 2 }} />
             <div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: T.txPri, letterSpacing: "-0.02em" }}>🧾 Faturamento</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: T.txPri, letterSpacing: "-0.02em" }}>🧾 Faturamento</div>
               <div style={{ fontSize: 13, color: T.txMut, marginTop: 3 }}>Selecione os itens e exporte a planilha Winity com o status real de faturamento da PO</div>
             </div>
           </div>
@@ -6612,7 +6324,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 13, color: T.txMut }}>{selList.length} item(ns) selecionado(s)</div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: T.green }}>{fmt(totalSel)}</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: T.green }}>{fmt(totalSel)}</div>
               </div>
               <button onClick={exportExcel}
                 style={{ ...S.btn, padding: "10px 20px", fontSize: 13, background: "linear-gradient(135deg,#065f46,#34d399)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -6637,7 +6349,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <span style={{ fontSize: 12, filter: "grayscale(1)" }}>{icon}</span>
                 </span>
               </div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: c }}>{v}</div>
+              <div style={{ fontSize: 18, fontWeight: 700, color: c }}>{v}</div>
             </div>
           ))}
         </div>
@@ -6713,7 +6425,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div><div style={{ fontWeight: 900, color: T.purple, fontSize: 13 }}>{p.siteIdSharing || ""}</div>{p.siteIdOperadora && <div style={{ fontSize: 12, color: T.blue, marginTop: 1 }}>Op: {p.siteIdOperadora}</div>}</div>
+                        <div><div style={{ fontWeight: 700, color: T.purple, fontSize: 13 }}>{p.siteIdSharing || ""}</div>{p.siteIdOperadora && <div style={{ fontSize: 12, color: T.blue, marginTop: 1 }}>Op: {p.siteIdOperadora}</div>}</div>
                         <span style={{ background: sc + "18", color: sc, border: `1px solid ${sc}40`, padding: "1px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700 }}>{p.status}</span>
                         <span style={{ background: ac + "18", color: ac, border: `1px solid ${ac}40`, padding: "1px 8px", borderRadius: 4, fontSize: 12, fontWeight: 700 }}>
                           {!temPO ? "⚠️ Sem PO" : !apto ? "🔒 Bloqueado" : "✅ Apto"}
@@ -6757,20 +6469,20 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     <div style={{ display: "flex", gap: 16 }}>
                       <div>
                         <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>BUDGET</div>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: T.txPri }}>{fmt(budget)}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri }}>{fmt(budget)}</div>
                       </div>
                       <div>
                         <div style={{ fontSize: 11, color: T.txMut, fontWeight: 700, letterSpacing: "0.05em" }}>FATURAMENTO</div>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: faturamentoCor }}>{faturamentoResumo}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: faturamentoCor }}>{faturamentoResumo}</div>
                       </div>
                       {nSelObra > 0 && <div>
                         <div style={{ fontSize: 11, color: T.green, fontWeight: 700, letterSpacing: "0.05em" }}>SELECIONADO</div>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: T.green }}>{fmt(totalSelObra)}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.green }}>{fmt(totalSelObra)}</div>
                       </div>}
                       {temPO && p.po.valorTotal > 0 && Math.abs(p.po.valorTotal - budget) > 0.5 && (
                         <div style={{ background: T.red + "15", border: `1px solid ${T.red}50`, borderRadius: 6, padding: "4px 10px", display: "flex", flexDirection: "column", gap: 1 }}>
-                          <div style={{ fontSize: 10, color: T.red, fontWeight: 700, letterSpacing: "0.05em" }}>⚠️ DIVERGÊNCIA PO/ORC</div>
-                          <div style={{ fontSize: 12, color: T.red, fontWeight: 800 }}>PO: {fmt(p.po.valorTotal)}</div>
+                          <div style={{ fontSize: 11, color: T.red, fontWeight: 700, letterSpacing: "0.05em" }}>⚠️ DIVERGÊNCIA PO/ORC</div>
+                          <div style={{ fontSize: 12, color: T.red, fontWeight: 700 }}>PO: {fmt(p.po.valorTotal)}</div>
                         </div>
                       )}
                       <div onClick={e => e.stopPropagation()}>
@@ -6889,7 +6601,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 {expanded && (
                   <div style={{ borderTop: `1px solid ${T.brBase}` }}>
                     {linhasDaObra.length === 0 ? (
-                      <div style={{ padding: "16px 20px", color: T.txMut, fontSize: 14 }}>
+                      <div style={{ padding: "16px 20px", color: T.txMut, fontSize: 15 }}>
                         {temPO ? "Nenhum item extraído da PO." : "Anexe a PO para ver os itens."}
                       </div>
                     ) : (
@@ -6931,7 +6643,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                                     <input type="range" min={0} max={100} step={5} value={pct}
                                       onChange={e => setPctEdit(prev => ({ ...prev, [l.pctKey]: Number(e.target.value) }))}
                                       style={{ flex: 1, accentColor: T.green, cursor: "pointer" }} />
-                                    <span style={{ fontSize: 13, fontWeight: 900, color: T.green, minWidth: 34 }}>{pct}%</span>
+                                    <span style={{ fontSize: 13, fontWeight: 700, color: T.green, minWidth: 34 }}>{pct}%</span>
                                   </div>
                                   <div style={{ display: "flex", gap: 3 }}>
                                     {[25, 50, 75, 100].map(v => (
@@ -6943,7 +6655,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                                   </div>
                                 </td>
                                 <td style={{ padding: "8px 10px", whiteSpace: "nowrap" }}>
-                                  <span style={{ fontSize: 14, fontWeight: 900, color: isSel ? T.green : T.amber }}>{fmt(valorFinal)}</span>
+                                  <span style={{ fontSize: 15, fontWeight: 700, color: isSel ? T.green : T.amber }}>{fmt(valorFinal)}</span>
                                 </td>
                               </tr>
                             );
@@ -6966,9 +6678,9 @@ ${row("Forma Pgto", pagtoInfo)}`;
           }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: T.green }}>✅ {selList.length} item(ns) selecionado(s)</span>
             <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <span style={{ fontSize: 18, fontWeight: 900, color: T.green }}>{fmt(totalSel)}</span>
+              <span style={{ fontSize: 18, fontWeight: 700, color: T.green }}>{fmt(totalSel)}</span>
               <button onClick={exportExcel}
-                style={{ ...S.btn, padding: "9px 20px", fontSize: 14, background: "linear-gradient(135deg,#065f46,#34d399)", display: "flex", alignItems: "center", gap: 7 }}>
+                style={{ ...S.btn, padding: "9px 20px", fontSize: 15, background: "linear-gradient(135deg,#065f46,#34d399)", display: "flex", alignItems: "center", gap: 7 }}>
                 📊 Exportar Excel
               </button>
             </div>
@@ -7034,7 +6746,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {filtered.length === 0 ? (
           <div style={{ ...S.card, textAlign: "center", padding: 50 }}>
             <div style={{ fontSize: 32, marginBottom: 8 }}>👥</div>
-            <div style={{ color: T.txMut, fontSize: 14 }}>Nenhum funcionário encontrado</div>
+            <div style={{ color: T.txMut, fontSize: 15 }}>Nenhum funcionário encontrado</div>
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(280px,1fr))", gap: 12 }}>
@@ -7044,15 +6756,15 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 <div key={f.id} style={{ ...S.card, ...cardTint(tc), borderLeft: `3px solid ${tc}` }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: T.txPri, marginBottom: 4 }}>{TIPO_ICON[f.tipo] || "👤"} {f.nome}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri, marginBottom: 4 }}>{TIPO_ICON[f.tipo] || "👤"} {f.nome}</div>
                       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                         <span style={{ background: tc + "18", color: tc, border: `1px solid ${tc}40`, padding: "2px 9px", borderRadius: 5, fontSize: 12, fontWeight: 700 }}>{f.tipo}</span>
                         {f.cargo && <span style={{ background: T.bg3, color: T.txMut, border: `1px solid ${T.brBase}`, padding: "2px 7px", borderRadius: 5, fontSize: 12 }}>{f.cargo}</span>}
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: 5 }}>
-                      <button onClick={() => openEdit(f)} style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}>✏️</button>
-                      <button onClick={() => setFuncionarios(prev => prev.filter(x => x.id !== f.id))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}>🗑️</button>
+                      <button aria-label="Editar funcionário" title="Editar funcionário" onClick={() => openEdit(f)} style={{ ...S.ghost, padding: "4px 9px", fontSize: 13 }}><Ico as={Pencil} /></button>
+                      <button aria-label="Excluir funcionário" title="Excluir funcionário" onClick={() => setFuncionarios(prev => prev.filter(x => x.id !== f.id))} style={{ ...S.ghost, color: T.red, border: `1px solid ${T.red}30`, padding: "4px 9px", fontSize: 13 }}><Ico as={Trash2} /></button>
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -7077,7 +6789,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {showFuncModal && (
           <div style={{ position: "fixed", inset: 0, background: "#000000c0", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 500, padding: 16, overflowY: "auto" }}>
             <div style={{ background: T.bg2, borderRadius: 14, border: `1px solid ${T.brBase}`, padding: 26, width: 560, maxWidth: "100%", maxHeight: "90vh", overflowY: "auto" }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: T.green, marginBottom: 14 }}>{editFunc ? "✏️ Editar Funcionário" : "➕ Novo Funcionário"}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.green, marginBottom: 14 }}>{editFunc ? "✏️ Editar Funcionário" : "➕ Novo Funcionário"}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
                 <div style={{ gridColumn: "1/-1" }}><label style={S.label}>Nome Completo</label>
                   <input value={funcForm.nome} onChange={e => setFuncField("nome", e.target.value)} style={S.input} placeholder="Nome do funcionário" /></div>
@@ -7128,14 +6840,14 @@ ${row("Forma Pgto", pagtoInfo)}`;
   const TabRelatorios = () => (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
       <div style={{ ...S.card, padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>📊 Resumo Financeiro</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}><Ico as={BarChart3} /> Resumo Financeiro</div>
         <div style={{ fontSize: 12, color: T.txSec, lineHeight: 1.6 }}>
           Indicadores gerais, composição de custos e distribuição por categorias.
         </div>
         <button onClick={() => setTab("resumo")} style={{ ...S.btn, width: "fit-content" }}>Abrir resumo</button>
       </div>
       <div style={{ ...S.card, padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>📑 PV Highline</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}><Ico as={FileSpreadsheet} /> PV Highline</div>
         <div style={{ fontSize: 12, color: T.txSec, lineHeight: 1.6 }}>
           Geração do PV com mapeamento automático e exportação em Excel.
         </div>
@@ -7318,7 +7030,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: T.cyan, letterSpacing: "-0.02em" }}>📑 PV Highline</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: T.cyan, letterSpacing: "-0.02em" }}><Ico as={FileSpreadsheet} /> PV Highline</div>
             <div style={{ fontSize: 13, color: T.txMut, marginTop: 2 }}>Orçamento LS → mapeamento automático → PV Highline</div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8 }}>
@@ -7327,12 +7039,12 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 background: pvExportando ? "#1a3a2a" : "linear-gradient(135deg,#065f46,#34d399)",
                 color: "#fff", border: "none", borderRadius: 10,
                 padding: "12px 22px", cursor: pvExportando ? "wait" : "pointer",
-                fontSize: 13, fontWeight: 800, opacity: pvExportando ? 0.7 : 1,
+                fontSize: 13, fontWeight: 700, opacity: pvExportando ? 0.7 : 1,
                 display: "flex", alignItems: "center", gap: 8,
                 boxShadow: pvExportando ? "none" : "0 4px 20px #34d39940",
               }}>
-              <span style={{ fontSize: 18 }}>📥</span>
-              {pvExportando ? "⏳ Gerando arquivo..." : "Baixar PV Highline (.xlsx)"}
+              <Download size={18} aria-hidden="true" />
+              {pvExportando ? <><Ico as={Loader2} /> Gerando arquivo...</> : "Baixar PV Highline (.xlsx)"}
             </button>
             {pvExportMsg && (
               <div style={{
@@ -7366,18 +7078,18 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {/* Sub-abas */}
         <div style={{ display: "flex", gap: 3, marginBottom: 16, background: T.bg3, padding: 4, borderRadius: 10, width: "fit-content" }}>
           {[
-            { id: "orcamento", l: "🔧 Orçamento LS" },
-            { id: "pv", l: "📋 PV Highline" },
-            { id: "resumo", l: "📊 Resumo" },
-          ].map(({ id, l }) => (
+            { id: "orcamento", l: "Orçamento LS", icon: Wrench },
+            { id: "pv", l: "PV Highline", icon: ClipboardList },
+            { id: "resumo", l: "Resumo", icon: BarChart3 },
+          ].map(({ id, l, icon }) => (
             <button key={id} onClick={() => setPvTabInner(id)}
               style={{
-                padding: "7px 18px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 14,
+                padding: "7px 18px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 15,
                 fontWeight: pvTabInner === id ? 700 : 400,
                 background: pvTabInner === id ? T.bg0 : "transparent",
                 color: pvTabInner === id ? T.cyan : T.txMut
               }}>
-              {l}
+              <Ico as={icon} /> {l}
             </button>
           ))}
         </div>
@@ -7387,16 +7099,16 @@ ${row("Forma Pgto", pagtoInfo)}`;
           <div>
             <div style={{ ...S.card, marginBottom: 12, background: T.blue + "10", border: `1px solid ${T.blue}30` }}>
               <div style={{ fontSize: 13, color: T.blue }}>
-                💡 Selecione os itens no <strong>Orçamento (Implantação)</strong> e defina as quantidades.
+                <Ico as={Lightbulb} /> Selecione os itens no <strong>Orçamento (Implantação)</strong> e defina as quantidades.
                 Os itens selecionados serão automaticamente mapeados para a PV Highline.
               </div>
             </div>
             {orcItemsImpl.length === 0 ? (
               <div style={{ ...S.card, textAlign: "center", padding: 50 }}>
-                <div style={{ fontSize: 32, marginBottom: 10 }}>📋</div>
+                <div style={{ fontSize: 32, marginBottom: 10 }}><ClipboardList size={32} aria-hidden="true" /></div>
                 <div style={{ fontSize: 13, color: T.txSec, marginBottom: 6 }}>Nenhum item selecionado no Orçamento</div>
                 <div style={{ fontSize: 13, color: T.txMut, marginBottom: 16 }}>Vá em Orçamento (Implantação), selecione os itens e defina as quantidades</div>
-                <button onClick={() => setTab("orcamento")} style={S.btn}>→ Ir para Orçamento</button>
+                <button onClick={() => setTab("orcamento")} style={S.btn}>Ir para Orçamento</button>
               </div>
             ) : (
               <div>
@@ -7413,7 +7125,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   Para usar seu custo real, edite o VL Unit diretamente em cada item na aba Orçamento.
                 </div>
                 <div style={{ ...S.card, padding: 0, overflow: "hidden" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 15 }}>
                     <thead>
                       <tr style={{ background: T.bg3, borderBottom: `1px solid ${T.brBase}` }}>
                         {["COD", "CATEGORIA", "CONFIGURAÇÃO", "UNID", "QTDE", "VL UNIT LS", "TOTAL LS", "→ ITEM HL"].map(h => (
@@ -7455,7 +7167,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                     <tfoot>
                       <tr style={{ background: T.bg3, borderTop: `2px solid ${T.amber}30` }}>
                         <td colSpan={6} style={{ padding: "10px", fontWeight: 700, color: T.txSec }}>TOTAL ORÇAMENTO LS</td>
-                        <td style={{ padding: "10px", fontWeight: 900, color: T.amber, fontSize: 15 }}>
+                        <td style={{ padding: "10px", fontWeight: 700, color: T.amber, fontSize: 15 }}>
                           {fmt(orcItemsImpl.reduce((s, i) => {
                             const v = i.vl_custom || i.vlLS || lpuMap[i.cod]?.vlLS || 0;
                             return s + (i.qtde || 0) * v;
@@ -7476,7 +7188,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
           <div>
             <div style={{ ...S.card, marginBottom: 12, background: T.amber + "10", border: `1px solid ${T.amber}30` }}>
               <div style={{ fontSize: 13, color: T.amber }}>
-                💡 Itens com <strong>Qtde = 0</strong> e sem mapeamento automático podem ser preenchidos manualmente abaixo.
+                <Ico as={Lightbulb} /> Itens com <strong>Qtde = 0</strong> e sem mapeamento automático podem ser preenchidos manualmente abaixo.
                 O campo "Qtde Manual" sobrepõe o valor calculado automaticamente.
               </div>
             </div>
@@ -7543,7 +7255,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   <tfoot>
                     <tr style={{ background: T.bg3, borderTop: `2px solid ${T.green}40` }}>
                       <td colSpan={7} style={{ padding: "10px", fontWeight: 700, color: T.txSec }}>TOTAL PV HIGHLINE</td>
-                      <td style={{ padding: "10px", fontWeight: 900, color: T.green, fontSize: 15, whiteSpace: "nowrap" }}>{fmt(totalPV)}</td>
+                      <td style={{ padding: "10px", fontWeight: 700, color: T.green, fontSize: 15, whiteSpace: "nowrap" }}>{fmt(totalPV)}</td>
                       <td />
                     </tr>
                   </tfoot>
@@ -7557,7 +7269,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
         {pvTabInner === "resumo" && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
             <div style={S.card}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 16 }}>📊 Resumo PV Highline</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 16 }}><Ico as={BarChart3} /> Resumo PV Highline</div>
               <div style={{ marginBottom: 12, padding: "10px 14px", background: T.bg3, borderRadius: 9, display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 13, color: T.txMut }}>Site ID Highline</span>
                 <span style={{ fontWeight: 700, color: T.purple }}>{pvSiteId}</span>
@@ -7575,8 +7287,8 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   return (
                     <div key={cat} style={{ marginBottom: 10 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                        <span style={{ fontSize: 14, color: val > 0 ? T.txPri : T.txMut }}>{cat}</span>
-                        <span style={{ fontSize: 14, fontWeight: val > 0 ? 700 : 400, color: val > 0 ? T.green : T.txDis }}>{val > 0 ? fmt(val) : "—"}</span>
+                        <span style={{ fontSize: 15, color: val > 0 ? T.txPri : T.txMut }}>{cat}</span>
+                        <span style={{ fontSize: 15, fontWeight: val > 0 ? 700 : 400, color: val > 0 ? T.green : T.txDis }}>{val > 0 ? fmt(val) : "—"}</span>
                       </div>
                       {val > 0 && <div style={{ height: 4, borderRadius: 2, background: T.bg4, overflow: "hidden" }}>
                         <div style={{ height: "100%", width: `${pct}%`, background: T.green, borderRadius: 2 }} />
@@ -7585,13 +7297,13 @@ ${row("Forma Pgto", pagtoInfo)}`;
                   );
                 })}
                 <div style={{ borderTop: `2px solid ${T.green}40`, paddingTop: 12, marginTop: 8, display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: T.txPri }}>TOTAL R$</span>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: T.green }}>{fmt(totalPV)}</span>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>TOTAL R$</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: T.green }}>{fmt(totalPV)}</span>
                 </div>
               </div>
             </div>
             <div style={S.card}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 16 }}>🔗 Como funciona</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 16 }}><Ico as={Link2} /> Como funciona</div>
               <div style={{ fontSize: 13, color: T.txSec, lineHeight: 2 }}>
                 <div><span style={{ color: T.blue, fontWeight: 700 }}>1.</span> Acesse <strong>Orçamento (Implantação)</strong> e selecione os itens</div>
                 <div><span style={{ color: T.blue, fontWeight: 700 }}>2.</span> Defina as <strong>quantidades (QTDE)</strong> de cada item</div>
@@ -7601,7 +7313,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 <div><span style={{ color: T.blue, fontWeight: 700 }}>6.</span> Abra no Excel — os valores são calculados automaticamente</div>
               </div>
               <div style={{ marginTop: 12, padding: "10px 14px", background: T.amber + "15", borderRadius: 8, border: `1px solid ${T.amber}30` }}>
-                <div style={{ fontSize: 12, color: T.amber, fontWeight: 700, marginBottom: 4 }}>💡 PREÇOS NO ARQUIVO EXPORTADO</div>
+                <div style={{ fontSize: 12, color: T.amber, fontWeight: 700, marginBottom: 4 }}><Ico as={Lightbulb} /> PREÇOS NO ARQUIVO EXPORTADO</div>
                 <div style={{ fontSize: 12, color: T.txSec, lineHeight: 1.7 }}>
                   O <strong>Valor Unitário</strong> na PV Highline usa a tabela de referência Highline (VL Médio),
                   que é o preço que a Highline reconhece. O preço LS Office fica no seu orçamento interno.
@@ -7618,7 +7330,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
                 ].map(({ l, v, c }) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: `1px solid ${T.brSub}` }}>
                     <span style={{ fontSize: 13, color: T.txMut }}>{l}</span>
-                    <span style={{ fontSize: 14, fontWeight: 700, color: c }}>{v}</span>
+                    <span style={{ fontSize: 15, fontWeight: 700, color: c }}>{v}</span>
                   </div>
                 ))}
               </div>
@@ -7632,54 +7344,31 @@ ${row("Forma Pgto", pagtoInfo)}`;
   // ════════════════════════════════════════════════════════════════════
   // RENDER MAIN
   // ════════════════════════════════════════════════════════════════════
+  // A moldura (menu lateral, barra superior e roteamento por aba) mora em
+  // ../shell/AppShell.tsx. Aqui ficam só o estado e as abas legadas (closures).
   return (
-    <div className="scroll-min" style={{ fontFamily: "'Inter','DM Sans',system-ui,sans-serif", minHeight: "100vh", background: T.bg0, color: T.txPri, display: "flex", fontSize: 14, position: "relative", WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" } as React.CSSProperties}>
-      <Sidebar
-        tab={tab} setTab={setTab}
-        sidePinned={sidePinned} setSidePinned={setSidePinned}
-        sideHovered={sideHovered} setSideHovered={setSideHovered}
-        historico={historico}
-        exportarBackup={exportarBackup} importarBackup={importarBackup}
-        user={user} onLogout={onLogout}
-        onAbrirConfiguracoes={() => setTab("configuracoes")}
-        onAbrirPerfil={() => setTab("perfil")}
-        T={TMenu} iconBox={iconBoxMenu} LOGO_B64={LOGO_B64}
-      />
-      <div className="scroll-min" style={{ 
-        flex: 1, 
-        overflowY: "auto", 
-        padding: "10px 12px 18px",
-        marginLeft: sidePinned ? 260 : 64,
-        transition: "margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
-      }}>
-        {tab !== "secretaria" && TopBar()}
-        {tab === "overview" && <Dashboard onNavigateTo={setTab} />}
-        {/* Pipeline = a mesma tela de Atividades em kanban. TabDemandas ficou sobre
-            o modelo Demanda (cadastro antigo) e mostrava outro conjunto de dados. */}
-        {tab === "demandas" && <Atividades vistaInicial="kanban" />}
-        {tab === "atividades" && <Atividades />}
-        {tab === "configuracoes" && <Configuracoes />}
-        {tab === "perfil" && <MeuPerfil />}
-        {tab === "pagamentos" && <ControlePagamentos />}
-        {/* Controladoria sobre o modelo real. A TabDashboard() antiga somava
-            `ls_projetos` do localStorage — cadastro paralelo ao banco. */}
-        {tab === "dashboard" && <DashboardFinanceiro />}
-        {tab === "orcv2" && <TabOrcamentoV2 dbImpl={DB} dbOp={DB_OP} dbHighline={DB_PV_HIGHLINE?.lpu} onSaveBudget={handleSaveBudgetV2} onCreateProjectFromBudget={openCreateActivityFromBudget} onLinkBudgetToProject={openBudgetLinkModal} onOpenLinkedProject={openLinkedProject} activeBudget={activeBudgetV2} setActiveBudget={setActiveBudgetV2} logoBase64={LOGO_B64} projetos={projetos} clientes={clientes} />}
-        {tab === "lpus" && <TabLpus />}
-        {(tab === "projetos" || tab === "controle") && <Atividades />}
-        {tab === "fornecedores" && <PessoasPrestadores initialTab="fornecedores" />}
-        {tab === "funcionarios" && <PessoasPrestadores initialTab="funcionarios" />}
-        {tab === "relatorios" && TabRelatorios()}
-        {tab === "clientes" && <Clientes />}
-        {tab === "faturamento" && <FaturamentoReal />}
-        {tab === "pvhighline" && TabPVHighline()}
-        {tab === "resumo" && TabResumo()}
-        {tab === "historico" && TabHistorico()}
-        {/* Tabela, Faturas e Secretária LS saíram da navegação (set/2026). */}
-    </div>
-      {budgetLinkModalJSX}
-      {projectModalJSX}
-      {siteModalJSX}
-    </div>
+    <AppShell
+      tab={tab} setTab={setTab}
+      sidePinned={sidePinned} setSidePinned={setSidePinned}
+      sideHovered={sideHovered} setSideHovered={setSideHovered}
+      historico={historico}
+      exportarBackup={exportarBackup} importarBackup={importarBackup}
+      user={user} onLogout={onLogout}
+      obra={obra}
+      orcamentoSiteId={activeBudgetV2?.siteInfo?.siteId}
+      orcArea={orcArea}
+      abasLegadas={{
+        orcv2: () => <TabOrcamentoV2 dbImpl={DB} dbOp={DB_OP} dbHighline={DB_PV_HIGHLINE?.lpu} onSaveBudget={handleSaveBudgetV2} onCreateProjectFromBudget={openCreateActivityFromBudget} onLinkBudgetToProject={openBudgetLinkModal} onOpenLinkedProject={openLinkedProject} activeBudget={activeBudgetV2} setActiveBudget={setActiveBudgetV2} logoBase64={LOGO_B64} projetos={projetos} clientes={clientes} />,
+        relatorios: () => TabRelatorios(),
+        pvhighline: () => TabPVHighline(),
+        resumo: () => TabResumo(),
+        historico: () => TabHistorico(),
+      }}
+      modais={<>
+        {budgetLinkModalJSX}
+        {projectModalJSX}
+        {siteModalJSX}
+      </>}
+    />
   );
 }
