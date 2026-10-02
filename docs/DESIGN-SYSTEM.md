@@ -116,8 +116,9 @@ digitado pelo usuário.
 Revisão de 02/10/2026, a partir de "informações descentralizadas" em monitor
 largo.
 
-- **Largura máxima de 1440px, centralizada** — aplicada uma vez em
-  `shell/AppShell.tsx`. Nenhuma página estica até a borda da janela.
+- **O conteúdo acompanha a largura da tela** (decisão do Victor, 02/10/2026):
+  sem largura máxima. Quem distribui o espaço são as colunas em % das tabelas
+  e as grades de colunas iguais. Barras de filtro ficam **centralizadas**.
 - **Cabeçalho único** `components/PageHeader.tsx`: ícone na cor do módulo,
   título 24px, descrição 13px, ações à direita na altura do título. Margem
   da página: 32px.

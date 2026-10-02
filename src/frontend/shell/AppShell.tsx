@@ -83,9 +83,9 @@ export default function AppShell(props: AppShellProps) {
                 transition: "margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
             }}>
                 {tab !== "secretaria" && <TopBar tab={tab} user={user} obra={obra} orcamentoSiteId={orcamentoSiteId} orcArea={orcArea} />}
-                {/* Grade comum: em monitor largo o conteúdo para em 1440px e centraliza.
-                    Sem isso as tabelas esticavam até a borda e as colunas viravam ilhas. */}
-                <div style={{ maxWidth: 1440, margin: "0 auto", width: "100%" }}>
+                {/* O conteúdo acompanha a largura da tela (decisão de 02/10/2026):
+                    sem largura máxima; as tabelas usam plano de colunas em %. */}
+                <div style={{ width: "100%" }}>
                 {tab === "overview" && <Dashboard onNavigateTo={setTab} />}
                 {/* Pipeline = a mesma tela de Atividades em kanban. TabDemandas ficou sobre
                     o modelo Demanda (cadastro antigo) e mostrava outro conjunto de dados. */}

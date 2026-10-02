@@ -366,7 +366,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
             {view !== 'projetos' && (
                 <div className="mb-5 space-y-2.5">
                     {/* Situação: recortes rápidos, com quantas atividades cada um mostraria */}
-                    <div className="flex flex-wrap items-center gap-1.5">
+                    {/* Filtros centralizados na largura da página. */}
+                    <div className="flex flex-wrap items-center justify-center gap-1.5">
                         {SITUACOES.map(s => {
                             const total = semSituacao.filter(s.teste).length;
                             const ativo = filtros.situacao === s.id;
@@ -379,19 +380,19 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     : 'border border-border text-muted-foreground hover:text-foreground';
                             return (
                                 <button key={s.id} type="button" aria-pressed={ativo} onClick={() => setFiltro('situacao', s.id)}
-                                    className={`h-8 rounded-full px-3 text-xs font-semibold transition-colors ${estilo}`}>
+                                    className={`inline-flex h-8 items-center justify-center gap-1 rounded-full px-3 text-xs font-semibold leading-none transition-colors ${estilo}`}>
                                     {s.label} <span className={`tabular-nums ${ativo ? 'opacity-90' : 'opacity-70'}`}>{total || '—'}</span>
                                 </button>
                             );
                         })}
                     </div>
                     {/* Recortes por tipo, lugar e responsável */}
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center justify-center gap-2">
                         <div className="flex gap-1 rounded-lg bg-secondary/40 p-0.5">
                             {[['', 'Todos os tipos'], ...TIPOS_DEMANDA.map(t => [t, TIPOS_DEMANDA_LABEL[t] || t])].map(([id, label]) => (
                                 <button key={id} onClick={() => setFiltros(f => ({ ...f, tipo: id, subtipo: id === 'OPERACAO' ? f.subtipo : '' }))}
                                     aria-pressed={filtros.tipo === id}
-                                    className={`h-7 rounded-md px-2.5 text-xs font-semibold ${filtros.tipo === id
+                                    className={`inline-flex h-7 items-center justify-center rounded-md px-2.5 text-xs font-semibold leading-none ${filtros.tipo === id
                                         ? (id ? `${SOLIDO[tomDe(TOM_AREA, id)]} text-background` : 'bg-primary text-primary-foreground')
                                         : id ? `${TEXTO[tomDe(TOM_AREA, id)]} hover:bg-secondary/60` : 'text-muted-foreground hover:text-foreground'}`}>
                                     {label}
