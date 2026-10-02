@@ -12,6 +12,8 @@ router.get('/lookup-price', PriceBookController.lookupPrice);
 router.get('/:id', PriceBookController.getById);
 router.post('/', PriceBookController.create);
 router.put('/:id', PriceBookController.update);
+// excluir a base inteira — arquiva se algum orçamento ainda depende dela
+router.delete('/:id', PriceBookController.remove);
 
 // PriceBook Items
 router.get('/:id/items', PriceBookController.listItems);

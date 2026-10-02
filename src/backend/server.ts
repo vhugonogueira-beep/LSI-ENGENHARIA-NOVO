@@ -21,19 +21,54 @@ const ALLOWED_ORIGINS = [
     'http://192.168.0.167:5174',
     'http://192.168.97.87:5174',
     process.env.FRONTEND_URL,
+    // Endereços públicos (ex.: túnel Cloudflare), separados por vírgula.
+    ...(process.env.PUBLIC_ORIGINS || '').split(',').map(o => o.trim()),
 ].filter(Boolean) as string[];
 
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Origem não permitida pelo CORS'));
-        }
-    },
-    credentials: true,
+// Atrás do túnel Cloudflare o IP real chega em cabeçalho; sem isto o limite
+// de tentativas de login contaria todo mundo como o mesmo visitante.
+app.set('trust proxy', 1);
+
+app.use(cors((req, callback) => {
+    const origin = req.headers.origin;
+    // Mesma origem: a tela servida por este servidor chamando a própria API.
+    // É o caso do túnel, cujo endereço pode não estar na lista (trycloudflare
+    // muda a cada reinício).
+    const mesmaOrigem = Boolean(origin) && origin === `${req.protocol}://${req.headers.host}`;
+    if (!origin || mesmaOrigem || ALLOWED_ORIGINS.includes(origin)) {
+        callback(null, { origin: true, credentials: true });
+    } else {
+        callback(new Error('Origem não permitida pelo CORS'));
+    }
 }));
+app.use((_req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+});
 app.use(express.json({ limit: '25mb' })); // comprovantes chegam em base64
+
+// Tentativas de login: 10 por IP e e-mail a cada 15 minutos. Com o sistema na
+// internet, sem isto a senha fica aberta a tentativa e erro sem fim.
+const tentativasLogin = new Map<string, { n: number; desde: number }>();
+const JANELA_LOGIN_MS = 15 * 60 * 1000;
+app.post('/api/auth/login', (req, res, next) => {
+    const agora = Date.now();
+    const chave = `${req.ip}|${String(req.body?.email || '').trim().toLowerCase()}`;
+    const atual = tentativasLogin.get(chave);
+    if (atual && agora - atual.desde < JANELA_LOGIN_MS && atual.n >= 10) {
+        const minutos = Math.ceil((JANELA_LOGIN_MS - (agora - atual.desde)) / 60000);
+        return res.status(429).json({ error: `Muitas tentativas de login. Tente de novo em ${minutos} minuto(s).` });
+    }
+    res.on('finish', () => {
+        if (res.statusCode === 200) { tentativasLogin.delete(chave); return; }
+        const t = tentativasLogin.get(chave);
+        if (!t || agora - t.desde >= JANELA_LOGIN_MS) tentativasLogin.set(chave, { n: 1, desde: agora });
+        else t.n += 1;
+    });
+    next();
+});
 
 app.get('/api/health', (_req, res) => {
     res.json({ status: 'ok', message: 'LS Orçamento API is running' });
@@ -115,6 +150,18 @@ app.use('/api/email-config', emailRoutingRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/payment-attachments', paymentAttachmentRoutes);
 app.use('/api', masterRoutes);
+app.use('/api', (_req, res) => res.status(404).json({ error: 'Rota não encontrada' }));
+
+// Produção (túnel): este mesmo servidor entrega as telas já compiladas em
+// dist/, então tudo sai por uma porta só. Em desenvolvimento o Vite cuida disso
+// e a pasta pode nem existir.
+import fs from 'fs';
+import path from 'path';
+const DIST = path.resolve(process.cwd(), 'dist');
+if (fs.existsSync(path.join(DIST, 'index.html'))) {
+    app.use(express.static(DIST, { index: false, maxAge: '1h' }));
+    app.get('*', (_req, res) => res.sendFile(path.join(DIST, 'index.html')));
+}
 
 const PORT = process.env.PORT || 3001;
 

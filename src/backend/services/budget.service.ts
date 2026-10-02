@@ -1,6 +1,7 @@
 import { PrismaClient, BudgetItem, Budget } from '@prisma/client';
 import { prisma } from '../server';
 import { carregarPvDoCliente } from './pv-cliente.service';
+import { lpusDaAtividade } from './lpu-atividade.service';
 import { HIGHLINE_PV_CATALOG, HIGHLINE_PV_QUANTITY_RULES } from '../data/highline-pv-catalog';
 
 export interface BudgetPricingInput {
@@ -109,6 +110,13 @@ export class BudgetService {
     }
 
     static async createBudget(data: any) {
+        // Orçamento de atividade nasce com a LPU de preço ao cliente escolhida por
+        // área + cliente (lpu-atividade.service). Fica gravada: mudar a regra
+        // depois não troca a base de um orçamento já criado.
+        if (data.atividade_id && !data.pricebook_id) {
+            const lpus = await lpusDaAtividade(data.atividade_id);
+            if (lpus?.precoCliente) data = { ...data, pricebook_id: lpus.precoCliente.id };
+        }
         return prisma.budget.create({
             data
         });
@@ -151,7 +159,9 @@ export class BudgetService {
         // A base "PV Padrão" manda na estrutura e no preço de referência; o catálogo
         // do código é reserva. É daqui que sai o vínculo com a LPU e a marca de
         // preço alterado — decididos no servidor, não confiados ao navegador.
-        const pvCliente = hasHighlineCatalogItems ? await carregarPvDoCliente() : null;
+        const baseDoOrcamento = budget.pricebook_id
+            || (budget.atividade_id ? (await lpusDaAtividade(budget.atividade_id))?.precoCliente?.id || null : null);
+        const pvCliente = hasHighlineCatalogItems ? await carregarPvDoCliente(baseDoOrcamento) : null;
         const seenRows = new Set<number>();
         const normalized = items.map((item, index) => {
             const quantidade = Number(item.quantidade || 0);

@@ -118,6 +118,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
     const [budget, setBudget] = useState<BudgetDetail | null>(null);
     const [catalogo, setCatalogo] = useState<ItemLpu[]>([]);
     const [nomeBase, setNomeBase] = useState('');
+    const [motivoBase, setMotivoBase] = useState('');
     const [draft, setDraft] = useState<Record<string, DraftItem>>({});
     const [avulsos, setAvulsos] = useState<LinhaAvulsa[]>([]);
     const [busca, setBusca] = useState('');
@@ -136,9 +137,12 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
         try {
             // Base e orçamento juntos: o draft só se reconstrói sabendo quais
             // itens salvos correspondem a quais linhas da LPU.
-            const rb = await fetch('/api/pricebooks');
-            const bases = rb.ok ? await rb.json() : [];
-            const lpu = bases.find((b: any) => b.origem === 'LPU_LS_OFFICE');
+            // A base de custo é escolhida pelo servidor por área + cliente da
+            // atividade (lpu-atividade.service) — a mesma regra para todas as telas.
+            const rl = await fetch(`/api/atividades/${atividade.id}/lpus`);
+            const lpus = rl.ok ? await rl.json() : null;
+            const lpu = lpus?.custo ? { id: lpus.custo.id, nome_lpu: lpus.custo.nome } : null;
+            setMotivoBase(lpus?.custo?.motivo || '');
 
             let itens: ItemLpu[] = [];
             if (lpu) {
@@ -184,7 +188,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
         } finally {
             setLoading(false);
         }
-    }, [orcamentoAtivo?.id]);
+    }, [orcamentoAtivo?.id, atividade.id]);
 
     useEffect(() => { load(); }, [load]);
 
@@ -406,7 +410,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                     </div>
 
                     <div className="mb-3 text-xs text-muted-foreground">
-                        Custo sugerido: custo LS da <strong>{nomeBase || 'LPU LS Office Geral'}</strong> · {catalogo.length} itens no catálogo · a venda ao lado é referência da LPU
+                        Custo sugerido: custo LS da <strong>{nomeBase || 'LPU LS Office Geral'}</strong>{motivoBase ? <> — escolhida automaticamente: {motivoBase}</> : null} · {catalogo.length} itens no catálogo · a venda ao lado é referência da LPU
                     </div>
 
                     {semCusto.length > 0 && (

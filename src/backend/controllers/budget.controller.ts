@@ -5,6 +5,7 @@ import { prisma } from '../server';
 import { generateHighlinePv, listHighlinePvCatalog } from '../services/highline-pv.service';
 import { getHighlinePvDefaultPriceSet } from '../data/highline-pv-default-prices';
 import { carregarPvDoCliente } from '../services/pv-cliente.service';
+import { lpusDaAtividade } from '../services/lpu-atividade.service';
 import { normalizarUf } from '../utils/uf';
 
 async function getDemoTenantId() {
@@ -17,21 +18,26 @@ export class BudgetController {
         try {
             const budgetId = typeof req.query.budgetId === 'string' ? req.query.budgetId : '';
             let uf = normalizarUf(req.query.uf);
+            let baseId: string | null = null;
 
             if (budgetId) {
                 const budget = await prisma.budget.findUnique({
                     where: { id: budgetId },
-                    select: { atividade: { select: { estado: true } } },
+                    select: { pricebook_id: true, atividade_id: true, atividade: { select: { estado: true } } },
                 });
                 if (!budget) return res.status(404).json({ error: 'Orçamento não encontrado' });
                 uf = normalizarUf(budget.atividade?.estado);
+                // A base gravada no orçamento; orçamento antigo sem ela usa a
+                // escolhida agora por área + cliente da atividade.
+                baseId = budget.pricebook_id
+                    || (budget.atividade_id ? (await lpusDaAtividade(budget.atividade_id))?.precoCliente?.id || null : null);
             }
 
             // A base "PV Padrão" (Bases/LPUs) é a fonte da verdade para estrutura E
             // preço. O catálogo do código e o arquivo por UF são reserva, para a PV
             // abrir numa instalação onde a base ainda não existe.
             const priceSet = getHighlinePvDefaultPriceSet(uf);
-            const pv = await carregarPvDoCliente();
+            const pv = await carregarPvDoCliente(baseId);
 
             const items = listHighlinePvCatalog().map(item => {
                 const daBase = pv.porLinha.get(item.templateRow);

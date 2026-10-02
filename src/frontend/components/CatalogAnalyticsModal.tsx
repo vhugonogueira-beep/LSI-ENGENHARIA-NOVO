@@ -18,7 +18,7 @@ export function CatalogAnalyticsModal({ isOpen, onClose, itemKey, itemTitle }: a
         if (!itemKey) return;
         setLoading(true);
         // Hardcoded regiao GERAL for now as there's no UI to select region beforehand here
-        fetch(`http://localhost:3001/api/analytics/dispersion?itemKey=${itemKey}&regiao=GERAL&mode=${mode}`)
+        fetch(`/api/analytics/dispersion?itemKey=${itemKey}&regiao=GERAL&mode=${mode}`)
             .then(res => res.json())
             .then(data => {
                 setData(data);

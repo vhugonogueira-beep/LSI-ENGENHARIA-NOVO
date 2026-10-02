@@ -32,12 +32,20 @@ export interface PvDoCliente {
  * pelos ITENS (e não "a base mais recente") evita que uma base nova e vazia
  * roube a seleção e deixe a Atividade sem preço nenhum.
  */
-export async function carregarPvDoCliente(): Promise<PvDoCliente> {
+export async function carregarPvDoCliente(baseEscolhida?: string | null): Promise<PvDoCliente> {
+    // Com a base escolhida para a atividade (área + cliente), só ela vale —
+    // desde que siga o template, que é o que este editor entende. Sem base,
+    // ou se ela não tem linhas do template, mantém o comportamento antigo.
+    const daBase = baseEscolhida
+        ? await prisma.priceBookItem.count({ where: { pricebook_id: baseEscolhida, ativo: true, highline_template_row: { not: null } } })
+        : 0;
     const itens = await prisma.priceBookItem.findMany({
         where: {
             ativo: true,
             highline_template_row: { not: null },
-            pricebook: { origem: 'PV_CLIENTE', status: 'ATIVA' },
+            ...(daBase
+                ? { pricebook_id: baseEscolhida! }
+                : { pricebook: { origem: 'PV_CLIENTE', status: 'ATIVA' } }),
         },
         orderBy: { updated_at: 'asc' }, // o mais recente sobrescreve
         include: { pricebook: { select: { id: true, nome_lpu: true } } },

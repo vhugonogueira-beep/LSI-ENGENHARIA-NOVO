@@ -3,6 +3,7 @@ import { LpuTemplate } from "./types";
 import { lerTemplatesLocaisPendentes, marcarMigracaoConcluida } from "./lpuTemplates";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
+import { useEhAdmin } from '../lib/permissoes';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bases (LPUs) — tela única, ligada ao banco.
@@ -27,6 +28,7 @@ const S = {
   label: { fontSize: 10, color: T.txSec, display: "block", marginBottom: 4, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" } as React.CSSProperties,
   btn: { padding: "8px 14px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg1, cursor: "pointer", color: T.txPri, fontWeight: 700, transition: "all 0.15s" } as React.CSSProperties,
   btnBlue: { background: T.blue, color: "#fff", borderColor: T.blue } as React.CSSProperties,
+  select: { padding: "4px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, outline: "none" } as React.CSSProperties,
 };
 
 const UNIDADES = ["Vb", "un", "Unid", "Unid.", "Pç", "m", "m²", "m³", "Km", "Kg", "kg", "H/H"];
@@ -34,25 +36,35 @@ const TIPOS_CUSTO = ["SERVICO", "MATERIAL", "MO", "VERBA"];
 const ROTULO_CUSTO: Record<string, string> = { SERVICO: "Serviço", MATERIAL: "Material", MO: "Mão de obra", VERBA: "Verba" };
 
 // Cada natureza de base tem cor, rótulo e explicação próprios.
-const NATUREZA: Record<string, { grupo: string; cor: string; explica: string }> = {
+const NATUREZA: Record<string, { grupo: string; curto: string; cor: string; explica: string }> = {
   PV_CLIENTE: {
     grupo: "PV do Cliente",
+    curto: "Preço ao cliente",
     cor: T.cyan,
     explica: "Itens oficiais do cliente — código, descrição, categoria e unidade exatamente como estão no documento dele — com o preço que a LS Office COBRA desse cliente por item. É esta base que alimenta a composição da PV dentro da Atividade.",
   },
   LPU_LS_OFFICE: {
     grupo: "LPU LS Office Geral",
+    curto: "Custo LS",
     cor: T.green,
     explica: "A LPU padrão da LS Office. Valor venda é o que a LS pratica na venda; custo LS é o que ela paga na compra. A diferença entre os dois é a margem do item.",
   },
   FORNECEDOR: {
     grupo: "LPUs de Fornecedor",
+    curto: "Fornecedor",
     cor: T.purple,
     explica: "Preço que um fornecedor específico cobra da LS Office. Usado na contratação e na comparação de custo.",
   },
 };
 const ORDEM_GRUPOS = ["PV_CLIENTE", "LPU_LS_OFFICE", "FORNECEDOR"];
 const natureza = (o: string) => NATUREZA[o] || NATUREZA.FORNECEDOR;
+
+// Área da base (PriceBook.tipo). Vazio = serve às duas.
+const AREAS = [
+  { id: "IMPLANTACAO", rotulo: "Implantação", cor: T.blue },
+  { id: "OPERACAO", rotulo: "Operação", cor: T.amber },
+  { id: "", rotulo: "Serve às duas áreas", cor: T.txMut },
+];
 
 interface Base {
   id: string;
@@ -64,6 +76,8 @@ interface Base {
   status: string;
   supplier?: { id: string; nome: string } | null;
   contratante?: { id: string; nome: string } | null;
+  contratante_id?: string | null;
+  padrao?: boolean;
   _count?: { items: number };
 }
 
@@ -115,6 +129,7 @@ const th = (w?: number, alinha?: "right" | "center"): React.CSSProperties =>
 const td = (): React.CSSProperties => ({ padding: "7px 8px", verticalAlign: "top" });
 
 export default function TabLpus() {
+  const ehAdmin = useEhAdmin();
   const [bases, setBases] = useState<Base[]>([]);
   const [baseId, setBaseId] = useState<string | null>(null);
   const [itens, setItens] = useState<Item[]>([]);
@@ -153,6 +168,51 @@ export default function TabLpus() {
   }, []);
 
   useEffect(() => { carregarBases(); }, [carregarBases]);
+
+  // Clientes para classificar a base. Vem do cadastro mestre (Contratante).
+  const [clientes, setClientes] = useState<{ id: string; nome: string }[]>([]);
+  useEffect(() => {
+    fetch("/api/clientes").then(r => (r.ok ? r.json() : [])).then(l => setClientes(Array.isArray(l) ? l : l.items || [])).catch(() => setClientes([]));
+  }, []);
+
+  /** Área, cliente, natureza ou padrão — é o que a atividade usa para escolher a base. */
+  const classificar = async (campos: Record<string, unknown>) => {
+    if (!baseId) return;
+    try {
+      const r = await fetch(`/api/pricebooks/${baseId}`, {
+        method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(campos),
+      });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "Erro ao salvar a classificação");
+      notify("Classificação salva — as atividades passam a usar esta regra.");
+      await carregarBases();
+    } catch (e: any) {
+      setErro(e.message || "Erro ao salvar a classificação");
+    }
+  };
+
+  /** Exclui a base. O servidor arquiva em vez de apagar se algum orçamento depende dela. */
+  const excluirBase = async () => {
+    const alvo = bases.find(b => b.id === baseId);
+    if (!alvo) return;
+    const ok = window.confirm(
+      `Excluir a base "${alvo.nome_lpu}" e seus ${alvo._count?.items ?? itens.length} itens?\n\n` +
+      `Se algum orçamento usa itens dela, a base é arquivada (some da lista, mas os orçamentos antigos continuam intactos). ` +
+      `Sem uso, ela é apagada de vez — não dá para desfazer.`
+    );
+    if (!ok) return;
+    try {
+      const r = await fetch(`/api/pricebooks/${alvo.id}`, { method: "DELETE" });
+      const corpo = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(corpo.error || "Erro ao excluir a base");
+      notify(corpo.modo === "ARQUIVADA"
+        ? `"${alvo.nome_lpu}" foi arquivada: ${corpo.motivos.join("; ")}.`
+        : `"${alvo.nome_lpu}" excluída (${corpo.itens} itens).`);
+      setBaseId(null);
+      await carregarBases();
+    } catch (e: any) {
+      setErro(e.message || "Erro ao excluir a base");
+    }
+  };
   useEffect(() => { setPendentes(lerTemplatesLocaisPendentes()); }, []);
 
   const base = bases.find(b => b.id === baseId) || null;
@@ -346,13 +406,24 @@ export default function TabLpus() {
   const comValor = itens.filter(i => valorDoItem(i) > 0).length;
   const itensDuplicados = new Set(duplicados.flatMap(g => g.ocorrencias.map(o => o.id)));
 
-  const grupos = ORDEM_GRUPOS
-    .map(origem => ({ origem, ...natureza(origem), itens: bases.filter(b => b.origem === origem) }))
-    .filter(g => g.itens.length > 0);
-  // Bases com origem fora das quatro conhecidas não podem sumir da lista.
-  const conhecidas = new Set(ORDEM_GRUPOS);
-  const outras = bases.filter(b => !conhecidas.has(b.origem));
-  if (outras.length) grupos.push({ origem: "OUTRAS", grupo: "Outras bases", cor: T.txMut, explica: "", itens: outras });
+  // Lista organizada como a atividade escolhe: ÁREA → CLIENTE. Base sem
+  // cliente é a genérica da área, usada quando o cliente não tem a sua.
+  const grupos = AREAS
+    .map(a => {
+      const daArea = bases.filter(b => (b.tipo || "") === a.id);
+      const clientes = [...new Set(daArea.map(b => b.contratante?.nome || ""))]
+        .sort((x, y) => (x === "" ? 1 : y === "" ? -1 : x.localeCompare(y, "pt-BR")));
+      return {
+        ...a,
+        clientes: clientes.map(c => ({
+          nome: c || "Genérica (sem cliente)",
+          itens: daArea.filter(b => (b.contratante?.nome || "") === c)
+            .sort((x, y) => ORDEM_GRUPOS.indexOf(x.origem) - ORDEM_GRUPOS.indexOf(y.origem) || Number(!!y.padrao) - Number(!!x.padrao)),
+        })),
+        total: daArea.length,
+      };
+    })
+    .filter(g => g.total > 0);
 
   return (
     <div style={{ padding: 20, animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", height: "calc(100vh - 40px)", boxSizing: "border-box", gap: 12 }}>
@@ -388,30 +459,42 @@ export default function TabLpus() {
           <div className="scroll-min" style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 13 }}>
             {carregandoBases && <div style={{ color: T.txMut, fontSize: 12 }}>Carregando...</div>}
             {grupos.map(g => (
-              <div key={g.origem}>
-                <div style={{ fontSize: 9.5, fontWeight: 800, color: g.cor, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 5 }}>{g.grupo}</div>
-                {g.itens.map(b => {
-                  const ativa = b.id === baseId;
-                  return (
-                    <button key={b.id} onClick={() => setBaseId(b.id)} style={{
-                      width: "100%", textAlign: "left", marginBottom: 4, cursor: "pointer",
-                      padding: "8px 10px", borderRadius: 8, fontSize: 11.5,
-                      background: ativa ? g.cor + "22" : T.bg3,
-                      border: `1px solid ${ativa ? g.cor : T.brSub}`,
-                      borderLeft: `3px solid ${ativa ? g.cor : "transparent"}`,
-                      color: ativa ? T.txPri : T.txSec, fontWeight: ativa ? 700 : 500,
-                    }}>
-                      <div style={{ lineHeight: 1.3 }}>{b.nome_lpu}</div>
-                      <div style={{ fontSize: 10, color: T.txMut, marginTop: 3 }}>
-                        {b._count?.items ?? 0} itens
-                        {b.tipo ? ` · ${b.tipo === "IMPLANTACAO" ? "Implantação" : "Operação"}` : ""}
-                        {b.supplier ? ` · ${b.supplier.nome}` : b.contratante ? ` · ${b.contratante.nome}` : ""}
-                      </div>
-                    </button>
-                  );
-                })}
+              <div key={g.id || "AMBAS"}>
+                <div style={{ fontSize: 10, fontWeight: 800, color: g.cor, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6, borderBottom: `1px solid ${g.cor}44`, paddingBottom: 4 }}>
+                  {g.rotulo} <span style={{ color: T.txMut, fontWeight: 600 }}>· {g.total}</span>
+                </div>
+                {g.clientes.map(c => (
+                  <div key={c.nome} style={{ marginBottom: 8 }}>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, color: T.txMut, margin: "0 0 4px 2px" }}>{c.nome}</div>
+                    {c.itens.map(b => {
+                      const ativa = b.id === baseId;
+                      const nat = natureza(b.origem);
+                      return (
+                        <button key={b.id} onClick={() => setBaseId(b.id)} style={{
+                          width: "100%", textAlign: "left", marginBottom: 4, cursor: "pointer",
+                          padding: "7px 10px", borderRadius: 8, fontSize: 11.5,
+                          background: ativa ? nat.cor + "22" : T.bg3,
+                          border: `1px solid ${ativa ? nat.cor : T.brSub}`,
+                          borderLeft: `3px solid ${nat.cor}`,
+                          color: ativa ? T.txPri : T.txSec, fontWeight: ativa ? 700 : 500,
+                        }}>
+                          <div style={{ lineHeight: 1.3 }}>{b.padrao ? "★ " : ""}{b.nome_lpu}</div>
+                          <div style={{ fontSize: 10, color: T.txMut, marginTop: 3 }}>
+                            <span style={{ color: nat.cor }}>{nat.curto}</span> · {b._count?.items ?? 0} itens
+                            {b.supplier ? ` · ${b.supplier.nome}` : ""}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             ))}
+            {bases.length > 0 && (
+              <div style={{ fontSize: 10, color: T.txDis, lineHeight: 1.5 }}>
+                ★ padrão do cliente na área. A atividade usa a base do seu cliente; sem ela, a genérica da área.
+              </div>
+            )}
           </div>
         </div>
 
@@ -435,6 +518,34 @@ export default function TabLpus() {
                     {base.supplier ? ` · Fornecedor: ${base.supplier.nome}` : ""}
                     {base.contratante ? ` · Contratante: ${base.contratante.nome}` : ""}
                   </div>
+                  {/* Classificação: é por ela que a atividade escolhe a base sozinha */}
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 9 }}>
+                    <label style={{ fontSize: 10.5, color: T.txMut }}>Área
+                      <select value={base.tipo || ""} onChange={e => classificar({ tipo: e.target.value || null })} style={{ ...S.select, marginLeft: 5 }}>
+                        <option value="IMPLANTACAO">Implantação</option>
+                        <option value="OPERACAO">Operação</option>
+                        <option value="">Serve às duas</option>
+                      </select>
+                    </label>
+                    <label style={{ fontSize: 10.5, color: T.txMut }}>Cliente
+                      <select value={base.contratante?.id || ""} onChange={e => classificar({ contratante_id: e.target.value || null })} style={{ ...S.select, marginLeft: 5 }}>
+                        <option value="">Genérica (sem cliente)</option>
+                        {clientes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                      </select>
+                    </label>
+                    <label style={{ fontSize: 10.5, color: T.txMut }}>Natureza
+                      <select value={base.origem} onChange={e => classificar({ origem: e.target.value })} style={{ ...S.select, marginLeft: 5 }}>
+                        <option value="PV_CLIENTE">Preço ao cliente</option>
+                        <option value="LPU_LS_OFFICE">Custo LS</option>
+                        <option value="FORNECEDOR">Fornecedor</option>
+                      </select>
+                    </label>
+                    <label style={{ fontSize: 10.5, color: base.padrao ? T.amber : T.txMut, display: "flex", alignItems: "center", gap: 5, cursor: "pointer" }}
+                      title="A atividade usa a base padrão quando há mais de uma para o mesmo cliente e área">
+                      <input type="checkbox" checked={!!base.padrao} onChange={e => classificar({ padrao: e.target.checked })} />
+                      ★ Padrão para este cliente e área
+                    </label>
+                  </div>
                 </div>
                 <div style={{ display: "flex", gap: 9 }}>
                   <Indicador rotulo="ITENS" valor={String(itens.length)} cor={T.blue} />
@@ -442,6 +553,12 @@ export default function TabLpus() {
                   {ehLsoc && <Indicador rotulo="COM VENDA" valor={String(itens.filter(i => (i.valor_venda || 0) > 0).length)} cor={T.amber} />}
                   <Indicador rotulo={ehLsoc ? "COM CUSTO" : "COM PREÇO"} valor={String(comValor)} cor={T.green} />
                   <Indicador rotulo={ehLsoc ? "SEM CUSTO" : "A PREENCHER"} valor={String(itens.length - comValor)} cor={T.red} />
+                  {ehAdmin && (
+                    <button onClick={excluirBase} title="Excluir esta base (só administrador)"
+                      style={{ ...S.btn, alignSelf: "center", padding: "6px 11px", fontSize: 11, color: T.red, borderColor: T.red + "66", background: T.red + "12" }}>
+                      🗑 Excluir base
+                    </button>
+                  )}
                 </div>
               </div>
 

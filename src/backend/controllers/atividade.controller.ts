@@ -7,6 +7,7 @@ import { normalizarUf } from '../utils/uf';
 import { removerArquivoDoDisco } from '../services/po-arquivo.service';
 import { sincronizarPendenciasAtividade } from '../services/sincronizacao-pendencias.service';
 import { calcularPendenciasAtividade, contarComprovantesPendentes } from '../services/pendencias-atividade.service';
+import { lpusDaAtividade } from '../services/lpu-atividade.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -550,6 +551,17 @@ export async function getPendenciasAtividade(req: Request, res: Response) {
         const pendencias = await calcularPendenciasAtividade(req.params.id);
         if (!pendencias) return res.status(404).json({ error: 'Atividade não encontrada' });
         res.json(pendencias);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+}
+
+/** GET /api/atividades/:id/lpus — LPU de preço ao cliente e de custo, escolhidas por área + cliente. */
+export async function getLpusAtividade(req: Request, res: Response) {
+    try {
+        const lpus = await lpusDaAtividade(req.params.id);
+        if (!lpus) return res.status(404).json({ error: 'Atividade não encontrada' });
+        res.json(lpus);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

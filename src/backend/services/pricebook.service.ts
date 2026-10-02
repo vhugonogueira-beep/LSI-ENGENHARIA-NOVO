@@ -1,6 +1,7 @@
 import { prisma } from '../server';
 import { PriceEngineService } from './price-engine.service';
 import * as fuzzball from 'fuzzball';
+import { marcarPadrao } from './lpu-atividade.service';
 
 export interface PriceBookFilters {
     supplier_id?: string;
@@ -25,7 +26,9 @@ export class PriceBookService {
         const where: any = { tenant_id: tenantId };
         if (filters.supplier_id) where.supplier_id = filters.supplier_id;
         if (filters.regiao) where.regiao = filters.regiao;
-        if (filters.status) where.status = filters.status;
+        // Base arquivada (excluída mas ainda referenciada por orçamento) some das
+        // listas; só aparece pedindo ?status=ARQUIVADA.
+        where.status = filters.status || { not: 'ARQUIVADA' };
 
         return prisma.priceBook.findMany({
             where,
@@ -36,6 +39,42 @@ export class PriceBookService {
             },
             orderBy: [{ origem: 'asc' }, { nome_lpu: 'asc' }]
         });
+    }
+
+    /**
+     * Exclui uma base. Se algum orçamento ainda aponta para ela — como base do
+     * orçamento ou por item copiado dela — ou se outra base tem itens
+     * vinculados aos dela (PV ↔ LPU), a base é ARQUIVADA: some das listas e os
+     * orçamentos antigos continuam íntegros. Sem nenhuma referência, sai de vez.
+     */
+    static async excluirPriceBook(id: string) {
+        const base = await prisma.priceBook.findUnique({ where: { id }, select: { id: true, nome_lpu: true, status: true } });
+        if (!base) throw new Error('Base não encontrada');
+        const itemIds = (await prisma.priceBookItem.findMany({ where: { pricebook_id: id }, select: { id: true } })).map(i => i.id);
+        const [orcamentos, itensEmOrcamento, vinculosExternos] = await Promise.all([
+            prisma.budget.count({ where: { pricebook_id: id } }),
+            itemIds.length ? prisma.budgetItem.count({ where: { source_pricebook_item_id: { in: itemIds } } }) : 0,
+            itemIds.length ? prisma.priceBookItem.count({ where: { pv_item_id: { in: itemIds }, pricebook_id: { not: id } } }) : 0,
+        ]);
+
+        if (orcamentos || itensEmOrcamento || vinculosExternos) {
+            await prisma.priceBook.update({ where: { id }, data: { status: 'ARQUIVADA' } });
+            const motivos = [
+                orcamentos && `${orcamentos} orçamento(s) usam esta base`,
+                itensEmOrcamento && `${itensEmOrcamento} item(ns) de orçamento vieram dela`,
+                vinculosExternos && `${vinculosExternos} item(ns) de outra base estão vinculados a ela`,
+            ].filter(Boolean);
+            return { modo: 'ARQUIVADA' as const, nome: base.nome_lpu, itens: itemIds.length, motivos };
+        }
+
+        await prisma.$transaction([
+            // Vínculos internos (item → item da mesma base) primeiro, senão a FK trava.
+            prisma.priceBookItem.updateMany({ where: { pricebook_id: id }, data: { pv_item_id: null } }),
+            prisma.importBatch.updateMany({ where: { pricebook_id: id }, data: { pricebook_id: null } }),
+            prisma.priceBookItem.deleteMany({ where: { pricebook_id: id } }),
+            prisma.priceBook.delete({ where: { id } }),
+        ]);
+        return { modo: 'EXCLUIDA' as const, nome: base.nome_lpu, itens: itemIds.length, motivos: [] as string[] };
     }
 
     static async getPriceBookById(id: string) {
@@ -65,10 +104,22 @@ export class PriceBookService {
     }
 
     static async updatePriceBook(id: string, data: any) {
-        return prisma.priceBook.update({
-            where: { id },
-            data: { ...data, updated_at: new Date() }
-        });
+        // Só o que a tela de LPUs edita; o resto (tenant, status) tem rota própria.
+        const EDITAVEIS = ['nome_lpu', 'versao', 'regiao', 'tipo', 'contratante_id', 'origem', 'padrao', 'data_inicio_vigencia', 'data_fim_vigencia'];
+        const dados: any = {};
+        for (const k of EDITAVEIS) if (data[k] !== undefined) dados[k] = data[k];
+        if (dados.tipo !== undefined && dados.tipo !== null && !['IMPLANTACAO', 'OPERACAO'].includes(dados.tipo)) {
+            throw new Error('Área inválida: use IMPLANTACAO, OPERACAO ou vazio (serve às duas)');
+        }
+        if (dados.tipo === '') dados.tipo = null;
+        if (dados.contratante_id === '') dados.contratante_id = null;
+        if (dados.padrao !== undefined) dados.padrao = Boolean(dados.padrao);
+
+        const salvo = await prisma.priceBook.update({ where: { id }, data: { ...dados, updated_at: new Date() } });
+        // Padrão é único por área + cliente + origem: mudar de grupo ou marcar
+        // agora desmarca a outra que ocupava o lugar.
+        if (salvo.padrao) await marcarPadrao(id);
+        return prisma.priceBook.findUnique({ where: { id }, include: { contratante: { select: { id: true, nome: true } } } });
     }
 
     // ─── PriceBookItem CRUD ──────────────────────────────────────────

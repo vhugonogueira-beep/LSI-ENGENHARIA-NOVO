@@ -43,6 +43,8 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     const [mostrarVincular, setMostrarVincular] = useState(false);
     const [contratantes, setContratantes] = useState<{ id: string; nome: string }[]>([]);
     const [contratanteEscolhido, setContratanteEscolhido] = useState('');
+    // LPU de preço ao cliente escolhida por área + cliente (lpu-atividade.service).
+    const [lpuCliente, setLpuCliente] = useState<{ id: string; nome: string; motivo: string } | null>(null);
 
     const orcamentoAtivo = atividade.orcamentos && atividade.orcamentos.length > 0 ? atividade.orcamentos[0] : null;
     const precisaEscolherTipo = exigeEscolhaTipoOrcamento(atividade);
@@ -51,10 +53,12 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [negR, budR] = await Promise.all([
+            const [negR, budR, lpuR] = await Promise.all([
                 fetch(`/api/negociacoes?atividade_id=${atividade.id}`),
                 fetch('/api/budgets'),
+                fetch(`/api/atividades/${atividade.id}/lpus`),
             ]);
+            setLpuCliente(lpuR.ok ? (await lpuR.json()).precoCliente : null);
             setNegociacoes(negR.ok ? await negR.json() : []);
             setBudgets(budR.ok ? await budR.json() : []);
             if (!atividade.contratante_id) {
@@ -219,6 +223,18 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     return (
         <div>
             <ErrorBanner message={erro} />
+
+            <div className={`mb-4 rounded-xl border px-4 py-3 text-sm ${lpuCliente ? 'border-primary/30 bg-primary/[0.05]' : 'border-amber-500/40 bg-amber-500/[0.07]'}`}>
+                <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">LPU aplicada (preço ao cliente)</div>
+                {lpuCliente ? (
+                    <>
+                        <div className="mt-0.5 font-semibold">{lpuCliente.nome}</div>
+                        <div className="text-xs text-muted-foreground">Escolhida automaticamente: {lpuCliente.motivo}. Para mudar, ajuste a área e o cliente da base em Bases e LPUs.</div>
+                    </>
+                ) : (
+                    <div className="mt-0.5 text-xs text-amber-500">Nenhuma LPU de cliente cadastrada para esta área — cadastre ou classifique uma em Bases e LPUs.</div>
+                )}
+            </div>
 
             <Card title="Orçamento">
                 {orcamentoAtivo ? (

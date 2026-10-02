@@ -107,6 +107,7 @@ export const POLITICA: Regra[] = [
     ['DELETE', new RegExp(`^/api/pos/faturamento-linhas/${ID}$`), 'ADMIN'],
     ['DELETE', new RegExp(`^/api/suppliers/${ID}$`), 'ADMIN'],
     ['DELETE', new RegExp(`^/api/funcionarios/${ID}$`), 'ADMIN'],
+    ['DELETE', new RegExp(`^/api/pricebooks/${ID}$`), 'ADMIN'],
 
     // Pagamentos: baixa (pago/comprovante/análise de prestação) separada da
     // solicitação. Mudar status para PAGO/CONFERIDO é conferido também dentro

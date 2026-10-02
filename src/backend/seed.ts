@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { randomBytes } from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -13,11 +14,15 @@ function normalizarDescricao(texto: string): string {
         .trim();
 }
 
+// Senha nunca fica escrita aqui: este arquivo vai para o GitHub. Cada seed
+// gera uma senha aleatória por usuário e mostra uma vez no terminal — troque
+// em Meu Perfil no primeiro acesso.
+const senhaAleatoria = () => `Ls${randomBytes(9).toString('base64url')}9`;
 const USUARIOS = [
-    { nome: "Victor Hugo",      email: "victor.hugo@lsoffice.com.br", senha: "Victor@2026!",    role: "ADMIN" },
-    { nome: "Admin LS",         email: "admin@lsoffice.com",           senha: "LsAdmin@2026!",   role: "ADMIN" },
-    { nome: "Comercial LS",     email: "comercial@lsoffice.com",       senha: "LsCom@2026!",     role: "COMERCIAL" },
-    { nome: "Operações LS",     email: "operacoes@lsoffice.com",       senha: "LsOp@2026!",      role: "OPERACOES" },
+    { nome: "Victor Hugo",      email: "victor.hugo@lsoffice.com.br", senha: senhaAleatoria(), role: "ADMIN" },
+    { nome: "Admin LS",         email: "admin@lsoffice.com",           senha: senhaAleatoria(), role: "ADMIN" },
+    { nome: "Comercial LS",     email: "comercial@lsoffice.com",       senha: senhaAleatoria(), role: "COMERCIAL" },
+    { nome: "Operações LS",     email: "operacoes@lsoffice.com",       senha: senhaAleatoria(), role: "OPERACOES" },
 ];
 
 async function main() {

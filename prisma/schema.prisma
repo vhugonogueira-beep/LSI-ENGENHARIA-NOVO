@@ -583,6 +583,10 @@ model PriceBook {
   data_fim_vigencia    DateTime?
   moeda                String          @default("BRL")
   status               String          @default("ATIVA") // ATIVA | ARQUIVADA
+  // Base escolhida automaticamente para atividades da mesma área (tipo) e do
+  // mesmo cliente (contratante; null = genérica). Uma por área + cliente +
+  // origem — marcar uma desmarca as outras (lpu-atividade.service.ts).
+  padrao               Boolean         @default(false)
   created_at           DateTime        @default(now())
   updated_at           DateTime        @updatedAt
   items                PriceBookItem[]

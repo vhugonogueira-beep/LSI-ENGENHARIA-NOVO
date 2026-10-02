@@ -26,6 +26,26 @@ export class PriceBookController {
         }
     }
 
+    /** DELETE /api/pricebooks/:id — só ADMIN (política em permissoes.service.ts). */
+    static async remove(req: Request, res: Response) {
+        try {
+            const usuario = (req as any).user;
+            const resultado = await PriceBookService.excluirPriceBook(req.params.id);
+            await prisma.auditLog.create({
+                data: {
+                    tenant_id: usuario.tenantId, entidade: 'PriceBook', entidade_id: req.params.id,
+                    acao: resultado.modo === 'EXCLUIDA' ? 'LPU_EXCLUIDA' : 'LPU_ARQUIVADA',
+                    antes_json: JSON.stringify({ nome: resultado.nome, itens: resultado.itens }),
+                    depois_json: JSON.stringify({ modo: resultado.modo, motivos: resultado.motivos }),
+                    user_id: usuario.userId,
+                },
+            });
+            res.json(resultado);
+        } catch (e: any) {
+            res.status(400).json({ error: e.message });
+        }
+    }
+
     static async getById(req: Request, res: Response) {
         try {
             const pb = await PriceBookService.getPriceBookById(req.params.id);

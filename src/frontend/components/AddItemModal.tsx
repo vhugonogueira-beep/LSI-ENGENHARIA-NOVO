@@ -14,7 +14,7 @@ export function AddItemModal({ isOpen, onClose, onAdd, targetRegion }: any) {
 
         const delayDebounceFn = setTimeout(() => {
             setLoading(true);
-            fetch(`http://localhost:3001/api/price-engine/suggest?query=${encodeURIComponent(query)}&regiao=${targetRegion}`)
+            fetch(`/api/price-engine/suggest?query=${encodeURIComponent(query)}&regiao=${targetRegion}`)
                 .then(res => res.json())
                 .then(data => {
                     setResults(Array.isArray(data) ? data : []);
