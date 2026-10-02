@@ -152,7 +152,7 @@ export default function PaymentAttachments({ ownerType, ownerId, requiresFiscal 
             <span key={doc.id} className="inline-flex items-center gap-1 rounded border border-border bg-secondary px-2 py-1 text-[11px]">
               <FileText size={14} aria-hidden />
               <span className="text-muted-foreground">{ROTULO_TIPO[doc.tipo] || doc.tipo}</span>
-              {doc.nome_original}
+              <span className="max-w-[240px] truncate" title={doc.nome_original}>{doc.nome_original}</span>
               <button
                 title="Baixar anexo"
                 aria-label={`Baixar ${doc.nome_original}`}

@@ -6,6 +6,7 @@ import { T } from '../theme';
 import { useEhAdmin } from '../lib/permissoes';
 import { TOM_AREA, TOM_MODULO, hexTom } from '../lib/cores';
 import type { Tom } from '../lib/cores';
+import PageHeader from '../components/PageHeader';
 import { AlertTriangle, Check, Library, Pencil, Plus, Star, Trash2, X } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -445,7 +446,12 @@ export default function TabLpus() {
     .filter(g => g.total > 0);
 
   return (
-    <div style={{ padding: 20, animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", height: "calc(100vh - 40px)", boxSizing: "border-box", gap: 12 }}>
+    <div className="p-8" style={{ animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", height: "calc(100vh - 40px)", boxSizing: "border-box", gap: 12 }}>
+      {/* Cabeçalho único (components/PageHeader). Na coluna com gap, mb-3 + gap = 24px. */}
+      <div className="[&>header]:mb-3">
+        <PageHeader icone={Library} tom={TOM_MODULO.lpus} titulo="Bases (LPUs)"
+          descricao="Preço ao cliente, custo LS e bases de fornecedor, classificadas por área e cliente." />
+      </div>
       {toast && <div style={{ position: "fixed", bottom: 20, right: 20, background: T.green, color: "#052e1b", padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 700, fontSize: 12, boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>{toast}</div>}
 
       {pendentes.length > 0 && (
@@ -688,7 +694,8 @@ export default function TabLpus() {
               {/* tabela */}
               <div style={{ ...S.card, padding: 0, flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
                 <div className="scroll-min" style={{ overflow: "auto", flex: 1 }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                  {/* Plano de colunas fixo (larguras nos <th>); a descrição é a única flexível. */}
+                  <table style={{ width: "100%", minWidth: 900, tableLayout: "fixed", borderCollapse: "collapse", fontSize: 12 }}>
                     <thead style={{ position: "sticky", top: 0, background: T.bg3, zIndex: 1 }}>
                       <tr style={{ textAlign: "left", color: T.txMut }}>
                         <th style={th(104)}>Código</th>
@@ -713,7 +720,7 @@ export default function TabLpus() {
                           <th style={th(120, "right")}>Preço cliente</th>
                           <th style={th(186)}>Origem do preço</th>
                         </>}
-                        <th style={th(70)}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Ações</span></th>
+                        <th style={th(96)}><span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Ações</span></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -794,7 +801,7 @@ export default function TabLpus() {
                             </td>
 
                             {ehPv && <>
-                              <td style={{ padding: "4px 8px", textAlign: "right" }}>
+                              <td style={{ padding: "4px 8px", verticalAlign: "top", textAlign: "right" }}>
                                 <CampoNumero valor={item.valor_unitario} rotulo="preço LS ao cliente" aoSalvar={v => salvarCampo(item, "valor_unitario", v)} />
                               </td>
                               <td style={{ ...td(), color: T.txMut, fontSize: 11, lineHeight: 1.4 }}>
@@ -813,10 +820,10 @@ export default function TabLpus() {
                             </>}
 
                             {ehLsoc && <>
-                              <td style={{ padding: "4px 8px", textAlign: "right" }}>
+                              <td style={{ padding: "4px 8px", verticalAlign: "top", textAlign: "right" }}>
                                 <CampoNumero valor={item.valor_venda} rotulo="valor de venda" aoSalvar={v => salvarCampo(item, "valor_venda", v)} />
                               </td>
-                              <td style={{ padding: "4px 8px", textAlign: "right" }}>
+                              <td style={{ padding: "4px 8px", verticalAlign: "top", textAlign: "right" }}>
                                 <CampoNumero valor={item.custo_ls} rotulo="custo LS" aoSalvar={v => salvarCampo(item, "custo_ls", v)} />
                               </td>
                               <td style={{ ...td(), textAlign: "right" }}>
@@ -832,19 +839,19 @@ export default function TabLpus() {
                             </>}
 
                             {!ehPv && !ehLsoc && <>
-                              <td style={{ padding: "4px 8px" }}>
+                              <td style={{ padding: "4px 8px", verticalAlign: "top" }}>
                                 <select value={item.tipo_custo || "SERVICO"} onChange={e => salvarCampo(item, "tipo_custo", e.target.value)}
                                   style={{ ...S.input, padding: "5px 6px", fontSize: 11 }}>
                                   {TIPOS_CUSTO.map(t => <option key={t} value={t}>{ROTULO_CUSTO[t]}</option>)}
                                 </select>
                               </td>
-                              <td style={{ padding: "4px 8px", textAlign: "right" }}>
+                              <td style={{ padding: "4px 8px", verticalAlign: "top", textAlign: "right" }}>
                                 <CampoNumero valor={item.valor_unitario} rotulo="preço" aoSalvar={v => salvarCampo(item, "valor_unitario", v)} />
                               </td>
                               <td style={{ ...td(), color: T.txMut, fontSize: 11 }}>{item.observacoes || (item.valor_unitario > 0 ? "preenchido nesta tela" : "—")}</td>
                             </>}
 
-                            <td style={{ padding: "4px 6px", whiteSpace: "nowrap", textAlign: "right" }}>
+                            <td style={{ padding: "4px 6px", verticalAlign: "top", whiteSpace: "nowrap", textAlign: "right" }}>
                               {editando ? (
                                 <>
                                   <button onClick={() => salvarEdicao(item)} aria-label="Salvar item" title="Salvar item (Enter)"
@@ -925,9 +932,9 @@ function CampoNumero({ valor, rotulo, aoSalvar }: { valor: number | null; rotulo
 function Indicador({ rotulo, valor, alerta }: { rotulo: string; valor: number; alerta?: boolean }) {
   const cor = alerta && valor > 0 ? T.amber : T.txPri;
   return (
-    <div style={{ minWidth: 56 }}>
-      <div style={{ fontSize: 11, color: T.txMut }}>{rotulo}</div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: valor > 0 ? cor : T.txMut }}>{valor > 0 ? valor : "—"}</div>
+    <div style={{ width: 76 }}>
+      <div style={{ fontSize: 11, color: T.txMut, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={rotulo}>{rotulo}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: valor > 0 ? cor : T.txMut, fontVariantNumeric: "tabular-nums" }}>{valor > 0 ? valor : "—"}</div>
     </div>
   );
 }

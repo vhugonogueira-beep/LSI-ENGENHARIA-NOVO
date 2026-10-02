@@ -9,6 +9,7 @@ import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { useEhAdmin } from '../lib/permissoes';
 import { UFS, REGIAO_LABEL, chaveTexto, normalizarUf, regiaoPorUf } from '../components/atividades/constants';
 import { CHIP, FAIXA, SOLIDO, TEXTO, TOM_MODULO, TOM_RAMO, VEU, tomDe } from '../lib/cores';
+import PageHeader from '../components/PageHeader';
 
 interface CondicaoPagamento {
     id: string;
@@ -240,23 +241,16 @@ export function Fornecedores() {
 
     return (
         <div className="p-8 text-foreground">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h2 className="text-3xl font-bold flex items-center gap-3">
-                        <span className={`inline-flex items-center justify-center w-11 h-11 rounded-lg ${VEU[TOM_MODULO.fornecedores]} ${TEXTO[TOM_MODULO.fornecedores]}`}>
-                            <Building2 size={24} aria-hidden />
-                        </span>
-                        Fornecedores & Prestadores
-                    </h2>
-                    <p className="text-muted-foreground mt-1 flex flex-wrap gap-x-4">
-                        <span>{suppliers.filter(s => s.categoria === 'MATERIAL').length} fornecedores de material</span>
-                        <span>{suppliers.filter(s => s.categoria !== 'MATERIAL').length} prestadores de serviço</span>
-                    </p>
-                </div>
-                <button onClick={openCreate} className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-semibold">
-                    <Plus size={16} aria-hidden /> Novo cadastro
-                </button>
-            </div>
+            <PageHeader icone={Building2} tom={TOM_MODULO.fornecedores} titulo="Fornecedores & Prestadores"
+                descricao={<span className="flex flex-wrap gap-x-4">
+                    <span>{suppliers.filter(s => s.categoria === 'MATERIAL').length} fornecedores de material</span>
+                    <span>{suppliers.filter(s => s.categoria !== 'MATERIAL').length} prestadores de serviço</span>
+                </span>}
+                acoes={
+                    <button onClick={openCreate} className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-semibold">
+                        <Plus size={16} aria-hidden /> Novo cadastro
+                    </button>
+                } />
 
             <div className="flex gap-3 mb-5 flex-wrap items-center">
                 <div className="relative flex-1 min-w-[240px]">
@@ -306,7 +300,7 @@ export function Fornecedores() {
                     );
                 })}
                 <select value={filtroEspecialidade} onChange={e => setFiltroEspecialidade(e.target.value)}
-                    className="ml-auto h-8 rounded-lg border border-border bg-card px-2 text-xs">
+                    className="h-8 rounded-lg border border-border bg-card px-2 text-xs">
                     <option value="">Toda especialidade</option>
                     {especialidades.map(e => <option key={e.chave} value={e.chave}>{e.rotulo} ({e.total})</option>)}
                 </select>
@@ -314,15 +308,19 @@ export function Fornecedores() {
                     <option value="">Toda UF</option>
                     {ufsPresentes.map(uf => <option key={uf} value={uf}>{uf}</option>)}
                 </select>
+            </div>
+
+            {/* Contagem e limpeza presas à grade que descrevem. */}
+            <div className="mb-2 flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
+                <span><strong className="font-semibold text-foreground tabular-nums">{filtered.length}</strong> de {suppliers.length} cadastro(s)</span>
                 {temFiltro && (
-                    <span className="h-8 inline-flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{filtered.length} resultado(s)</span>
-                        <button onClick={limparFiltros} className="h-8 px-2 hover:text-foreground">Limpar filtros</button>
-                    </span>
+                    <button onClick={limparFiltros} className="h-7 px-2 text-xs font-semibold text-primary hover:underline">Limpar filtros</button>
                 )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Cartões de uma fileira com a mesma altura (stretch) e rodapé preso
+                embaixo (mt-auto): os rodapés ficam na mesma linha. */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
                 {loading ? (
                     <div className="col-span-3 text-center py-12 text-muted-foreground">Carregando...</div>
                 ) : filtered.length === 0 ? (
@@ -337,7 +335,7 @@ export function Fornecedores() {
                     const local = s.cidade ? [s.cidade, ufDe(s)].filter(Boolean).join('/') : s.uf;
                     const regiao = s.regiao ? (REGIAO_LABEL[s.regiao] || s.regiao) : null;
                     return (
-                        <div key={s.id} className={`bg-card text-foreground rounded-lg border border-border border-l-4 ${FAIXA[tomCat]} p-5 flex flex-col`}>
+                        <div key={s.id} className={`bg-card text-foreground rounded-lg border border-border border-l-4 ${FAIXA[tomCat]} p-5 flex h-full flex-col`}>
                             <div className="flex items-start justify-between gap-2 mb-2">
                                 <span className={`inline-flex items-center justify-center w-9 h-9 rounded-lg flex-shrink-0 ${VEU[tomCat]} ${TEXTO[tomCat]}`}>
                                     <IconeCat size={18} aria-hidden />
@@ -361,10 +359,10 @@ export function Fornecedores() {
                                 <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${CHIP[tomCat]}`}>
                                     <IconeCat size={14} aria-hidden /> {ci.label}
                                 </span>
-                                {s.especialidade && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.especialidade}</span>}
+                                {s.especialidade && <span className="max-w-full truncate text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground" title={s.especialidade}>{s.especialidade}</span>}
                                 {s.tipo && <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{s.tipo === 'PESSOA_FISICA' ? 'PF' : 'PJ'}</span>}
                             </div>
-                            <div className="text-xs text-muted-foreground space-y-1 mb-3 flex-1">
+                            <div className="text-xs text-muted-foreground space-y-1 mb-3">
                                 {s.email && <p className="flex items-center gap-1.5 min-w-0"><Mail size={14} aria-hidden className="flex-shrink-0" /><span className="sr-only">E-mail: </span><span className="truncate">{s.email}</span></p>}
                                 {s.telefone && <p className="flex items-center gap-1.5"><Phone size={14} aria-hidden className="flex-shrink-0" /><span className="sr-only">Telefone: </span>{s.telefone}</p>}
                                 {s.pix && <p className="flex items-center gap-1.5 min-w-0"><CreditCard size={14} aria-hidden className="flex-shrink-0" /><span>PIX</span><span className="font-id truncate text-foreground">{s.pix}</span></p>}
@@ -377,7 +375,7 @@ export function Fornecedores() {
                                     </p>
                                 )}
                             </div>
-                            <div className={`flex items-center gap-1.5 pt-2 border-t border-border text-xs font-medium ${temCondicao ? 'text-ok' : 'text-muted-foreground'}`}>
+                            <div className={`mt-auto flex items-center gap-1.5 pt-2 border-t border-border text-xs font-medium ${temCondicao ? 'text-ok' : 'text-muted-foreground'}`}>
                                 <Wallet size={14} aria-hidden />
                                 <span>
                                     {temCondicao ? `${s._condicoesCount} condição(ões) de pagamento cadastrada(s)` : 'Nenhuma condição de pagamento'}

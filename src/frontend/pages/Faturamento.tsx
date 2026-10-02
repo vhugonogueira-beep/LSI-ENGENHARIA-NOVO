@@ -3,7 +3,8 @@ import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRigh
 import { T } from '../theme';
 import { fmtMoeda, fmtData } from '../components/atividades/constants';
 import { authFetch, downloadAuthenticatedFile } from '../lib/authFetch';
-import { CHIP, FAIXA, SOLIDO, TEXTO, TOPO, VEU, TOM_SHARING, hexTom, tomDe, type Tom } from '../lib/cores';
+import { CHIP, FAIXA, SOLIDO, TEXTO, TOPO, VEU, TOM_SHARING, TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
+import PageHeader from '../components/PageHeader';
 
 interface Atividade {
     id: string;
@@ -170,17 +171,8 @@ export default function Faturamento() {
 
     return (
         <div className="p-8 text-foreground">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-3">
-                        <span aria-hidden className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${VEU.green} ${TEXTO.green}`}>
-                            <Receipt size={20} />
-                        </span>
-                        Faturamento
-                    </h2>
-                    <p className="text-muted-foreground mt-1">Fila real (Blueprint LSI) — motor de regras, Start Faturamento e planilha padrão</p>
-                </div>
-            </div>
+            <PageHeader icone={Receipt} tom={TOM_MODULO.faturamento} titulo="Faturamento"
+                descricao="Fila real (Blueprint LSI) — motor de regras, Start Faturamento e planilha padrão" />
 
             {erro && <div role="alert" className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>}
 
@@ -201,12 +193,14 @@ export default function Faturamento() {
                     </p>
                     <div className="flex flex-col gap-1.5">
                         {resumo.semPO.slice(0, 8).map(a => (
-                            <div key={a.id} className="flex items-center gap-3 text-xs bg-secondary/30 border border-border rounded px-3 py-2">
-                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${CHIP[tomDe(TOM_SHARING, a.sharing)]}`}>{a.sharing}</span>
-                                {a.id_site_sharing && <span className="font-id text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
-                                <span className="flex-1 truncate font-medium">{a.titulo}</span>
-                                <span className="font-id text-muted-foreground">{a.codigo}</span>
-                                <span className="font-semibold">{fmtMoeda(a.valor_contrato)}</span>
+                            // Colunas fixas: sharing, site, título (flexível), código e valor
+                            // caem na mesma vertical em todas as linhas.
+                            <div key={a.id} className="grid grid-cols-[96px_140px_minmax(0,1fr)_120px_120px] items-center gap-3 text-xs bg-secondary/30 border border-border rounded px-3 py-2">
+                                <span><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${CHIP[tomDe(TOM_SHARING, a.sharing)]}`}>{a.sharing}</span></span>
+                                <span className={`truncate font-id text-[11px] ${a.id_site_sharing ? 'font-semibold text-foreground' : 'text-muted-foreground'}`} title={a.id_site_sharing || undefined}>{a.id_site_sharing || '—'}</span>
+                                <span className="truncate font-medium" title={a.titulo}>{a.titulo}</span>
+                                <span className="truncate font-id text-muted-foreground">{a.codigo}</span>
+                                <span className="text-right font-semibold tabular-nums">{fmtMoeda(a.valor_contrato)}</span>
                             </div>
                         ))}
                         {resumo.semPO.length > 8 && (
@@ -221,10 +215,11 @@ export default function Faturamento() {
 
             {/* Fila de faturamento */}
             <div className="bg-card border border-border rounded-xl p-5 mb-6">
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center justify-between gap-3 mb-4">
                     <h3 className="text-sm font-bold flex items-center gap-2">
                         <span aria-hidden className={`h-2 w-2 rounded-full ${SOLIDO.indigo}`} />
                         Fila de faturamento (pronto para faturar)
+                        <span className="text-xs font-normal text-muted-foreground tabular-nums">{prontas.length} atividade(s)</span>
                     </h3>
                     <button
                         onClick={startFaturamento}
@@ -239,13 +234,13 @@ export default function Faturamento() {
                 ) : (
                     <div className="flex flex-col gap-2">
                         {prontas.map(a => (
-                            <label key={a.id} className={`flex items-center gap-3 bg-secondary/30 hover:bg-secondary/50 border border-border border-l-4 ${FAIXA.indigo} rounded-lg px-3 py-2.5 cursor-pointer transition-colors`}>
+                            <label key={a.id} className={`grid grid-cols-[16px_96px_140px_minmax(0,1fr)_120px_120px] items-center gap-3 bg-secondary/30 hover:bg-secondary/50 border border-border border-l-4 ${FAIXA.indigo} rounded-lg px-3 py-2.5 cursor-pointer transition-colors`}>
                                 <input type="checkbox" checked={selecionadas.has(a.id)} onChange={() => toggleSel(a.id)} className="accent-primary" />
-                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${CHIP[tomDe(TOM_SHARING, a.sharing)]}`}>{a.sharing}</span>
-                                {a.id_site_sharing && <span className="font-id text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.id_site_sharing}</span>}
-                                <span className="flex-1 text-sm font-medium truncate">{a.titulo}</span>
-                                <span className="text-xs font-id text-muted-foreground">{a.codigo}</span>
-                                <span className="text-sm font-semibold w-28 text-right">{fmtMoeda(a.valor_contrato)}</span>
+                                <span><span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${CHIP[tomDe(TOM_SHARING, a.sharing)]}`}>{a.sharing}</span></span>
+                                <span className={`truncate font-id text-xs ${a.id_site_sharing ? 'font-semibold text-foreground' : 'text-muted-foreground'}`} title={a.id_site_sharing || undefined}>{a.id_site_sharing || '—'}</span>
+                                <span className="text-sm font-medium truncate" title={a.titulo}>{a.titulo}</span>
+                                <span className="truncate text-xs font-id text-muted-foreground">{a.codigo}</span>
+                                <span className="text-sm font-semibold text-right tabular-nums">{fmtMoeda(a.valor_contrato)}</span>
                             </label>
                         ))}
                     </div>
@@ -254,7 +249,7 @@ export default function Faturamento() {
 
             {/* Lotes */}
             <div className="bg-card border border-border rounded-xl p-5">
-                <h3 className="text-sm font-bold mb-4">Lotes de faturamento</h3>
+                <h3 className="text-sm font-bold mb-4 flex items-baseline gap-2">Lotes de faturamento <span className="text-xs font-normal text-muted-foreground tabular-nums">{lotes.length} lote(s)</span></h3>
                 {lotes.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground text-sm">Nenhum lote enviado ainda.</div>
                 ) : (
@@ -265,14 +260,14 @@ export default function Faturamento() {
                             const recebidoTotal = (lote.recebimentos || []).reduce((s, r) => s + r.valor_recebido, 0);
                             return (
                                 <div key={lote.id} className="border border-border rounded-lg overflow-hidden" style={{ borderLeft: `3px solid ${stageColor}` }}>
-                                    <button type="button" aria-expanded={expandido === lote.id} className="w-full text-left p-3.5 flex items-center justify-between gap-3 flex-wrap cursor-pointer" onClick={() => setExpandido(expandido === lote.id ? null : lote.id)}>
-                                        <div className="flex items-center gap-3 flex-wrap">
-                                            <span className="font-id text-xs text-muted-foreground">{lote.codigo}</span>
-                                            <span className="text-sm font-semibold">{fmtMoeda(lote.valor_total)}</span>
-                                            <span className="text-xs text-muted-foreground">{lote.atividades.length} atividade(s)</span>
-                                            <span className="text-xs text-muted-foreground">Enviado em {fmtData(lote.enviado_em)}</span>
-                                        </div>
-                                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: `${stageColor}22`, color: stageColor }}>
+                                    {/* Código | valor | atividades | envio (flexível) | status: as
+                                        mesmas colunas em todos os lotes, status no fim. */}
+                                    <button type="button" aria-expanded={expandido === lote.id} className="w-full text-left p-3.5 grid grid-cols-[140px_130px_110px_minmax(0,1fr)_160px] items-center gap-3 cursor-pointer" onClick={() => setExpandido(expandido === lote.id ? null : lote.id)}>
+                                        <span className="truncate font-id text-xs text-muted-foreground">{lote.codigo}</span>
+                                        <span className="text-right text-sm font-semibold tabular-nums">{fmtMoeda(lote.valor_total)}</span>
+                                        <span className="text-right text-xs text-muted-foreground tabular-nums">{lote.atividades.length} atividade(s)</span>
+                                        <span className="truncate text-xs text-muted-foreground">Enviado em {fmtData(lote.enviado_em)}</span>
+                                        <span className="justify-self-end text-[11px] font-bold px-2.5 py-1 rounded-full" style={{ background: `${stageColor}22`, color: stageColor }}>
                                             {FATURAMENTO_STAGES[stageIdx]?.label || lote.status}
                                         </span>
                                     </button>
@@ -306,13 +301,11 @@ export default function Faturamento() {
                                         <div className="border-t border-border p-3.5 bg-secondary/20">
                                             <div className="flex flex-col gap-1.5 mb-3">
                                                 {lote.atividades.map(fa => (
-                                                    <div key={fa.id} className="flex justify-between text-xs bg-secondary/40 rounded-md px-2.5 py-1.5">
-                                                        <span className="flex flex-wrap gap-x-3">
-                                                            <span className="font-semibold">{fa.atividade.sharing}</span>
-                                                            <span className={`font-id ${fa.atividade.id_site_sharing ? '' : 'text-muted-foreground'}`}>{fa.atividade.id_site_sharing || '—'}</span>
-                                                            <span>{fa.atividade.titulo}</span>
-                                                        </span>
-                                                        <span className="font-semibold">{fmtMoeda(fa.valor_incluido)}{fa.percentual_marco != null ? ` (${fa.percentual_marco}%)` : ''}</span>
+                                                    <div key={fa.id} className="grid grid-cols-[96px_140px_minmax(0,1fr)_170px] items-center gap-3 text-xs bg-secondary/40 rounded-md px-2.5 py-1.5">
+                                                        <span className="truncate font-semibold">{fa.atividade.sharing}</span>
+                                                        <span className={`truncate font-id ${fa.atividade.id_site_sharing ? '' : 'text-muted-foreground'}`}>{fa.atividade.id_site_sharing || '—'}</span>
+                                                        <span className="truncate" title={fa.atividade.titulo}>{fa.atividade.titulo}</span>
+                                                        <span className="text-right font-semibold tabular-nums">{fmtMoeda(fa.valor_incluido)}{fa.percentual_marco != null ? ` (${fa.percentual_marco}%)` : ''}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -481,9 +474,10 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
 
     return (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
-            <div className="flex items-center justify-between mb-1">
+            {/* Contagens presas ao título do bloco, não soltas na ponta direita. */}
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
                 <h3 className="text-sm font-bold">POs recebidas: faturamento por linha</h3>
-                <span className="flex gap-3 text-xs text-muted-foreground"><span>{pos.length} PO(s)</span><span>{comSaldo} linha(s) com saldo a faturar</span></span>
+                <span className="flex gap-3 text-xs text-muted-foreground tabular-nums"><span>{pos.length} PO(s)</span><span>{comSaldo} linha(s) com saldo a faturar</span></span>
             </div>
             <p className="text-xs text-muted-foreground mb-4">
                 Cada linha da PO (material, serviço...) é faturada separadamente e em partes. Selecione as linhas,
@@ -502,22 +496,21 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                         const expandida = aberta === po.id;
                         return (
                             <div key={po.id} className="bg-secondary/30 border border-border rounded-lg">
-                                <button onClick={() => setAberta(expandida ? null : po.id)} aria-expanded={expandida} className="w-full flex items-center gap-3 flex-wrap px-3 py-2.5 text-left hover:bg-secondary/40 rounded-lg">
+                                {/* Colunas fixas por PO; o título é a única flexível. */}
+                                <button onClick={() => setAberta(expandida ? null : po.id)} aria-expanded={expandida} className="w-full grid grid-cols-[14px_96px_130px_130px_minmax(0,1fr)_72px_120px_160px_72px] items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/40 rounded-lg">
                                     {expandida ? <ChevronDown size={14} aria-hidden /> : <ChevronRight size={14} aria-hidden />}
-                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{po.atividade?.sharing}</span>
-                                    {po.atividade?.id_site_sharing && (
-                                        <span className="font-id text-[11px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{po.atividade.id_site_sharing}</span>
-                                    )}
-                                    <span className="text-xs text-muted-foreground">PO <span className="font-id">{po.numero || '—'}</span></span>
-                                    <span className="text-sm font-medium truncate flex-1 min-w-[100px]">{po.atividade?.titulo}</span>
-                                    <span className="text-xs text-muted-foreground">{linhas.length} linha(s)</span>
-                                    <span className="text-sm font-semibold">{fmtMoeda(po.valor)}</span>
+                                    <span><span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{po.atividade?.sharing}</span></span>
+                                    <span className={`truncate font-id text-[11px] ${po.atividade?.id_site_sharing ? 'font-semibold text-foreground' : 'text-muted-foreground'}`} title={po.atividade?.id_site_sharing || undefined}>{po.atividade?.id_site_sharing || '—'}</span>
+                                    <span className="truncate text-xs text-muted-foreground">PO <span className="font-id">{po.numero || '—'}</span></span>
+                                    <span className="text-sm font-medium truncate" title={po.atividade?.titulo}>{po.atividade?.titulo}</span>
+                                    <span className="text-right text-xs text-muted-foreground tabular-nums">{linhas.length} linha(s)</span>
+                                    <span className="text-right text-sm font-semibold tabular-nums">{fmtMoeda(po.valor)}</span>
                                     {pendenteDaPO > 0
-                                        ? <span className="text-xs font-semibold text-warn">Pendente {fmtMoeda(pendenteDaPO)}</span>
-                                        : <span className="text-xs font-semibold text-ok">100% faturado</span>}
-                                    {po.arquivos?.[0] && (
+                                        ? <span className="text-right text-xs font-semibold text-warn tabular-nums">Pendente {fmtMoeda(pendenteDaPO)}</span>
+                                        : <span className="text-right text-xs font-semibold text-ok">100% faturado</span>}
+                                    <span className="text-right">{po.arquivos?.[0] && (
                                         <a href={`/api/pos/arquivos/${po.arquivos[0].id}/download`} onClick={e => e.stopPropagation()} className="text-xs text-primary hover:underline">Baixar PDF</a>
-                                    )}
+                                    )}</span>
                                 </button>
 
                                 {expandida && (
@@ -527,10 +520,21 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                         </div>
                                     ) : (
                                         <div className="px-3 pb-3 overflow-x-auto">
-                                            <table className="w-full text-[11px] min-w-[860px]">
+                                            <table className="w-full table-fixed text-[11px] min-w-[860px]">
+                                                <colgroup>
+                                                    <col className="w-8" />
+                                                    <col className="w-16" />
+                                                    <col />
+                                                    <col className="w-32" />
+                                                    <col className="w-28" />
+                                                    <col className="w-28" />
+                                                    <col className="w-36" />
+                                                    <col className="w-36" />
+                                                    <col className="w-44" />
+                                                </colgroup>
                                                 <thead className="text-muted-foreground">
                                                     <tr className="text-left border-b border-border">
-                                                        <th className="py-1.5 w-8"><span className="sr-only">Selecionar</span></th>
+                                                        <th className="py-1.5"><span className="sr-only">Selecionar</span></th>
                                                         <th className="py-1.5 px-2">Linha</th>
                                                         <th className="py-1.5 px-2">Serviço</th>
                                                         <th className="py-1.5 px-2">Site</th>
@@ -538,7 +542,7 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                         <th className="py-1.5 px-2 text-center">Autorizado</th>
                                                         <th className="py-1.5 px-2 text-right">Já faturado</th>
                                                         <th className="py-1.5 px-2 text-right">Pendente</th>
-                                                        <th className="py-1.5 px-2 text-right w-40">% a faturar agora</th>
+                                                        <th className="py-1.5 px-2 text-right">% a faturar agora</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -548,17 +552,17 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                         const bloqueada = semSaldo || !l.autorizado;
                                                         return (
                                                             <tr key={l.id} className={`border-b border-border/40 ${sel ? 'bg-primary/5' : ''} ${!l.autorizado ? 'opacity-70' : ''}`}>
-                                                                <td className="py-1.5 px-2">
+                                                                <td className="py-1.5 px-2 align-top">
                                                                     <input type="checkbox" checked={sel} disabled={bloqueada}
                                                                         aria-label={`Selecionar linha ${l.numero_linha}`}
                                                                         title={!l.autorizado ? 'Autorize a linha antes de faturar' : undefined}
                                                                         onChange={() => alternarLinha(l)} className="accent-primary" />
                                                                 </td>
-                                                                <td className="py-1.5 px-2 font-id">{l.numero_linha}</td>
-                                                                <td className="py-1.5 px-2">{l.descricao}</td>
-                                                                <td className={`py-1.5 px-2 font-id ${l.site ? 'font-semibold' : 'text-muted-foreground'}`}>{l.site || '—'}</td>
-                                                                <td className="py-1.5 px-2 text-right">{fmtMoeda(l.valor_total)}</td>
-                                                                <td className="py-1.5 px-2 text-center">
+                                                                <td className="py-1.5 px-2 align-top font-id">{l.numero_linha}</td>
+                                                                <td className="py-1.5 px-2 align-top truncate" title={l.descricao}>{l.descricao}</td>
+                                                                <td className={`py-1.5 px-2 align-top truncate font-id ${l.site ? 'font-semibold' : 'text-muted-foreground'}`} title={l.site || undefined}>{l.site || '—'}</td>
+                                                                <td className="py-1.5 px-2 align-top text-right tabular-nums">{fmtMoeda(l.valor_total)}</td>
+                                                                <td className="py-1.5 px-2 align-top text-center">
                                                                     <button onClick={() => alternarAutorizacao(l)}
                                                                         title={l.autorizado ? 'Revogar autorização desta linha' : 'Autorizar esta linha'}
                                                                         className={`cursor-pointer inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${l.autorizado
@@ -569,13 +573,13 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                                             : <>Autorizar</>}
                                                                     </button>
                                                                 </td>
-                                                                <td className={`py-1.5 px-2 text-right ${l.percentual_faturado > 0 ? '' : 'text-muted-foreground'}`}>
+                                                                <td className={`py-1.5 px-2 align-top text-right tabular-nums ${l.percentual_faturado > 0 ? '' : 'text-muted-foreground'}`}>
                                                                     {l.percentual_faturado > 0 ? <span className="inline-flex gap-2"><span className="text-muted-foreground">{l.percentual_faturado}%</span><span>{fmtMoeda(l.valor_faturado)}</span></span> : '—'}
                                                                 </td>
-                                                                <td className={`py-1.5 px-2 text-right ${semSaldo ? 'text-muted-foreground' : 'font-semibold'}`}>
+                                                                <td className={`py-1.5 px-2 align-top text-right tabular-nums ${semSaldo ? 'text-muted-foreground' : 'font-semibold'}`}>
                                                                     {semSaldo ? '—' : <span className="inline-flex gap-2"><span className="text-muted-foreground font-normal">{l.percentual_pendente}%</span><span>{fmtMoeda(l.valor_pendente)}</span></span>}
                                                                 </td>
-                                                                <td className="py-1.5 px-2 text-right">
+                                                                <td className="py-1.5 px-2 align-top text-right tabular-nums">
                                                                     {sel ? (
                                                                         <div className="flex items-center gap-1 justify-end">
                                                                             <input type="number" min="1" max={l.percentual_pendente} value={selecao[l.id]} aria-label={`Percentual a faturar da linha ${l.numero_linha}`}
@@ -781,13 +785,13 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
 /** Valor neutro; cor só quando é alerta. Sem valor, "—" sem cor. */
 function KpiCard({ icon, label, value, sub, alerta, tom = 'slate' }: { icon: React.ReactNode; label: string; value: string | null; sub: string; alerta?: string; tom?: Tom }) {
     return (
-        <div className={`bg-card border border-border border-t-2 ${TOPO[tom]} rounded-xl p-4`} style={alerta ? { borderColor: `${alerta}66`, borderTopColor: alerta } : undefined}>
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-                <span className={`flex h-7 w-7 items-center justify-center rounded-full ${VEU[tom]} ${TEXTO[tom]}`}>{icon}</span>
+        <div className={`min-w-0 bg-card border border-border border-t-2 ${TOPO[tom]} rounded-xl p-4`} style={alerta ? { borderColor: `${alerta}66`, borderTopColor: alerta } : undefined}>
+            <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="truncate text-xs font-semibold text-muted-foreground" title={label}>{label}</span>
+                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${VEU[tom]} ${TEXTO[tom]}`}>{icon}</span>
             </div>
-            <div className={`text-xl font-bold ${value == null ? 'text-muted-foreground' : ''}`} style={value != null && alerta ? { color: alerta } : undefined}>{value ?? '—'}</div>
-            <div className="text-xs text-muted-foreground mt-1">{sub}</div>
+            <div className={`truncate text-xl font-bold tabular-nums ${value == null ? 'text-muted-foreground' : ''}`} style={value != null && alerta ? { color: alerta } : undefined}>{value ?? '—'}</div>
+            <div className="truncate text-xs text-muted-foreground mt-1" title={sub}>{sub}</div>
         </div>
     );
 }

@@ -3,8 +3,9 @@ import { authFetch } from "../lib/authFetch";
 import { useEhAdmin } from "../lib/permissoes";
 import UsuariosAcessos from "../components/configuracoes/UsuariosAcessos";
 import { T as TEMA } from "../theme";
-import { Building2, Landmark, CreditCard, Mail, Users, X, Plus } from "lucide-react";
-import { hexTom, type Tom } from "../lib/cores";
+import { Building2, Landmark, CreditCard, Mail, Users, X, Plus, Settings } from "lucide-react";
+import { hexTom, TOM_MODULO, type Tom } from "../lib/cores";
+import PageHeader from "../components/PageHeader";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Configurações — o cadastro da própria LS Office.
@@ -302,15 +303,13 @@ export default function Configuracoes() {
   ];
 
   return (
-    <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14, maxWidth: 1080 }}>
+    <div className="p-8" style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 1080 + 64 }}>
       {toast && <div role="status" style={{ position: "fixed", bottom: 20, right: 20, background: T.bg2, color: T.txPri, border: `1px solid ${T.green}`, borderLeft: `3px solid ${T.green}`, padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 600, fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.18)" }}>{toast}</div>}
 
-      <div>
-        <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Configurações da LS Office</h1>
-        <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0", maxWidth: 640, lineHeight: 1.55 }}>
-          O que está aqui sai nos documentos e nas notas: o logo e o CNPJ no cabeçalho do cronograma
-          e da PV, os dados fiscais na nota, e a conta principal no e-mail de faturamento.
-        </p>
+      {/* Na coluna com gap, o espaço abaixo do cabeçalho vem do gap. */}
+      <div className="[&>header]:mb-0">
+        <PageHeader icone={Settings} tom={TOM_MODULO.configuracoes} titulo="Configurações da LS Office"
+          descricao="O que está aqui sai nos documentos e nas notas: o logo e o CNPJ no cabeçalho do cronograma e da PV, os dados fiscais na nota, e a conta principal no e-mail de faturamento." />
       </div>
 
       {erro && (
@@ -589,22 +588,23 @@ export function ListaOperadoras({ operadoras, aoSalvar, aoRemover }: {
 
       {operadoras.length === 0 && <div style={{ ...S.card, color: T.txMut, fontSize: 12 }}>Nenhuma operadora cadastrada.</div>}
 
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+      {/* Grade de colunas iguais; botões presos ao rodapé de cada cartão. */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, alignItems: "stretch" }}>
         {operadoras.map(o => (
-          <div key={o.id} style={{ ...S.card, width: 250 }}>
+          <div key={o.id} style={{ ...S.card, display: "flex", flexDirection: "column", minWidth: 0 }}>
             <div style={{ height: 52, background: "#fff", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
               {o.logo_url
                 ? <img src={o.logo_url} alt={o.nome} style={{ maxHeight: 40, maxWidth: 180, objectFit: "contain" }} />
                 : <span style={{ color: "#334155", fontWeight: 700, fontSize: 15 }}>{o.nome}</span>}
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, display: "flex", gap: 8 }}>
-              <span>{o.nome}</span>
+            <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, display: "flex", gap: 8, minWidth: 0 }}>
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={o.nome}>{o.nome}</span>
               {o.sigla && <span style={{ color: T.txMut, fontWeight: 500 }}>{o.sigla}</span>}
             </div>
             <div style={{ fontSize: 11, color: o.logo_url ? T.txMut : T.amber, marginTop: 3 }}>
               {o.logo_url ? "Logo cadastrado" : "Sem logo — sai como texto"}
             </div>
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: "auto", paddingTop: 10 }}>
               <label style={{ ...S.btn, padding: "6px 11px", fontSize: 11, cursor: "pointer" }}>
                 {o.logo_url ? "Trocar logo" : "Enviar logo"}
                 <input type="file" accept="image/*" style={{ display: "none" }}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { KeyRound, ShieldCheck, UserRound, Mail, type LucideIcon } from 'lucide-react';
-import { TEXTO, type Tom } from '../lib/cores';
+import { KeyRound, ShieldCheck, UserRound, Mail, User, type LucideIcon } from 'lucide-react';
+import { TEXTO, TOM_MODULO, type Tom } from '../lib/cores';
+import PageHeader from '../components/PageHeader';
 import MinhaAssinaturaEmail from '../components/perfil/MinhaAssinaturaEmail';
 import { authFetch } from '../lib/authFetch';
 import { useSessao } from '../lib/permissoes';
@@ -83,13 +84,11 @@ export default function MeuPerfil() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl space-y-4 p-5">
-      <div>
-        <h1 className="text-xl font-bold text-[hsl(var(--titulo))]">Meu perfil</h1>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Dados e preferências pertencem ao seu usuário, não à configuração da LS Office.
-        </p>
-      </div>
+    // Alinhado à esquerda como as demais telas (antes centralizado em 5xl,
+    // o título ficava fora da linha dos outros módulos).
+    <main className="max-w-[1088px] space-y-4 p-8 text-foreground">
+      <PageHeader icone={User} tom={TOM_MODULO.perfil} titulo="Meu perfil"
+        descricao="Dados e preferências pertencem ao seu usuário, não à configuração da LS Office." />
 
       {(erro || mensagem) && (
         <div role={erro ? 'alert' : 'status'} className={`rounded-lg border px-3 py-2 text-xs ${

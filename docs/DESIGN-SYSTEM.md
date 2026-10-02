@@ -110,3 +110,28 @@ digitado pelo usuário.
   layout do cliente/da LS e **não** seguem este sistema.
 - O tema troca recarregando a página (ver `theme.ts`): os estilos inline são
   resolvidos no carregamento do módulo.
+
+## Disposição (layout)
+
+Revisão de 02/10/2026, a partir de "informações descentralizadas" em monitor
+largo.
+
+- **Largura máxima de 1440px, centralizada** — aplicada uma vez em
+  `shell/AppShell.tsx`. Nenhuma página estica até a borda da janela.
+- **Cabeçalho único** `components/PageHeader.tsx`: ícone na cor do módulo,
+  título 24px, descrição 13px, ações à direita na altura do título. Margem
+  da página: 32px.
+- **Tabela tem plano de colunas.** `table-fixed` + `<colgroup>` com larguras
+  definidas e uma coluna flexível (a de texto principal). A largura não pode
+  depender do conteúdo da linha. Texto longo trunca com `title`.
+- **Alinhamento por tipo de dado:** texto à esquerda; dinheiro, quantidade e
+  porcentagem à direita, **cabeçalho alinhado como a coluna**; status e ações
+  no fim da linha, à direita.
+- **Primeira linha de cada célula é a que se lê de relance** (Site ID, cliente,
+  status) e todas as células começam no topo (`align-top`). Informação
+  secundária vai abaixo, menor e apagada — nunca uma pílula sozinha numa linha
+  entre duas informações principais.
+- **Nada órfão.** Contagem, "limpar filtros" e totais ficam presos ao bloco que
+  descrevem (em cima da tabela), não soltos na ponta direita de uma barra.
+- **Indicadores em grade de colunas iguais.** Sequência com operação (A − B = C)
+  ocupa a largura toda, com os sinais alinhados pela base dos valores.

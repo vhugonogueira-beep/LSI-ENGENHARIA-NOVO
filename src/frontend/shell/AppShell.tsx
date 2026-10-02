@@ -63,7 +63,7 @@ export default function AppShell(props: AppShellProps) {
     } = props;
 
     return (
-        <div className="scroll-min" style={{ fontFamily: "'Inter','DM Sans',system-ui,sans-serif", minHeight: "100vh", background: T.bg0, color: T.txPri, display: "flex", fontSize: 15, position: "relative", WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" } as React.CSSProperties}>
+        <div className="scroll-min" style={{ minHeight: "100vh", background: T.bg0, color: T.txPri, display: "flex", position: "relative", WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" } as React.CSSProperties}>
             <Sidebar
                 tab={tab} setTab={setTab}
                 sidePinned={sidePinned} setSidePinned={setSidePinned}
@@ -83,6 +83,9 @@ export default function AppShell(props: AppShellProps) {
                 transition: "margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1)"
             }}>
                 {tab !== "secretaria" && <TopBar tab={tab} user={user} obra={obra} orcamentoSiteId={orcamentoSiteId} orcArea={orcArea} />}
+                {/* Grade comum: em monitor largo o conteúdo para em 1440px e centraliza.
+                    Sem isso as tabelas esticavam até a borda e as colunas viravam ilhas. */}
+                <div style={{ maxWidth: 1440, margin: "0 auto", width: "100%" }}>
                 {tab === "overview" && <Dashboard onNavigateTo={setTab} />}
                 {/* Pipeline = a mesma tela de Atividades em kanban. TabDemandas ficou sobre
                     o modelo Demanda (cadastro antigo) e mostrava outro conjunto de dados. */}
@@ -106,6 +109,7 @@ export default function AppShell(props: AppShellProps) {
                 {tab === "resumo" && abasLegadas.resumo()}
                 {tab === "historico" && abasLegadas.historico()}
                 {/* Tabela, Faturas e Secretária LS saíram da navegação (set/2026). */}
+                </div>
             </div>
             {modais}
         </div>

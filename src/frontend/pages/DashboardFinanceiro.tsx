@@ -4,6 +4,8 @@ import { STATUS_OPERACIONAL, STATUS_FATURAMENTO } from "../components/atividades
 import { T } from '../theme';
 // Cor com significado (docs/DESIGN-SYSTEM.md): cada indicador tem a sua.
 import { TOM_SHARING, TOM_STATUS, hexTom, tomDe, type Tom } from '../lib/cores';
+import { TrendingUp } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Dashboard Financeiro — controladoria sobre o modelo real (Atividade,
@@ -64,20 +66,14 @@ export default function DashboardFinanceiro() {
   const semCusto = dados.contagem.semContratacao === dados.contagem.total && dados.contagem.total > 0;
 
   return (
-    <div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 16, flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Dashboard Financeiro</h1>
-          <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0" }}>
-            Controladoria por atividade, com impostos a {pct(dados.aliquota * 100)} (cadastro da empresa)
-          </p>
-        </div>
-        <select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período"
+    <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 16 }}>
+      <PageHeader icone={TrendingUp} tom="violet" titulo="Dashboard Financeiro"
+        descricao={<>Controladoria por atividade, com impostos a {pct(dados.aliquota * 100)} (cadastro da empresa)</>}
+        acoes={<select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período"
           style={{ padding: "8px 12px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, minWidth: 200 }}>
           <option value="TODOS">Todas as atividades</option>
           {dados.mesesDisponiveis.map(m => <option key={m} value={m}>{nomeMes(m)}</option>)}
-        </select>
-      </div>
+        </select>} />
 
       {dados.contagem.total === 0 && (
         <Aviso cor={T.txMut}>Nenhuma atividade em {nomeMes(mes)}.</Aviso>
@@ -92,16 +88,16 @@ export default function DashboardFinanceiro() {
         </Aviso>
       )}
       {dados.contagem.semValorComercial > 0 && (
-        <Aviso cor={T.txMut}>
-          {dados.contagem.semValorComercial} de {dados.contagem.total} atividade(s) sem valor comercial —
-          não entram na receita até o orçamento ser aprovado.
+        <Aviso cor={T.amber}>
+          <strong>{dados.contagem.semValorComercial} de {dados.contagem.total} atividade(s) sem valor comercial.</strong>{" "}
+          Elas não entram na receita até o orçamento ser aprovado.
         </Aviso>
       )}
 
       {/* Cadeia da seção 14 */}
       <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "16px 18px" }}>
         <h2 style={{ fontSize: 12, fontWeight: 600, color: T.txMut, margin: "0 0 14px" }}>Da receita bruta à margem</h2>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 0 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(140px,1fr) auto minmax(140px,1fr) auto minmax(140px,1fr) auto minmax(140px,1fr) auto minmax(160px,1.2fr)", alignItems: "end", columnGap: 8, overflowX: "auto" }}>
           <Etapa tom="green" rotulo="Receita bruta" valor={dados.receitaBruta} />
           <Sinal>−</Sinal>
           <Etapa tom="slate" rotulo="Impostos" valor={dados.impostos} />
@@ -135,11 +131,11 @@ export default function DashboardFinanceiro() {
           Resultado por atividade
         </div>
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, tableLayout: "fixed", minWidth: 960 }}>
             <thead style={{ background: T.bg3, color: T.txMut }}>
               <tr style={{ textAlign: "left" }}>
-                <th style={th(112)}>Código</th>
-                <th style={th()}>Atividade</th>
+                <th style={th(120)}>Código</th>
+                <th style={th(260)}>Atividade</th>
                 <th style={th(96)}>Sharing</th>
                 <th style={th(126)}>Operacional</th>
                 <th style={th(126)}>Faturamento</th>
@@ -156,7 +152,7 @@ export default function DashboardFinanceiro() {
                 return (
                   <tr key={a.id} style={{ borderTop: `1px solid ${T.brSub}` }}>
                     <td className="font-id" style={{ ...td(), fontWeight: 600, color: T.txSec }}>{a.codigo}</td>
-                    <td style={{ ...td(), color: T.txPri }}>{a.titulo}</td>
+                    <td style={{ ...td(), color: T.txPri, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }} title={a.titulo}>{a.titulo}</td>
                     <td style={{ ...td(), color: a.sharing ? hexTom(tomDe(TOM_SHARING, a.sharing)) : T.txMut, fontWeight: 600 }}>{a.sharing || "—"}</td>
                     <td style={td()}><Pill info={op} bruto={a.status_operacional} cor={hexTom(tomDe(TOM_STATUS, a.status_operacional))} /></td>
                     <td style={td()}><Pill info={fat} bruto={a.status_faturamento} /></td>
@@ -214,7 +210,7 @@ function Pill({ info, bruto, cor: corTom }: { info?: { label: string; color: str
 // O rótulo leva um ponto na cor da etapa, para casar com os KPIs abaixo.
 function Etapa({ rotulo, valor, alerta, destaque, tom = "slate" }: { rotulo: string; valor: number; alerta?: string; destaque?: boolean; tom?: Tom }) {
   return (
-    <div style={{ minWidth: 150, padding: "2px 4px" }}>
+    <div style={{ padding: "10px 12px", borderRadius: 10, background: destaque ? hexTom(tom) + "14" : T.bg3 + "80", border: `1px solid ${destaque ? hexTom(tom) + "44" : T.brSub}` }}>
       <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
         <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: hexTom(tom), flexShrink: 0 }} />
         {rotulo}
@@ -224,8 +220,9 @@ function Etapa({ rotulo, valor, alerta, destaque, tom = "slate" }: { rotulo: str
   );
 }
 
+// Alinhado pela base do valor, nao do rotulo: a conta se le na mesma linha.
 function Sinal({ children }: { children: React.ReactNode }) {
-  return <div style={{ color: T.txDis, fontSize: 15, padding: "18px 12px 0", fontWeight: 700 }}>{children}</div>;
+  return <div aria-hidden="true" style={{ color: T.txMut, fontSize: 18, fontWeight: 500, padding: "0 4px 12px", textAlign: "center" }}>{children}</div>;
 }
 
 function Kpi({ rotulo, valor, alerta, nota, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; nota?: string; tom?: Tom }) {

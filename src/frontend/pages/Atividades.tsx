@@ -6,6 +6,7 @@ import {
     REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
+import PageHeader from '../components/PageHeader';
 import { AreaChip, OperadoraChip, SharingNome } from '../components/atividades/ui';
 import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_AREA, TOM_MODULO, tomDe, type Tom } from '../lib/cores';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
@@ -323,26 +324,19 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
 
     return (
         <div className="p-8 text-foreground">
-            <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-3">
-                    <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${VEU[TOM_MODULO.atividades]} ${TEXTO[TOM_MODULO.atividades]}`} aria-hidden>
-                        <HardHat size={22} />
-                    </span>
-                    <div>
-                        <h2 className="text-3xl font-bold">Atividades</h2>
-                        <p className="text-muted-foreground mt-1">Centro operacional de implantação e operação</p>
-                    </div>
-                </div>
-                <button
-                    onClick={() => { setForm(FORM_INIT); setErro(''); setShowForm(true); }}
-                    className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-medium shadow-sm"
-                >
-                    <Plus size={16} aria-hidden /> Nova atividade
-                </button>
-            </div>
+            <PageHeader icone={HardHat} tom={TOM_MODULO.atividades} titulo="Atividades"
+                descricao="Centro operacional de implantação e operação"
+                acoes={
+                    <button
+                        onClick={() => { setForm(FORM_INIT); setErro(''); setShowForm(true); }}
+                        className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-medium shadow-sm"
+                    >
+                        <Plus size={16} aria-hidden /> Nova atividade
+                    </button>
+                } />
 
             <div className="flex items-center gap-3 mb-5">
-                <div className="relative flex-1 max-w-md">
+                <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} aria-hidden />
                     <input
                         type="text" placeholder="Buscar por código, título ou site..." aria-label="Buscar atividades"
@@ -432,14 +426,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 {gestoresNaCarteira.map(([g, n]) => <option key={g} value={g}>{g} ({n})</option>)}
                             </select>
                         )}
-                        <span className="ml-auto text-xs text-muted-foreground">
-                            {filtradas.length} de {atividades.length} atividade(s)
-                        </span>
-                        {filtrosAtivos > 0 && (
-                            <button onClick={limparFiltros} className="h-8 px-2 text-xs font-semibold text-primary hover:underline">
-                                Limpar filtros ({filtrosAtivos})
-                            </button>
-                        )}
+
                     </div>
                 </div>
             )}
@@ -473,8 +460,28 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         <button onClick={() => setSelecionadas([])} className="h-8 px-2 text-xs text-muted-foreground">Cancelar</button>
                     </div>
                 )}
+                {/* Contagem e limpeza ficam presas à tabela que descrevem, não soltas à direita dos filtros. */}
+                <div className="mb-2 flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
+                    <span><strong className="font-semibold text-foreground tabular-nums">{filtradas.length}</strong> de {atividades.length} atividade(s)</span>
+                    {filtrosAtivos > 0 && (
+                        <button onClick={limparFiltros} className="h-7 px-2 text-xs font-semibold text-primary hover:underline">
+                            Limpar filtros ({filtrosAtivos})
+                        </button>
+                    )}
+                </div>
                 <div className="bg-card border border-border rounded-xl overflow-x-auto">
-                    <table className="w-full text-[13px]">
+                    {/* Plano de colunas fixo: a largura não depende mais do conteúdo de
+                        cada linha, então as colunas não viram ilhas em monitor largo. */}
+                    <table className="w-full table-fixed min-w-[1040px] text-[13px]">
+                        <colgroup>
+                            <col className="w-11" />
+                            <col className="w-[24%]" />
+                            <col className="w-[22%]" />
+                            <col />
+                            <col className="w-36" />
+                            <col className="w-28" />
+                            <col className="w-32" />
+                        </colgroup>
                         <thead>
                             <tr className="text-left text-xs text-muted-foreground bg-secondary/40 border-b border-border whitespace-nowrap">
                                 <th className="px-3 py-2.5 align-middle w-8">
@@ -485,7 +492,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <th className="px-3 py-2.5 align-middle font-medium">Site</th>
                                 <th className="px-3 py-2.5 align-middle font-medium">Cliente e operadora</th>
                                 <th className="px-3 py-2.5 align-middle font-medium">Status e pendências</th>
-                                <th className="px-3 py-2.5 align-middle font-medium min-w-[120px]">Avanço</th>
+                                <th className="px-3 py-2.5 align-middle font-medium">Avanço</th>
                                 <th className="px-3 py-2.5 align-middle font-medium text-right">Saldo</th>
                                 <th className="px-3 py-2.5 align-middle"><span className="sr-only">Ações</span></th>
                             </tr>
@@ -507,7 +514,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 onChange={e => setSelecionadas(v => e.target.checked ? [...v, a.id] : v.filter(id => id !== a.id))}/>
                                         </td>
                                         {/* O Site ID é a âncora da linha: é por ele que a obra é chamada. */}
-                                        <td className="px-3 py-3 align-top min-w-[180px]">
+                                        <td className="px-3 py-3 align-top">
                                             {a.id_site_sharing
                                                 ? <div className="font-id text-base font-semibold leading-tight text-foreground" title={a.titulo}>{a.id_site_sharing}</div>
                                                 : <div className="text-sm text-muted-foreground" title={a.titulo}>Sem Site ID</div>}
@@ -521,16 +528,20 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             </div>
                                         </td>
                                         <td className="px-3 py-3 align-top">
-                                            <div className="whitespace-nowrap"><SharingNome sharing={a.sharing} /></div>
-                                            <div className="mt-1 text-xs">{a.operadora ? <OperadoraChip operadora={a.operadora} /> : <span className="text-muted-foreground">—</span>}</div>
-                                            {gestor && <div className="mt-1 text-xs text-muted-foreground whitespace-nowrap">Gestor {gestor}</div>}
-                                            {a.fornecedor_principal && <div className="text-xs text-muted-foreground">{a.fornecedor_principal}</div>}
+                                            {/* Sharing e operadora na mesma linha, como o Site ID ao lado:
+                                                a primeira linha de cada coluna é a que se lê de relance. */}
+                                            <div className="flex flex-wrap items-center gap-2 leading-tight">
+                                                <SharingNome sharing={a.sharing} />
+                                                {a.operadora && <span className="text-xs"><OperadoraChip operadora={a.operadora} /></span>}
+                                            </div>
+                                            {a.fornecedor_principal && <div className="mt-1.5 truncate text-xs text-muted-foreground" title={a.fornecedor_principal}>{a.fornecedor_principal}</div>}
+                                            {gestor && <div className="mt-0.5 truncate text-xs text-muted-foreground" title={`Gestor ${gestor}`}>Gestor {gestor}</div>}
                                         </td>
-                                        <td className="px-3 py-3 align-top min-w-[200px]">
+                                        <td className="px-3 py-3 align-top">
                                             <StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} />
                                             <PendenciasDaLinha a={a} onAnexarPO={() => { setPoModalId(a.id); setPoForm({ numero: '', pdf_url: '' }); }} />
                                         </td>
-                                        <td className="px-3 py-3 align-top w-36 min-w-[120px]">
+                                        <td className="px-3 py-3 align-top">
                                             {/* Verde ao chegar em 100%: a conclusão é a leitura mais
                                                 importante da coluna. O número ao lado garante que a
                                                 informação não dependa só da cor. */}

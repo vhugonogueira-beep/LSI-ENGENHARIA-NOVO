@@ -9,6 +9,7 @@ import {
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
 import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
+import PageHeader from "../components/PageHeader";
 import { CreditCard, X } from "lucide-react";
 // Cor com significado (docs/DESIGN-SYSTEM.md): origem, KPI e módulo.
 import { CHIP, FAIXA, TOM_MODULO, hexTom, type Tom } from "../lib/cores";
@@ -72,7 +73,6 @@ const dataCurta = (v: string | null) => {
 const ORIGEM_LABEL: Record<Linha['origem'], string> = { PARCELA: 'Contratação', REEMBOLSO: 'Reembolso', ADIANTAMENTO: 'Adiantamento' };
 /** Cor de cada origem: a faixa do cartão e a etiqueta dizem de onde vem o pagamento. */
 const ORIGEM_TOM: Record<Linha['origem'], Tom> = { PARCELA: 'blue', REEMBOLSO: 'violet', ADIANTAMENTO: 'orange' };
-const TOM_PAGINA = hexTom(TOM_MODULO.pagamentos);
 /** Código do banco (TIPO_DO_X) em frase: "Tipo do x". */
 const emFrase = (v: string) => { const t = v.replace(/_/g, ' ').toLocaleLowerCase('pt-BR'); return t.charAt(0).toLocaleUpperCase('pt-BR') + t.slice(1); };
 const tipoLabel = (tipo: string) => tipo === 'ADIANTAMENTO_VIAGEM' ? 'Adiantamento de viagem' : emFrase(tipo);
@@ -237,29 +237,26 @@ export default function ControlePagamentos() {
 
   if (carregando && linhas.length === 0) return <div style={{ padding: 40, color: T.txMut }}>Carregando pagamentos...</div>;
 
-  const seletorModulo = <div style={{ display: "flex", gap: 8, borderBottom: `1px solid ${T.brBase}`, padding: "0 22px" }}>
+  // As abas vêm logo abaixo do título da página, alinhadas com o conteúdo.
+  const seletorModulo = <div role="tablist" aria-label="Seções" style={{ display: "flex", gap: 8, borderBottom: `1px solid ${T.brBase}` }}>
     <button onClick={() => setModulo("PAGAMENTOS")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PAGAMENTOS" ? `2px solid ${T.blue}` : "2px solid transparent", borderRadius: 0, color: modulo === "PAGAMENTOS" ? T.blue : T.txMut }}>Pagamentos</button>
     <button onClick={() => setModulo("PRESTACOES")} style={{ ...S.btn, border: "none", borderBottom: modulo === "PRESTACOES" ? `2px solid ${T.blue}` : "2px solid transparent", borderRadius: 0, color: modulo === "PRESTACOES" ? T.blue : T.txMut }}>Prestações de contas</button>
   </div>;
 
-  if (modulo === "PRESTACOES") return <div>{seletorModulo}<PrestacaoContasViagem standalone /></div>;
+  const cabecalho = <div className="[&>header]:mb-0">
+    <PageHeader icone={CreditCard} tom={TOM_MODULO.pagamentos} titulo="Controle de Pagamentos"
+      descricao="Parcelas de contrato e reembolsos na mesma fila. O comprovante é anexado na própria linha." />
+  </div>;
+
+  if (modulo === "PRESTACOES") return <div className="p-8" style={{ display: "flex", flexDirection: "column", gap: 14 }}>{cabecalho}{seletorModulo}<PrestacaoContasViagem standalone /></div>;
 
   return (
-    <div>{seletorModulo}<div style={{ padding: 22, display: "flex", flexDirection: "column", gap: 14 }}>
+    <div><div className="p-8" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {toast && <div role="status" style={{ position: "fixed", bottom: 20, right: 20, background: T.bg2, color: T.txPri, border: `1px solid ${T.green}`, borderLeft: `3px solid ${T.green}`, padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 600, fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.18)" }}>{toast}</div>}
 
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span aria-hidden="true" style={{
-          width: 38, height: 38, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-          background: `${TOM_PAGINA}1f`, color: TOM_PAGINA, border: `1px solid ${TOM_PAGINA}40`,
-        }}><CreditCard size={18} /></span>
-        <div>
-          <h1 style={{ fontSize: 18, fontWeight: 700, color: T.txPri, margin: 0 }}>Controle de Pagamentos</h1>
-          <p style={{ fontSize: 12, color: T.txMut, margin: "5px 0 0" }}>
-            Parcelas de contrato e reembolsos na mesma fila. O comprovante é anexado na própria linha.
-          </p>
-        </div>
-      </div>
+      {/* O mb-6 do cabeçalho some dentro da coluna com gap: o espaço vem do gap. */}
+      {cabecalho}
+      {seletorModulo}
 
       <FilaAprovacoes onDecidido={carregar} />
 
@@ -271,7 +268,8 @@ export default function ControlePagamentos() {
       )}
 
       {resumo && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 12 }}>
+        // Colunas iguais, uma por indicador: os valores ficam na mesma linha.
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${resumo.formalizacoesPendentesDocumento > 0 ? 5 : 4}, minmax(0, 1fr))`, gap: 12 }}>
           <Kpi tom="amber" rotulo="A pagar" valor={resumo.aPagar ? moeda(resumo.aPagar) : null} />
           <Kpi tom="green" rotulo="Pago" valor={resumo.pago ? moeda(resumo.pago) : null} />
           <Kpi tom="indigo" rotulo="Total" valor={resumo.total ? moeda(resumo.total) : null} />
@@ -293,6 +291,11 @@ export default function ControlePagamentos() {
       </div>
 
       <div className="space-y-4">
+        {/* Contagem presa à lista que descreve, em cima dela. */}
+        <div className="flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
+          <span><strong className="font-semibold tabular-nums text-foreground">{visiveis.length}</strong> de {linhas.length} pagamento(s) · {grupos.length} favorecido(s)</span>
+          <span className="text-[11px]">Anexar o comprovante marca o pagamento como concluído.</span>
+        </div>
         {grupos.map(([favorecido, pagamentos]) => {
           const totalGrupo = pagamentos.reduce((soma, pagamento) => soma + pagamento.valor, 0);
           const categorias = Array.from(new Set(pagamentos.map(pagamento => ORIGEM_LABEL[pagamento.origem]))).join(", ");
@@ -394,9 +397,6 @@ export default function ControlePagamentos() {
             {linhas.length === 0 ? "Nenhum pagamento cadastrado ainda." : "Nenhum pagamento neste filtro."}
           </div>
         )}
-        <div className="px-1 text-[11px] text-muted-foreground">
-          Mostrando {visiveis.length} de {linhas.length}. Anexar o comprovante marca o pagamento como concluído.
-        </div>
       </div>
       {editando && <div style={{ position: "fixed", inset: 0, zIndex: 9500, background: "#000b", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }} onClick={() => setEditando(null)}>
         <div style={{ ...S.card, width: "100%", maxWidth: 480, padding: 20 }} onClick={e => e.stopPropagation()}>
@@ -421,12 +421,12 @@ export default function ControlePagamentos() {
 function Kpi({ rotulo, valor, alerta, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; tom?: Tom }) {
   const cor = hexTom(tom);
   return (
-    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderTop: `2px solid ${cor}`, borderRadius: 10, padding: "11px 15px" }}>
-      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderTop: `2px solid ${cor}`, borderRadius: 10, padding: "11px 15px", minWidth: 0 }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", overflow: "hidden" }} title={rotulo}>
         <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }} />
         {rotulo}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{valor ?? "—"}</div>
     </div>
   );
 }

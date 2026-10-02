@@ -74,16 +74,18 @@ export default function FilaAprovacoes({ onDecidido }: { onDecidido?: () => void
             {pendentes.length > 0 && (
                 <div className="mt-3 space-y-2">
                     {pendentes.map(p => (
-                        <div key={p.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border border-l-4 ${FAIXA.amber} bg-card px-3 py-2.5`}>
+                        // Descrição (flexível) | valor | ações em colunas fixas: valor e
+                        // botões caem na mesma vertical de pedido para pedido.
+                        <div key={p.id} className={`grid grid-cols-1 items-start gap-3 rounded-lg border border-border border-l-4 ${FAIXA.amber} bg-card px-3 py-2.5 md:grid-cols-[minmax(0,1fr)_130px_200px]`}>
                             <div className="min-w-0">
-                                <div className="text-[13px] font-semibold">{p.descricao}</div>
+                                <div className="truncate text-[13px] font-semibold" title={p.descricao}>{p.descricao}</div>
                                 <div className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
                                     <span>Pedido por {p.solicitante.nome} em {data(p.created_at)}</span>
                                     {p.atividade?.id_site_sharing && <span>Site <span className="font-id">{p.atividade.id_site_sharing}</span></span>}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold">{moeda(p.valor)}</span>
+                            <span className="text-sm font-bold tabular-nums md:text-right">{moeda(p.valor)}</span>
+                            <div className="flex items-center gap-2 md:justify-end">
                                 {podeAprovar && p.solicitante_id !== sessao?.id ? (
                                     <>
                                         <button onClick={() => decidir(p, 'APROVADA')} className="flex h-8 items-center gap-1 rounded-lg bg-ok px-3 text-xs font-semibold text-background"><Check size={14} aria-hidden /> Aprovar</button>
@@ -101,13 +103,9 @@ export default function FilaAprovacoes({ onDecidido }: { onDecidido?: () => void
             {mostrarDecididos && (
                 <div className="mt-3 space-y-1.5">
                     {decididos.map(p => (
-                        <div key={p.id} className={`flex flex-wrap items-center justify-between gap-2 rounded-lg border-l-4 ${p.status === 'APROVADA' ? FAIXA.green : FAIXA.rose} bg-secondary/30 px-3 py-2 text-xs`}>
+                        <div key={p.id} className={`grid grid-cols-[minmax(0,1fr)_130px_84px] items-start gap-3 rounded-lg border-l-4 ${p.status === 'APROVADA' ? FAIXA.green : FAIXA.rose} bg-secondary/30 px-3 py-2 text-xs`}>
                             <span className="min-w-0">
-                                <span className="flex flex-wrap gap-x-3">
-                                    <b className={`rounded-full px-2 py-px text-[11px] ${p.status === 'APROVADA' ? CHIP.green : CHIP.rose}`}>{p.status === 'APROVADA' ? 'Aprovado' : 'Recusado'}</b>
-                                    <span>{p.descricao}</span>
-                                    <span className="font-semibold">{moeda(p.valor)}</span>
-                                </span>
+                                <span className="block truncate font-semibold" title={p.descricao}>{p.descricao}</span>
                                 <span className="flex flex-wrap gap-x-3 text-[11px] text-muted-foreground">
                                     <span>Pedido por {p.solicitante.nome}</span>
                                     <span>Decidido por {p.decisor?.nome || '—'}{p.decidido_em ? ` em ${data(p.decidido_em)}` : ''}</span>
@@ -115,6 +113,8 @@ export default function FilaAprovacoes({ onDecidido }: { onDecidido?: () => void
                                     {p.status === 'APROVADA' && <span>Agora é só repetir a solicitação.</span>}
                                 </span>
                             </span>
+                            <span className="text-right font-semibold tabular-nums">{moeda(p.valor)}</span>
+                            <span className="text-right"><b className={`rounded-full px-2 py-px text-[11px] ${p.status === 'APROVADA' ? CHIP.green : CHIP.rose}`}>{p.status === 'APROVADA' ? 'Aprovado' : 'Recusado'}</b></span>
                         </div>
                     ))}
                 </div>

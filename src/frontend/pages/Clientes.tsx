@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, ImageUp, Plus, Save, Search, X } from 'lucide-react';
+import { Building2, Handshake, ImageUp, Plus, Save, Search, X } from 'lucide-react';
 import { authFetch } from '../lib/authFetch';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { UFS, normalizarUf } from '../components/atividades/constants';
-import { CHIP, FAIXA, SOLIDO, TEXTO, TOM_MODULO, VEU, tomDe } from '../lib/cores';
+import { CHIP, FAIXA, SOLIDO, TOM_MODULO, tomDe } from '../lib/cores';
+import PageHeader from '../components/PageHeader';
 import type { Tom } from '../lib/cores';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -131,18 +132,9 @@ export default function Clientes() {
   const inativos = itens.filter(i => !i.ativo).length;
 
   return (
-    <main className="space-y-4 p-5">
-      <div className="flex items-center gap-3">
-        <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${VEU[TOM_MODULO.clientes]} ${TEXTO[TOM_MODULO.clientes]}`}>
-          <Building2 size={20} aria-hidden />
-        </span>
-        <div>
-          <h1 className="text-xl font-bold text-[hsl(var(--titulo))]">Clientes</h1>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Cadastro mestre de clientes, sharings e operadoras. Os logos usados nos documentos passam a sair daqui.
-          </p>
-        </div>
-      </div>
+    <main className="space-y-4 p-8 text-foreground">
+      <PageHeader icone={Handshake} tom={TOM_MODULO.clientes} titulo="Clientes"
+        descricao="Cadastro mestre de clientes, sharings e operadoras. Os logos usados nos documentos passam a sair daqui." />
 
       {erro && <div className="rounded-lg border border-crit/40 bg-crit/10 p-3 text-xs text-crit">{erro}</div>}
 
@@ -250,18 +242,24 @@ export default function Clientes() {
         )}
       </div>
 
+      {/* Contagem presa à grade que descreve. */}
+      <div className="!mb-2 px-1 text-xs text-muted-foreground">
+        <strong className="font-semibold tabular-nums text-foreground">{visiveis.length}</strong> de {itens.length} cadastro(s)
+      </div>
+
       {visiveis.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
+        <p className="!mt-0 rounded-xl border border-dashed border-border p-8 text-center text-xs text-muted-foreground">
           {itens.length === 0 ? 'Nenhum cliente cadastrado ainda.' : 'Nenhum cadastro corresponde ao filtro.'}
         </p>
       ) : (
-        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        // Mesma altura por fileira; ações presas ao rodapé (mt-auto).
+        <section className="!mt-0 grid items-stretch gap-3 md:grid-cols-2 xl:grid-cols-3">
           {visiveis.map(item => (
             // Inativo precisa ser visível no cartão, não só no rótulo do botão:
             // um cadastro desligado que parece ativo volta a ser usado por engano.
             <article
               key={item.id}
-              className={`rounded-lg border border-l-4 ${FAIXA[tomDe(TOM_TIPO, item.tipo)]} bg-card p-4 ${item.ativo ? 'border-border' : 'border-border/50 opacity-60'}`}
+              className={`flex h-full flex-col rounded-lg border border-l-4 ${FAIXA[tomDe(TOM_TIPO, item.tipo)]} bg-card p-4 ${item.ativo ? 'border-border' : 'border-border/50 opacity-60'}`}
             >
               <div className="flex gap-3">
                 <div className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg bg-white p-2">
@@ -271,7 +269,7 @@ export default function Clientes() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-bold">{item.nome}</span>
+                    <span className="truncate text-sm font-bold" title={item.nome}>{item.nome}</span>
                     {!item.ativo && (
                       <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-[11px] font-semibold text-muted-foreground">
                         Inativo
@@ -288,7 +286,7 @@ export default function Clientes() {
                   </div>
                 </div>
               </div>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-auto flex gap-2 pt-4">
                 <button onClick={() => editar(item)} className="h-8 rounded-lg border border-border px-3 text-xs font-bold">
                   Editar
                 </button>

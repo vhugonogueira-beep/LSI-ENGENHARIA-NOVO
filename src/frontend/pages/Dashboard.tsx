@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Layers, PencilLine, Send, CheckCircle2, Banknote, Play, Trophy, Plus } from 'lucide-react';
+import { Layers, PencilLine, Send, CheckCircle2, Banknote, Play, Trophy, Plus, Home } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
 // Mesmos rótulos das telas de Atividades — evita a Visão Geral chamar o mesmo
 // status por outro nome.
 import { STATUS_OPERACIONAL } from '../components/atividades/constants';
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T } from '../theme';
 // Cor com significado (docs/DESIGN-SYSTEM.md): cada KPI e cada status tem a sua.
-import { TOM_SHARING, TOM_STATUS, hexTom, tomDe, type Tom } from '../lib/cores';
+import { TOM_SHARING, TOM_STATUS, TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
 
 
 // Ausência não tem cor nem número: zero sai como "—" (docs/DESIGN-SYSTEM.md).
@@ -85,13 +86,10 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
 
 
   return (
-    <div style={{ padding: '24px 28px', minHeight: '100vh', background: T.bg0, color: T.txPri }}>
+    <div className="p-8" style={{ minHeight: '100vh', background: T.bg0, color: T.txPri }}>
 
-      {/* ── Header ── */}
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 700, margin: 0 }}>Dashboard</h1>
-        <p style={{ fontSize: 12, color: T.txMut, margin: '4px 0 0' }}>Visão geral de orçamentos, atividades e receita</p>
-      </div>
+      <PageHeader icone={Home} tom={TOM_MODULO.overview} titulo="Dashboard"
+        descricao="Visão geral de orçamentos, atividades e receita" />
 
       {orfaos > 0 && (
         <div style={{
@@ -167,10 +165,10 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
                   <div key={b.id} style={{
                     padding: '11px 18px',
                     borderBottom: i < ultimosOrc.length - 1 ? `1px solid ${T.brSub}` : 'none',
-                    display: 'flex', alignItems: 'center', gap: 12,
+                    display: 'flex', alignItems: 'flex-start', gap: 12,
                   }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: T.txPri, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div title={b.assunto || b.contratante?.nome || undefined} style={{ fontSize: 13, fontWeight: 600, color: T.txPri, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {b.assunto || b.contratante?.nome || '—'}
                       </div>
                       <div style={{ fontSize: 11, color: T.txMut, marginTop: 2, display: 'flex', gap: 12 }}>
@@ -180,7 +178,7 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
                     </div>
                     <span style={{
                       fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20,
-                      background: `${st.color}18`, color: st.color, flexShrink: 0,
+                      background: `${st.color}18`, color: st.color, flexShrink: 0, minWidth: 76, textAlign: 'center',
                     }}>
                       {st.label}
                     </span>
@@ -225,11 +223,11 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
                 const corStatus = hexTom(tomDe(TOM_STATUS, key, 'slate'));
                 return (
                   <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 80, fontSize: 11, color: count > 0 ? T.txSec : T.txMut, fontWeight: 600, flexShrink: 0 }}>{info.label}</div>
+                    <div style={{ width: 110, fontSize: 11, color: count > 0 ? T.txSec : T.txMut, fontWeight: 600, flexShrink: 0 }}>{info.label}</div>
                     <div style={{ flex: 1, background: T.bg3, borderRadius: 4, height: 6, overflow: 'hidden' }}>
                       <div style={{ width: `${pct}%`, height: '100%', background: corStatus, borderRadius: 4, transition: 'width 0.4s ease' }} />
                     </div>
-                    <div style={{ width: 24, textAlign: 'right', fontSize: 12, fontWeight: 700, color: count > 0 ? T.txPri : T.txMut }}>{count > 0 ? count : '—'}</div>
+                    <div style={{ width: 32, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 12, fontWeight: 700, color: count > 0 ? T.txPri : T.txMut }}>{count > 0 ? count : '—'}</div>
                   </div>
                 );
               })}
@@ -243,7 +241,7 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
       {!loading && porSharing.length > 0 && (
         <div style={{ marginTop: 20, background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: '16px 18px' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>Atividades por sharing</div>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
             {porSharing.map(s => {
               const cor = hexTom(tomDe(TOM_SHARING, s.sharing, 'slate'));
               return (
@@ -251,8 +249,8 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
                   background: `${cor}14`, border: `1px solid ${cor}40`, borderLeft: `4px solid ${cor}`, borderRadius: 10,
                   padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10,
                 }}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: T.txPri }}>{s._count}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: cor }}>{s.sharing}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: T.txPri, fontVariantNumeric: 'tabular-nums', minWidth: 32, textAlign: 'right' }}>{s._count}</div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: cor, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.sharing}>{s.sharing}</div>
                 </div>
               );
             })}
@@ -271,7 +269,7 @@ function KpiCard({ label, value, icon, loading, small, tom = 'slate' }: { label:
   return (
     <div style={{
       background: T.bg2, border: `1px solid ${T.brBase}`, borderTop: `2px solid ${cor}`, borderRadius: 12,
-      padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+      padding: '14px 16px', display: 'flex', alignItems: 'flex-start', gap: 12, minWidth: 0,
     }}>
       <div style={{
         color: cor, background: `${cor}1a`, flexShrink: 0, display: 'flex',
@@ -279,11 +277,14 @@ function KpiCard({ label, value, icon, loading, small, tom = 'slate' }: { label:
       }}>
         {icon}
       </div>
-      <div>
-        <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600 }}>{label}</div>
-        <div style={{
+      {/* Valor numa linha de altura fixa, ancorada na base: números grandes e
+          textos menores ficam na mesma linha de leitura ao longo da fileira. */}
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={label}>{label}</div>
+        <div title={typeof value === 'string' ? value : undefined} style={{
           fontSize: small ? 15 : 24, fontWeight: 700, color: vazio ? T.txMut : T.txPri,
-          lineHeight: 1.1, marginTop: 2,
+          lineHeight: '28px', height: 28, marginTop: 2, display: 'flex', alignItems: 'flex-end',
+          fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {loading ? '…' : vazio ? '—' : value}
         </div>

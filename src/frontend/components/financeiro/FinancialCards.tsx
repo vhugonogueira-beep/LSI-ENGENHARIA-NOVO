@@ -58,6 +58,9 @@ export function FinancialPaymentCard({
   stripe?: string;
 }) {
   return <section className={`rounded-xl border border-border/80 bg-background/45 px-3.5 py-3 transition-colors hover:border-border sm:px-4 ${stripe ? `border-l-4 ${stripe}` : ''}`}>
+    {/* Valor e dados à esquerda; status e ações numa coluna de largura fixa à
+        direita, com sub-colunas fixas (status | ação principal | menu), para
+        que o seletor e os botões caiam na mesma vertical de linha para linha. */}
     <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -77,9 +80,10 @@ export function FinancialPaymentCard({
         </div>}
         {children}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2.5 lg:min-w-[210px] lg:justify-end lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
-        <div>{status}</div>
-        <div className="flex items-center gap-2">{primaryAction}{actions.length > 0 && <FinancialActionMenu actions={actions}/>}</div>
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2.5 lg:grid lg:grid-cols-[192px_152px_112px] lg:items-start lg:justify-normal lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
+        <div className="min-w-0">{status}</div>
+        <div className="flex items-center lg:[&>*]:w-full lg:[&>*]:justify-center">{primaryAction}</div>
+        <div className="flex items-center lg:justify-end">{actions.length > 0 && <FinancialActionMenu actions={actions}/>}</div>
       </div>
     </div>
   </section>;
