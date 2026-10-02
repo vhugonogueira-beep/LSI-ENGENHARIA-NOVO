@@ -658,7 +658,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         const info = STATUS_OPERACIONAL[statusId];
                         const tom = tomStatus(statusId);
                         return (
-                            <div key={statusId} className="min-w-[280px] w-[280px] flex-shrink-0 bg-card border border-border rounded-xl overflow-hidden">
+                            <div key={statusId} className="min-w-[260px] flex-1 basis-0 bg-card border border-border rounded-xl overflow-hidden">
                                 <div className={`px-3.5 py-2.5 ${VEU[tom]} border-t-2 ${TOPO[tom]} border-b border-b-border flex items-center justify-between`}>
                                     <div className="flex items-center gap-2">
                                         <span className={`w-2 h-2 rounded-full ${SOLIDO[tom]}`} aria-hidden />
