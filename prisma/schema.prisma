@@ -179,20 +179,76 @@ model Contratante {
   priceBooks        PriceBook[]
 }
 
+// Cadastro único de sites (decisão de 03/10/2026). A chave do site é a
+// DETENTORA + o ID do site nela — a detentora pode ser uma sharing (Highline,
+// IHS...) ou uma operadora dona da torre. Os IDs das operadoras que usam o
+// site ficam em SiteOperadora (mais de um por operadora: o ID varia com a
+// tecnologia). Quando a torre muda de dono, o ID antigo vai para
+// SiteIdAnterior e a busca continua achando o site por ele.
 model Site {
-  id          String    @id @default(uuid())
-  tenant_id   String
-  tenant      Tenant    @relation(fields: [tenant_id], references: [id])
-  id_site     String // ex: RJCAM15_001
-  endereco    String?
-  cidade      String?
-  uf          String?
-  contrato    String?
-  operadora   String?
-  sharing     String?
-  observacoes String?
-  budgets     Budget[]
-  demandas    Demanda[]
+  id                String  @id @default(uuid())
+  tenant_id         String
+  tenant            Tenant  @relation(fields: [tenant_id], references: [id])
+  detentora         String? // HIGHLINE | IHS | WINITY | SBA | AMERICAN TOWER | PHOENIX | VIVO | CLARO | TIM | OI | OUTROS
+  id_site_detentora String? // ex: PAMRB008 — maiúsculo, sem espaços
+  tipo_site         String? // BTS | Roof Top | Indoor | Poste/Street | Outro
+  endereco          String?
+  bairro            String?
+  cep               String?
+  cidade            String? // município (nome do IBGE)
+  uf                String?
+  latitude          Float?
+  longitude         Float?
+  proprietario_nome       String?
+  proprietario_telefone   String?
+  proprietario_email      String?
+  proprietario_observacao String?
+  observacoes       String? // comentários: acesso, chave, horários, restrições
+  created_by        String?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now()) @updatedAt
+
+  // Legado (cadastro antigo, antes de 03/10/2026). id_site espelha id_site_detentora.
+  id_site   String
+  contrato  String?
+  operadora String?
+  sharing   String?
+
+  operadoras    SiteOperadora[]
+  idsAnteriores SiteIdAnterior[]
+  atividades    Atividade[]
+  budgets       Budget[]
+  demandas      Demanda[]
+
+  @@unique([tenant_id, detentora, id_site_detentora])
+  @@index([tenant_id, uf])
+}
+
+/// ID do site numa operadora. Pode haver mais de um por operadora (um por tecnologia).
+model SiteOperadora {
+  id         String   @id @default(uuid())
+  site_id    String
+  site       Site     @relation(fields: [site_id], references: [id], onDelete: Cascade)
+  operadora  String // VIVO | CLARO | TIM | OI | OUTROS
+  id_site    String // maiúsculo, sem espaços
+  tecnologia String? // 2G | 3G | 4G | 5G | OUTRA
+  created_at DateTime @default(now())
+
+  @@unique([site_id, operadora, id_site])
+  @@index([id_site])
+}
+
+/// Detentora + ID que o site já teve (ex.: torre da Oi vendida para a Highline).
+model SiteIdAnterior {
+  id                String   @id @default(uuid())
+  site_id           String
+  site              Site     @relation(fields: [site_id], references: [id], onDelete: Cascade)
+  detentora         String
+  id_site_detentora String
+  substituido_em    DateTime @default(now())
+  registrado_por    String?
+
+  @@index([id_site_detentora])
 }
 
 model CatalogService {
@@ -819,6 +875,11 @@ model Atividade {
   id_site_operadora String? // código do site na operadora móvel
   estado            String?
   municipio         String?
+  // Cadastro único do site (detentora + ID). Os campos acima continuam sendo
+  // gravados como foto do acionamento: se a torre mudar de dono, a atividade
+  // antiga mantém o ID com que foi executada.
+  site_id           String?
+  site              Site?   @relation(fields: [site_id], references: [id])
 
   // Cinco dimensões de status independentes — Blueprint LSI, seção 05 / achado #2.
   status_operacional String @default("PLANEJAMENTO")
@@ -867,6 +928,7 @@ model Atividade {
 
   @@index([tenant_id, status_operacional, tipo_demanda])
   @@index([tenant_id, sharing])
+  @@index([site_id])
   @@index([acionamento_id])
   // Linhas de rateio de adiantamento de projeto que apontam para aqui.
   despesasRateadas ReembolsoDespesa[]

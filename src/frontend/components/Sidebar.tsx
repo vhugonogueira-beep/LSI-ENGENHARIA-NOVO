@@ -2,7 +2,7 @@ import React from 'react';
 import { LOGO_MARCA_B64 } from '../assets/logoMarca';
 import {
     BarChart3, Building2, ClipboardList, CreditCard, Download, Folder, Handshake, Home,
-    Library, LogOut, Pin, PinOff, Receipt, Settings, Target, TrendingUp, Upload, User,
+    Library, LogOut, MapPin, Pin, PinOff, Receipt, Settings, Target, TrendingUp, Upload, User,
     type LucideIcon,
 } from 'lucide-react';
 import { TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
@@ -237,6 +237,7 @@ export default function Sidebar(props: SidebarProps) {
                     {isExpanded && <TituloSecao texto="Obras" tom="blue" />}
 
                     <NavItem id="atividades" icon={Target} label="Atividades" badge={isExpanded ? "novo" : null} />
+                    <NavItem id="sites" icon={MapPin} label="Sites" />
 
                     <NavItem id="fornecedores" icon={Building2} label="Pessoas e Fornecedores" />
                     <NavItem id="relatorios" icon={BarChart3} label="Relatórios" />

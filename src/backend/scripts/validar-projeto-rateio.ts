@@ -33,6 +33,7 @@ async function criarAtividade(titulo: string, site: string) {
         body: JSON.stringify({
             titulo, tipo_demanda: 'OPERACAO', subtipo_demanda: 'VISTORIA',
             sharing: 'HIGHLINE', id_site_sharing: site, id_site_operadora: site,
+            estado: 'PA', municipio: 'Marabá', // site novo no cadastro único exige UF e município
             modelo_operacao: 'EXECUCAO_DIRETA', descricao: TESTE,
         }),
     });
@@ -203,6 +204,13 @@ async function main() {
         if (criados.projeto) {
             const r = await json(`/acionamentos/${criados.projeto}`, { method: 'DELETE' });
             if (!r.ok) limpeza.push(`projeto: HTTP ${r.status} ${r.corpo?.error || ''}`);
+        }
+        // A atividade cadastrou o site de teste no cadastro único; sem atividade, ele sai.
+        for (const codigo of ['TST001', 'TST002']) {
+            const achado = await json(`/sites/procurar?id=${codigo}&detentora=HIGHLINE`);
+            if (!achado.corpo?.site) continue;
+            const r = await json(`/sites/${achado.corpo.site.id}`, { method: 'DELETE' });
+            if (r.status !== 204) limpeza.push(`site ${codigo}: HTTP ${r.status} ${r.corpo?.error || ''}`);
         }
         conferir('limpeza: nada do teste ficou na base', limpeza.length === 0, limpeza.join(' | '));
     }

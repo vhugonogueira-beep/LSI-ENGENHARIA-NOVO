@@ -10,7 +10,7 @@ const ICONE_MODULO: Record<string, LucideIcon> = {
     overview: Home, demandas: ClipboardList, dashboard: TrendingUp, historico: Folder, orcv2: Folder,
     lpus: Library, atividades: Target, projetos: Target, controle: Target, fornecedores: Building2,
     funcionarios: Building2, relatorios: BarChart3, faturamento: Receipt, pagamentos: CreditCard,
-    clientes: Handshake, perfil: User, configuracoes: Settings,
+    clientes: Handshake, sites: MapPin, perfil: User, configuracoes: Settings,
 };
 
 // Movido de SimuladorLPU.tsx (Fase 4 — extração do shell). Mesmo layout de antes;
@@ -35,6 +35,7 @@ export const TAB_LABELS: Record<string, string> = {
     relatorios: "Relatórios",
     faturamento: "Faturamento",
     clientes: "Clientes",
+    sites: "Sites",
     secretaria: "Secretária",
     resumo: "Resumo",
     pvhighline: "PV Highline",

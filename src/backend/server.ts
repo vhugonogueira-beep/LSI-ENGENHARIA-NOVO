@@ -114,6 +114,7 @@ import prestacaoConsolidadaRoutes from './routes/prestacao-consolidada.routes';
 import emailRoutingRoutes from './routes/email-routing.routes';
 import clienteRoutes from './routes/cliente.routes';
 import paymentAttachmentRoutes from './routes/payment-attachment.routes';
+import siteRoutes from './routes/site.routes';
 
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
@@ -149,6 +150,8 @@ app.use('/api/contratos', contratoRoutes);
 app.use('/api/email-config', emailRoutingRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/payment-attachments', paymentAttachmentRoutes);
+// Antes do masterRoutes: o /api/sites antigo (lista/cria sem regra) fica encoberto.
+app.use('/api/sites', siteRoutes);
 app.use('/api', masterRoutes);
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Rota não encontrada' }));
 

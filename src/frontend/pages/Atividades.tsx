@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat } from 'lucide-react';
+import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
+    TIPOS_OBRA, TIPOS_SITE_HIGHLINE, TIPOS_SITE, tipoSiteHighline, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
     REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
@@ -54,7 +54,7 @@ const FORM_INIT = {
     titulo: '', tipo_demanda: 'IMPLANTACAO', subtipo_demanda: '', tipo_obra: '', tipo_site_highline: '', tipo_atividade: '',
     modelo_operacao: modeloOperacaoPadrao('IMPLANTACAO'), sharing: 'HIGHLINE', operadora: 'VIVO', contrato: '',
     estado: '', municipio: '', id_site_sharing: '', id_site_operadora: '', valor_contrato: '', valor_orcado: '',
-    responsavel: '', descricao: '',
+    responsavel: '', descricao: '', tipo_site: '',
 };
 
 const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_LIBERACAO', 'EM_EXECUCAO', 'CONCLUIDA', 'ON_HOLD'];
@@ -114,6 +114,50 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [form, setForm] = useState(FORM_INIT);
     const [saving, setSaving] = useState(false);
     const [erro, setErro] = useState('');
+    // Cadastro único de sites: ao digitar detentora + ID, o formulário procura o
+    // site. Achou → UF, município e tipo vêm dele; não achou → vai ser cadastrado.
+    const [siteForm, setSiteForm] = useState<{ situacao: 'vazio' | 'buscando' | 'achado' | 'novo'; site?: any; porIdAnterior?: boolean }>({ situacao: 'vazio' });
+    useEffect(() => {
+        if (!showForm) return;
+        const id = form.id_site_sharing.replace(/\s+/g, '');
+        if (!id || !form.sharing) { setSiteForm({ situacao: 'vazio' }); return; }
+        setSiteForm({ situacao: 'buscando' });
+        let vivo = true;
+        const espera = setTimeout(async () => {
+            try {
+                const r = await fetch(`/api/sites/procurar?id=${encodeURIComponent(id)}&detentora=${encodeURIComponent(form.sharing)}`);
+                const achado = r.ok ? await r.json() : null;
+                if (!vivo) return;
+                if (achado?.site) {
+                    const site = achado.site;
+                    setSiteForm({ situacao: 'achado', site, porIdAnterior: achado.encontradoPor === 'ID_ANTERIOR' });
+                    setForm(f => ({ ...f, estado: site.uf || f.estado, municipio: site.cidade || f.municipio, tipo_site: site.tipo_site || f.tipo_site }));
+                } else {
+                    setSiteForm({ situacao: 'novo' });
+                }
+            } catch {
+                if (vivo) setSiteForm({ situacao: 'novo' });
+            }
+        }, 350);
+        return () => { vivo = false; clearTimeout(espera); };
+    }, [showForm, form.sharing, form.id_site_sharing]);
+    // IDs que a operadora escolhida já tem neste site (sugestão no campo).
+    const idsDaOperadora: string[] = (siteForm.site?.operadoras || [])
+        .filter((o: any) => o.operadora === form.operadora).map((o: any) => o.id_site);
+    // Operadora dona da torre: o ID dela é o da detentora.
+    const operadoraEhDetentora = Boolean(form.operadora) && form.operadora === form.sharing;
+    // Tipo da PV Highline sugerido pelo tipo do site + tipo de obra.
+    const highlineSugerido = tipoSiteHighline(form.tipo_site, form.tipo_obra);
+    useEffect(() => {
+        if (highlineSugerido) setForm(f => (f.tipo_site_highline === highlineSugerido ? f : { ...f, tipo_site_highline: highlineSugerido }));
+    }, [highlineSugerido]);
+    useEffect(() => {
+        if (operadoraEhDetentora) setForm(f => (f.id_site_operadora === f.id_site_sharing ? f : { ...f, id_site_operadora: f.id_site_sharing }));
+    }, [operadoraEhDetentora, form.id_site_sharing]);
+    useEffect(() => {
+        // Uma operadora com um ID só neste site: preenche sozinho.
+        if (!operadoraEhDetentora && idsDaOperadora.length === 1) setForm(f => (f.id_site_operadora ? f : { ...f, id_site_operadora: idsDaOperadora[0] }));
+    }, [siteForm.site, form.operadora]);
     const [excluindo, setExcluindo] = useState<any | null>(null);
     const [poModalId, setPoModalId] = useState<string | null>(null);
     const [poForm, setPoForm] = useState({ numero: '', pdf_url: '' });
@@ -222,6 +266,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     ? (form.tipo_site_highline || null)
                     : null,
                 tipo_atividade: form.tipo_atividade || null,
+                tipo_site: form.tipo_site || null,
                 operadora: form.operadora || null,
                 contrato: form.contrato || null,
                 estado: normalizarUf(form.estado) || null,
@@ -423,7 +468,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 {ufsNaCarteira.map(([uf, n]) => <option key={uf} value={uf}>{uf} ({n})</option>)}
                             </select>
                             <select value={filtros.sharing} onChange={e => setFiltro('sharing', e.target.value)} aria-label="Sharing" className={`${CAMPO} w-full`}>
-                                <option value="">Todo sharing</option>
+                                <option value="">Toda detentora</option>
                                 {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                             <select value={filtros.operadora} onChange={e => setFiltro('operadora', e.target.value)} aria-label="Operadora" className={`${CAMPO} w-full`}>
@@ -769,9 +814,10 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         {TIPOS_DEMANDA.map(t => <option key={t} value={t}>{TIPOS_DEMANDA_LABEL[t]}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="Sharing / Detentora *">
-                                    <select value={form.sharing} onChange={e => setForm(f => ({ ...f, sharing: e.target.value }))} className="input">
-                                        {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
+                                <Field label="Tipo de obra">
+                                    <select value={form.tipo_obra} onChange={e => setForm(f => ({ ...f, tipo_obra: e.target.value }))} className="input">
+                                        <option value="">—</option>
+                                        {TIPOS_OBRA.map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </Field>
                             </div>
@@ -783,21 +829,77 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     </select>
                                 </Field>
                             )}
-                            <div className="grid grid-cols-2 gap-3">
-                                <Field label="Operadora">
-                                    <select value={form.operadora} onChange={e => setForm(f => ({ ...f, operadora: e.target.value }))} className="input">
-                                        {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
-                                    </select>
-                                </Field>
-                                <Field label="Tipo de obra">
-                                    <select value={form.tipo_obra} onChange={e => setForm(f => ({ ...f, tipo_obra: e.target.value }))} className="input">
+                            {/* Site: cadastro único pela detentora + ID (03/10/2026). */}
+                            <fieldset className="flex flex-col gap-3 rounded-xl border border-border p-4">
+                                <legend className="flex items-center gap-1.5 px-1 text-xs font-semibold text-foreground"><MapPin size={13} aria-hidden /> Site</legend>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Field label="Detentora *">
+                                        <select value={form.sharing} onChange={e => setForm(f => ({ ...f, sharing: e.target.value }))} className="input">
+                                            {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
+                                        </select>
+                                    </Field>
+                                    <Field label="ID do site na detentora *">
+                                        <input value={form.id_site_sharing} onChange={e => setForm(f => ({ ...f, id_site_sharing: e.target.value.toUpperCase() }))}
+                                            placeholder="Ex: PAMRB008" required className="input font-id" />
+                                    </Field>
+                                </div>
+                                {siteForm.situacao === 'buscando' && <p className="text-xs text-muted-foreground">Procurando o site…</p>}
+                                {siteForm.situacao === 'achado' && (
+                                    <p className="rounded-lg border border-ok/40 bg-ok/10 px-3 py-2 text-xs text-ok">
+                                        Site já cadastrado{siteForm.porIdAnterior ? ` (hoje ${siteForm.site.detentora} ${siteForm.site.id_site_detentora})` : ''}
+                                        {' — '}{siteForm.site.cidade || '—'}/{siteForm.site.uf || '—'}
+                                        {siteForm.site.tipo_site ? ` · ${siteForm.site.tipo_site}` : ''}
+                                        {` · ${siteForm.site._count?.atividades ?? 0} atividade(s) anterior(es)`}
+                                    </p>
+                                )}
+                                {siteForm.situacao === 'novo' && (
+                                    <p className="rounded-lg border border-info/40 bg-info/10 px-3 py-2 text-xs text-info">
+                                        Site novo — será cadastrado com a UF e o município abaixo. Endereço, coordenadas e proprietário se completam depois, na tela Sites.
+                                    </p>
+                                )}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Field label="Operadora">
+                                        <select value={form.operadora} onChange={e => setForm(f => ({ ...f, operadora: e.target.value, id_site_operadora: '' }))} className="input">
+                                            {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                                        </select>
+                                    </Field>
+                                    <Field label="ID do site na operadora *">
+                                        <input value={form.id_site_operadora} onChange={e => setForm(f => ({ ...f, id_site_operadora: e.target.value.toUpperCase() }))}
+                                            list="ids-operadora-site" disabled={operadoraEhDetentora}
+                                            placeholder={idsDaOperadora.length ? `Já cadastrado: ${idsDaOperadora.join(', ')}` : 'Ex: PAMBA48'} required className="input font-id" />
+                                        <datalist id="ids-operadora-site">{idsDaOperadora.map(i => <option key={i} value={i} />)}</datalist>
+                                    </Field>
+                                </div>
+                                {operadoraEhDetentora && <p className="-mt-1 text-[11px] text-muted-foreground">A operadora é a dona da torre: o ID dela é o da detentora.</p>}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Field label={`UF${siteForm.situacao !== 'achado' ? ' *' : ''}`}>
+                                        <select
+                                            value={form.estado}
+                                            onChange={e => setForm(f => ({ ...f, estado: e.target.value, municipio: e.target.value === f.estado ? f.municipio : '' }))}
+                                            required={siteForm.situacao !== 'achado'} disabled={siteForm.situacao === 'achado'}
+                                            className="input"
+                                        >
+                                            <option value="">— Selecione —</option>
+                                            {UFS.map(uf => <option key={uf.sigla} value={uf.sigla}>{uf.sigla} — {uf.nome}</option>)}
+                                        </select>
+                                    </Field>
+                                    <Field label={`Município${siteForm.situacao !== 'achado' ? ' *' : ''}`}>
+                                        {siteForm.situacao === 'achado'
+                                            ? <input value={form.municipio} disabled className="input" />
+                                            : <MunicipioInput uf={form.estado} value={form.municipio} className="input"
+                                                onChange={nome => setForm(f => ({ ...f, municipio: nome }))} />}
+                                    </Field>
+                                </div>
+                                <Field label="Tipo de site">
+                                    <select value={form.tipo_site} onChange={e => setForm(f => ({ ...f, tipo_site: e.target.value }))} className="input"
+                                        disabled={siteForm.situacao === 'achado' && Boolean(siteForm.site?.tipo_site)}>
                                         <option value="">—</option>
-                                        {TIPOS_OBRA.map(t => <option key={t} value={t}>{t}</option>)}
+                                        {TIPOS_SITE.map(t => <option key={t} value={t}>{t}</option>)}
                                     </select>
                                 </Field>
-                            </div>
+                            </fieldset>
                             {form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && (
-                                <Field label="Tipo de site Highline *">
+                                <Field label={`Tipo de site Highline *${highlineSugerido ? ' — sugerido pelo tipo de site e de obra' : ''}`}>
                                     <select required value={form.tipo_site_highline} onChange={e => setForm(f => ({ ...f, tipo_site_highline: e.target.value }))} className="input">
                                         <option value="">Selecione...</option>
                                         {TIPOS_SITE_HIGHLINE.map(type => <option key={type} value={type}>{type}</option>)}
@@ -819,36 +921,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <input value={form.tipo_atividade} onChange={e => setForm(f => ({ ...f, tipo_atividade: e.target.value }))}
                                     placeholder="Ex: Instalação de antena, SPDA, obra civil..." className="input" />
                             </Field>
-                            <div className="grid grid-cols-2 gap-3">
-                                <Field label="Site ID sharing *">
-                                    <input value={form.id_site_sharing} onChange={e => setForm(f => ({ ...f, id_site_sharing: e.target.value }))}
-                                        placeholder="Ex: PAPUP2064" required className="input" />
-                                </Field>
-                                <Field label="Site ID operadora *">
-                                    <input value={form.id_site_operadora} onChange={e => setForm(f => ({ ...f, id_site_operadora: e.target.value }))}
-                                        placeholder="Ex: PAPCJ001" required className="input" />
-                                </Field>
-                            </div>
                             <Field label="Contrato">
                                 <input value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} className="input" />
                             </Field>
-                            <div className="grid grid-cols-2 gap-3">
-                                <Field label={`UF${form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' ? ' *' : ''}`}>
-                                    <select
-                                        value={form.estado}
-                                        onChange={e => setForm(f => ({ ...f, estado: e.target.value, municipio: e.target.value === f.estado ? f.municipio : '' }))}
-                                        required={form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO'}
-                                        className="input"
-                                    >
-                                        <option value="">— Selecione —</option>
-                                        {UFS.map(uf => <option key={uf.sigla} value={uf.sigla}>{uf.sigla} — {uf.nome}</option>)}
-                                    </select>
-                                </Field>
-                                <Field label="Município">
-                                    <MunicipioInput uf={form.estado} value={form.municipio} className="input"
-                                        onChange={nome => setForm(f => ({ ...f, municipio: nome }))} />
-                                </Field>
-                            </div>
                             {/* Valor de contrato e custo orçado não entram na abertura: nascem
                                 do orçamento/negociação e são editados depois, no cockpit. */}
                             <Field label="Responsável / Gestor">

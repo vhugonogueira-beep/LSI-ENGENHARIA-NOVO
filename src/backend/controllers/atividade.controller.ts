@@ -8,6 +8,7 @@ import { removerArquivoDoDisco } from '../services/po-arquivo.service';
 import { sincronizarPendenciasAtividade } from '../services/sincronizacao-pendencias.service';
 import { calcularPendenciasAtividade, contarComprovantesPendentes } from '../services/pendencias-atividade.service';
 import { lpusDaAtividade } from '../services/lpu-atividade.service';
+import { vincularSiteDaAtividade, tipoSiteHighline } from '../services/site.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -186,15 +187,32 @@ export async function createAtividade(req: Request, res: Response) {
     try {
         const tenant_id = await getTenantId(req);
         const {
-            titulo, acionamento_id, tipo_demanda, subtipo_demanda, tipo_obra, tipo_site_highline, tipo_atividade, modelo_operacao,
-            sharing, operadora, contratante_id, contrato, id_site_sharing, id_site_operadora, estado, municipio,
-            valor_contrato, valor_orcado, responsavel, descricao,
+            titulo, acionamento_id, tipo_demanda, subtipo_demanda, tipo_obra, tipo_atividade, modelo_operacao,
+            sharing, operadora, contratante_id, contrato, id_site_sharing, estado: estadoInformado, municipio: municipioInformado,
+            valor_contrato, valor_orcado, responsavel, descricao, tipo_site,
             data_inicio_planejada, data_fim_planejada,
         } = req.body;
+        // Operadora dona da torre: o ID dela é o da detentora.
+        const id_site_operadora = req.body.id_site_operadora
+            || (operadora && String(operadora).toUpperCase() === String(sharing || '').toUpperCase() ? id_site_sharing : null);
 
         if (!titulo || !tipo_demanda || !sharing || !id_site_sharing || !id_site_operadora) {
             return res.status(400).json({ error: 'titulo, tipo_demanda, sharing, id_site_sharing e id_site_operadora são obrigatórios' });
         }
+
+        // Cadastro único (03/10/2026): acha o site pela detentora + ID ou cadastra
+        // um novo; o ID da operadora entra no site se ainda não estiver lá.
+        const autorSite = { userId: (req as any).user?.userId ?? null, email: (req as any).user?.email ?? null };
+        const site = await vincularSiteDaAtividade(prisma, tenant_id, {
+            detentora: sharing, id_site_detentora: id_site_sharing, operadora, id_site_operadora,
+            uf: estadoInformado, municipio: municipioInformado, tipo_site,
+        }, autorSite);
+        // Site já cadastrado: UF e município saem dele.
+        const estado = estadoInformado || site?.uf || null;
+        const municipio = municipioInformado || site?.cidade || null;
+        // Tipo da PV Highline: vem do tipo do site + tipo de obra, salvo escolha explícita.
+        const tipo_site_highline = req.body.tipo_site_highline || tipoSiteHighline(site?.tipo_site, tipo_obra);
+
         const estadoNormalizado = normalizarUf(estado);
         const estadoFoiPreenchido = estado !== undefined && estado !== null && String(estado).trim() !== '';
         if (estadoFoiPreenchido && !estadoNormalizado) {
@@ -252,8 +270,9 @@ export async function createAtividade(req: Request, res: Response) {
                 operadora: operadora || null,
                 contratante_id: contratanteResolvido,
                 contrato: contrato || null,
-                id_site_sharing: id_site_sharing.trim(),
-                id_site_operadora: id_site_operadora.trim(),
+                id_site_sharing: String(id_site_sharing).trim(),
+                id_site_operadora: String(id_site_operadora).trim(),
+                site_id: site?.id ?? null,
                 estado: estadoNormalizado,
                 municipio: municipio || null,
                 valor_contrato: valor_contrato ? parseFloat(valor_contrato) : null,
@@ -288,7 +307,7 @@ export async function createAtividade(req: Request, res: Response) {
 
         res.status(201).json(atividade);
     } catch (e: any) {
-        res.status(500).json({ error: e.message });
+        res.status(e.status || 500).json({ error: e.message });
     }
 }
 
@@ -354,7 +373,25 @@ export async function updateAtividade(req: Request, res: Response) {
             }
         }
 
+        // Mudou detentora, ID ou operadora: a atividade passa a apontar para o
+        // site certo do cadastro único (e o ID da operadora entra nele).
+        const tocaSite = ['sharing', 'id_site_sharing', 'operadora', 'id_site_operadora']
+            .some(campo => Object.prototype.hasOwnProperty.call(body, campo) && body[campo] !== (existing as any)[campo]);
+        let siteId = existing.site_id;
+        if (tocaSite) {
+            const site = await vincularSiteDaAtividade(prisma, existing.tenant_id, {
+                detentora: body.sharing ?? existing.sharing,
+                id_site_detentora: body.id_site_sharing !== undefined ? body.id_site_sharing : existing.id_site_sharing,
+                operadora: body.operadora !== undefined ? body.operadora : existing.operadora,
+                id_site_operadora: body.id_site_operadora !== undefined ? body.id_site_operadora : existing.id_site_operadora,
+                uf: estadoNormalizado || existing.estado,
+                municipio: body.municipio !== undefined ? body.municipio : existing.municipio,
+            }, { userId: (req as any).user?.userId ?? null, email: (req as any).user?.email ?? null });
+            siteId = site?.id ?? null;
+        }
+
         const data: any = {
+            site_id: siteId,
             titulo: body.titulo ?? existing.titulo,
             tipo_demanda: body.tipo_demanda ?? existing.tipo_demanda,
             subtipo_demanda: body.subtipo_demanda !== undefined ? body.subtipo_demanda : existing.subtipo_demanda,
@@ -409,7 +446,7 @@ export async function updateAtividade(req: Request, res: Response) {
 
         res.json(atividade);
     } catch (e: any) {
-        res.status(500).json({ error: e.message });
+        res.status(e.status || 500).json({ error: e.message });
     }
 }
 

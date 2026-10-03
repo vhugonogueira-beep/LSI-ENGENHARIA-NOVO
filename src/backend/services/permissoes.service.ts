@@ -10,13 +10,13 @@
 import { prisma } from '../server';
 
 export const PERMISSOES = [
-    { chave: 'atividades.gerenciar', rotulo: 'Atividades e projetos', descricao: 'Criar e editar atividades, projetos, cronograma, execução, APC e documentação' },
+    { chave: 'atividades.gerenciar', rotulo: 'Atividades e projetos', descricao: 'Criar e editar atividades, projetos, sites, cronograma, execução, APC e documentação' },
     { chave: 'orcamentos.gerenciar', rotulo: 'Orçamentos', descricao: 'Orçamentos, custo LS, negociações, LPUs e BDI' },
     { chave: 'pagamentos.solicitar', rotulo: 'Solicitar pagamentos', descricao: 'Contratações, parcelas, reembolsos, adiantamentos, prestação de contas, e-mails de solicitação e anexos (comprovantes e notas)' },
     { chave: 'pagamentos.baixar', rotulo: 'Registrar pagamentos', descricao: 'Marcar como pago, conferir e analisar prestação de contas' },
     { chave: 'pagamentos.aprovar', rotulo: 'Aprovar pagamentos', descricao: 'Aprovar ou recusar solicitações de quem precisa de aprovação' },
     { chave: 'faturamento.gerenciar', rotulo: 'PO e faturamento', descricao: 'POs, linhas de faturamento, lotes e recebimentos' },
-    { chave: 'cadastros.gerenciar', rotulo: 'Cadastros', descricao: 'Fornecedores, funcionários, qualificações, clientes e sites' },
+    { chave: 'cadastros.gerenciar', rotulo: 'Cadastros', descricao: 'Fornecedores, funcionários, qualificações e clientes' },
     { chave: 'configuracoes.gerenciar', rotulo: 'Configurações', descricao: 'Dados da empresa, contas, cartões, comunicação e modelos de contrato' },
 ] as const;
 
@@ -108,6 +108,8 @@ export const POLITICA: Regra[] = [
     ['DELETE', new RegExp(`^/api/suppliers/${ID}$`), 'ADMIN'],
     ['DELETE', new RegExp(`^/api/funcionarios/${ID}$`), 'ADMIN'],
     ['DELETE', new RegExp(`^/api/pricebooks/${ID}$`), 'ADMIN'],
+    ['DELETE', new RegExp(`^/api/sites/${ID}$`), 'ADMIN'],
+    ['POST', /^\/api\/sites\/vincular-atividades$/, 'ADMIN'],
 
     // Pagamentos: baixa (pago/comprovante/análise de prestação) separada da
     // solicitação. Mudar status para PAGO/CONFERIDO é conferido também dentro
@@ -126,6 +128,8 @@ export const POLITICA: Regra[] = [
 
     // Atividades e o que vive dentro delas.
     ['*', /^\/api\/(atividades|acionamentos|demandas|apcs|cronograma|execucao|documentacao)(\/|$)/, 'atividades.gerenciar'],
+    // Cadastro único de sites: quem abre a atividade cadastra o site (03/10/2026).
+    ['*', /^\/api\/sites(\/|$)/, 'atividades.gerenciar'],
 
     // Orçamento.
     ['*', /^\/api\/(budgets|negociacoes|pricebooks|bdi|inflation|import)(\/|$)/, 'orcamentos.gerenciar'],
@@ -135,7 +139,7 @@ export const POLITICA: Regra[] = [
     ['*', /^\/api\/(pos|faturamento)(\/|$)/, 'faturamento.gerenciar'],
 
     // Cadastros.
-    ['*', /^\/api\/(suppliers|funcionarios|qualificacoes|clientes|contratantes|contratantes-upsert|sites)(\/|$)/, 'cadastros.gerenciar'],
+    ['*', /^\/api\/(suppliers|funcionarios|qualificacoes|clientes|contratantes|contratantes-upsert)(\/|$)/, 'cadastros.gerenciar'],
 
     // Configurações.
     ['*', /^\/api\/(empresa|email-config)(\/|$)/, 'configuracoes.gerenciar'],

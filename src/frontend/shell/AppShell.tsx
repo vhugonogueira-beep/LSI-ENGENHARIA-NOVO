@@ -4,6 +4,7 @@ import Atividades from '../pages/Atividades';
 import Configuracoes from '../pages/Configuracoes';
 import MeuPerfil from '../pages/MeuPerfil';
 import Clientes from '../pages/Clientes';
+import Sites from '../pages/Sites';
 import DashboardFinanceiro from '../pages/DashboardFinanceiro';
 import ControlePagamentos from '../pages/ControlePagamentos';
 import PessoasPrestadores from '../pages/PessoasPrestadores';
@@ -104,6 +105,7 @@ export default function AppShell(props: AppShellProps) {
                 {tab === "funcionarios" && <PessoasPrestadores initialTab="funcionarios" />}
                 {tab === "relatorios" && abasLegadas.relatorios()}
                 {tab === "clientes" && <Clientes />}
+                {tab === "sites" && <Sites />}
                 {tab === "faturamento" && <FaturamentoReal />}
                 {tab === "pvhighline" && abasLegadas.pvhighline()}
                 {tab === "resumo" && abasLegadas.resumo()}

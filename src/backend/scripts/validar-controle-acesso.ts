@@ -166,6 +166,7 @@ async function main() {
             body: {
                 titulo: 'Vistoria — teste de acesso', tipo_demanda: 'OPERACAO', subtipo_demanda: 'VISTORIA',
                 sharing: 'HIGHLINE', id_site_sharing: `TSTAC${SUFIXO.slice(-3)}`, id_site_operadora: `TSTAC${SUFIXO.slice(-3)}`,
+                estado: 'PA', municipio: 'Marabá',
                 modelo_operacao: 'EXECUCAO_DIRETA', descricao: TESTE,
             },
         });
@@ -282,7 +283,10 @@ async function main() {
             // Pelo banco, e não pela API: o objetivo aqui é só não deixar sobra.
             await prisma.atividadeStatusHistorico.deleteMany({ where: { atividade_id: criados.atividade } }).catch(() => undefined);
             await prisma.documentoAtividade.deleteMany({ where: { atividade_id: criados.atividade } }).catch(() => undefined);
+            const { site_id } = await prisma.atividade.findUnique({ where: { id: criados.atividade }, select: { site_id: true } }) || { site_id: null };
             await prisma.atividade.delete({ where: { id: criados.atividade } }).catch(e => console.log(`   (limpeza) atividade de teste ficou: ${e.message}`));
+            // O site que a atividade cadastrou (IDs de operadora saem em cascata).
+            if (site_id) await prisma.site.delete({ where: { id: site_id } }).catch(e => console.log(`   (limpeza) site de teste ficou: ${e.message}`));
         }
         await prisma.auditLog.deleteMany({ where: { OR: [{ entidade_id: { in: criados.usuarios } }, { user_id: { in: criados.usuarios } }] } });
         await prisma.user.deleteMany({ where: { id: { in: criados.usuarios } } });

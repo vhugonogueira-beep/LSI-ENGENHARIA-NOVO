@@ -86,7 +86,11 @@ export const TOM_AREA: Record<string, Tom> = { IMPLANTACAO: 'blue', OPERACAO: 't
 export const TOM_OPERADORA: Record<string, Tom> = { VIVO: 'violet', CLARO: 'rose', TIM: 'blue', OI: 'amber', OUTROS: 'slate' };
 
 /** Sharing / detentora. */
-export const TOM_SHARING: Record<string, Tom> = { HIGHLINE: 'cyan', IHS: 'orange', WINITY: 'violet', SBA: 'teal', OUTROS: 'slate' };
+export const TOM_SHARING: Record<string, Tom> = {
+    HIGHLINE: 'cyan', IHS: 'orange', WINITY: 'violet', SBA: 'teal', 'AMERICAN TOWER': 'indigo', PHOENIX: 'green', OUTROS: 'slate',
+    // Operadora dona da torre também é detentora: mesma cor da operadora.
+    VIVO: 'violet', CLARO: 'rose', TIM: 'blue', OI: 'amber',
+};
 
 /** Ramo do fornecedor / prestador (Supplier.categoria). */
 export const TOM_RAMO: Record<string, Tom> = {
@@ -99,7 +103,7 @@ export const TOM_MODULO: Record<string, Tom> = {
     overview: 'indigo', demandas: 'indigo', dashboard: 'violet',
     historico: 'amber', lpus: 'amber', orcv2: 'amber',
     atividades: 'blue', fornecedores: 'teal', relatorios: 'cyan', faturamento: 'green',
-    pagamentos: 'orange', clientes: 'rose', perfil: 'slate', configuracoes: 'slate',
+    pagamentos: 'orange', clientes: 'rose', sites: 'cyan', perfil: 'slate', configuracoes: 'slate',
 };
 
 /** Tom de uma chave num mapa, tolerando caixa; sem correspondência, `padrao`. */
