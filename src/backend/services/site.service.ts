@@ -147,6 +147,28 @@ export async function procurarSite(tenantId: string, id: unknown, detentora?: un
     return daOperadora ? { site: daOperadora.site, encontradoPor: 'OPERADORA' as const } : null;
 }
 
+/**
+ * Sites cujo ID (da detentora, anterior ou de operadora) contém o trecho
+ * digitado — sugestões enquanto a pessoa digita, de qualquer detentora.
+ */
+export async function sugerirSites(tenantId: string, trecho: unknown) {
+    const q = normalizarIdSite(trecho);
+    if (q.length < 2) return [];
+    return prisma.site.findMany({
+        where: {
+            tenant_id: tenantId,
+            OR: [
+                { id_site_detentora: { contains: q } },
+                { operadoras: { some: { id_site: { contains: q } } } },
+                { idsAnteriores: { some: { id_site_detentora: { contains: q } } } },
+            ],
+        },
+        include: INCLUIR_LISTA,
+        orderBy: [{ detentora: 'asc' }, { id_site_detentora: 'asc' }],
+        take: 8,
+    });
+}
+
 // ── Escrita ───────────────────────────────────────────────────────────────
 
 export class ErroSite extends Error {

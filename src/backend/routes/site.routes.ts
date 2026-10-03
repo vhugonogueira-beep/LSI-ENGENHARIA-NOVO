@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import {
     DETENTORAS, OPERADORAS, TIPOS_SITE, TECNOLOGIAS, ErroSite,
     listarSites, obterSite, procurarSite, criarSite, atualizarSite, excluirSite,
-    adicionarIdOperadora, removerIdOperadora, vincularAtividadesSemSite,
+    adicionarIdOperadora, removerIdOperadora, vincularAtividadesSemSite, sugerirSites,
 } from '../services/site.service';
 
 // Cadastro único de sites. Quem altera: `atividades.gerenciar` (quem abre a
@@ -27,6 +27,9 @@ router.get('/opcoes', (_req, res) => res.json({ detentoras: DETENTORAS, operador
 router.get('/procurar', rota(async (req, res) => {
     res.json(await procurarSite(tenant(req), req.query.id, req.query.detentora));
 }));
+
+// ?q=ALBR — sugestões por trecho de qualquer ID, para o campo da atividade.
+router.get('/sugestoes', rota(async (req, res) => { res.json(await sugerirSites(tenant(req), req.query.q)); }));
 
 // Migração: liga ao cadastro as atividades sem site (só ADMIN; idempotente).
 router.post('/vincular-atividades', rota(async (req, res) => { res.json(await vincularAtividadesSemSite(tenant(req), autor(req))); }));

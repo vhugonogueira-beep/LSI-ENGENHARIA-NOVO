@@ -117,13 +117,19 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     // Cadastro único de sites: ao digitar detentora + ID, o formulário procura o
     // site. Achou → UF, município e tipo vêm dele; não achou → vai ser cadastrado.
     const [siteForm, setSiteForm] = useState<{ situacao: 'vazio' | 'buscando' | 'achado' | 'novo'; site?: any; porIdAnterior?: boolean }>({ situacao: 'vazio' });
+    // Sites com ID parecido (trecho, qualquer detentora, ID de operadora) enquanto digita.
+    const [sugestoesSite, setSugestoesSite] = useState<any[]>([]);
     useEffect(() => {
         if (!showForm) return;
         const id = form.id_site_sharing.replace(/\s+/g, '');
-        if (!id || !form.sharing) { setSiteForm({ situacao: 'vazio' }); return; }
+        if (!id || !form.sharing) { setSiteForm({ situacao: 'vazio' }); setSugestoesSite([]); return; }
         setSiteForm({ situacao: 'buscando' });
         let vivo = true;
         const espera = setTimeout(async () => {
+            fetch(`/api/sites/sugestoes?q=${encodeURIComponent(id)}`)
+                .then(r => (r.ok ? r.json() : []))
+                .then(lista => { if (vivo) setSugestoesSite(Array.isArray(lista) ? lista : []); })
+                .catch(() => { if (vivo) setSugestoesSite([]); });
             try {
                 const r = await fetch(`/api/sites/procurar?id=${encodeURIComponent(id)}&detentora=${encodeURIComponent(form.sharing)}`);
                 const achado = r.ok ? await r.json() : null;
@@ -141,6 +147,22 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
         }, 350);
         return () => { vivo = false; clearTimeout(espera); };
     }, [showForm, form.sharing, form.id_site_sharing]);
+    /** Escolher uma sugestão: o site vale pela detentora + ID dele; se o trecho
+     * casou com o ID de uma operadora, ela e o ID entram junto. */
+    function escolherSite(site: any) {
+        const termo = form.id_site_sharing.replace(/\s+/g, '').toUpperCase();
+        const casouOperadora = (site.operadoras || []).find((o: any) => o.id_site.includes(termo)
+            && !String(site.id_site_detentora || '').includes(termo));
+        setForm(f => ({
+            ...f,
+            sharing: site.detentora || f.sharing,
+            id_site_sharing: site.id_site_detentora || site.id_site,
+            ...(casouOperadora ? { operadora: casouOperadora.operadora, id_site_operadora: casouOperadora.id_site } : {}),
+        }));
+        setSugestoesSite([]);
+    }
+    // Sugestões que não são o próprio site já encontrado.
+    const outrasSugestoes = sugestoesSite.filter(s => s.id !== siteForm.site?.id);
     // IDs que a operadora escolhida já tem neste site (sugestão no campo).
     const idsDaOperadora: string[] = (siteForm.site?.operadoras || [])
         .filter((o: any) => o.operadora === form.operadora).map((o: any) => o.id_site);
@@ -852,9 +874,29 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         {` · ${siteForm.site._count?.atividades ?? 0} atividade(s) anterior(es)`}
                                     </p>
                                 )}
+                                {siteForm.situacao !== 'achado' && outrasSugestoes.length > 0 && (
+                                    <div className="rounded-lg border border-border bg-background/40">
+                                        <p className="border-b border-border px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">Sites com ID parecido — clique para usar</p>
+                                        <ul className="max-h-48 overflow-y-auto">
+                                            {outrasSugestoes.map(s => (
+                                                <li key={s.id}>
+                                                    <button type="button" onClick={() => escolherSite(s)}
+                                                        className="flex w-full flex-wrap items-center gap-x-2 gap-y-0.5 px-3 py-2 text-left text-xs hover:bg-secondary/60">
+                                                        <span className="font-semibold">{s.detentora || 'Sem detentora'}</span>
+                                                        <span className="font-id font-semibold">{s.id_site_detentora || s.id_site}</span>
+                                                        {(s.operadoras || []).map((o: any) => (
+                                                            <span key={o.id} className="font-id text-muted-foreground">{o.operadora} {o.id_site}</span>
+                                                        ))}
+                                                        <span className="ml-auto text-muted-foreground">{s.cidade || '—'}/{s.uf || '—'}</span>
+                                                    </button>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                                 {siteForm.situacao === 'novo' && (
                                     <p className="rounded-lg border border-info/40 bg-info/10 px-3 py-2 text-xs text-info">
-                                        Site novo — será cadastrado com a UF e o município abaixo. Endereço, coordenadas e proprietário se completam depois, na tela Sites.
+                                        {outrasSugestoes.length > 0 ? `Nenhum site ${form.sharing} com o ID exato ${form.id_site_sharing}. Se não for um dos parecidos acima, ` : 'Site novo — '}será cadastrado com a UF e o município abaixo. Endereço, coordenadas e proprietário se completam depois, na tela Sites.
                                     </p>
                                 )}
                                 <div className="grid grid-cols-2 gap-3">
