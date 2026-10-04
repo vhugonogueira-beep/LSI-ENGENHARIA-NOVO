@@ -1,0 +1,38 @@
+# CI do LSI: a cada push e pull request, confere se o projeto instala do zero,
+# se o backend compila sem erro de tipo e se as telas geram o build.
+#
+# Os roteiros de regra de negócio (`npm test`) não rodam aqui: eles usam a
+# base local (prisma/dev.db), que não vai para o repositório. Rode-os na
+# máquina antes de subir.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: file:./ci.db
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar o cliente do Prisma
+        run: npx prisma generate
+
+      - name: Backend sem erro de tipo
+        run: npm run typecheck
+
+      - name: Build das telas
+        run: npm run build:frontend

@@ -9,7 +9,9 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "build:frontend": "vite build",
     "build:backend": "tsc --project tsconfig.backend.json",
-    "build": "npm run build:frontend && npm run build:backend"
+    "build": "npm run build:frontend && npm run build:backend",
+    "typecheck": "tsc --noEmit --project tsconfig.backend.json",
+    "test": "tsx src/backend/scripts/rodar-validacoes.ts"
   },
   "ts-node": {
     "compilerOptions": {
