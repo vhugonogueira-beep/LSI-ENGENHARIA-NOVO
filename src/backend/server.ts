@@ -41,10 +41,29 @@ app.use(cors((req, callback) => {
         callback(new Error('Origem não permitida pelo CORS'));
     }
 }));
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    // Pelo túnel (HTTPS) o navegador passa a recusar a versão sem cadeado.
+    if (req.secure) res.setHeader('Strict-Transport-Security', 'max-age=15552000');
+    next();
+});
+
+// Limite geral da API: 600 requisições por minuto por IP. Folgado para o uso
+// normal (a tela faz várias chamadas por clique), mas corta um robô ou um
+// script em loop antes de ele derrubar o servidor.
+const requisicoesPorIp = new Map<string, { n: number; desde: number }>();
+setInterval(() => {
+    const limite = Date.now() - 60_000;
+    for (const [ip, r] of requisicoesPorIp) if (r.desde < limite) requisicoesPorIp.delete(ip);
+}, 60_000).unref();
+app.use('/api', (req, res, next) => {
+    const agora = Date.now();
+    const ip = req.ip || 'desconhecido';
+    const r = requisicoesPorIp.get(ip);
+    if (!r || agora - r.desde >= 60_000) { requisicoesPorIp.set(ip, { n: 1, desde: agora }); return next(); }
+    if (++r.n > 600) return res.status(429).json({ error: 'Muitas requisições em pouco tempo. Aguarde um minuto.' });
     next();
 });
 app.use(express.json({ limit: '25mb' })); // comprovantes chegam em base64

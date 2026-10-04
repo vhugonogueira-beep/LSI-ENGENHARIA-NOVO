@@ -10,12 +10,12 @@ import {
 import { requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024, files: 1 } });
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024, files: 1 } }); // mesmo teto dos comprovantes; o arquivo vai inteiro para a memória
 const uploadMemoria = (req: Request, res: Response, next: NextFunction) => {
     upload.single('arquivo')(req, res, erro => {
         if (!erro) return next();
         const mensagem = erro instanceof multer.MulterError && erro.code === 'LIMIT_FILE_SIZE'
-            ? 'O arquivo excede o limite de 100 MB' : erro.message;
+            ? 'O arquivo excede o limite de 25 MB' : erro.message;
         res.status(400).json({ error: mensagem });
     });
 };
