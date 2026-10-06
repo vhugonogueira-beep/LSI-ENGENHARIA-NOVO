@@ -4,6 +4,9 @@
   "description": "Sistema de Orçamento LS",
   "main": "src/backend/server.ts",
   "scripts": {
+    "start": "concurrently --kill-others \"npm run start:frontend\" \"npm run start:backend\"",
+    "start:frontend": "vite",
+    "start:backend": "tsx -r dotenv/config src/backend/server.ts",
     "deploy": "prisma db push --skip-generate && prisma generate",
     "seed": "tsx -r dotenv/config src/backend/seed.ts",
     "dev:frontend": "vite",
