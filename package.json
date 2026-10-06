@@ -9,7 +9,6 @@
     "start:backend": "tsx -r dotenv/config src/backend/server.ts",
     "deploy": "prisma db push --skip-generate && prisma generate",
     "seed": "tsx -r dotenv/config src/backend/seed.ts",
-    "redefinir-senha": "tsx -r dotenv/config src/backend/scripts/redefinir-senha.ts",
     "dev:frontend": "vite",
     "dev:backend": "tsx watch src/backend/server.ts",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
