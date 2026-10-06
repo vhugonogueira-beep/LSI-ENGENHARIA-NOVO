@@ -25,6 +25,10 @@ prisma/*.db.*
 *.db.bak*
 prisma/backups/
 
+# Pastas de backup e cópias anteriores à restauração
+backup-*/
+antes-restauracao-*/
+
 # Logs de servidor
 ls-backend.log
 ls-frontend.log
