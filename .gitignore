@@ -20,6 +20,9 @@ generated.pdf
 # nomeado à mão já ficou fora do ignore e quase entrou num commit.
 prisma/*.db
 prisma/*.db-journal
+# Backup com sufixo depois do .db (ex.: dev.db.bak-antes-sites-20261003).
+prisma/*.db.*
+*.db.bak*
 prisma/backups/
 
 # Logs de servidor
