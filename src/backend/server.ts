@@ -21,9 +21,11 @@ const ALLOWED_ORIGINS = [
     'http://192.168.0.167:5174',
     'http://192.168.97.87:5174',
     process.env.FRONTEND_URL,
+    ...(process.env.CORS_ORIGINS || '').split(','),
     // Endereços públicos (ex.: túnel Cloudflare), separados por vírgula.
     ...(process.env.PUBLIC_ORIGINS || '').split(',').map(o => o.trim()),
-].filter(Boolean) as string[];
+].filter((origin): origin is string => Boolean(origin?.trim()))
+    .map(origin => origin.trim().replace(/\/+$/, ''));
 
 // Atrás do túnel Cloudflare o IP real chega em cabeçalho; sem isto o limite
 // de tentativas de login contaria todo mundo como o mesmo visitante.
