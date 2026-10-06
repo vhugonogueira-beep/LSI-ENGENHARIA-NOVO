@@ -10,7 +10,7 @@
 //
 // O letreiro "LS OFFICE" da arte é azul-marinho escuro e ficaria ilegível sobre
 // o menu marinho, por isso não faz parte deste recorte — quem nomeia o produto
-// no menu é o selo "LS OFFICE ERP" logo abaixo.
+// no menu é o selo "LS OFFICE RUMO" logo abaixo.
 //
 // `LOGO_B64` continua sendo a arte completa, usada no login, nos PDFs e nos
 // documentos gerados.

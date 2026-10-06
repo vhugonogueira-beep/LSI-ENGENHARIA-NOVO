@@ -1364,7 +1364,7 @@ ${row("Forma Pgto", pagtoInfo)}`;
       htmlBody += `<br><p style="margin:8px 0 4px 0"><strong>Anexos:</strong></p>`;
       anexosArr.forEach(a => { htmlBody += `<p style="margin:2px 0">• ${a.name}</p>`; });
     }
-    htmlBody += `<br><p style="margin:8px 0 0 0">Atenciosamente,<br><strong>LS Office ERP</strong></p>`;
+    htmlBody += `<br><p style="margin:8px 0 0 0">Atenciosamente,<br><strong>LS Office Rumo</strong></p>`;
 
     const fullHtml = `<!DOCTYPE html><html><body style="font-family:Calibri,Arial,sans-serif;font-size:14px;color:#111">${htmlBody}</body></html>`;
 

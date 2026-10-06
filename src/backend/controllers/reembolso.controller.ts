@@ -863,7 +863,7 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
             telefone_solicitante: null,
             // Lancamentos antigos ainda nao tem codigo; ate o backfill rodar eles
             // caem no fragmento de UUID, que era o comportamento anterior.
-            referencia: `${r.codigo || `${adiantamento ? 'Adiantamento' : 'Reembolso'} ${r.id.slice(0, 8)}`}${pagamento ? ` · Depósito ${pagamento.numero}` : ''} · ${a.codigo} · gerado pelo LS Office ERP`,
+            referencia: `${r.codigo || `${adiantamento ? 'Adiantamento' : 'Reembolso'} ${r.id.slice(0, 8)}`}${pagamento ? ` · Depósito ${pagamento.numero}` : ''} · ${a.codigo} · gerado pelo LS Office Rumo`,
         };
 
         const { assunto, html: htmlBase } = gerarEmailCorporativo(dados);

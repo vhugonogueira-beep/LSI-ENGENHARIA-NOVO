@@ -198,7 +198,7 @@ export default function Sidebar(props: SidebarProps) {
                             animation: "fadeIn 0.3s ease"
                         }}>
                             <span style={{ width: 6, height: 6, borderRadius: "50%", background: T.blue, flexShrink: 0 }} />
-                            LS Office ERP
+                            LS Office Rumo
                         </div>
                     )}
                     <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}} @keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
@@ -334,7 +334,7 @@ export default function Sidebar(props: SidebarProps) {
                     </div>
                     {isExpanded && (
                         <div style={{ padding: "1px 8px 6px", fontSize: 11, color: T.txDis, textAlign: "center", opacity: 0.5 }}>
-                            LS Office ERP v3.5
+                            LS Office Rumo v3.5
                         </div>
                     )}
                 </div>

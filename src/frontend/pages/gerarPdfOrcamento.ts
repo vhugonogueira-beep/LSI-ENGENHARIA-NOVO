@@ -392,7 +392,7 @@ export function gerarPdfOrcamento(orc: LegacyBudget, logoBase64?: string) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(180, 180, 180);
-    doc.text(`LS Office ERP · Página ${i}/${totalPages}`, W / 2, H - 5, { align: "center" });
+    doc.text(`LS Office Rumo · Página ${i}/${totalPages}`, W / 2, H - 5, { align: "center" });
   }
 
   // ── Save ──

@@ -299,10 +299,10 @@ export default function UsuariosAcessos() {
 function LinkGerado({ usuario, url, expira, tipo, horas, onClose }: { usuario: Usuario; url: string; expira: string; tipo: string; horas: number; onClose: () => void }) {
     const [copiado, setCopiado] = useState(false);
     const convite = tipo === 'CONVITE';
-    const assunto = convite ? 'Seu acesso ao LS Office ERP' : 'Redefinição de senha — LS Office ERP';
+    const assunto = convite ? 'Seu acesso ao LS Office Rumo' : 'Redefinição de senha — LS Office Rumo';
     const corpo = [
         `Olá, ${usuario.nome.split(' ')[0]}!`, '',
-        convite ? 'Seu acesso ao LS Office ERP foi criado. Para definir sua senha e entrar, use o link abaixo:' : 'Para definir uma nova senha no LS Office ERP, use o link abaixo:',
+        convite ? 'Seu acesso ao LS Office Rumo foi criado. Para definir sua senha e entrar, use o link abaixo:' : 'Para definir uma nova senha no LS Office Rumo, use o link abaixo:',
         '', url, '',
         `O link vale por ${horas} horas e só pode ser usado uma vez. Seu login é ${usuario.email}.`,
     ].join('\n');

@@ -318,7 +318,7 @@ export async function gerarPlanilhaFaturamento(faturamentoLinhaIds: string[], op
         || new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase();
 
     const wb = new ExcelJS.Workbook();
-    wb.creator = 'LS Office ERP';
+    wb.creator = 'LS Office Rumo';
     wb.created = new Date();
     const ws = wb.addWorksheet('Faturamento');
 

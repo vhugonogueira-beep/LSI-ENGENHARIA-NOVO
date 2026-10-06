@@ -89,7 +89,7 @@ export default function Login({ onLogin }: LoginProps) {
                     <div className="lg-nome">LS OFFICE</div>
                     <div className="lg-ramo">Serviços de telecom e construções</div>
                     <span className="lg-filete lg-filete-centro" />
-                    <h1 className="lg-titulo">LS Office ERP</h1>
+                    <h1 className="lg-titulo">LS Office Rumo</h1>
                     <p className="lg-sub">Sistema de orçamentação de engenharia</p>
                 </header>
 

@@ -63,7 +63,7 @@ export default function AceitarConvite() {
                 <div className="mb-6 flex items-center gap-3">
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/15 text-primary"><KeyRound size={22} aria-hidden /></div>
                     <div>
-                        <h1 className="text-lg font-bold">LS Office ERP</h1>
+                        <h1 className="text-lg font-bold">LS Office Rumo</h1>
                         <p className="text-xs text-muted-foreground">
                             {convite?.primeiro_acesso === false ? 'Redefinir senha' : 'Criar seu acesso'}
                         </p>
