@@ -4,6 +4,8 @@
   "description": "Sistema de Orçamento LS",
   "main": "src/backend/server.ts",
   "scripts": {
+    "deploy": "prisma db push --skip-generate && prisma generate",
+    "seed": "tsx -r dotenv/config src/backend/seed.ts",
     "dev:frontend": "vite",
     "dev:backend": "tsx watch src/backend/server.ts",
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
