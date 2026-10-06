@@ -31,7 +31,12 @@ navegador ──HTTPS──▶ Cloudflare ──túnel──▶ cloudflared (PC)
    - `admin@`, `comercial@`, `operacoes@`: Configurações → Usuários e acessos →
      gerar link de redefinição, ou suspender.
 2. **Trocar o `JWT_SECRET`** no `.env` por um valor novo e longo. Todos
-   precisam entrar de novo depois.
+   precisam entrar de novo depois. *Feito em 06/10/2026 (96 caracteres aleatórios).*
+
+Situação em 06/10/2026: as 4 senhas do seed antigo ainda valiam. Decisão do
+dono: manter `admin@`, `comercial@` e `operacoes@` como estão por enquanto —
+por isso o **Cloudflare Access** (abaixo) deixa de ser opcional: é ele que
+impede quem leu o repositório de chegar à tela de login.
 
 ## Teste rápido (endereço temporário)
 

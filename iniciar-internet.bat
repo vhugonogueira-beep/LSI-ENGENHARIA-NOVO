@@ -36,9 +36,16 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [2] Iniciando o servidor (porta 3001, telas + API)...
-start "LS Servidor" /min cmd /c "cd /d %PROJECT% && set PATH=%NODE_BIN%;%PATH% && set NODE_ENV=production && node node_modules\tsx\dist\cli.mjs src\backend\server.ts > ls-backend.log 2>&1"
-ping 127.0.0.1 -n 6 >nul
+:: Servidor ja no ar (ex.: aberto pelo iniciar-sistema.bat): reaproveita. Subir
+:: outro na mesma porta falharia calado e o tunel apontaria para o antigo.
+netstat -ano | findstr ":3001 " | findstr LISTENING >nul
+if not errorlevel 1 (
+  echo [2] Servidor ja esta rodando na porta 3001 - usando o que esta no ar.
+) else (
+  echo [2] Iniciando o servidor ^(porta 3001, telas + API^)...
+  start "LS Servidor" /min cmd /c "cd /d %PROJECT% && set PATH=%NODE_BIN%;%PATH% && set NODE_ENV=production && node node_modules\tsx\dist\cli.mjs src\backend\server.ts > ls-backend.log 2>&1"
+  ping 127.0.0.1 -n 6 >nul
+)
 
 echo [3] Abrindo o tunel Cloudflare...
 if "%TUNEL%"=="" (
