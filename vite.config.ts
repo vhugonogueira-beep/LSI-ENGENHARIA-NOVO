@@ -11,9 +11,12 @@ export default defineConfig({
     },
     server: {
         port: 5174,
+        allowedHosts: [
+            'engineering.lsoffice.com.br',
+        ],
         proxy: {
             '/api': {
-                target: 'http://localhost:3001',
+                target: 'http://localhost:3006',
                 changeOrigin: true,
             }
         }
