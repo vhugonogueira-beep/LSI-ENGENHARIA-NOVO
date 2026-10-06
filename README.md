@@ -13,7 +13,7 @@ Antes de mudar fluxo, schema ou regra de negócio, leia a seção correspondente
 
 | Camada | Tecnologia |
 |---|---|
-| Telas | React 18, TypeScript, Vite 5, Tailwind 3, React Router, Recharts, lucide-react |
+| Telas | React 18, TypeScript, Vite 6, Tailwind 3, React Router 7, Recharts, lucide-react |
 | API | Node.js 20, Express, Prisma 5 |
 | Banco | SQLite (`prisma/dev.db`) |
 | Arquivos | Disco local, pasta `storage/` (comprovantes, POs, contratos, documentação) |
