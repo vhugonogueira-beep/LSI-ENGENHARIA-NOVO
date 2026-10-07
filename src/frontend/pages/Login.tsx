@@ -1,5 +1,5 @@
 import { useMemo, useState, FormEvent } from 'react';
-import { AlertTriangle, ArrowRight, Eye, EyeOff, Cog, HardHat, Lock, Mail, RadioTower } from 'lucide-react';
+import { AlertTriangle, ArrowRight, DraftingCompass, Eye, EyeOff, Lock, Mail, RadioTower, Wrench } from 'lucide-react';
 import { LOGO_MARCA_B64 } from '../assets/logoMarca';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -77,9 +77,9 @@ export default function Login({ onLogin }: LoginProps) {
                 </p>
                 <span className="lg-filete" />
                 <ul className="lg-pilares">
-                    <li><RadioTower size={26} strokeWidth={1.4} aria-hidden /><span>Telecom</span></li>
-                    <li><HardHat size={26} strokeWidth={1.4} aria-hidden /><span>Construção</span></li>
-                    <li><Cog size={26} strokeWidth={1.4} aria-hidden /><span>Engenharia</span></li>
+                    <li><RadioTower size={26} strokeWidth={1.4} aria-hidden /><span>Implantação</span></li>
+                    <li><Wrench size={26} strokeWidth={1.4} aria-hidden /><span>Operação</span></li>
+                    <li><DraftingCompass size={26} strokeWidth={1.4} aria-hidden /><span>Projetos</span></li>
                 </ul>
             </aside>
 
