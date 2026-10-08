@@ -194,3 +194,7 @@
 /* Identificadores (Site ID, codigo de LPU, ATV-2026-003): fonte de largura
    fixa porque sao lidos caractere a caractere. */
 .font-id { font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace; letter-spacing: 0; }
+
+/* Ícones (revisão de 08/10/2026): traço único em todo o sistema. O padrão do
+   lucide (2) pesa ao lado do texto de 13px; 1,75 acompanha a IBM Plex. */
+svg.lucide { stroke-width: 1.75; }

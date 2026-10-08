@@ -96,7 +96,7 @@ export function Fornecedores() {
 
     return (
         <div className="p-8 text-foreground">
-            <PageHeader icone={Building2} tom={TOM_MODULO.fornecedores} titulo="Fornecedores & Prestadores"
+            <PageHeader icone={Building2} tom={TOM_MODULO.fornecedores} titulo="Fornecedores e prestadores"
                 descricao={<span className="flex flex-wrap gap-x-4">
                     <span>{suppliers.filter(s => s.categoria === 'MATERIAL').length} fornecedores de material</span>
                     <span>{suppliers.filter(s => s.categoria !== 'MATERIAL').length} prestadores de serviço</span>

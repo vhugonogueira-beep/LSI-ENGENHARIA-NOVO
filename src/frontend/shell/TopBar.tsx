@@ -17,19 +17,19 @@ const ICONE_MODULO: Record<string, LucideIcon> = {
 // os emojis de ícone viraram lucide-react e o que vinha da closure do App virou prop.
 
 export const TAB_LABELS: Record<string, string> = {
-    overview: "Visão Geral",
+    overview: "Visão geral",
     demandas: "Pipeline",
     atividades: "Atividades",
-    pagamentos: "Controle de Pagamentos",
-    lpus: "Bases (LPUs)",
-    perfil: "Meu Perfil",
+    pagamentos: "Controle de pagamentos",
+    lpus: "Bases de preço (LPUs)",
+    perfil: "Meu perfil",
     configuracoes: "Configurações",
-    dashboard: "Dashboard Financeiro",
+    dashboard: "Dashboard financeiro",
     orcv2: "Orçamento",
     orcamento: "Orçamento (LPU)",
-    historico: "Orçamentos Salvos",
+    historico: "Orçamentos salvos",
     projetos: "Projetos",
-    controle: "Controle de Obras",
+    controle: "Controle de obras",
     fornecedores: "Fornecedores",
     funcionarios: "Funcionários",
     relatorios: "Relatórios",
@@ -77,7 +77,8 @@ export default function TopBar({ tab, user, obra, orcamentoSiteId, orcArea }: To
     // Pílula do módulo atual: ícone do módulo na cor dele (TOM_MODULO).
     const tomModulo: Tom | undefined = TOM_MODULO[tab];
     const pills: { icon: LucideIcon; label: string; color?: string; tom?: Tom }[] = [
-        { icon: ICONE_MODULO[tab] || LayoutGrid, label: tabLabel, color: T.txPri, tom: tomModulo },
+        // Neutra: o módulo é dito pelo nome; a cor fica para o que tem significado.
+        { icon: ICONE_MODULO[tab] || LayoutGrid, label: tabLabel, color: T.txPri, tom: tomModulo ? undefined : undefined },
     ];
 
     if (tab === "controle" && obra) {
@@ -103,7 +104,7 @@ export default function TopBar({ tab, user, obra, orcamentoSiteId, orcArea }: To
                             display: "flex", alignItems: "center", gap: 8,
                             background: T.bg2, border: `1px solid ${T.brBase}`,
                             padding: i === 0 && p.tom ? "4px 14px 4px 6px" : "6px 14px", borderRadius: 10,
-                            fontSize: 12, fontWeight: 700, color: p.color || T.txPri,
+                            fontSize: 12, fontWeight: 600, color: p.color || T.txPri,
                             boxShadow: "0 4px 12px rgba(15, 23, 42, 0.04)",
                         }}>
                             {p.tom ? (

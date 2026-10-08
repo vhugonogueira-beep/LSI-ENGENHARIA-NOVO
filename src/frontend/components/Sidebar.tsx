@@ -6,7 +6,6 @@ import {
     type LucideIcon,
 } from 'lucide-react';
 import { TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
-import { tema } from '../theme';
 
 // Extraído de SimuladorLPU.tsx (Blueprint LSI, Onda 0) — mesmo JSX e comportamento
 // de antes, apenas com as dependências de closure convertidas em props explícitas.
@@ -54,16 +53,16 @@ export default function Sidebar(props: SidebarProps) {
     // a mesma do cabecalho da pagina. O menu e marinho nos dois temas; no tema
     // claro o hex do tom e escuro demais para o icone sobre o marinho, entao ele
     // e clareado com color-mix (sem hex novo).
-    const corIcone = (t: Tom) => tema === 'claro' ? `color-mix(in srgb, ${hexTom(t)} 55%, white)` : hexTom(t);
+    // Revisão profissional (08/10/2026): o menu é monocromático. A cor de cada módulo
+    // virava 14 cores disputando atenção; agora só o item ativo ganha o azul do sistema.
+    const corIcone = (_t: Tom) => T.txSec;
     // Item ativo: preenchido com a cor do proprio modulo e texto branco. No
     // tema escuro os tons sao claros, entao um veu preto garante o contraste.
-    const fundoAtivo = (t: Tom) => tema === 'claro'
-        ? hexTom(t)
-        : `linear-gradient(rgba(0,0,0,0.38), rgba(0,0,0,0.38)), ${hexTom(t)}`;
+    // Item ativo: sempre o azul do sistema (era a cor do módulo).
+    const fundoAtivo = (_t: Tom) => '#1768D5';
 
     const TituloSecao = ({ texto, tom }: { texto: string; tom: Tom }) => (
-        <div style={{ fontSize: 11, fontWeight: 600, color: T.txDis, marginBottom: 8, paddingLeft: 14, paddingTop: 10, display: "flex", alignItems: "center", gap: 8 }}>
-            <span aria-hidden="true" style={{ width: 6, height: 6, borderRadius: "50%", background: corIcone(tom), flexShrink: 0 }} />
+        <div data-tom={tom} style={{ fontSize: 11, fontWeight: 500, color: T.txDis, marginBottom: 6, paddingLeft: 14, paddingTop: 14, letterSpacing: "0.02em" }}>
             {texto}
         </div>
     );
@@ -101,12 +100,12 @@ export default function Sidebar(props: SidebarProps) {
                             ...iconBox(accent, active),
                             // Caixa tingida com o tom do modulo; no item ativo some
                             // (o item inteiro ja esta na cor) e o icone fica branco.
-                            background: active ? "rgba(255,255,255,0.16)" : `${accent}1f`,
-                            border: `1px solid ${active ? "transparent" : `${accent}40`}`,
+                            background: "transparent",
+                            border: "1px solid transparent",
                             color: active ? "#FFFFFF" : (color || corIcone(tom)),
                         }}>
                             {/* Icone lucide: herda a cor da caixa (branco no item ativo). */}
-                            <Icone size={16} aria-hidden="true" style={{ opacity: active ? 1 : 0.9 }} />
+                            <Icone size={18} aria-hidden="true" style={{ opacity: active ? 1 : 0.85 }} />
                         </span>
                     )
                 }
@@ -208,7 +207,7 @@ export default function Sidebar(props: SidebarProps) {
 
                     {/* ── Seção DEMANDAS ── */}
                     {isExpanded && <TituloSecao texto="Demandas" tom="indigo" />}
-                    <NavItem id="overview" icon={Home} label="Visão Geral" />
+                    <NavItem id="overview" icon={Home} label="Visão geral" />
                     <NavItem id="demandas" icon={ClipboardList} label="Pipeline" />
 
                     {/* ── Divisor ── */}
@@ -216,7 +215,7 @@ export default function Sidebar(props: SidebarProps) {
 
                     {/* ── Seção DASHBOARD ── */}
                     {isExpanded && <TituloSecao texto="Dashboard" tom="violet" />}
-                    <NavItem id="dashboard" icon={TrendingUp} label="Dashboard Financeiro" />
+                    <NavItem id="dashboard" icon={TrendingUp} label="Dashboard financeiro" />
 
                     {/* ── Divisor ── */}
                     {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
@@ -228,7 +227,7 @@ export default function Sidebar(props: SidebarProps) {
                         "Novo Orçamento" saiu da sidebar para não existir um segundo caminho,
                         que criava orçamento solto, sem obra. */}
                     <NavItem id="historico" icon={Folder} label="Orçamentos" badge={historico.length > 0 ? historico.length.toString() : null} />
-                    <NavItem id="lpus" icon={Library} label="Bases (LPUs)" />
+                    <NavItem id="lpus" icon={Library} label="Bases de preço (LPUs)" />
 
                     {/* ── Divisor ── */}
                     {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
@@ -236,13 +235,13 @@ export default function Sidebar(props: SidebarProps) {
                     {/* ── Seção OBRAS ── */}
                     {isExpanded && <TituloSecao texto="Obras" tom="blue" />}
 
-                    <NavItem id="atividades" icon={Target} label="Atividades" badge={isExpanded ? "novo" : null} />
+                    <NavItem id="atividades" icon={Target} label="Atividades" />
                     <NavItem id="sites" icon={MapPin} label="Sites" />
 
-                    <NavItem id="fornecedores" icon={Building2} label="Pessoas e Fornecedores" />
+                    <NavItem id="fornecedores" icon={Building2} label="Pessoas e fornecedores" />
                     <NavItem id="relatorios" icon={BarChart3} label="Relatórios" />
                     <NavItem id="faturamento" icon={Receipt} label="Faturamento" />
-                    <NavItem id="pagamentos" icon={CreditCard} label="Controle de Pagamentos" />
+                    <NavItem id="pagamentos" icon={CreditCard} label="Controle de pagamentos" />
                     <NavItem id="clientes" icon={Handshake} label="Clientes" />
 
                     {/* ── Seção SISTEMA ──
@@ -251,7 +250,7 @@ export default function Sidebar(props: SidebarProps) {
                         cartões e roteamento de e-mail) precisa estar no menu. */}
                     {isExpanded && <TituloSecao texto="Sistema" tom="slate" />}
 
-                    <NavItem id="perfil" icon={User} label="Meu Perfil" />
+                    <NavItem id="perfil" icon={User} label="Meu perfil" />
                     <NavItem id="configuracoes" icon={Settings} label="Configurações" />
 
                     {/* ── Divisor ── */}

@@ -308,8 +308,8 @@ export default function Configuracoes() {
 
       {/* Na coluna com gap, o espaço abaixo do cabeçalho vem do gap. */}
       <div className="[&>header]:mb-0">
-        <PageHeader icone={Settings} tom={TOM_MODULO.configuracoes} titulo="Configurações da LS Office"
-          descricao="O que está aqui sai nos documentos e nas notas: o logo e o CNPJ no cabeçalho do cronograma e da PV, os dados fiscais na nota, e a conta principal no e-mail de faturamento." />
+        <PageHeader icone={Settings} tom={TOM_MODULO.configuracoes} titulo="Configurações"
+          descricao="Dados da LS Office usados nos documentos, notas e e-mails: logo, CNPJ, dados fiscais, contas e usuários." />
       </div>
 
       {erro && (

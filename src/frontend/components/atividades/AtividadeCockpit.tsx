@@ -131,10 +131,10 @@ function buildTabs(modelo: string, sharing: string) {
             // da Implantação, com os nomes que a LS usa em operação.
             { id: 'comercial', label: 'Orçamento LS', secondary: false },
             { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
-            { id: 'execucao', label: 'Execução & Relatório Fotográfico', secondary: false },
+            { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
             { id: 'resultado', label: 'Resultado', secondary: false },
             { id: 'fornecedores', label: 'Pagamentos', secondary: true },
-            { id: 'faturamento', label: 'PO & Faturamento', secondary: true },
+            { id: 'faturamento', label: 'PO e faturamento', secondary: true },
         ];
     }
     if (modelo === 'EXECUCAO_COM_APROVACAO') {
@@ -142,9 +142,9 @@ function buildTabs(modelo: string, sharing: string) {
             { id: 'identificacao', label: 'Identificação', secondary: false },
             { id: 'comercial', label: 'Orçamento LS', secondary: false },
             { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
-            { id: 'execucao', label: 'Execução & Relatório Fotográfico', secondary: false },
+            { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
             { id: 'fornecedores', label: 'Pagamentos', secondary: false },
-            { id: 'faturamento', label: 'PO & Faturamento', secondary: false },
+            { id: 'faturamento', label: 'PO e faturamento', secondary: false },
             { id: 'resultado', label: 'Resultado', secondary: false },
         ];
     }
@@ -157,7 +157,7 @@ function buildTabs(modelo: string, sharing: string) {
         { id: 'planejamento', label: 'Planejamento', secondary: false },
         { id: 'documentacao', label: 'Documentação', secondary: false },
         { id: 'fornecedores', label: 'Pagamentos', secondary: false },
-        { id: 'faturamento', label: 'PO & Faturamento', secondary: false },
+        { id: 'faturamento', label: 'PO e faturamento', secondary: false },
         { id: 'resultado', label: 'Resultado', secondary: false },
     ];
 }
@@ -242,7 +242,7 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                             {atividade.id_site_sharing
                                 ? <span className={`font-id text-2xl font-semibold ${TEXTO[tomDe(TOM_STATUS, atividade.status_operacional)]}`}>{atividade.id_site_sharing}</span>
-                                : <span className="text-sm text-muted-foreground">Sem Site ID sharing</span>}
+                                : <span className="text-sm text-muted-foreground">Sem ID do site</span>}
                             <span className="font-id text-xs text-muted-foreground">{atividade.codigo}</span>
                         </div>
                         <h1 className="text-lg font-semibold mt-1">{atividade.titulo}</h1>
@@ -272,10 +272,11 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                             status={atividade.status_operacional}
                             onSaved={load}
                         />
-                        <StatusPill status={atividade.status_comercial} map={STATUS_COMERCIAL} />
-                        <StatusPill status={atividade.status_documental} map={STATUS_DOCUMENTAL} />
-                        <StatusPill status={atividade.status_financeiro} map={STATUS_FINANCEIRO} />
-                        <StatusPill status={atividade.status_faturamento} map={STATUS_FATURAMENTO} />
+                        {/* Cada pílula diz de qual dimensão é: sem isso, "Não iniciado" não dizia de quê. */}
+                        <StatusPill status={atividade.status_comercial} map={STATUS_COMERCIAL} rotulo="Comercial" />
+                        <StatusPill status={atividade.status_documental} map={STATUS_DOCUMENTAL} rotulo="Documentação" />
+                        <StatusPill status={atividade.status_financeiro} map={STATUS_FINANCEIRO} rotulo="Custo" />
+                        <StatusPill status={atividade.status_faturamento} map={STATUS_FATURAMENTO} rotulo="Faturamento" />
                     </div>
                 </div>
             </div>

@@ -4,7 +4,7 @@ import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRigh
 import { T } from '../theme';
 import { fmtMoeda, fmtData } from '../components/atividades/constants';
 import { authFetch, downloadAuthenticatedFile } from '../lib/authFetch';
-import { CHIP, FAIXA, SOLIDO, TEXTO, TOPO, VEU, TOM_SHARING, TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
+import { CHIP, FAIXA, SOLIDO, TOM_SHARING, TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
 import PageHeader from '../components/PageHeader';
 
 interface Atividade {
@@ -867,12 +867,12 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
 /** Valor neutro; cor só quando é alerta. Sem valor, "—" sem cor. */
 function KpiCard({ icon, label, value, sub, alerta, tom = 'slate' }: { icon: React.ReactNode; label: string; value: string | null; sub: string; alerta?: string; tom?: Tom }) {
     return (
-        <div className={`min-w-0 bg-card border border-border border-t-2 ${TOPO[tom]} rounded-xl p-4`} style={alerta ? { borderColor: `${alerta}66`, borderTopColor: alerta } : undefined}>
+        <div data-tom={tom} className="min-w-0 bg-card border border-border rounded-xl p-4" style={alerta ? { borderColor: `${alerta}66` } : undefined}>
             <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="truncate text-xs font-semibold text-muted-foreground" title={label}>{label}</span>
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${VEU[tom]} ${TEXTO[tom]}`}>{icon}</span>
+                <span className="truncate text-xs font-medium text-muted-foreground" title={label}>{label}</span>
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-secondary text-muted-foreground">{icon}</span>
             </div>
-            <div className={`truncate text-xl font-bold tabular-nums ${value == null ? 'text-muted-foreground' : ''}`} style={value != null && alerta ? { color: alerta } : undefined}>{value ?? '—'}</div>
+            <div className={`truncate text-xl font-semibold tabular-nums ${value == null ? 'text-muted-foreground' : ''}`} style={value != null && alerta ? { color: alerta } : undefined}>{value ?? '—'}</div>
             <div className="truncate text-xs text-muted-foreground mt-1" title={sub}>{sub}</div>
         </div>
     );

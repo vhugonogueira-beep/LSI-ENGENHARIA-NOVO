@@ -67,7 +67,7 @@ export default function DashboardFinanceiro() {
 
   return (
     <div style={{ padding: 32, display: "flex", flexDirection: "column", gap: 16 }}>
-      <PageHeader icone={TrendingUp} tom="violet" titulo="Dashboard Financeiro"
+      <PageHeader icone={TrendingUp} tom="violet" titulo="Dashboard financeiro"
         descricao={<>Controladoria por atividade, com impostos a {pct(dados.aliquota * 100)} (cadastro da empresa)</>}
         acoes={<select value={mes} onChange={e => setMes(e.target.value)} aria-label="Período"
           style={{ padding: "8px 12px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, minWidth: 200 }}>
@@ -211,7 +211,7 @@ function Pill({ info, bruto, cor: corTom }: { info?: { label: string; color: str
 function Etapa({ rotulo, valor, alerta, destaque, tom = "slate" }: { rotulo: string; valor: number; alerta?: string; destaque?: boolean; tom?: Tom }) {
   return (
     <div style={{ padding: "10px 12px", borderRadius: 10, background: destaque ? hexTom(tom) + "14" : T.bg3 + "80", border: `1px solid ${destaque ? hexTom(tom) + "44" : T.brSub}` }}>
-      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
         <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: hexTom(tom), flexShrink: 0 }} />
         {rotulo}
       </div>
@@ -226,14 +226,13 @@ function Sinal({ children }: { children: React.ReactNode }) {
 }
 
 function Kpi({ rotulo, valor, alerta, nota, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; nota?: string; tom?: Tom }) {
-  const cor = hexTom(tom);
+  void tom; // cartão neutro; a cor fica para o alerta (revisão de 08/10/2026)
   return (
-    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderTop: `2px solid ${alerta || cor}`, borderRadius: 10, padding: "11px 15px" }}>
-      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-        <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }} />
+    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px" }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
         {rotulo}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
       {nota && <div style={{ fontSize: 11, color: T.txDis, marginTop: 3 }}>{nota}</div>}
     </div>
   );

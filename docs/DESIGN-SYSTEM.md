@@ -35,11 +35,18 @@ tem a mesma cor em toda tela.** A cor vira atalho de leitura. Fonte única:
 | Operadora | Vivo violeta · Claro rosa · TIM azul · Oi âmbar |
 | Sharing | Highline ciano · IHS laranja · Winity violeta · SBA teal |
 | Ramo do fornecedor | Material verde · Mão de obra azul · Serviço violeta · Transporte laranja · Locação âmbar … |
-| Módulo (menu e cabeçalho da página) | Atividades azul · Fornecedores teal · Pagamentos laranja · Faturamento verde · Orçamento/LPUs âmbar · Dashboards violeta/índigo · Clientes rosa |
+
+**Revisão de 08/10/2026 — moldura neutra.** A cor por *módulo* saiu da moldura:
+menu lateral monocromático (só o item ativo em `primary`), cabeçalho de página
+com ícone neutro em `primary`, barra superior neutra, e cartões de indicador sem
+filete colorido nem ponto no rótulo (cor só no valor, quando é alerta). Com 14
+cores de módulo disputando atenção, nada se destacava. `TOM_MODULO` continua em
+`lib/cores.ts` para quem quiser, mas a moldura não usa.
 
 Onde a cor aparece: faixa à esquerda da linha/cartão (`border-l-4` + `FAIXA`),
-pílula (`CHIP`), cabeçalho de coluna (`VEU` + `TOPO`), barra de avanço
-(`SOLIDO`), caixa do ícone do módulo (`VEU` + `TEXTO`).
+pílula (`CHIP`), cabeçalho de coluna do kanban (`VEU` + `TOPO`), barra de avanço
+(`SOLIDO`). Toda pílula de status diz a dimensão quando ela não é óbvia pelo
+lugar ("Comercial · Em orçamento", `StatusPill rotulo=`).
 
 Estado de alerta continua com os tokens próprios, que vencem a cor da
 dimensão quando há problema:
@@ -66,12 +73,17 @@ Continua valendo: **ausência não tem cor** (zero e vazio são "—" apagado),
     `text-lg` 18 · `text-2xl` 24 · `text-3xl` 32. `text-[11px]` também vale 11.
   - Inline: `fontSize` só com esses valores.
 - Pesos: 400, 500, 600, 700. Nada de 800/900 (a fonte não tem; sai sintetizado).
+- Hierarquia (08/10/2026): título de página 24/600; título de cartão 15/600;
+  rótulo 12/500 em `muted-foreground`; valor de indicador 600. Negrito 700 só
+  para ênfase pontual, não para rótulo.
+- Caixa de frase em títulos, abas, status e menu: "Controle de pagamentos",
+  "Em orçamento", "PO e faturamento" — nunca "Controle de Pagamentos" nem "&".
 - Números em tabela são tabulares (já é o padrão do `body`).
 
 ## Ícones
 
-Só `lucide-react`, tamanho 14–16 em texto corrido, `aria-hidden` quando
-decorativo. **Nada de emoji como ícone** (🏭 👷 📍 💳 🗑 ✏️ ✅ ⚠️): muda de desenho
+Só `lucide-react`, tamanho 14–16 em texto corrido (18 no menu), `aria-hidden` quando
+decorativo. Traço único de 1,75 em todo o sistema (`svg.lucide` em `index.css`). **Nada de emoji como ícone** (🏭 👷 📍 💳 🗑 ✏️ ✅ ⚠️): muda de desenho
 entre sistemas, não segue o tema e dá cara de rascunho. Emoji só se for conteúdo
 digitado pelo usuário.
 

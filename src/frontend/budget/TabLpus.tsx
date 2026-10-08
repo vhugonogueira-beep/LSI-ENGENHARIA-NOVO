@@ -449,7 +449,7 @@ export default function TabLpus() {
     <div className="p-8" style={{ animation: "fadeIn 0.3s ease", display: "flex", flexDirection: "column", height: "calc(100vh - 40px)", boxSizing: "border-box", gap: 12 }}>
       {/* Cabeçalho único (components/PageHeader). Na coluna com gap, mb-3 + gap = 24px. */}
       <div className="[&>header]:mb-3">
-        <PageHeader icone={Library} tom={TOM_MODULO.lpus} titulo="Bases (LPUs)"
+        <PageHeader icone={Library} tom={TOM_MODULO.lpus} titulo="Bases de preço (LPUs)"
           descricao="Preço ao cliente, custo LS e bases de fornecedor, classificadas por área e cliente." />
       </div>
       {toast && <div style={{ position: "fixed", bottom: 20, right: 20, background: T.green, color: "#052e1b", padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 700, fontSize: 12, boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>{toast}</div>}

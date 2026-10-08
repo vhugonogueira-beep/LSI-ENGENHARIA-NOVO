@@ -25,31 +25,31 @@ export const STATUS_OPERACIONAL: Record<string, { label: string; color: string }
 };
 
 export const STATUS_COMERCIAL: Record<string, { label: string; color: string }> = {
-    EM_ORCAMENTO: { label: 'Em Orçamento', color: '#94a3b8' },
-    EM_NEGOCIACAO: { label: 'Em Negociação', color: '#f59e0b' },
+    EM_ORCAMENTO: { label: 'Em orçamento', color: '#94a3b8' },
+    EM_NEGOCIACAO: { label: 'Em negociação', color: '#f59e0b' },
     APROVADO: { label: 'Aprovado', color: '#22c55e' },
     REPROVADO: { label: 'Reprovado', color: '#ef4444' },
 };
 
 export const STATUS_DOCUMENTAL: Record<string, { label: string; color: string }> = {
-    NAO_INICIADO: { label: 'Não Iniciado', color: '#94a3b8' },
-    EM_ELABORACAO: { label: 'Em Elaboração', color: '#f59e0b' },
-    PENDENCIAS_POS_RFI: { label: 'Pendências Pós-RFI', color: '#f59e0b' },
+    NAO_INICIADO: { label: 'Não iniciado', color: '#94a3b8' },
+    EM_ELABORACAO: { label: 'Em elaboração', color: '#f59e0b' },
+    PENDENCIAS_POS_RFI: { label: 'Pendências pós-RFI', color: '#f59e0b' },
     COMPLETO: { label: 'Completo', color: '#22c55e' },
 };
 
 export const STATUS_FINANCEIRO: Record<string, { label: string; color: string }> = {
-    SEM_COMPROMETIMENTO: { label: 'Sem Comprometimento', color: '#94a3b8' },
-    CUSTO_COMPROMETIDO: { label: 'Custo Comprometido', color: '#f59e0b' },
-    CUSTO_PAGO: { label: 'Custo Pago', color: '#22c55e' },
+    SEM_COMPROMETIMENTO: { label: 'Sem comprometimento', color: '#94a3b8' },
+    CUSTO_COMPROMETIDO: { label: 'Custo comprometido', color: '#f59e0b' },
+    CUSTO_PAGO: { label: 'Custo pago', color: '#22c55e' },
 };
 
 export const STATUS_FATURAMENTO: Record<string, { label: string; color: string }> = {
-    NAO_INICIADO: { label: 'Não Iniciado', color: '#94a3b8' },
-    PRONTO_PARA_FATURAR: { label: 'Pronto para Faturar', color: '#22c55e' },
-    ENVIADO_FINANCEIRO: { label: 'Enviado ao Financeiro', color: '#1768D5' },
-    EM_FATURAMENTO: { label: 'Em Faturamento', color: '#1768D5' },
-    NF_EMITIDA: { label: 'NF Emitida', color: '#1768D5' },
+    NAO_INICIADO: { label: 'Não iniciado', color: '#94a3b8' },
+    PRONTO_PARA_FATURAR: { label: 'Pronto para faturar', color: '#22c55e' },
+    ENVIADO_FINANCEIRO: { label: 'Enviado ao financeiro', color: '#1768D5' },
+    EM_FATURAMENTO: { label: 'Em faturamento', color: '#1768D5' },
+    NF_EMITIDA: { label: 'NF emitida', color: '#1768D5' },
     FATURADO: { label: 'Faturado', color: '#8b5cf6' },
     RECEBIDO: { label: 'Recebido', color: '#22c55e' },
 };
@@ -142,9 +142,9 @@ export const OPERADORA_COLOR: Record<string, string> = { VIVO: '#a78bfa', CLARO:
 // MEDIANTE_APROVACAO = "Implantação (Modelo 2 completo)": fluxo inteiro, com APC e RFI.
 export const MODELOS_OPERACAO = ['EXECUCAO_DIRETA', 'EXECUCAO_COM_APROVACAO', 'MEDIANTE_APROVACAO'];
 export const MODELO_OPERACAO_LABEL: Record<string, string> = {
-    EXECUCAO_DIRETA: 'Execução Direta (sem aprovação)',
-    EXECUCAO_COM_APROVACAO: 'Execução com Aprovação',
-    MEDIANTE_APROVACAO: 'Mediante Aprovação (Implantação)',
+    EXECUCAO_DIRETA: 'Execução direta (sem aprovação)',
+    EXECUCAO_COM_APROVACAO: 'Execução com aprovação',
+    MEDIANTE_APROVACAO: 'Mediante aprovação (implantação)',
 };
 
 // Modelo de operação padrão a partir do tipo de demanda (Blueprint LSI, seção 05) —
@@ -224,7 +224,7 @@ const TOM_POR_COR: Record<string, Tom> = {
     '#ef4444': 'rose', '#8b5cf6': 'violet', '#818cf8': 'indigo',
 };
 
-export function StatusPill({ status, map, tom }: { status: string; map: Record<string, { label: string; color: string }>; tom?: Tom }) {
+export function StatusPill({ status, map, tom, rotulo }: { status: string; map: Record<string, { label: string; color: string }>; tom?: Tom; rotulo?: string }) {
     const info = map[status] || { label: status, color: '#94a3b8' };
     // Status operacional segue TOM_STATUS — a mesma cor da faixa, do kanban e da barra.
     const t: Tom | undefined = tom
@@ -233,6 +233,7 @@ export function StatusPill({ status, map, tom }: { status: string; map: Record<s
         return (
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${CHIP[t]}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${SOLIDO[t]}`} aria-hidden />
+                {rotulo && <span className="font-medium opacity-75">{rotulo}</span>}
                 {info.label}
             </span>
         );
@@ -244,6 +245,7 @@ export function StatusPill({ status, map, tom }: { status: string; map: Record<s
             className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap"
         >
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: cor }} aria-hidden />
+            {rotulo && <span className="font-medium opacity-75">{rotulo}</span>}
             {info.label}
         </span>
     );

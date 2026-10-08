@@ -89,12 +89,12 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
             <Card title="Identificação" action={<GhostButton onClick={() => setEditing(true)}><Pencil size={14} className="inline mr-1" aria-hidden />Editar</GhostButton>}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                     <div>
-                        <Row label="Cliente (sharing)" value={atividade.sharing && <SharingNome sharing={atividade.sharing} />} />
+                        <Row label="Detentora" value={atividade.sharing && <SharingNome sharing={atividade.sharing} />} />
                         <Row label="Operadora" value={atividade.operadora && <OperadoraChip operadora={atividade.operadora} />} />
                         <Row label="Contratante" value={atividade.contratante?.nome} />
                         <Row label="Contrato" value={atividade.contrato} />
-                        <Row label="Site ID sharing" value={atividade.id_site_sharing && <span className="font-id">{atividade.id_site_sharing}</span>} />
-                        <Row label="Site ID operadora" value={atividade.id_site_operadora && <span className="font-id">{atividade.id_site_operadora}</span>} />
+                        <Row label="ID do site na detentora" value={atividade.id_site_sharing && <span className="font-id">{atividade.id_site_sharing}</span>} />
+                        <Row label="ID do site na operadora" value={atividade.id_site_operadora && <span className="font-id">{atividade.id_site_operadora}</span>} />
                         <Row label="UF e município" value={[normalizarUf(atividade.estado) || atividade.estado, atividade.municipio].filter(Boolean).join(' / ') || '—'} />
                         <Row label="Tipo de demanda" value={
                             <span className="inline-flex items-center gap-1.5">
@@ -191,8 +191,8 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                         {contratantes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
                     </select>
                 </Field>
-                <Field label="Site ID sharing"><input className={inputClass} value={form.id_site_sharing} onChange={e => setForm(f => ({ ...f, id_site_sharing: e.target.value }))} /></Field>
-                <Field label="Site ID operadora"><input className={inputClass} value={form.id_site_operadora} onChange={e => setForm(f => ({ ...f, id_site_operadora: e.target.value }))} /></Field>
+                <Field label="ID do site na detentora"><input className={inputClass} value={form.id_site_sharing} onChange={e => setForm(f => ({ ...f, id_site_sharing: e.target.value }))} /></Field>
+                <Field label="ID do site na operadora"><input className={inputClass} value={form.id_site_operadora} onChange={e => setForm(f => ({ ...f, id_site_operadora: e.target.value }))} /></Field>
                 <Field label="Contrato"><input className={inputClass} value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} /></Field>
                 <Field label={`UF${form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' ? ' *' : ''}`}>
                     <select className={inputClass} value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value, municipio: e.target.value === f.estado ? f.municipio : '' }))}>

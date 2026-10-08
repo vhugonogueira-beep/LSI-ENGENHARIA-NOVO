@@ -12,7 +12,7 @@ import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
 import PageHeader from "../components/PageHeader";
 import { CreditCard, Search, X } from "lucide-react";
 // Cor com significado (docs/DESIGN-SYSTEM.md): origem, KPI e módulo.
-import { CHIP, FAIXA, TOM_MODULO, hexTom, type Tom } from "../lib/cores";
+import { CHIP, FAIXA, TOM_MODULO, type Tom } from "../lib/cores";
 import { FiltroPainel, FiltroLinha, CAMPO, ALTERNADOR, SEGMENTO } from "../components/FiltroPainel";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -245,7 +245,7 @@ export default function ControlePagamentos() {
   </div>;
 
   const cabecalho = <div className="[&>header]:mb-0">
-    <PageHeader icone={CreditCard} tom={TOM_MODULO.pagamentos} titulo="Controle de Pagamentos"
+    <PageHeader icone={CreditCard} tom={TOM_MODULO.pagamentos} titulo="Controle de pagamentos"
       descricao="Parcelas de contrato e reembolsos na mesma fila. O comprovante é anexado na própria linha." />
   </div>;
 
@@ -434,14 +434,13 @@ export default function ControlePagamentos() {
 /** Cada KPI tem a sua cor (faixa no topo e ponto no rótulo); o valor só ganha
  *  cor quando é alerta. Sem valor, "—" sem cor. */
 function Kpi({ rotulo, valor, alerta, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; tom?: Tom }) {
-  const cor = hexTom(tom);
+  void tom; // cartão neutro; a cor fica para o alerta (revisão de 08/10/2026)
   return (
-    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderTop: `2px solid ${cor}`, borderRadius: 10, padding: "11px 15px", minWidth: 0 }}>
-      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", overflow: "hidden" }} title={rotulo}>
-        <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: "50%", background: cor, flexShrink: 0 }} />
+    <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px", minWidth: 0 }}>
+      <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", overflow: "hidden" }} title={rotulo}>
         {rotulo}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 700, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{valor ?? "—"}</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{valor ?? "—"}</div>
     </div>
   );
 }

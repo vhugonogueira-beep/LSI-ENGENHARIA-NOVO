@@ -7,7 +7,7 @@ export function Card({ title, action, children }: { title?: string; action?: Rea
         <div className="bg-card text-foreground border border-border rounded-xl p-5 mb-4">
             {(title || action) && (
                 <div className="flex items-center justify-between mb-4">
-                    {title && <h3 className="text-sm font-bold text-foreground">{title}</h3>}
+                    {title && <h3 className="text-[15px] font-semibold text-foreground">{title}</h3>}
                     {action}
                 </div>
             )}
@@ -19,7 +19,7 @@ export function Card({ title, action, children }: { title?: string; action?: Rea
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <label className="flex flex-col gap-1.5">
-            <span className="text-xs font-semibold text-muted-foreground">{label}</span>
+            <span className="text-xs font-medium text-muted-foreground">{label}</span>
             {children}
         </label>
     );

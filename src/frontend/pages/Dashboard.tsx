@@ -88,7 +88,7 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
   return (
     <div className="p-8" style={{ minHeight: '100vh', background: T.bg0, color: T.txPri }}>
 
-      <PageHeader icone={Home} tom={TOM_MODULO.overview} titulo="Dashboard"
+      <PageHeader icone={Home} tom={TOM_MODULO.overview} titulo="Visão geral"
         descricao="Visão geral de orçamentos, atividades e receita" />
 
       {orfaos > 0 && (
@@ -125,7 +125,7 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
             { label: 'Total de atividades',          value: totalAtividades,             tom: 'indigo' as Tom, icon: <Layers size={16} aria-hidden /> },
             { label: 'Em execução',                  value: emExecucao,                  tom: 'blue' as Tom,   icon: <Play size={16} aria-hidden /> },
             { label: 'Valor contratado',             value: fmtMoeda(receitaAtividades), tom: 'cyan' as Tom,   icon: <Banknote size={16} aria-hidden />, small: true },
-            { label: 'Sharing com mais atividades',  value: topSharing(porSharing),      tom: 'cyan' as Tom,   icon: <Trophy size={16} aria-hidden />, small: true },
+            { label: 'Detentora com mais atividades',  value: topSharing(porSharing),      tom: 'cyan' as Tom,   icon: <Trophy size={16} aria-hidden />, small: true },
           ].map(k => (
             <KpiCard key={k.label} {...k} loading={loading} />
           ))}
@@ -240,7 +240,7 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
       {/* ── Por Sharing ── */}
       {!loading && porSharing.length > 0 && (
         <div style={{ marginTop: 20, background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: '16px 18px' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>Atividades por sharing</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>Atividades por detentora</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
             {porSharing.map(s => {
               const cor = hexTom(tomDe(TOM_SHARING, s.sharing, 'slate'));
@@ -265,24 +265,24 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
 function KpiCard({ label, value, icon, loading, small, tom = 'slate' }: { label: string; value: any; icon: React.ReactNode; loading?: boolean; small?: boolean; tom?: Tom }) {
   // Zero, vazio e "sem dado" aparecem como "—" em texto apagado.
   const vazio = value == null || value === 0 || value === '—';
-  const cor = hexTom(tom);
+  void tom; // tom continua aceito, mas o cartão é neutro (revisão de 08/10/2026)
   return (
     <div style={{
-      background: T.bg2, border: `1px solid ${T.brBase}`, borderTop: `2px solid ${cor}`, borderRadius: 12,
+      background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12,
       padding: '14px 16px', display: 'flex', alignItems: 'flex-start', gap: 12, minWidth: 0,
     }}>
       <div style={{
-        color: cor, background: `${cor}1a`, flexShrink: 0, display: 'flex',
-        width: 34, height: 34, borderRadius: '50%', alignItems: 'center', justifyContent: 'center',
+        color: T.txMut, background: T.bg3, flexShrink: 0, display: 'flex',
+        width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center',
       }}>
         {icon}
       </div>
       {/* Valor numa linha de altura fixa, ancorada na base: números grandes e
           textos menores ficam na mesma linha de leitura ao longo da fileira. */}
       <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 12, color: T.txMut, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={label}>{label}</div>
+        <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={label}>{label}</div>
         <div title={typeof value === 'string' ? value : undefined} style={{
-          fontSize: small ? 15 : 24, fontWeight: 700, color: vazio ? T.txMut : T.txPri,
+          fontSize: small ? 15 : 24, fontWeight: 600, color: vazio ? T.txMut : T.txPri,
           lineHeight: '28px', height: 28, marginTop: 2, display: 'flex', alignItems: 'flex-end',
           fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
