@@ -9,6 +9,7 @@ import { FinancialActionMenu, FinancialAttachments, FinancialBeneficiaryCard, Fi
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import PaymentAttachments from '../financeiro/PaymentAttachments';
 import FuncionarioFormModal from '../cadastros/FuncionarioFormModal';
+import FornecedorFormModal from '../cadastros/FornecedorFormModal';
 import AvisoSemAssinatura from '../perfil/AvisoSemAssinatura';
 import { usePermissao } from '../../lib/permissoes';
 
@@ -56,8 +57,9 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [programacao, setProgramacao] = useState<{ parcelaId: string; statusAtual: string; data_solicitacao: string; data_prevista: string; motivo: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    // Cadastro de funcionário sem sair do pagamento (mesma janela da tela Funcionários).
-    const [novoFuncionario, setNovoFuncionario] = useState(false);
+    // Cadastro sem sair do pagamento, com as mesmas janelas da aba Pessoas e
+    // Fornecedores: "Novo cadastro" (material / prestador / funcionário).
+    const [cadastro, setCadastro] = useState<'PESSOA' | 'FUNCIONARIO' | null>(null);
     const podeCadastrar = usePermissao('cadastros.gerenciar');
     const [form, setForm] = useState(FORM_INIT);
     const [erro, setErro] = useState('');
@@ -536,13 +538,20 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             <ErrorBanner message={erro} />
             <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff,.doc,.docx" className="hidden" onChange={onArquivoSelecionado} />
 
-            {novoFuncionario && (
-                <FuncionarioFormModal onClose={() => setNovoFuncionario(false)} onSaved={f => {
+            {cadastro === 'PESSOA' && (
+                <FornecedorFormModal onClose={() => setCadastro(null)} onEscolherFuncionario={() => setCadastro('FUNCIONARIO')} onSaved={sup => {
                     // Entra na lista e já fica escolhido como favorecido, com a forma de pagamento dele.
+                    setSuppliers(lista => [...lista.filter(x => x.id !== sup.id), sup].sort((a, b) => a.nome.localeCompare(b.nome)));
+                    setForm(atual => ({ ...atual, favorecido: `supplier:${sup.id}`, forma_pagamento: sup.forma_pagamento || '', cartao_id: '' }));
+                    setCadastro(null);
+                }} />
+            )}
+            {cadastro === 'FUNCIONARIO' && (
+                <FuncionarioFormModal onClose={() => setCadastro(null)} onSaved={f => {
                     setFuncionarios(lista => [...lista, f].sort((a, b) => a.nome.localeCompare(b.nome)));
                     const forma = f.forma_pagamento || (f.pix_chave ? 'PIX' : 'TED');
                     setForm(atual => ({ ...atual, favorecido: `funcionario:${f.id}`, forma_pagamento: forma, cartao_id: '' }));
-                    setNovoFuncionario(false);
+                    setCadastro(null);
                 }} />
             )}
             {showForm && (
@@ -568,9 +577,9 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 </optgroup>
                             </select>
                             {podeCadastrar && (
-                                <button type="button" onClick={() => setNovoFuncionario(true)} title="Cadastrar funcionário"
+                                <button type="button" onClick={() => setCadastro('PESSOA')} title="Cadastrar fornecedor, prestador ou funcionário"
                                     className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold hover:bg-secondary/60">
-                                    <Plus size={14} aria-hidden /> Funcionário
+                                    <Plus size={14} aria-hidden /> Cadastrar
                                 </button>
                             )}
                             </div>
