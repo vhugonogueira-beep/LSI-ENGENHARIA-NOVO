@@ -1,10 +1,11 @@
+import TipoObraCampo from './TipoObraCampo';
 import { useState, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Row, AreaChip, OperadoraChip, SharingNome } from './ui';
 import {
     TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    TIPOS_OBRA, TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
+    TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
 } from './constants';
 import MunicipioInput from '../cadastros/MunicipioInput';
 
@@ -170,10 +171,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     </Field>
                 )}
                 <Field label="Tipo de obra">
-                    <select className={inputClass} value={form.tipo_obra} onChange={e => setForm(f => ({ ...f, tipo_obra: e.target.value }))}>
-                        <option value="">—</option>
-                        {TIPOS_OBRA.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
+                    <TipoObraCampo className={inputClass} value={form.tipo_obra} onChange={v => setForm(f => ({ ...f, tipo_obra: v }))} />
                 </Field>
                 {form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && (
                     <Field label="Tipo de site Highline">

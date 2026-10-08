@@ -1,8 +1,9 @@
+import TipoObraCampo from '../components/atividades/TipoObraCampo';
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    TIPOS_OBRA, TIPOS_SITE_HIGHLINE, TIPOS_SITE, tipoSiteHighline, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
+    TIPOS_SITE_HIGHLINE, TIPOS_SITE, tipoSiteHighline, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
     REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
@@ -837,10 +838,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     </select>
                                 </Field>
                                 <Field label="Tipo de obra">
-                                    <select value={form.tipo_obra} onChange={e => setForm(f => ({ ...f, tipo_obra: e.target.value }))} className="input">
-                                        <option value="">—</option>
-                                        {TIPOS_OBRA.map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
+                                    <TipoObraCampo className="input" value={form.tipo_obra} onChange={v => setForm(f => ({ ...f, tipo_obra: v }))} />
                                 </Field>
                             </div>
                             {form.tipo_demanda === 'OPERACAO' && (
