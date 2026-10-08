@@ -196,8 +196,8 @@ export async function listLinhasDaPO(req: Request, res: Response) {
 
 export async function solicitarFaturamentoDeLinhas(req: Request, res: Response) {
     try {
-        const { itens, gestor } = req.body;
-        const criados = await solicitarFaturamentoLinhas(itens, gestor);
+        const { itens, gestor, autorizacao } = req.body;
+        const criados = await solicitarFaturamentoLinhas(itens, gestor, autorizacao, (req as any).user);
         res.status(201).json(criados);
     } catch (e: any) {
         res.status(400).json({ error: e.message });

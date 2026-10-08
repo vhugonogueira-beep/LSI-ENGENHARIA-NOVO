@@ -867,7 +867,7 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
         };
 
         const { assunto, html: htmlBase } = gerarEmailCorporativo(dados);
-        const { html } = await composeEmailForUser(htmlBase, usuario, 'preview');
+        const { html, signature } = await composeEmailForUser(htmlBase, usuario, 'preview');
         const routing = await resolveEmailRouting(usuario.tenantId, 'PAYMENT_REQUEST', {
             para: req.body?.para ?? req.body?.destinatario,
             cc: req.body?.cc,
@@ -883,6 +883,8 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
             para: routing.para.join('; '),
             cc: routing.cc.join('; '),
             routing_pendente: routing.pendente,
+            // Quem ainda não subiu a própria assinatura é avisado na prévia (08/10/2026).
+            sem_assinatura: !signature,
             responsavel: { nome: usuario.nome || usuario.email, email: usuario.email },
             anexos: [
                 ...r.arquivos.map(a => ({ origem: 'REEMBOLSO', id: a.id, nome: a.nome_original, tipo: a.tipo })),

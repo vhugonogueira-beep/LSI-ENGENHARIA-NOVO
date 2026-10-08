@@ -80,8 +80,36 @@ export interface SolicitacaoLinha {
     percentual: number;
 }
 
-export async function solicitarFaturamentoLinhas(itens: SolicitacaoLinha[], gestor?: string) {
+/** Resposta à pergunta "o cliente autorizou este faturamento?" (decisão de 08/10/2026). */
+export interface AutorizacaoCliente {
+    confirmada: boolean;
+    autorizado_por: string; // quem autorizou do lado do cliente
+    data: string;           // AAAA-MM-DD
+}
+
+const PREFIXO_AUTORIZACAO = 'Autorização do cliente:';
+
+/**
+ * Sem confirmação explícita de que o cliente autorizou, a solicitação não sai.
+ * A resposta fica na própria remessa (observacoes) e na auditoria, e vai no e-mail.
+ */
+function validarAutorizacao(a: AutorizacaoCliente | undefined, quem: string) {
+    if (!a?.confirmada) throw new Error('Confirme que o cliente autorizou este faturamento antes de solicitar');
+    const por = String(a.autorizado_por || '').trim();
+    if (!por) throw new Error('Informe quem autorizou o faturamento no cliente');
+    const data = new Date(`${String(a.data || '').slice(0, 10)}T12:00:00`);
+    if (Number.isNaN(data.getTime())) throw new Error('Informe a data da autorização do cliente');
+    if (data.getTime() > Date.now() + 24 * 3600 * 1000) throw new Error('A data da autorização não pode estar no futuro');
+    const dia = data.toLocaleDateString('pt-BR');
+    return { por, dia, texto: `${PREFIXO_AUTORIZACAO} ${por} em ${dia}. Confirmada no sistema por ${quem}.` };
+}
+
+export async function solicitarFaturamentoLinhas(
+    itens: SolicitacaoLinha[], gestor?: string,
+    autorizacaoCliente?: AutorizacaoCliente, usuario?: { userId?: string; tenantId?: string; nome?: string; email?: string },
+) {
     if (!itens?.length) throw new Error('Selecione ao menos uma linha para faturar');
+    const autorizacao = validarAutorizacao(autorizacaoCliente, usuario?.nome || usuario?.email || 'usuário não identificado');
 
     const criados = [];
     for (const item of itens) {
@@ -114,8 +142,19 @@ export async function solicitarFaturamentoLinhas(itens: SolicitacaoLinha[], gest
                 percentual,
                 valor: round2(linha.valor_total * percentual / 100),
                 gestor: gestor || null,
+                observacoes: autorizacao.texto,
             },
         }));
+    }
+    if (usuario?.tenantId) {
+        await prisma.auditLog.createMany({
+            data: criados.map(c => ({
+                tenant_id: usuario.tenantId!, entidade: 'FaturamentoLinha', entidade_id: c.id,
+                acao: 'FATURAMENTO_AUTORIZACAO_CONFIRMADA',
+                depois_json: JSON.stringify({ autorizado_por: autorizacao.por, data: autorizacao.dia, percentual: c.percentual, valor: c.valor }),
+                user_id: usuario.userId || null,
+            })),
+        });
     }
     return criados;
 }
@@ -227,6 +266,12 @@ export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoe
     const sites = [...new Set(registros.map(r => r.linha.site || r.linha.po.atividade?.id_site_sharing || r.linha.po.atividade?.codigo).filter(Boolean))];
     const assunto = `[${origem}] FATURAMENTO | ${sites.slice(0, 3).join(' / ') || cliente.toUpperCase()} | ${competencia}`;
 
+    // "Autorização do cliente: Fulano em 08/10/2026." — sem o trecho interno de quem confirmou.
+    const autorizacoes = [...new Set(registros
+        .map(r => r.observacoes || '')
+        .filter(o => o.startsWith(PREFIXO_AUTORIZACAO))
+        .map(o => o.split(' Confirmada no sistema')[0].replace(PREFIXO_AUTORIZACAO, 'Faturamento autorizado pelo cliente:')))];
+
     const corpoTexto = [
         'Boa tarde!',
         '',
@@ -234,6 +279,7 @@ export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoe
         `Nesta atualização, temos ${registros.length} linha(s) liberada(s), totalizando ${fmtMoeda(total)} para faturamento.`,
         'Peço, por gentileza, que considere a tabela abaixo para o devido prosseguimento do processo de faturamento.',
         '',
+        ...(autorizacoes.length ? [...autorizacoes, ''] : []),
         'POs LIBERADAS PARA FATURAMENTO',
         '',
         [COLUNAS.join(' | ')].concat(linhasTabela.map(l => l.join(' | '))).join('\n'),
@@ -244,6 +290,7 @@ export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoe
 <p>Segue a atualização das liberações de faturamento da <strong>${escapeHtml(cliente.toUpperCase())}</strong>, referente às demandas já liberadas no Microsiga.<br>
 Nesta atualização, temos <strong>${registros.length} linha(s) liberada(s)</strong>, totalizando <strong>${fmtMoeda(total)}</strong> para faturamento.<br>
 Peço, por gentileza, que considere a tabela abaixo para o devido prosseguimento do processo de faturamento.</p>
+${autorizacoes.length ? `<p>${autorizacoes.map(a => escapeHtml(a)).join('<br>')}</p>` : ''}
 <p><strong>POs LIBERADAS PARA FATURAMENTO</strong></p>
 <table style="border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:11pt">
   <thead>
@@ -264,6 +311,7 @@ Peço, por gentileza, que considere a tabela abaixo para o devido prosseguimento
         para: routing.para.join('; '),
         cc: routing.cc.join('; '),
         routing_pendente: routing.pendente,
+        sem_assinatura: !composto.signature,
         responsavel: { nome: usuario.nome || usuario.email, email: usuario.email },
         corpo_texto: corpoTexto,
         corpo_html: composto.html,

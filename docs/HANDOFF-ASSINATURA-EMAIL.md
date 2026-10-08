@@ -85,6 +85,14 @@ A interface fica em **Meu Perfil → Assinatura de e-mail**, implementada por `s
 
 Links `mailto:` usados apenas para abrir o endereço de um contato não são e-mails gerados pelo LSI e não passam pelo compositor.
 
+## Aviso de assinatura ausente (08/10/2026)
+
+Cada pessoa sobe a própria assinatura em Meu Perfil. As prévias de pagamento,
+depósito de reembolso/adiantamento e faturamento devolvem `sem_assinatura: true`
+quando o usuário ainda não tem uma, e a tela mostra `AvisoSemAssinatura`
+(`src/frontend/components/perfil/AvisoSemAssinatura.tsx`) pedindo o envio. A
+regra continua: ninguém herda assinatura de outra pessoa.
+
 ## Validação
 
 O script `src/backend/scripts/validar-assinatura-email.ts` cria temporariamente uma assinatura mínima, valida upload/metadados/visualização, isolamento entre usuários, prévias dos módulos, fallback sem assinatura e CID no Outlook, e remove a assinatura de teste ao final.

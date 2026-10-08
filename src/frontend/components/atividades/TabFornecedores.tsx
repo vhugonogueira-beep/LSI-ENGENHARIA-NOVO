@@ -8,6 +8,9 @@ import PagamentoStatusSelect from './PagamentoStatusSelect';
 import { FinancialActionMenu, FinancialAttachments, FinancialBeneficiaryCard, FinancialPaymentCard, type FinancialAction } from '../financeiro/FinancialCards';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import PaymentAttachments from '../financeiro/PaymentAttachments';
+import FuncionarioFormModal from '../cadastros/FuncionarioFormModal';
+import AvisoSemAssinatura from '../perfil/AvisoSemAssinatura';
+import { usePermissao } from '../../lib/permissoes';
 
 const CONTRATO_STATUS = ['GERADO', 'ENVIADO', 'ASSINADO'];
 const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIADO: 'Enviado', ASSINADO: 'Assinado' };
@@ -53,6 +56,9 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [programacao, setProgramacao] = useState<{ parcelaId: string; statusAtual: string; data_solicitacao: string; data_prevista: string; motivo: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    // Cadastro de funcionário sem sair do pagamento (mesma janela da tela Funcionários).
+    const [novoFuncionario, setNovoFuncionario] = useState(false);
+    const podeCadastrar = usePermissao('cadastros.gerenciar');
     const [form, setForm] = useState(FORM_INIT);
     const [erro, setErro] = useState('');
     const [salvando, setSalvando] = useState(false);
@@ -530,11 +536,21 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             <ErrorBanner message={erro} />
             <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff,.doc,.docx" className="hidden" onChange={onArquivoSelecionado} />
 
+            {novoFuncionario && (
+                <FuncionarioFormModal onClose={() => setNovoFuncionario(false)} onSaved={f => {
+                    // Entra na lista e já fica escolhido como favorecido, com a forma de pagamento dele.
+                    setFuncionarios(lista => [...lista, f].sort((a, b) => a.nome.localeCompare(b.nome)));
+                    const forma = f.forma_pagamento || (f.pix_chave ? 'PIX' : 'TED');
+                    setForm(atual => ({ ...atual, favorecido: `funcionario:${f.id}`, forma_pagamento: forma, cartao_id: '' }));
+                    setNovoFuncionario(false);
+                }} />
+            )}
             {showForm && (
                 <div className="border border-border rounded-lg p-4 mb-4">
                     <div className="grid grid-cols-2 gap-3">
                         <Field label="Favorecido">
-                            <select className={inputClass} value={form.favorecido} onChange={e => {
+                            <div className="flex gap-2">
+                            <select className={`${inputClass} min-w-0 flex-1`} value={form.favorecido} onChange={e => {
                                 const valor = e.target.value;
                                 const isFuncionario = valor.startsWith('funcionario:');
                                 const pessoa = isFuncionario
@@ -551,6 +567,13 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     {funcionarios.map(f => <option key={f.id} value={`funcionario:${f.id}`}>{f.nome}{f.cargo ? ` (${f.cargo})` : ''}</option>)}
                                 </optgroup>
                             </select>
+                            {podeCadastrar && (
+                                <button type="button" onClick={() => setNovoFuncionario(true)} title="Cadastrar funcionário"
+                                    className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold hover:bg-secondary/60">
+                                    <Plus size={14} aria-hidden /> Funcionário
+                                </button>
+                            )}
+                            </div>
                         </Field>
                         <Field label="Finalidade">
                             <select className={inputClass} value={form.finalidade} onChange={e => setForm(f => ({
@@ -892,6 +915,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             </div>
                             {emailPagamento.anexos?.length > 0 && <div className="text-muted-foreground">Anexos reais no .eml: <strong className="text-foreground">{emailPagamento.anexos.map((a:any)=>a.nome).join('; ')}</strong></div>}
                             {emailPagamento.resumo?.documentos_pendentes?.length > 0 && <div className="rounded border border-warn/40 bg-warn/10 px-2.5 py-1.5 text-warn">Formalização incompleta: {emailPagamento.resumo.documentos_pendentes.join(', ')}</div>}
+                            {emailPagamento.sem_assinatura && <AvisoSemAssinatura />}
                             {emailPagamento.routing_pendente && <div className="rounded border border-warn/40 bg-warn/10 px-2.5 py-1.5 text-warn">Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações → Comunicação.</div>}
                             <div className="flex items-start gap-2">
                                 <span className="text-muted-foreground shrink-0 pt-0.5">Assunto:</span>

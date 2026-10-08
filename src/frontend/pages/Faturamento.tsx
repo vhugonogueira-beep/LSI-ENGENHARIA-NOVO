@@ -1,3 +1,4 @@
+import AvisoSemAssinatura from '../components/perfil/AvisoSemAssinatura';
 import { useState, useEffect, useCallback } from 'react';
 import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRight, Mail, CornerDownRight } from 'lucide-react';
 import { T } from '../theme';
@@ -360,6 +361,8 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
     const [enviando, setEnviando] = useState(false);
     const [email, setEmail] = useState<any | null>(null);
     const [cancelando, setCancelando] = useState<any | null>(null);
+    // Antes de solicitar, o sistema pergunta se o cliente autorizou (08/10/2026).
+    const [perguntandoAutorizacao, setPerguntandoAutorizacao] = useState(false);
 
     // Cancelar faturamento é restrito a administrador (ver ressalva: hoje é controle de
     // interface, porque as rotas ainda não exigem token).
@@ -414,16 +417,17 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
         await load(true);
     }
 
-    async function solicitarFaturamento() {
+    async function solicitarFaturamento(autorizacao: { autorizado_por: string; data: string }) {
         const itens = Object.entries(selecao).map(([linha_id, p]) => ({ linha_id, percentual: parseFloat(p) || 0 }));
         if (itens.length === 0) return;
+        setPerguntandoAutorizacao(false);
         setEnviando(true);
         setErro('');
         try {
             const r = await fetch('/api/pos/faturamento-linhas', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ itens }),
+                body: JSON.stringify({ itens, autorizacao: { confirmada: true, ...autorizacao } }),
             });
             const criados = await r.json();
             if (!r.ok) throw new Error(criados.error || 'Erro ao solicitar faturamento');
@@ -645,13 +649,20 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                         <strong>{selecionadas.length}</strong> linha(s) selecionada(s),
                         <strong className="ml-1">{fmtMoeda(valorSelecionado)}</strong> a faturar
                     </div>
-                    <button onClick={solicitarFaturamento} disabled={enviando}
+                    <button onClick={() => setPerguntandoAutorizacao(true)} disabled={enviando}
                         className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
                         <Mail size={14} aria-hidden /> {enviando ? 'Gerando...' : 'Solicitar faturamento e gerar e-mail'}
                     </button>
                 </div>
             )}
 
+            {perguntandoAutorizacao && (
+                <ModalAutorizacao
+                    linhas={selecionadas.length} valor={valorSelecionado}
+                    onConfirmar={solicitarFaturamento}
+                    onFechar={() => setPerguntandoAutorizacao(false)}
+                />
+            )}
             {email && <ModalEmail email={email} onFechar={() => setEmail(null)} />}
             {cancelando && (
                 <ModalCancelamento
@@ -666,6 +677,76 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
 
 // Cancelar desfaz um compromisso já informado ao cliente — o motivo é obrigatório e fica
 // gravado junto com quem cancelou.
+/**
+ * "O cliente autorizou este faturamento?" — só segue com Sim, quem autorizou e
+ * quando. A resposta fica registrada na remessa e sai no e-mail.
+ */
+function ModalAutorizacao({ linhas, valor, onConfirmar, onFechar }: {
+    linhas: number;
+    valor: number;
+    onConfirmar: (a: { autorizado_por: string; data: string }) => void;
+    onFechar: () => void;
+}) {
+    const hoje = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    const [autorizado, setAutorizado] = useState<'SIM' | 'NAO' | ''>('');
+    const [por, setPor] = useState('');
+    const [data, setData] = useState(hoje);
+    const pronto = autorizado === 'SIM' && por.trim().length >= 3 && Boolean(data) && data <= hoje;
+    const opcao = (valorOpcao: 'SIM' | 'NAO', rotulo: string) => (
+        <label className={`flex flex-1 cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-semibold ${autorizado === valorOpcao
+            ? (valorOpcao === 'SIM' ? 'border-ok bg-ok/10 text-ok' : 'border-warn bg-warn/10 text-warn')
+            : 'border-border hover:bg-secondary/40'}`}>
+            <input type="radio" name="autorizado" className="accent-primary" checked={autorizado === valorOpcao} onChange={() => setAutorizado(valorOpcao)} />
+            {rotulo}
+        </label>
+    );
+
+    return (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9000] p-4" onClick={onFechar}>
+            <div role="dialog" aria-modal="true" aria-labelledby="titulo-autorizacao" className="bg-card border border-border rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
+                <h3 id="titulo-autorizacao" className="text-base font-bold mb-1">O cliente autorizou este faturamento?</h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                    {linhas} linha(s), {fmtMoeda(valor)}. A resposta fica registrada na solicitação e sai no e-mail de faturamento.
+                </p>
+                <div className="flex gap-2" role="radiogroup" aria-label="Autorização do cliente">
+                    {opcao('SIM', 'Sim, está autorizado')}
+                    {opcao('NAO', 'Não, ainda não')}
+                </div>
+
+                {autorizado === 'NAO' && (
+                    <p className="mt-4 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">
+                        Sem a autorização do cliente a solicitação não é gerada. Peça a liberação (no Microsiga ou por e-mail) e volte aqui.
+                    </p>
+                )}
+                {autorizado === 'SIM' && (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
+                        <label className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-muted-foreground">Quem autorizou no cliente</span>
+                            <input autoFocus value={por} onChange={e => setPor(e.target.value)} placeholder="Nome ou e-mail de quem liberou"
+                                className="h-9 rounded-lg border border-border bg-secondary/40 px-3 text-sm text-foreground" />
+                        </label>
+                        <label className="flex flex-col gap-1">
+                            <span className="text-xs font-semibold text-muted-foreground">Data da autorização</span>
+                            <input type="date" max={hoje} value={data} onChange={e => setData(e.target.value)}
+                                className="h-9 rounded-lg border border-border bg-secondary/40 px-3 text-sm text-foreground" />
+                        </label>
+                    </div>
+                )}
+
+                <div className="flex justify-end gap-2 mt-5">
+                    <button onClick={onFechar} className="text-xs font-semibold border border-border rounded px-3 py-2 hover:bg-secondary">
+                        Voltar
+                    </button>
+                    <button onClick={() => onConfirmar({ autorizado_por: por.trim(), data })} disabled={!pronto}
+                        className="text-xs font-semibold bg-primary text-primary-foreground rounded px-3 py-2 hover:bg-primary/90 disabled:opacity-40 flex items-center gap-2">
+                        <Mail size={14} aria-hidden /> Solicitar faturamento e gerar e-mail
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function ModalCancelamento({ dados, onConfirmar, onFechar }: {
     dados: { fat: any; linha: any };
     onConfirmar: (motivo: string) => void;
@@ -746,6 +827,7 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
                     <div><span className="text-muted-foreground">CC:</span> <strong>{email.cc || '—'}</strong></div>
                     <div><span className="text-muted-foreground">Anexo:</span> planilha de faturamento (.xlsx)</div>
                 </div>
+                {email.sem_assinatura && <AvisoSemAssinatura className="mb-3" />}
                 {email.routing_pendente && (
                     <div className="mb-3 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">
                         Nenhum destinatário cadastrado para este tipo de e-mail — o .eml sai com o campo Para vazio. Cadastre em Configurações, aba Comunicação.
