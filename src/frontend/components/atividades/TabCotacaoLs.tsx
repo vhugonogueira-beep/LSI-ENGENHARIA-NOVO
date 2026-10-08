@@ -29,6 +29,7 @@ interface SavedItem {
     bdi_percent: number;
     highline_template_row?: number | null;
     source_pricebook_item_id?: string | null;
+    origem_item?: string | null;
 }
 
 interface BudgetDetail {
@@ -169,6 +170,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
 
             for (const item of (data.items || [])) {
                 if (item.highline_template_row != null) continue;   // pertence à PV
+                if (item.origem_item === 'ORCAMENTO_LS') continue;   // preço ao cliente do Orçamento LS, não custo
                 const daLpu = (item.source_pricebook_item_id && porId.get(item.source_pricebook_item_id))
                     || porCodigo.get(item.codigo_item);
                 const valores: DraftItem = {

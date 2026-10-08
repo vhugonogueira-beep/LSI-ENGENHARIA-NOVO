@@ -33,7 +33,8 @@ export async function createNegociacao(req: Request, res: Response) {
             return res.status(400).json({ error: 'Já existe uma negociação aberta para este orçamento', negociacao_id: abertaExistente.id });
         }
 
-        const calc = BudgetService.calcularOrcamento(budget.items);
+        // Só o preço ao cliente do modelo escolhido (PV ou Orçamento LS) — sem o custo da Cotação LS.
+        const calc = BudgetService.calcularOrcamento(BudgetService.itensPrecoCliente(budget));
 
         const negociacao = await prisma.negociacao.create({
             data: {

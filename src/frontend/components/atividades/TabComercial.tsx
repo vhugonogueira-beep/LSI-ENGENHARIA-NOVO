@@ -4,6 +4,8 @@ import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
 import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento } from './constants';
 import HighlineBudgetEditor from './HighlineBudgetEditor';
+import OrcamentoLsEditor from './OrcamentoLsEditor';
+import { authFetch } from '../../lib/authFetch';
 
 // Blueprint LSI, seção 02: tanto "Implantação" quanto "Operação com Aprovação" passam
 // pelo Orçamento/Negociação completos — só "Execução Direta" (sem aprovação prévia)
@@ -40,7 +42,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     const [salvando, setSalvando] = useState(false);
 
     const [rodadaForm, setRodadaForm] = useState({ origem: 'CLIENTE', valor_proposto: '', custo_previsto: '', observacao: '' });
-    const [tipoOrcamentoNovo, setTipoOrcamentoNovo] = useState('COTACAO_INTERNA');
+    const [tipoOrcamentoNovo, setTipoOrcamentoNovo] = useState('PV_HIGHLINE');
     const [mostrarVincular, setMostrarVincular] = useState(false);
     const [contratantes, setContratantes] = useState<{ id: string; nome: string }[]>([]);
     const [contratanteEscolhido, setContratanteEscolhido] = useState('');
@@ -298,13 +300,45 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                 )}
             </Card>
 
-            {orcamentoAtivo && atividade.sharing.toUpperCase() === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO' && (
-                <HighlineBudgetEditor
-                    budgetId={orcamentoAtivo.id}
-                    targetValue={targetValue}
-                    targetLabel={targetLabel}
-                />
-            )}
+            {orcamentoAtivo && atividade.sharing.toUpperCase() === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO' && (() => {
+                // Seguir com a PV Highline ou com o Orçamento LS (08/10/2026). Trocável em rascunho.
+                const modoLs = orcamentoAtivo.tipo_orcamento === 'ORCAMENTO_LS';
+                const editavel = orcamentoAtivo.status === 'RASCUNHO';
+                async function trocar(modelo: 'PV_HIGHLINE' | 'ORCAMENTO_LS') {
+                    if (!orcamentoAtivo || orcamentoAtivo.tipo_orcamento === modelo) return;
+                    setErro('');
+                    const r = await authFetch(`/api/budgets/${orcamentoAtivo.id}/modelo`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modelo }),
+                    });
+                    if (!r.ok) { setErro((await r.json()).error || 'Erro ao trocar o modelo'); return; }
+                    onRefresh();
+                }
+                const opcao = (modelo: 'PV_HIGHLINE' | 'ORCAMENTO_LS', titulo: string, texto: string) => {
+                    const ativo = modelo === 'ORCAMENTO_LS' ? modoLs : !modoLs;
+                    return (
+                        <button type="button" aria-pressed={ativo} disabled={!editavel && !ativo} onClick={() => trocar(modelo)}
+                            className={`flex-1 rounded-lg border-2 p-3 text-left transition-colors ${ativo ? 'border-primary bg-primary/10' : 'border-border bg-secondary/30 hover:border-primary/50'} disabled:cursor-not-allowed disabled:opacity-50`}>
+                            <div className={`text-sm font-bold ${ativo ? 'text-primary' : ''}`}>{titulo}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">{texto}</div>
+                        </button>
+                    );
+                };
+                return (
+                    <>
+                        <div className="mb-4 rounded-xl border border-border bg-card p-4">
+                            <p className="mb-2 text-xs font-semibold text-muted-foreground">Seguir com</p>
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                {opcao('PV_HIGHLINE', 'PV Highline', 'Planilha oficial do cliente, montada pelo catálogo da PV')}
+                                {opcao('ORCAMENTO_LS', 'Orçamento LS', 'Modelo da LS: importe um orçamento pronto (Excel ou PDF) ou monte os itens')}
+                            </div>
+                            {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho ({orcamentoAtivo.status}); o modelo não pode mais ser trocado.</p>}
+                        </div>
+                        {modoLs
+                            ? <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} />
+                            : <HighlineBudgetEditor budgetId={orcamentoAtivo.id} targetValue={targetValue} targetLabel={targetLabel} />}
+                    </>
+                );
+            })()}
 
             {orcamentoAtivo && (
                 <Card title="Negociação">

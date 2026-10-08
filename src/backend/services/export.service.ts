@@ -84,7 +84,7 @@ function groupActiveItems(items: any[]): ExportBlockGroup[] {
 }
 
 export class ExportService {
-  static async genterateHTML(budgetId: string): Promise<string> {
+  static async genterateHTML(budgetId: string, grupo?: string): Promise<string> {
     const budget: any = await prisma.budget.findUnique({
       where: { id: budgetId },
       include: {
@@ -97,6 +97,8 @@ export class ExportService {
       }
     });
     if (!budget) throw new Error("Budget not found");
+    // ?grupo=preco_cliente: só o preço ao cliente do modelo escolhido (PV ou Orçamento LS).
+    if (grupo === 'preco_cliente') budget.items = BudgetService.itensPrecoCliente(budget);
 
     const totals = BudgetService.calcularOrcamento(budget.items);
     const blockGroups = groupActiveItems(totals.itensDelineados);
@@ -296,7 +298,7 @@ export class ExportService {
 
   // ─── Excel Export ─────────────────────────────────────────────────
 
-  static async generateExcel(budgetId: string): Promise<Buffer> {
+  static async generateExcel(budgetId: string, grupo?: string): Promise<Buffer> {
     const budget: any = await prisma.budget.findUnique({
       where: { id: budgetId },
       include: {
@@ -308,6 +310,8 @@ export class ExportService {
       }
     });
     if (!budget) throw new Error("Budget not found");
+    // ?grupo=preco_cliente: só o preço ao cliente do modelo escolhido (PV ou Orçamento LS).
+    if (grupo === 'preco_cliente') budget.items = BudgetService.itensPrecoCliente(budget);
 
     const totals = BudgetService.calcularOrcamento(budget.items);
     const blockGroups = groupActiveItems(totals.itensDelineados);

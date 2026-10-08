@@ -7,6 +7,8 @@ import { getHighlinePvDefaultPriceSet } from '../data/highline-pv-default-prices
 import { carregarPvDoCliente } from '../services/pv-cliente.service';
 import { lpusDaAtividade } from '../services/lpu-atividade.service';
 import { normalizarUf } from '../utils/uf';
+import { lerOrcamentoArquivo } from '../services/orcamento-importacao.service';
+import { guardarArquivoImportado, listarArquivosImportados, caminhoArquivoImportado } from '../services/orcamento-arquivo.service';
 
 async function getDemoTenantId() {
     const t = await prisma.tenant.findFirst();
@@ -127,6 +129,51 @@ export class BudgetController {
         }
     }
 
+    static async definirModelo(req: Request, res: Response) {
+        try {
+            res.json(await BudgetService.definirModelo(req.params.id, String(req.body?.modelo || ''), (req as any).user || {}));
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    /** Lê um orçamento pronto (Excel/PDF): devolve os itens para conferir e guarda o arquivo. */
+    static async importarArquivo(req: Request, res: Response) {
+        try {
+            const arquivo = (req as any).file as { buffer: Buffer; originalname: string; mimetype: string } | undefined;
+            if (!arquivo) return res.status(400).json({ error: 'Envie o arquivo do orçamento (Excel ou PDF)' });
+            const budget = await prisma.budget.findUnique({ where: { id: req.params.id } });
+            if (!budget) return res.status(404).json({ error: 'Orçamento não encontrado' });
+            const leitura = await lerOrcamentoArquivo(arquivo.buffer, arquivo.originalname, arquivo.mimetype);
+            const nome = await guardarArquivoImportado(budget.id, arquivo.originalname, arquivo.buffer);
+            await prisma.auditLog.create({
+                data: {
+                    tenant_id: budget.tenant_id, entidade: 'Budget', entidade_id: budget.id, acao: 'ORCAMENTO_ARQUIVO_LIDO',
+                    depois_json: JSON.stringify({ arquivo: nome, formato: leitura.formato, itens: leitura.itens.length, soma: leitura.soma_itens }),
+                    user_id: (req as any).user?.userId || null,
+                },
+            });
+            res.json({ ...leitura, arquivo: nome });
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    static async listarImportados(req: Request, res: Response) {
+        try { res.json(await listarArquivosImportados(req.params.id)); }
+        catch (error: any) { res.status(400).json({ error: error.message }); }
+    }
+
+    static async baixarImportado(req: Request, res: Response) {
+        try {
+            const caminho = caminhoArquivoImportado(req.params.id, req.params.nome);
+            if (!caminho) return res.status(404).json({ error: 'Arquivo não encontrado' });
+            res.download(caminho, req.params.nome.replace(/^\d+-/, ''));
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
     static async createVersion(req: Request, res: Response) {
         try {
             const version = await BudgetService.createVersion(req.params.id, req.body.userId);
@@ -138,7 +185,7 @@ export class BudgetController {
 
     static async exportHtml(req: Request, res: Response) {
         try {
-            const html = await ExportService.genterateHTML(req.params.id);
+            const html = await ExportService.genterateHTML(req.params.id, req.query.grupo as string | undefined);
             res.setHeader('Content-Type', 'text/html');
             res.send(html);
         } catch (error: any) {
@@ -148,7 +195,7 @@ export class BudgetController {
 
     static async exportExcel(req: Request, res: Response) {
         try {
-            const buffer = await ExportService.generateExcel(req.params.id);
+            const buffer = await ExportService.generateExcel(req.params.id, req.query.grupo as string | undefined);
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', `attachment; filename=orcamento-${req.params.id}.xlsx`);
             res.send(buffer);

@@ -129,12 +129,47 @@ export class BudgetService {
         });
     }
 
+    /**
+     * Itens que formam o PREÇO AO CLIENTE do orçamento (08/10/2026). Antes a
+     * negociação somava tudo, e numa implantação Highline com PV e Cotação LS
+     * preenchidas o custo LS entrava no preço.
+     *   - PV_HIGHLINE: só o catálogo da PV;
+     *   - ORCAMENTO_LS: só os itens do Orçamento LS (lidos de arquivo ou digitados);
+     *   - COTACAO_INTERNA (demais atividades): todos, como sempre foi, menos os do Orçamento LS.
+     */
+    static itensPrecoCliente<T extends { ativo: boolean; highline_template_row: number | null; origem_item: string }>(
+        budget: { tipo_orcamento: string; items: T[] },
+    ): T[] {
+        const ativos = budget.items.filter(i => i.ativo);
+        if (budget.tipo_orcamento === 'ORCAMENTO_LS') return ativos.filter(i => i.origem_item === 'ORCAMENTO_LS');
+        if (budget.tipo_orcamento === 'PV_HIGHLINE') return ativos.filter(i => i.highline_template_row != null);
+        return ativos.filter(i => i.origem_item !== 'ORCAMENTO_LS');
+    }
+
+    /** Escolhe o modelo do orçamento ao cliente: PV Highline ou Orçamento LS. Só em rascunho. */
+    static async definirModelo(budgetId: string, modelo: string, autor: { userId?: string | null; tenantId?: string }) {
+        if (!['PV_HIGHLINE', 'ORCAMENTO_LS'].includes(modelo)) throw new Error('Modelo inválido. Use PV_HIGHLINE ou ORCAMENTO_LS');
+        const budget = await prisma.budget.findUnique({ where: { id: budgetId } });
+        if (!budget) throw new Error('Orçamento não encontrado');
+        if (budget.status !== 'RASCUNHO') throw new Error('O modelo só pode ser trocado com o orçamento em rascunho');
+        if (budget.tipo_orcamento === modelo) return budget;
+        const atualizado = await prisma.budget.update({ where: { id: budgetId }, data: { tipo_orcamento: modelo } });
+        await prisma.auditLog.create({
+            data: {
+                tenant_id: budget.tenant_id, entidade: 'Budget', entidade_id: budgetId, acao: 'ORCAMENTO_MODELO_ALTERADO',
+                antes_json: JSON.stringify({ tipo_orcamento: budget.tipo_orcamento }), depois_json: JSON.stringify({ tipo_orcamento: modelo }),
+                user_id: autor.userId || null,
+            },
+        });
+        return atualizado;
+    }
+
     static async updateBudgetItems(
         budgetId: string,
         versaoAtual: number,
         items: any[],
         expectedUpdatedAt?: string,
-        scope?: 'catalog' | 'internal' | 'all',
+        scope?: 'catalog' | 'internal' | 'orcamento_ls' | 'all',
     ) {
         const budget = await prisma.budget.findUnique({ where: { id: budgetId }, include: { atividade: true } });
         if (!budget) throw new Error('Orçamento não encontrado');
@@ -163,6 +198,9 @@ export class BudgetService {
             || (budget.atividade_id ? (await lpusDaAtividade(budget.atividade_id))?.precoCliente?.id || null : null);
         const pvCliente = hasHighlineCatalogItems ? await carregarPvDoCliente(baseDoOrcamento) : null;
         const seenRows = new Set<number>();
+        // Orçamento LS (preço ao cliente fora da PV) é um grupo próprio, separado do
+        // custo da Cotação LS: o escopo diz a qual grupo os itens pertencem.
+        const escopoOrcamentoLs = scope === 'orcamento_ls';
         const normalized = items.map((item, index) => {
             const quantidade = Number(item.quantidade || 0);
             const valorUnitario = Number(item.valor_unitario || 0);
@@ -223,7 +261,9 @@ export class BudgetService {
                 total_linha: totalLinha,
                 source_pricebook_item_id: daBase?.itemId || item.source_pricebook_item_id || null,
                 highline_template_row: templateRow,
-                origem_item: catalogItem ? 'CATALOGO_HIGHLINE' : (item.origem_item || 'INTERNO'),
+                origem_item: catalogItem ? 'CATALOGO_HIGHLINE'
+                    : escopoOrcamentoLs ? 'ORCAMENTO_LS'
+                    : (item.origem_item && item.origem_item !== 'ORCAMENTO_LS' ? item.origem_item : 'INTERNO'),
                 user_overridden: catalogItem ? alteradoManualmente : Boolean(item.user_overridden),
                 ativo,
                 ordem: Number.isFinite(Number(item.ordem)) ? Number(item.ordem) : index,
@@ -234,7 +274,10 @@ export class BudgetService {
         // orçamento. `scope` diz qual subconjunto está sendo substituído — o outro é preservado
         // intacto, senão salvar de uma aba apagaria os itens da outra (Blueprint LSI, "mesmo
         // orçamento, itens compartilhados" entre PV Highline e Cotação LS).
-        const effectiveScope: 'catalog' | 'internal' | 'all' = scope || 'all';
+        const effectiveScope: 'catalog' | 'internal' | 'orcamento_ls' | 'all' = scope || 'all';
+        if (effectiveScope === 'orcamento_ls' && normalized.some(item => item.highline_template_row != null)) {
+            throw new Error('O Orçamento LS não usa itens do catálogo da PV Highline');
+        }
         if (effectiveScope === 'catalog' && normalized.some(item => item.highline_template_row == null)) {
             throw new Error('Este salvamento é restrito ao catálogo Highline (PV) — item sem linha de catálogo encontrado');
         }
@@ -278,12 +321,19 @@ export class BudgetService {
         const preservedCatalogItems = effectiveScope === 'internal'
             ? await prisma.budgetItem.findMany({ where: { budget_id: budgetId, highline_template_row: { not: null } } })
             : [];
+        // Salvar a Cotação LS não apaga o Orçamento LS, e vice-versa.
+        const preservedOutros = effectiveScope === 'internal'
+            ? await prisma.budgetItem.findMany({ where: { budget_id: budgetId, highline_template_row: null, origem_item: 'ORCAMENTO_LS' } })
+            : effectiveScope === 'orcamento_ls'
+                ? await prisma.budgetItem.findMany({ where: { budget_id: budgetId, NOT: { origem_item: 'ORCAMENTO_LS' } } })
+                : [];
 
         const preservedData = [
             ...preservedInternalItems
                 .filter(item => !catalogIdentity.has(`${item.codigo_item.trim().toUpperCase()}|${item.titulo.trim().toUpperCase()}`))
                 .map(item => toReinsertRow(item, null)),
             ...preservedCatalogItems.map(item => toReinsertRow(item, item.highline_template_row)),
+            ...preservedOutros.map(item => toReinsertRow(item, item.highline_template_row)),
         ];
 
         await prisma.$transaction(async tx => {
@@ -303,7 +353,9 @@ export class BudgetService {
 
             // Usou o catálogo da PV: o orçamento é uma PV Highline, não uma cotação
             // interna. Sem isso o rótulo na tela dizia o contrário do que o orçamento é.
-            const virouPv = nextItems.some(i => i.highline_template_row != null);
+            // Só quem salva a própria PV muda o tipo — salvar a Cotação LS ou o Orçamento LS
+            // com itens de PV guardados não pode desfazer a escolha de "Orçamento LS".
+            const virouPv = (effectiveScope === 'catalog' || effectiveScope === 'all') && nextItems.some(i => i.highline_template_row != null);
             const precisaCorrigirTipo = virouPv && budget.tipo_orcamento !== 'PV_HIGHLINE';
             if (precisaCorrigirTipo || !expectedDate) {
                 await tx.budget.update({

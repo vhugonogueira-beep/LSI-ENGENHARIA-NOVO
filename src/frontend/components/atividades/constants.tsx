@@ -167,10 +167,13 @@ export function modelosPermitidos(tipoDemanda: string): string[] {
 
 // Implantação + sharing Highline usa o mesmo conjunto de itens para a cotação interna
 // e para a planilha PV oficial. O tipo indica apenas qual documento iniciou o fluxo.
-export const TIPOS_ORCAMENTO = ['COTACAO_INTERNA', 'PV_HIGHLINE'];
+// Implantação Highline escolhe o modelo do preço ao cliente: a PV oficial do
+// cliente ou o Orçamento LS (lido de arquivo ou digitado) — 08/10/2026.
+export const TIPOS_ORCAMENTO = ['PV_HIGHLINE', 'ORCAMENTO_LS'];
 export const TIPO_ORCAMENTO_LABEL: Record<string, string> = {
     COTACAO_INTERNA: 'Cotação Interna LS',
     PV_HIGHLINE: 'PV Highline',
+    ORCAMENTO_LS: 'Orçamento LS',
 };
 export function exigeEscolhaTipoOrcamento(atividade: { sharing: string; tipo_demanda: string }): boolean {
     return atividade.sharing.trim().toUpperCase() === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO';
