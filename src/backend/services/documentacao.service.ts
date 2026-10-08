@@ -1,4 +1,5 @@
 import { HIGHLINE_DOCUMENT_CHECKLIST } from '../data/highline-document-checklist';
+import { tipoObraDocumental } from '../utils/tipo-site';
 import { prisma } from '../server';
 
 export async function sincronizarCatalogoDocumentalHighline(tenantId: string) {
@@ -54,7 +55,8 @@ export async function gerarMatrizDocumental(atividadeId: string, tipoObra?: stri
         await sincronizarCatalogoDocumentalHighline(atividade.tenant_id);
     }
 
-    const effectiveWorkType = tipoObra ?? atividade.tipo_obra;
+    // Tipo de site unificado: Collo RT usa os documentos de Collo; texto livre vale como Outros.
+    const effectiveWorkType = tipoObraDocumental(tipoObra ?? atividade.tipo_obra);
     const requisitos = await prisma.requisitoDocumental.findMany({
         where: {
             tenant_id: atividade.tenant_id,

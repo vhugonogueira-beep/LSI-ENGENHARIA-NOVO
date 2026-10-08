@@ -1,3 +1,4 @@
+import { rotuloTipoSite } from './TipoObraCampo';
 import { Fragment, useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, ArrowLeft, Info } from 'lucide-react';
 import {
@@ -256,7 +257,7 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                             </span>
                             <span className="inline-flex items-center gap-1.5">
                                 <AreaChip tipo={atividade.tipo_demanda} />
-                                {atividade.tipo_obra && <span>{atividade.tipo_obra}</span>}
+                                {atividade.tipo_obra && <span>{rotuloTipoSite(atividade.tipo_obra)}</span>}
                             </span>
                         </div>
                         {atividade.acionamento && (

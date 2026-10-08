@@ -8,7 +8,8 @@ import { removerArquivoDoDisco } from '../services/po-arquivo.service';
 import { sincronizarPendenciasAtividade } from '../services/sincronizacao-pendencias.service';
 import { calcularPendenciasAtividade, contarComprovantesPendentes } from '../services/pendencias-atividade.service';
 import { lpusDaAtividade } from '../services/lpu-atividade.service';
-import { vincularSiteDaAtividade, tipoSiteHighline } from '../services/site.service';
+import { vincularSiteDaAtividade, tipoSiteHighline, procurarSite } from '../services/site.service';
+import { tipoHighlineDoTipoSite, estruturaDoTipoSite } from '../utils/tipo-site';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -200,18 +201,16 @@ export async function createAtividade(req: Request, res: Response) {
             return res.status(400).json({ error: 'titulo, tipo_demanda, sharing, id_site_sharing e id_site_operadora são obrigatórios' });
         }
 
-        // Cadastro único (03/10/2026): acha o site pela detentora + ID ou cadastra
-        // um novo; o ID da operadora entra no site se ainda não estiver lá.
-        const autorSite = { userId: (req as any).user?.userId ?? null, email: (req as any).user?.email ?? null };
-        const site = await vincularSiteDaAtividade(prisma, tenant_id, {
-            detentora: sharing, id_site_detentora: id_site_sharing, operadora, id_site_operadora,
-            uf: estadoInformado, municipio: municipioInformado, tipo_site,
-        }, autorSite);
+        // Cadastro único (03/10/2026). Aqui só PROCURA o site: ele só é cadastrado
+        // depois de todas as validações, senão uma atividade recusada deixava um
+        // site novo sem atividade nenhuma (corrigido em 08/10/2026).
+        const siteAtual = (await procurarSite(tenant_id, id_site_sharing, sharing))?.site ?? null;
         // Site já cadastrado: UF e município saem dele.
-        const estado = estadoInformado || site?.uf || null;
-        const municipio = municipioInformado || site?.cidade || null;
-        // Tipo da PV Highline: vem do tipo do site + tipo de obra, salvo escolha explícita.
-        const tipo_site_highline = req.body.tipo_site_highline || tipoSiteHighline(site?.tipo_site, tipo_obra);
+        const estado = estadoInformado || siteAtual?.uf || null;
+        const municipio = municipioInformado || siteAtual?.cidade || null;
+        // Tipo da PV Highline: sai do tipo de site unificado (08/10/2026); para dados
+        // antigos, do tipo do cadastro do site + tipo de obra.
+        const tipo_site_highline = req.body.tipo_site_highline || tipoHighlineDoTipoSite(tipo_obra) || tipoSiteHighline(siteAtual?.tipo_site, tipo_obra);
 
         const estadoNormalizado = normalizarUf(estado);
         const estadoFoiPreenchido = estado !== undefined && estado !== null && String(estado).trim() !== '';
@@ -225,7 +224,7 @@ export async function createAtividade(req: Request, res: Response) {
         const highlineSiteTypes = ['BTS', 'Roof Top', 'Collo - BTS', 'Collo RT', 'Reforço'];
         if (sharing.toUpperCase() === 'HIGHLINE' && tipo_demanda === 'IMPLANTACAO'
             && !highlineSiteTypes.includes(tipo_site_highline)) {
-            return res.status(400).json({ error: 'tipo_site_highline é obrigatório para implantação Highline' });
+            return res.status(400).json({ error: 'Para implantação Highline, escolha um tipo de site aceito pela PV: BTS, Roof Top, Collo - BTS, Collo RT ou Reforço / fundação' });
         }
 
         const modelosValidos = tipo_demanda === 'IMPLANTACAO'
@@ -234,6 +233,13 @@ export async function createAtividade(req: Request, res: Response) {
         if (modelo_operacao && !modelosValidos.includes(modelo_operacao)) {
             return res.status(400).json({ error: 'modelo_operacao incompatível com o tipo_demanda' });
         }
+
+        // Validado: acha ou cadastra o site; o ID da operadora entra nele se ainda não estiver lá.
+        const autorSite = { userId: (req as any).user?.userId ?? null, email: (req as any).user?.email ?? null };
+        const site = await vincularSiteDaAtividade(prisma, tenant_id, {
+            detentora: sharing, id_site_detentora: id_site_sharing, operadora, id_site_operadora,
+            uf: estadoInformado, municipio: municipioInformado, tipo_site: tipo_site || estruturaDoTipoSite(tipo_obra),
+        }, autorSite);
 
         const codigo = await proximoCodigo(prisma.atividade, 'ATV');
 
@@ -321,6 +327,11 @@ export async function updateAtividade(req: Request, res: Response) {
 
         const nextSharing = String(body.sharing ?? existing.sharing).toUpperCase();
         const nextDemandType = body.tipo_demanda ?? existing.tipo_demanda;
+        // Tipo de site unificado: quem troca o tipo_obra troca também o tipo da PV
+        // Highline, salvo quando este vem explícito.
+        if (body.tipo_site_highline === undefined && body.tipo_obra !== undefined && body.tipo_obra !== existing.tipo_obra) {
+            body.tipo_site_highline = tipoHighlineDoTipoSite(body.tipo_obra);
+        }
         const nextHighlineSiteType = body.tipo_site_highline !== undefined
             ? body.tipo_site_highline
             : existing.tipo_site_highline;
@@ -346,7 +357,7 @@ export async function updateAtividade(req: Request, res: Response) {
         }
         if (touchesHighlineIdentity && nextSharing === 'HIGHLINE' && nextDemandType === 'IMPLANTACAO'
             && !nextHighlineSiteType) {
-            return res.status(400).json({ error: 'tipo_site_highline é obrigatório para implantação Highline' });
+            return res.status(400).json({ error: 'Para implantação Highline, escolha um tipo de site aceito pela PV: BTS, Roof Top, Collo - BTS, Collo RT ou Reforço / fundação' });
         }
 
         // O status operacional é o único com fluxo fechado (os outros quatro ainda

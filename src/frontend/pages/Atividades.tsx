@@ -1,9 +1,9 @@
-import TipoObraCampo from '../components/atividades/TipoObraCampo';
+import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../components/atividades/TipoObraCampo';
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    TIPOS_SITE_HIGHLINE, TIPOS_SITE, tipoSiteHighline, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
+    UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
     REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
@@ -52,10 +52,10 @@ interface Atividade {
 }
 
 const FORM_INIT = {
-    titulo: '', tipo_demanda: 'IMPLANTACAO', subtipo_demanda: '', tipo_obra: '', tipo_site_highline: '', tipo_atividade: '',
+    titulo: '', tipo_demanda: 'IMPLANTACAO', subtipo_demanda: '', tipo_obra: '', tipo_atividade: '',
     modelo_operacao: modeloOperacaoPadrao('IMPLANTACAO'), sharing: 'HIGHLINE', operadora: 'VIVO', contrato: '',
     estado: '', municipio: '', id_site_sharing: '', id_site_operadora: '', valor_contrato: '', valor_orcado: '',
-    responsavel: '', descricao: '', tipo_site: '',
+    responsavel: '', descricao: '',
 };
 
 const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_LIBERACAO', 'EM_EXECUCAO', 'CONCLUIDA', 'ON_HOLD'];
@@ -138,7 +138,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 if (achado?.site) {
                     const site = achado.site;
                     setSiteForm({ situacao: 'achado', site, porIdAnterior: achado.encontradoPor === 'ID_ANTERIOR' });
-                    setForm(f => ({ ...f, estado: site.uf || f.estado, municipio: site.cidade || f.municipio, tipo_site: site.tipo_site || f.tipo_site }));
+                    // O tipo de site vem da estrutura cadastrada, se ainda não foi escolhido.
+                    setForm(f => ({ ...f, estado: site.uf || f.estado, municipio: site.cidade || f.municipio, tipo_obra: f.tipo_obra || tipoSiteDaEstrutura(site.tipo_site) }));
                 } else {
                     setSiteForm({ situacao: 'novo' });
                 }
@@ -169,11 +170,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
         .filter((o: any) => o.operadora === form.operadora).map((o: any) => o.id_site);
     // Operadora dona da torre: o ID dela é o da detentora.
     const operadoraEhDetentora = Boolean(form.operadora) && form.operadora === form.sharing;
-    // Tipo da PV Highline sugerido pelo tipo do site + tipo de obra.
-    const highlineSugerido = tipoSiteHighline(form.tipo_site, form.tipo_obra);
-    useEffect(() => {
-        if (highlineSugerido) setForm(f => (f.tipo_site_highline === highlineSugerido ? f : { ...f, tipo_site_highline: highlineSugerido }));
-    }, [highlineSugerido]);
     useEffect(() => {
         if (operadoraEhDetentora) setForm(f => (f.id_site_operadora === f.id_site_sharing ? f : { ...f, id_site_operadora: f.id_site_sharing }));
     }, [operadoraEhDetentora, form.id_site_sharing]);
@@ -285,11 +281,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 ...form,
                 subtipo_demanda: form.tipo_demanda === 'OPERACAO' ? (form.subtipo_demanda || null) : null,
                 tipo_obra: form.tipo_obra || null,
-                tipo_site_highline: form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO'
-                    ? (form.tipo_site_highline || null)
-                    : null,
                 tipo_atividade: form.tipo_atividade || null,
-                tipo_site: form.tipo_site || null,
                 operadora: form.operadora || null,
                 contrato: form.contrato || null,
                 estado: normalizarUf(form.estado) || null,
@@ -837,7 +829,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         {TIPOS_DEMANDA.map(t => <option key={t} value={t}>{TIPOS_DEMANDA_LABEL[t]}</option>)}
                                     </select>
                                 </Field>
-                                <Field label="Tipo de obra">
+                                <Field label="Tipo de site">
                                     <TipoObraCampo className="input" value={form.tipo_obra} onChange={v => setForm(f => ({ ...f, tipo_obra: v }))} />
                                 </Field>
                             </div>
@@ -930,21 +922,11 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                 onChange={nome => setForm(f => ({ ...f, municipio: nome }))} />}
                                     </Field>
                                 </div>
-                                <Field label="Tipo de site">
-                                    <select value={form.tipo_site} onChange={e => setForm(f => ({ ...f, tipo_site: e.target.value }))} className="input"
-                                        disabled={siteForm.situacao === 'achado' && Boolean(siteForm.site?.tipo_site)}>
-                                        <option value="">—</option>
-                                        {TIPOS_SITE.map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
-                                </Field>
                             </fieldset>
-                            {form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && (
-                                <Field label={`Tipo de site Highline *${highlineSugerido ? ' — sugerido pelo tipo de site e de obra' : ''}`}>
-                                    <select required value={form.tipo_site_highline} onChange={e => setForm(f => ({ ...f, tipo_site_highline: e.target.value }))} className="input">
-                                        <option value="">Selecione...</option>
-                                        {TIPOS_SITE_HIGHLINE.map(type => <option key={type} value={type}>{type}</option>)}
-                                    </select>
-                                </Field>
+                            {form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && form.tipo_obra && !TIPOS_SITE_PV_HIGHLINE.includes(form.tipo_obra) && (
+                                <p className="-mt-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">
+                                    Implantação Highline precisa de um tipo de site aceito pela PV: BTS, Roof Top, Collo - BTS, Collo RT ou Reforço / fundação.
+                                </p>
                             )}
                             <Field label="Modelo de operação">
                                 <select value={form.modelo_operacao} disabled={modelosPermitidos(form.tipo_demanda).length === 1}

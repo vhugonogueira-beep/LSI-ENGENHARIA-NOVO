@@ -161,7 +161,7 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         [a.diretorio_url, 'Diretório da atividade no servidor (sai nos e-mails financeiros)'],
     ];
     if (a.tipo_demanda === 'OPERACAO') faltando.push([a.subtipo_demanda, 'Subtipo da operação']);
-    if (implantacao && a.sharing === 'HIGHLINE') faltando.push([a.tipo_site_highline, 'Tipo de site Highline']);
+    if (implantacao && a.sharing === 'HIGHLINE') faltando.push([a.tipo_site_highline, 'Tipo de site aceito pela PV Highline (BTS, Roof Top, Collo ou Reforço)']);
     for (const [valor, rotulo] of faltando) if (!valor) p.identificacao.push(alerta(`Falta preencher: ${rotulo}`));
     if (uf && a.municipio && !encontrarMunicipio(uf, a.municipio)) {
         p.identificacao.push(aviso(`Município "${a.municipio}" não consta na base IBGE de ${uf}`));

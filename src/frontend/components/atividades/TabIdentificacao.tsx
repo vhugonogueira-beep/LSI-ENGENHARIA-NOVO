@@ -1,11 +1,11 @@
-import TipoObraCampo from './TipoObraCampo';
+import TipoObraCampo, { rotuloTipoSite } from './TipoObraCampo';
 import { useState, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Row, AreaChip, OperadoraChip, SharingNome } from './ui';
 import {
     TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    TIPOS_SITE_HIGHLINE, UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
+    UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
 } from './constants';
 import MunicipioInput from '../cadastros/MunicipioInput';
 
@@ -16,7 +16,6 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
         tipo_demanda: atividade.tipo_demanda,
         subtipo_demanda: atividade.subtipo_demanda || '',
         tipo_obra: atividade.tipo_obra || '',
-        tipo_site_highline: atividade.tipo_site_highline || '',
         tipo_atividade: atividade.tipo_atividade || '',
         modelo_operacao: modelosPermitidos(atividade.tipo_demanda).includes(atividade.modelo_operacao)
             ? atividade.modelo_operacao
@@ -60,9 +59,6 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     ...form,
                     subtipo_demanda: form.tipo_demanda === 'OPERACAO' ? (form.subtipo_demanda || null) : null,
                     tipo_obra: form.tipo_obra || null,
-                    tipo_site_highline: form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO'
-                        ? (form.tipo_site_highline || null)
-                        : null,
                     tipo_atividade: form.tipo_atividade || null,
                     operadora: form.operadora || null,
                     contratante_id: form.contratante_id || null,
@@ -108,10 +104,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                         } />
                     </div>
                     <div>
-                        <Row label="Tipo de obra" value={atividade.tipo_obra} />
-                        {atividade.sharing === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO' && (
-                            <Row label="Tipo de site Highline" value={atividade.tipo_site_highline} />
-                        )}
+                        <Row label="Tipo de site" value={rotuloTipoSite(atividade.tipo_obra)} />
                         <Row label="Tipo de atividade" value={atividade.tipo_atividade} />
                         <Row label="Modelo de operação" value={MODELO_OPERACAO_LABEL[atividade.modelo_operacao] || atividade.modelo_operacao} />
                         <Row label="Responsável" value={atividade.responsavel} />
@@ -170,17 +163,9 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                         </select>
                     </Field>
                 )}
-                <Field label="Tipo de obra">
+                <Field label="Tipo de site">
                     <TipoObraCampo className={inputClass} value={form.tipo_obra} onChange={v => setForm(f => ({ ...f, tipo_obra: v }))} />
                 </Field>
-                {form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && (
-                    <Field label="Tipo de site Highline">
-                        <select required className={inputClass} value={form.tipo_site_highline} onChange={e => setForm(f => ({ ...f, tipo_site_highline: e.target.value }))}>
-                            <option value="">Selecione...</option>
-                            {TIPOS_SITE_HIGHLINE.map(type => <option key={type} value={type}>{type}</option>)}
-                        </select>
-                    </Field>
-                )}
                 <Field label="Modelo de operação">
                     {(() => {
                         const opcoes = modelosPermitidos(form.tipo_demanda);

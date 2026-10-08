@@ -65,8 +65,9 @@ export const SUBTIPOS_OPERACAO_LABEL: Record<string, string> = {
     MANUTENCAO: 'Manutenção', ADEQUACAO: 'Adequação', EMERGENCIAL: 'Emergencial',
     VISTORIA: 'Vistoria', ENGENHARIA: 'Engenharia', OUTRO: 'Outro',
 };
-export const TIPOS_OBRA = ['BTS', 'COLLO', 'RETROFIT', 'REFORCO_EV_FUNDACAO', 'SLS', 'OUTROS'];
-export const TIPOS_SITE_HIGHLINE = ['BTS', 'Roof Top', 'Collo - BTS', 'Collo RT', 'Reforço'];
+// Tipo de site unificado (08/10/2026): antigo tipo de obra + tipo de site, gravado em tipo_obra.
+// Rótulos e equivalências em TipoObraCampo.tsx; no backend, utils/tipo-site.ts.
+export const TIPOS_OBRA = ['BTS', 'ROOF_TOP', 'COLLO', 'COLLO_RT', 'RETROFIT', 'REFORCO_EV_FUNDACAO', 'SLS', 'INDOOR', 'POSTE_STREET', 'OUTROS'];
 export const UFS = [
     { sigla: 'AC', nome: 'Acre', regiao: 'NORTE' },
     { sigla: 'AL', nome: 'Alagoas', regiao: 'NORDESTE' },
@@ -129,17 +130,9 @@ export const chaveTexto = chaveUf;
 // a mesma confusão que existia no Controle de Obras legado ("Cliente/Sharing" x "Operadora").
 // Detentora do site (cadastro único, 03/10/2026): sharing OU operadora dona da torre.
 export const SHARINGS = ['HIGHLINE', 'IHS', 'WINITY', 'SBA', 'AMERICAN TOWER', 'PHOENIX', 'VIVO', 'CLARO', 'TIM', 'OI', 'OUTROS'];
-/** Lista única de tipo de site — o tipo da PV Highline sai dela + tipo de obra. */
+/** Estrutura física no cadastro do site (tela Sites). Na atividade, o campo é o tipo de site unificado (TIPOS_OBRA). */
 export const TIPOS_SITE = ['BTS', 'Roof Top', 'Indoor', 'Poste/Street', 'Outro'];
 export const TECNOLOGIAS = ['2G', '3G', '4G', '5G', 'OUTRA'];
-/** Espelha tipoSiteHighline() de site.service.ts. */
-export function tipoSiteHighline(tipoSite?: string | null, tipoObra?: string | null): string {
-    if (tipoObra === 'REFORCO_EV_FUNDACAO') return 'Reforço';
-    const collo = tipoObra === 'COLLO';
-    if (tipoSite === 'BTS') return collo ? 'Collo - BTS' : 'BTS';
-    if (tipoSite === 'Roof Top') return collo ? 'Collo RT' : 'Roof Top';
-    return '';
-}
 export const OPERADORAS = ['VIVO', 'CLARO', 'TIM', 'OI', 'OUTROS'];
 export const OPERADORA_COLOR: Record<string, string> = { VIVO: '#a78bfa', CLARO: '#fb7185', TIM: '#60a5fa', OI: '#fbbf24', OUTROS: '#94a3b8' };
 // Blueprint LSI, seção 02 — três fluxos reais, não dois:
