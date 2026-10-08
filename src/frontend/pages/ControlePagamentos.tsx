@@ -271,10 +271,10 @@ export default function ControlePagamentos() {
       {resumo && (
         // Colunas iguais, uma por indicador: os valores ficam na mesma linha.
         <div style={{ display: "grid", gridTemplateColumns: `repeat(${resumo.formalizacoesPendentesDocumento > 0 ? 5 : 4}, minmax(0, 1fr))`, gap: 12 }}>
-          <Kpi tom="amber" rotulo="A pagar" valor={resumo.aPagar ? moeda(resumo.aPagar) : null} />
-          <Kpi tom="green" rotulo="Pago" valor={resumo.pago ? moeda(resumo.pago) : null} />
+          <Kpi tom="amber" rotulo="A pagar" valor={resumo.aPagar ? moeda(resumo.aPagar) : null} vazio="Nada a pagar" />
+          <Kpi tom="green" rotulo="Pago" valor={resumo.pago ? moeda(resumo.pago) : null} vazio="Nada pago ainda" />
           <Kpi tom="indigo" rotulo="Total" valor={resumo.total ? moeda(resumo.total) : null} />
-          <Kpi tom={resumo.semComprovante > 0 ? "rose" : "slate"} rotulo="Pagos sem comprovante" valor={resumo.semComprovante > 0 ? String(resumo.semComprovante) : null} alerta={resumo.semComprovante > 0 ? T.red : undefined} />
+          <Kpi tom={resumo.semComprovante > 0 ? "rose" : "slate"} rotulo="Pagos sem comprovante" valor={resumo.semComprovante > 0 ? String(resumo.semComprovante) : null} vazio="Todos com comprovante" alerta={resumo.semComprovante > 0 ? T.red : undefined} />
           {/* Formalizações não entram em "A pagar": o dinheiro já saiu. O que
               falta nelas é documento, e isso tem indicador próprio. */}
           {resumo.formalizacoesPendentesDocumento > 0 && (
@@ -433,14 +433,14 @@ export default function ControlePagamentos() {
 
 /** Cada KPI tem a sua cor (faixa no topo e ponto no rótulo); o valor só ganha
  *  cor quando é alerta. Sem valor, "—" sem cor. */
-function Kpi({ rotulo, valor, alerta, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; tom?: Tom }) {
+function Kpi({ rotulo, valor, vazio, alerta, tom = "slate" }: { rotulo: string; valor: string | null; vazio?: string; alerta?: string; tom?: Tom }) {
   void tom; // cartão neutro; a cor fica para o alerta (revisão de 08/10/2026)
   return (
     <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px", minWidth: 0 }}>
       <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap", overflow: "hidden" }} title={rotulo}>
         {rotulo}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{valor ?? "—"}</div>
+      <div style={{ fontSize: valor == null && vazio ? 13 : 18, fontWeight: valor == null && vazio ? 500 : 600, lineHeight: "24px", color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4, fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{valor ?? vazio ?? "—"}</div>
     </div>
   );
 }

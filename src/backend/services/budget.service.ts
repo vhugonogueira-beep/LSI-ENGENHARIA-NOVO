@@ -85,14 +85,22 @@ export class BudgetService {
 
     // Define CRUD operations using Prisma
     static async getBudgetsByTenant(tenantId: string) {
-        return prisma.budget.findMany({
+        const budgets = await prisma.budget.findMany({
             where: { tenant_id: tenantId },
             include: {
                 contratante: true,
                 site: true,
+                // Tela Orçamentos (08/10/2026): de qual atividade é e quanto vale ao cliente.
+                atividade: { select: { id: true, codigo: true, titulo: true, id_site_sharing: true, sharing: true, tipo_demanda: true } },
+                items: true,
             },
             orderBy: { updated_at: 'desc' }
         });
+        return budgets.map(({ items, ...b }) => ({
+            ...b,
+            total_cliente: this.calcularOrcamento(this.itensPrecoCliente({ tipo_orcamento: b.tipo_orcamento, items })).totalGeral,
+            itens_cliente: this.itensPrecoCliente({ tipo_orcamento: b.tipo_orcamento, items }).length,
+        }));
     }
 
     static async getBudgetById(id: string) {

@@ -27,7 +27,7 @@ export const TAB_LABELS: Record<string, string> = {
     dashboard: "Dashboard financeiro",
     orcv2: "Orçamento",
     orcamento: "Orçamento (LPU)",
-    historico: "Orçamentos salvos",
+    historico: "Orçamentos",
     projetos: "Projetos",
     controle: "Controle de obras",
     fornecedores: "Fornecedores",

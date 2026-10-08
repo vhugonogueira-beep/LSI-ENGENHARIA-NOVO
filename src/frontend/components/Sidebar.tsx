@@ -44,7 +44,7 @@ interface NavItemProps {
 export default function Sidebar(props: SidebarProps) {
     const {
         tab, setTab, sidePinned, setSidePinned, sideHovered, setSideHovered,
-        historico, exportarBackup,
+        exportarBackup,
         importarBackup, user, onLogout, onAbrirConfiguracoes, onAbrirPerfil, T, iconBox,
     } = props;
 
@@ -66,6 +66,11 @@ export default function Sidebar(props: SidebarProps) {
             {texto}
         </div>
     );
+
+    // Título de grupo no menu aberto; no recolhido, só um traço que separa os grupos.
+    const Grupo = ({ texto, primeiro = false }: { texto: string; primeiro?: boolean }) => isExpanded
+        ? <TituloSecao texto={texto} tom="slate" />
+        : (primeiro ? null : <div aria-hidden="true" style={{ height: 1, background: T.brBase, margin: "8px 12px" }} />);
 
     const NavItem = ({ id, icon: Icone, label, badge, indent = false, onClick, activeOverride = undefined, color = null }: NavItemProps) => {
         const active = typeof activeOverride === "boolean" ? activeOverride : (tab === id && !onClick);
@@ -205,54 +210,37 @@ export default function Sidebar(props: SidebarProps) {
 
                 <nav style={{ padding: isExpanded ? "8px 6px" : "8px 4px", flex: 1, overflowX: "hidden" }}>
 
-                    {/* ── Seção DEMANDAS ── */}
-                    {isExpanded && <TituloSecao texto="Demandas" tom="indigo" />}
+                    {/* Grupos por tipo de trabalho (revisão de 08/10/2026). Antes eram
+                        "Demandas / Dashboard / Orçamento / Obras", e Pagamentos e Faturamento
+                        moravam em "Obras". Recolhido, um traço fino separa os grupos. */}
+                    <Grupo texto="Operação" primeiro />
                     <NavItem id="overview" icon={Home} label="Visão geral" />
+                    <NavItem id="atividades" icon={Target} label="Atividades" />
                     <NavItem id="demandas" icon={ClipboardList} label="Pipeline" />
+                    <NavItem id="sites" icon={MapPin} label="Sites" />
 
-                    {/* ── Divisor ── */}
-                    {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
-
-                    {/* ── Seção DASHBOARD ── */}
-                    {isExpanded && <TituloSecao texto="Dashboard" tom="violet" />}
-                    <NavItem id="dashboard" icon={TrendingUp} label="Dashboard financeiro" />
-
-                    {/* ── Divisor ── */}
-                    {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
-
-                    {/* ── Seção ORÇAMENTO ── */}
-                    {isExpanded && <TituloSecao texto="Orçamento" tom="amber" />}
-
+                    <Grupo texto="Comercial" />
                     {/* Orçamento nasce dentro da Atividade (abas PV Highline e Cotação LS).
                         "Novo Orçamento" saiu da sidebar para não existir um segundo caminho,
                         que criava orçamento solto, sem obra. */}
-                    <NavItem id="historico" icon={Folder} label="Orçamentos" badge={historico.length > 0 ? historico.length.toString() : null} />
+                    <NavItem id="historico" icon={Folder} label="Orçamentos" />
                     <NavItem id="lpus" icon={Library} label="Bases de preço (LPUs)" />
-
-                    {/* ── Divisor ── */}
-                    {isExpanded && <div style={{ height: 1, background: `linear-gradient(90deg, transparent, ${T.brBase}, transparent)`, margin: "10px 4px" }} />}
-
-                    {/* ── Seção OBRAS ── */}
-                    {isExpanded && <TituloSecao texto="Obras" tom="blue" />}
-
-                    <NavItem id="atividades" icon={Target} label="Atividades" />
-                    <NavItem id="sites" icon={MapPin} label="Sites" />
-
-                    <NavItem id="fornecedores" icon={Building2} label="Pessoas e fornecedores" />
-                    <NavItem id="relatorios" icon={BarChart3} label="Relatórios" />
-                    <NavItem id="faturamento" icon={Receipt} label="Faturamento" />
-                    <NavItem id="pagamentos" icon={CreditCard} label="Controle de pagamentos" />
                     <NavItem id="clientes" icon={Handshake} label="Clientes" />
 
-                    {/* ── Seção SISTEMA ──
-                        O avatar e a logo continuam como atalhos, mas o acesso
-                        principal a Meu Perfil e Configurações (empresa, contas,
-                        cartões e roteamento de e-mail) precisa estar no menu. */}
-                    {isExpanded && <TituloSecao texto="Sistema" tom="slate" />}
+                    <Grupo texto="Financeiro" />
+                    <NavItem id="pagamentos" icon={CreditCard} label="Controle de pagamentos" />
+                    <NavItem id="faturamento" icon={Receipt} label="Faturamento" />
+                    <NavItem id="dashboard" icon={TrendingUp} label="Dashboard financeiro" />
+                    <NavItem id="relatorios" icon={BarChart3} label="Relatórios" />
 
+                    <Grupo texto="Cadastros" />
+                    <NavItem id="fornecedores" icon={Building2} label="Pessoas e fornecedores" />
+
+                    {/* O avatar e a logo continuam como atalhos, mas o acesso principal a
+                        Meu Perfil e Configurações precisa estar no menu. */}
+                    <Grupo texto="Sistema" />
                     <NavItem id="perfil" icon={User} label="Meu perfil" />
                     <NavItem id="configuracoes" icon={Settings} label="Configurações" />
-
                     {/* ── Divisor ── */}
                 </nav>
 

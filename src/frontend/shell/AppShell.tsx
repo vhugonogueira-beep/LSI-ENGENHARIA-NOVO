@@ -5,6 +5,8 @@ import Configuracoes from '../pages/Configuracoes';
 import MeuPerfil from '../pages/MeuPerfil';
 import Clientes from '../pages/Clientes';
 import Sites from '../pages/Sites';
+import Orcamentos from '../pages/Orcamentos';
+import Relatorios from '../pages/Relatorios';
 import DashboardFinanceiro from '../pages/DashboardFinanceiro';
 import ControlePagamentos from '../pages/ControlePagamentos';
 import PessoasPrestadores from '../pages/PessoasPrestadores';
@@ -103,13 +105,14 @@ export default function AppShell(props: AppShellProps) {
                 {(tab === "projetos" || tab === "controle") && <Atividades />}
                 {tab === "fornecedores" && <PessoasPrestadores initialTab="fornecedores" />}
                 {tab === "funcionarios" && <PessoasPrestadores initialTab="funcionarios" />}
-                {tab === "relatorios" && abasLegadas.relatorios()}
+                {tab === "relatorios" && <Relatorios onAbrir={setTab} />}
                 {tab === "clientes" && <Clientes />}
                 {tab === "sites" && <Sites />}
                 {tab === "faturamento" && <FaturamentoReal />}
                 {tab === "pvhighline" && abasLegadas.pvhighline()}
                 {tab === "resumo" && abasLegadas.resumo()}
-                {tab === "historico" && abasLegadas.historico()}
+                {/* Orçamentos reais das atividades (08/10/2026); a lista antiga do navegador saiu do menu. */}
+                {tab === "historico" && <Orcamentos onAbrirAtividade={id => { try { sessionStorage.setItem('ls_abrir_atividade', id); } catch { /* sem storage: abre a lista */ } setTab("atividades"); }} />}
                 {/* Tabela, Faturas e Secretária LS saíram da navegação (set/2026). */}
                 </div>
             </div>

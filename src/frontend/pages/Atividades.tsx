@@ -92,7 +92,10 @@ const PO_STATUS_TOM: Record<string, string> = { AGUARDANDO: 'text-muted-foregrou
 export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 'lista' | 'kanban' } = {}) {
     const [atividades, setAtividades] = useState<Atividade[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selecionadaId, setSelecionadaId] = useState<string | null>(null);
+    // Vindo de outra tela (ex.: Orçamentos → Abrir): abre direto a atividade pedida.
+    const [selecionadaId, setSelecionadaId] = useState<string | null>(() => {
+        try { const id = sessionStorage.getItem('ls_abrir_atividade'); sessionStorage.removeItem('ls_abrir_atividade'); return id; } catch { return null; }
+    });
     const [view, setView] = useState<'lista' | 'kanban' | 'projetos'>(vistaInicial);
     // Projeto: vinte e cinco vistorias mandadas no mesmo orçamento são um
     // pedido só. O agrupamento acontece sobre atividades JÁ lançadas, que é o

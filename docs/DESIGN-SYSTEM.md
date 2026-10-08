@@ -155,3 +155,17 @@ largo.
   descrevem (em cima da tabela), não soltos na ponta direita de uma barra.
 - **Indicadores em grade de colunas iguais.** Sequência com operação (A − B = C)
   ocupa a largura toda, com os sinais alinhados pela base dos valores.
+
+## Menu e telas de conjunto (08/10/2026)
+
+- Menu em grupos por tipo de trabalho: **Operação** (Visão geral, Atividades,
+  Pipeline, Sites), **Comercial** (Orçamentos, Bases de preço, Clientes),
+  **Financeiro** (Controle de pagamentos, Faturamento, Dashboard financeiro,
+  Relatórios), **Cadastros** (Pessoas e fornecedores) e **Sistema**. Recolhido,
+  um traço fino separa os grupos.
+- Indicador sem valor diz o que significa ("Nenhum enviado ao cliente", "Nada a
+  pagar", "Todos com comprovante") em texto menor e apagado, em vez de "—".
+- Orçamentos: lista os orçamentos reais das atividades (antes lia o navegador).
+  Relatórios: atalhos para as telas que leem o banco; as ferramentas do fluxo
+  antigo ficam numa seção própria, identificadas como antigas.
+

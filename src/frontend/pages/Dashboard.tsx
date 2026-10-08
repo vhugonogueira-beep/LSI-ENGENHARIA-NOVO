@@ -107,10 +107,10 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
           {[
             { label: 'Total',            value: totalOrc,               tom: 'indigo' as Tom, icon: <Layers size={16} aria-hidden /> },
-            { label: 'Rascunhos',        value: rascunhos,              tom: 'slate' as Tom,  icon: <PencilLine size={16} aria-hidden /> },
-            { label: 'Enviados',         value: enviados,               tom: 'blue' as Tom,   icon: <Send size={16} aria-hidden /> },
-            { label: 'Aprovados',        value: aprovados,              tom: 'green' as Tom,  icon: <CheckCircle2 size={16} aria-hidden /> },
-            { label: 'Receita aprovada', value: fmtMoeda(receitaAprov), tom: 'green' as Tom,  icon: <Banknote size={16} aria-hidden />, small: true },
+            { label: 'Rascunhos',        value: rascunhos,              tom: 'slate' as Tom,  icon: <PencilLine size={16} aria-hidden />, vazio: 'Nenhum rascunho' },
+            { label: 'Enviados',         value: enviados,               tom: 'blue' as Tom,   icon: <Send size={16} aria-hidden />, vazio: 'Nenhum enviado ao cliente' },
+            { label: 'Aprovados',        value: aprovados,              tom: 'green' as Tom,  icon: <CheckCircle2 size={16} aria-hidden />, vazio: 'Nenhum aprovado ainda' },
+            { label: 'Receita aprovada', value: fmtMoeda(receitaAprov), tom: 'green' as Tom,  icon: <Banknote size={16} aria-hidden />, small: true, vazio: 'Sem orçamento aprovado' },
           ].map(k => (
             <KpiCard key={k.label} {...k} loading={loading} />
           ))}
@@ -123,8 +123,8 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
           {[
             { label: 'Total de atividades',          value: totalAtividades,             tom: 'indigo' as Tom, icon: <Layers size={16} aria-hidden /> },
-            { label: 'Em execução',                  value: emExecucao,                  tom: 'blue' as Tom,   icon: <Play size={16} aria-hidden /> },
-            { label: 'Valor contratado',             value: fmtMoeda(receitaAtividades), tom: 'cyan' as Tom,   icon: <Banknote size={16} aria-hidden />, small: true },
+            { label: 'Em execução',                  value: emExecucao,                  tom: 'blue' as Tom,   icon: <Play size={16} aria-hidden />, vazio: 'Nenhuma em execução' },
+            { label: 'Valor contratado',             value: fmtMoeda(receitaAtividades), tom: 'cyan' as Tom,   icon: <Banknote size={16} aria-hidden />, small: true, vazio: 'Nenhum contrato fechado' },
             { label: 'Detentora com mais atividades',  value: topSharing(porSharing),      tom: 'cyan' as Tom,   icon: <Trophy size={16} aria-hidden />, small: true },
           ].map(k => (
             <KpiCard key={k.label} {...k} loading={loading} />
@@ -262,9 +262,9 @@ export function Dashboard({ onNavigateTo }: DashboardProps) {
   );
 }
 
-function KpiCard({ label, value, icon, loading, small, tom = 'slate' }: { label: string; value: any; icon: React.ReactNode; loading?: boolean; small?: boolean; tom?: Tom }) {
+function KpiCard({ label, value, icon, loading, small, tom = 'slate', vazio: textoVazio }: { label: string; value: any; icon: React.ReactNode; loading?: boolean; small?: boolean; tom?: Tom; vazio?: string }) {
   // Zero, vazio e "sem dado" aparecem como "—" em texto apagado.
-  const vazio = value == null || value === 0 || value === '—';
+  const vazio = value == null || value === 0 || value === '—' || value === 'R$ 0,00';
   void tom; // tom continua aceito, mas o cartão é neutro (revisão de 08/10/2026)
   return (
     <div style={{
@@ -282,11 +282,11 @@ function KpiCard({ label, value, icon, loading, small, tom = 'slate' }: { label:
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={label}>{label}</div>
         <div title={typeof value === 'string' ? value : undefined} style={{
-          fontSize: small ? 15 : 24, fontWeight: 600, color: vazio ? T.txMut : T.txPri,
+          fontSize: vazio && textoVazio ? 13 : small ? 15 : 24, fontWeight: vazio && textoVazio ? 500 : 600, color: vazio ? T.txMut : T.txPri,
           lineHeight: '28px', height: 28, marginTop: 2, display: 'flex', alignItems: 'flex-end',
           fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
-          {loading ? '…' : vazio ? '—' : value}
+          {loading ? '…' : vazio ? (textoVazio || '—') : value}
         </div>
       </div>
     </div>

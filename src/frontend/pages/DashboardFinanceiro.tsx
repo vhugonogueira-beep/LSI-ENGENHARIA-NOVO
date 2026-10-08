@@ -113,15 +113,15 @@ export default function DashboardFinanceiro() {
       {/* Custo e caixa */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
         <Kpi tom="orange" rotulo="Custo comprometido" valor={dados.custoComprometido ? moeda(dados.custoComprometido) : null} nota="contratado, pago ou não" />
-        <Kpi tom="green" rotulo="Custo pago" valor={dados.custoPago ? moeda(dados.custoPago) : null} nota="já saiu do caixa" />
+        <Kpi tom="green" rotulo="Custo pago" valor={dados.custoPago ? moeda(dados.custoPago) : null} vazio="Nada pago ainda" nota="já saiu do caixa" />
         <Kpi tom="amber" rotulo="Custo a pagar" valor={dados.custoAPagar ? moeda(dados.custoAPagar) : null} nota="comprometido − pago" />
         <Kpi tom="violet" rotulo="Margem projetada" valor={dados.margemProjetada ? pct(dados.margemProjetada) : null} alerta={dados.margemProjetada < 0 ? T.red : undefined} nota="sobre receita bruta" />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-        <Kpi tom="cyan" rotulo="Faturado" valor={dados.faturado ? moeda(dados.faturado) : null} nota="linhas de PO faturadas" />
-        <Kpi tom="green" rotulo="Recebido" valor={dados.recebido ? moeda(dados.recebido) : null} nota="baixa financeira" />
-        <Kpi tom="blue" rotulo="A receber" valor={dados.aReceber ? moeda(dados.aReceber) : null} nota="faturado − recebido" />
+        <Kpi tom="cyan" rotulo="Faturado" valor={dados.faturado ? moeda(dados.faturado) : null} vazio="Nada faturado no período" nota="linhas de PO faturadas" />
+        <Kpi tom="green" rotulo="Recebido" valor={dados.recebido ? moeda(dados.recebido) : null} vazio="Nada recebido no período" nota="baixa financeira" />
+        <Kpi tom="blue" rotulo="A receber" valor={dados.aReceber ? moeda(dados.aReceber) : null} vazio="Nada a receber" nota="faturado − recebido" />
         <Kpi tom="indigo" rotulo="Atividades" valor={dados.contagem.total ? String(dados.contagem.total) : null} nota={nomeMes(dados.mes)} />
       </div>
 
@@ -225,14 +225,14 @@ function Sinal({ children }: { children: React.ReactNode }) {
   return <div aria-hidden="true" style={{ color: T.txMut, fontSize: 18, fontWeight: 500, padding: "0 4px 12px", textAlign: "center" }}>{children}</div>;
 }
 
-function Kpi({ rotulo, valor, alerta, nota, tom = "slate" }: { rotulo: string; valor: string | null; alerta?: string; nota?: string; tom?: Tom }) {
+function Kpi({ rotulo, valor, vazio, alerta, nota, tom = "slate" }: { rotulo: string; valor: string | null; vazio?: string; alerta?: string; nota?: string; tom?: Tom }) {
   void tom; // cartão neutro; a cor fica para o alerta (revisão de 08/10/2026)
   return (
     <div style={{ background: T.bg2, border: `1px solid ${alerta ? alerta + "66" : T.brBase}`, borderRadius: 10, padding: "11px 15px" }}>
       <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
         {rotulo}
       </div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? "—"}</div>
+      <div style={{ fontSize: valor == null && vazio ? 13 : 18, fontWeight: valor == null && vazio ? 500 : 600, lineHeight: "24px", color: valor == null ? T.txMut : alerta || T.txPri, marginTop: 4 }}>{valor ?? vazio ?? "—"}</div>
       {nota && <div style={{ fontSize: 11, color: T.txDis, marginTop: 3 }}>{nota}</div>}
     </div>
   );

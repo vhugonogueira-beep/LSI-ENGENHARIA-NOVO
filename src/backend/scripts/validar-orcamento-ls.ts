@@ -37,7 +37,7 @@ async function json(caminho: string, init?: RequestInit) {
 }
 async function enviarArquivo(budgetId: string, nome: string, buffer: Buffer, tipo: string) {
     const dados = new FormData();
-    dados.append('arquivo', new Blob([buffer], { type: tipo }), nome);
+    dados.append('arquivo', new Blob([new Uint8Array(buffer)], { type: tipo }), nome);
     return json(`/budgets/${budgetId}/importar`, { method: 'POST', body: dados });
 }
 async function salvarItens(budgetId: string, scope: string, items: any[]) {
