@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Download, FileSpreadsheet, Paperclip, Plus, Save, Trash2, Upload, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Paperclip, Plus, RotateCcw, Save, Trash2, Upload, X } from 'lucide-react';
 import { Card, EmptyState, ErrorBanner, inputClass } from './ui';
 import { fmtMoeda } from './constants';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
@@ -45,6 +45,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
 }) {
     const [linhas, setLinhas] = useState<Linha[]>([]);
     const [salvas, setSalvas] = useState('');
+    const [linhasSalvas, setLinhasSalvas] = useState<Linha[]>([]);
     const [versao, setVersao] = useState({ versao_atual: 1, updated_at: '' });
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState('');
@@ -63,6 +64,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
             .filter((i: any) => i.origem_item === 'ORCAMENTO_LS')
             .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
         setLinhas(itens);
+        setLinhasSalvas(itens);
         setSalvas(JSON.stringify(itens.map(({ chave, ...r }) => r)));
         setVersao({ versao_atual: b.versao_atual, updated_at: b.updated_at });
         setImportados(a);
@@ -99,6 +101,24 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
         } finally {
             setSalvando(false);
         }
+    }
+
+    function descartar() {
+        setErro('');
+        setLinhas(linhasSalvas.map(l => ({ ...l })));
+    }
+
+    async function excluirTodos() {
+        if (!confirm(`Excluir os ${linhasSalvas.length || linhas.length} item(ns) do Orçamento LS? O total do orçamento volta a zero. Os arquivos importados continuam guardados.`)) return;
+        await salvar([]);
+    }
+
+    async function excluirArquivo(a: Importado) {
+        if (!confirm(`Excluir o arquivo "${a.nome_original}"? Os itens já usados no orçamento continuam.`)) return;
+        setErro('');
+        const r = await authFetch(`/api/budgets/${budgetId}/importados/${encodeURIComponent(a.nome)}`, { method: 'DELETE' });
+        if (!r.ok) { setErro((await r.json().catch(() => ({}))).error || 'Erro ao excluir o arquivo'); return; }
+        setImportados(lista => lista.filter(x => x.nome !== a.nome));
     }
 
     async function lerArquivo(arquivo: File) {
@@ -167,7 +187,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Valor unitário" type="number" min={0} step="0.01" className={`${inputClass} text-right`} value={l.valor_unitario} onChange={e => mudar(l.chave, 'valor_unitario', e.target.value)} /></td>
                                     <td className="px-3 py-1.5 text-right font-semibold tabular-nums">{fmtMoeda(totalLinha(l))}</td>
                                     <td className="px-1 py-1.5 text-center">
-                                        {editavel && <button type="button" onClick={() => setLinhas(ls => ls.filter(x => x.chave !== l.chave))} aria-label="Remover item" title="Remover item" className="rounded p-1.5 text-muted-foreground hover:bg-crit/10 hover:text-crit"><Trash2 size={14} aria-hidden /></button>}
+                                        {editavel && <button type="button" onClick={() => setLinhas(ls => ls.filter(x => x.chave !== l.chave))} aria-label="Remover item" title="Remover item" className="rounded-md border border-border p-1.5 text-muted-foreground hover:border-crit/50 hover:bg-crit/10 hover:text-crit"><Trash2 size={14} aria-hidden /></button>}
                                     </td>
                                 </tr>
                             ))}
@@ -182,13 +202,30 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
                 </div>
             )}
 
-            {editavel && linhas.length > 0 && (
+            {editavel && (linhas.length > 0 || linhasSalvas.length > 0) && (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                     <button type="button" onClick={() => setLinhas(ls => [...ls, { chave: novaChave(), codigo_item: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
                         className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button>
+                    {linhasSalvas.length > 0 && (
+                        <button type="button" onClick={excluirTodos} disabled={salvando}
+                            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-crit/40 px-3 text-sm font-semibold text-crit hover:bg-crit/10 disabled:opacity-40">
+                            <Trash2 size={14} aria-hidden /> Excluir todos os itens
+                        </button>
+                    )}
+                    {/* Estado de gravação sempre dito em texto: "Salvo" apagado parecia botão quebrado. */}
+                    <span className={`ml-auto inline-flex items-center gap-1.5 text-xs ${alterado ? 'font-semibold text-warn' : 'text-muted-foreground'}`}>
+                        {alterado ? <><AlertTriangle size={14} aria-hidden /> Alterações não salvas</> : <><CheckCircle2 size={14} aria-hidden className="text-ok" /> Tudo salvo</>}
+                    </span>
+                    {alterado && (
+                        <button type="button" onClick={descartar} disabled={salvando}
+                            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60 disabled:opacity-40">
+                            <RotateCcw size={14} aria-hidden /> Descartar alterações
+                        </button>
+                    )}
                     <button type="button" onClick={() => salvar()} disabled={!alterado || salvando}
-                        className="ml-auto inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40">
-                        <Save size={14} aria-hidden /> {salvando ? 'Salvando…' : alterado ? 'Salvar Orçamento LS' : 'Salvo'}
+                        title={alterado ? 'Gravar as alterações do Orçamento LS' : 'Nada mudou desde o último salvamento'}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40">
+                        <Save size={14} aria-hidden /> {salvando ? 'Salvando…' : 'Salvar alterações'}
                     </button>
                 </div>
             )}
@@ -204,6 +241,10 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
                                     <Paperclip size={12} aria-hidden /> {a.nome_original}
                                     <span className="text-muted-foreground">· {new Date(a.enviado_em).toLocaleString('pt-BR')}</span>
                                 </button>
+                                {editavel && (
+                                    <button type="button" onClick={() => excluirArquivo(a)} aria-label={`Excluir o arquivo ${a.nome_original}`} title="Excluir arquivo"
+                                        className="ml-2 inline-flex rounded p-1 align-middle text-muted-foreground hover:bg-crit/10 hover:text-crit"><Trash2 size={12} aria-hidden /></button>
+                                )}
                             </li>
                         ))}
                     </ul>

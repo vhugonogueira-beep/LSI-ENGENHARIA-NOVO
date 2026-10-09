@@ -34,6 +34,12 @@ export async function listarArquivosImportados(budgetId: string) {
     return lista.sort((a, b) => b.enviado_em.localeCompare(a.enviado_em));
 }
 
+export async function removerArquivoImportado(budgetId: string, nome: string) {
+    const caminho = caminhoArquivoImportado(budgetId, nome);
+    if (!caminho) throw new Error('Arquivo não encontrado');
+    await fs.unlink(caminho);
+}
+
 /** Caminho absoluto do arquivo, só se ele estiver dentro da pasta do orçamento. */
 export function caminhoArquivoImportado(budgetId: string, nome: string) {
     const pasta = pastaDo(budgetId);

@@ -106,6 +106,13 @@ async function main() {
         conferir('arquivo original baixa', dl.ok && (await dl.arrayBuffer()).byteLength > 1000, `HTTP ${dl.status}`);
         const fuga = await fetch(`${API}/budgets/${budgetId}/importados/${encodeURIComponent('../../../.env')}`);
         conferir('caminho fora da pasta do orçamento não baixa', fuga.status === 404, `HTTP ${fuga.status}`);
+        const fugaDel = await fetch(`${API}/budgets/${budgetId}/importados/${encodeURIComponent('../../../.env')}`, { method: 'DELETE' });
+        conferir('caminho fora da pasta do orçamento não exclui', fugaDel.status === 400, `HTTP ${fugaDel.status}`);
+        const del = await fetch(`${API}/budgets/${budgetId}/importados/${encodeURIComponent(lista.corpo[0]?.nome || 'x')}`, { method: 'DELETE' });
+        const depois = await json(`/budgets/${budgetId}/importados`);
+        conferir('arquivo importado excluído', del.status === 204 && depois.corpo.length === 0, `HTTP ${del.status} · ${depois.corpo.length}`);
+        n = await contar(budgetId);
+        conferir('excluir o arquivo não apaga os itens do Orçamento LS', n.ls === 2, JSON.stringify(n));
 
         console.log('\n── Leitura de PDF');
         const doc = new jsPDF();

@@ -8,7 +8,7 @@ import { carregarPvDoCliente } from '../services/pv-cliente.service';
 import { lpusDaAtividade } from '../services/lpu-atividade.service';
 import { normalizarUf } from '../utils/uf';
 import { lerOrcamentoArquivo } from '../services/orcamento-importacao.service';
-import { guardarArquivoImportado, listarArquivosImportados, caminhoArquivoImportado } from '../services/orcamento-arquivo.service';
+import { guardarArquivoImportado, listarArquivosImportados, caminhoArquivoImportado, removerArquivoImportado } from '../services/orcamento-arquivo.service';
 
 async function getDemoTenantId() {
     const t = await prisma.tenant.findFirst();
@@ -169,6 +169,23 @@ export class BudgetController {
             const caminho = caminhoArquivoImportado(req.params.id, req.params.nome);
             if (!caminho) return res.status(404).json({ error: 'Arquivo não encontrado' });
             res.download(caminho, req.params.nome.replace(/^\d+-/, ''));
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    static async excluirImportado(req: Request, res: Response) {
+        try {
+            const budget = await prisma.budget.findUnique({ where: { id: req.params.id } });
+            if (!budget) return res.status(404).json({ error: 'Orçamento não encontrado' });
+            await removerArquivoImportado(budget.id, req.params.nome);
+            await prisma.auditLog.create({
+                data: {
+                    tenant_id: budget.tenant_id, entidade: 'Budget', entidade_id: budget.id, acao: 'ORCAMENTO_ARQUIVO_EXCLUIDO',
+                    antes_json: JSON.stringify({ arquivo: req.params.nome }), user_id: (req as any).user?.userId || null,
+                },
+            });
+            res.status(204).end();
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }

@@ -393,7 +393,16 @@ export default function Root({ authUser = null, onLogout: externalLogout = null 
 function App({ user, onLogout }) {
   // ── NAV: "orcamento" | "projetos" | "controle" | "fornecedores" | "resumo" | "historico"
   const [mainView, setMainView] = useState("main");
-  const [sidePinned, setSidePinned] = useState(false);
+  // Menu lateral fixo (aberto) por padrão, e a escolha do alfinete fica lembrada
+  // neste navegador (08/10/2026: antes voltava a recolher a cada recarga).
+  const [sidePinned, setSidePinnedState] = useState<boolean>(() => {
+    try { return localStorage.getItem('ls_menu_fixo') !== 'nao'; } catch { return true; }
+  });
+  const setSidePinned = (v: boolean | ((p: boolean) => boolean)) => setSidePinnedState((prev: boolean) => {
+    const novo = typeof v === 'function' ? v(prev) : v;
+    try { localStorage.setItem('ls_menu_fixo', novo ? 'sim' : 'nao'); } catch { /* sem storage: só não lembra */ }
+    return novo;
+  });
   const [sideHovered, setSideHovered] = useState(false);
   const [currentArea, setCurrentArea] = useState(null);
   const [tab, setTab] = useState("orcv2");
