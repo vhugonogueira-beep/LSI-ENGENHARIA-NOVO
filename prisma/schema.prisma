@@ -413,6 +413,9 @@ model Supplier {
   especialidade String? // tag livre (ex: Civil, Elétrico, RF, Montagem Metálica...)
   regiao        String? // região de atuação (ex: Nacional, Norte e Nordeste)
   observacoes   String?
+  /// Segurança do trabalho: códigos dos trabalhos que o prestador executa
+  /// (JSON, ex.: ["ALTURA","ELETRICIDADE"]). Definem os certificados exigidos.
+  sst_trabalhos String?
 
   ativo              Boolean                       @default(true)
   created_at         DateTime                      @default(now())
@@ -430,6 +433,47 @@ model Supplier {
   despesasRateadas ReembolsoDespesa[]
   reembolsos      Reembolso[]
   qualificacoes Qualificacao[]
+  membrosEquipe MembroEquipe[]
+}
+
+/// Membro da equipe de um prestador. Só dados e documentos de SST — não recebe
+/// pagamento direto (decisão de 09/10/2026).
+model MembroEquipe {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  supplier_id   String
+  supplier      Supplier @relation(fields: [supplier_id], references: [id])
+  nome          String
+  cpf           String?
+  rg            String?
+  funcao        String?
+  telefone      String?
+  /// Mesmo formato de Supplier.sst_trabalhos.
+  sst_trabalhos String?
+  observacoes   String?
+  ativo         Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  qualificacoes Qualificacao[]
+
+  @@index([supplier_id, ativo])
+}
+
+/// Itens de SST criados pela empresa, somados aos de fábrica (sst.service):
+/// DOCUMENTO = novo tipo de documento/certificado; TRABALHO = nova atividade
+/// de risco, com os documentos que ela exige.
+model ItemCatalogoSst {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  tipo       String // DOCUMENTO | TRABALHO
+  codigo     String
+  nome       String
+  meses      Int      @default(0) // validade usual do documento (0 = sem vencimento)
+  exige      String? // TRABALHO: JSON com os códigos de documento exigidos
+  ativo      Boolean  @default(true)
+  created_at DateTime @default(now())
+
+  @@unique([tenant_id, codigo])
 }
 
 // Perfil comercial do fornecedor (Blueprint LSI, seção 12) — modelos reutilizáveis
@@ -1900,6 +1944,9 @@ model Qualificacao {
   funcionario    Funcionario? @relation(fields: [funcionario_id], references: [id])
   supplier_id    String?
   supplier       Supplier?    @relation(fields: [supplier_id], references: [id])
+  membro_id      String?
+  membro         MembroEquipe? @relation(fields: [membro_id], references: [id])
+  arquivos       QualificacaoArquivo[]
 
   // ASO | NR06 | NR10 | NR10_SEP | NR11 | NR12 | NR18 | NR33 | NR35 | CNH |
   // TREINAMENTO_ALTURA | RESGATE | OUTRO
@@ -1917,6 +1964,23 @@ model Qualificacao {
   @@index([tenant_id, tipo])
   @@index([funcionario_id])
   @@index([supplier_id])
+  @@index([membro_id])
+}
+
+/// Anexo de um documento de SST (cópia do RG, certificado da NR...). Fica em
+/// storage/sst, fora do git, e só sai com login: são dados pessoais.
+model QualificacaoArquivo {
+  id              String       @id @default(uuid())
+  qualificacao_id String
+  qualificacao    Qualificacao @relation(fields: [qualificacao_id], references: [id], onDelete: Cascade)
+  nome_original   String
+  mime_type       String
+  tamanho_bytes   Int
+  storage_key     String       @unique
+  uploaded_by     String?
+  created_at      DateTime     @default(now())
+
+  @@index([qualificacao_id])
 }
 
 

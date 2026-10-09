@@ -2,6 +2,7 @@
 // se resolvem. É um diagnóstico calculado na hora — nada é gravado —, para a
 // aba poder avisar "faltam 3 itens aqui" sem que cada tela reinvente a regra.
 
+import { resumoSst } from './sst.service';
 import { prisma } from '../server';
 import { normalizarUf } from '../utils/uf';
 import { encontrarMunicipio } from './localidades.service';
@@ -230,6 +231,23 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
     // ── Resultado: sem receita e custo previsto a margem não fecha
     if (!a.valor_contrato) p.resultado.push(alerta('Sem valor de contrato (receita) — a margem não pode ser calculada'));
     if (!a.valor_orcado) p.resultado.push(alerta('Sem custo orçado — a margem projetada fica incompleta'));
+
+    // ── SST dos prestadores contratados: só aviso, nunca bloqueia (09/10/2026).
+    const contratados = await prisma.contratacaoFornecedor.findMany({
+        where: { atividade_id: a.id, status: { not: 'CANCELADA' }, supplier_id: { not: null } },
+        select: { supplier_id: true, supplier: { select: { nome: true } } },
+    });
+    if (contratados.length) {
+        const ids = [...new Set(contratados.map(c => c.supplier_id!))];
+        const sst = await resumoSst(a.tenant_id, ids);
+        for (const id of ids) {
+            const r = sst[id];
+            if (!r || r.situacao === 'EM_DIA' || r.situacao === 'NAO_SE_APLICA') continue;
+            const nome = contratados.find(c => c.supplier_id === id)?.supplier?.nome || 'Prestador';
+            const lista = r.itens.slice(0, 4).map(i => `${i.documento}${i.pessoa !== nome ? ` (${i.pessoa})` : ''} ${i.motivo === 'FALTANDO' ? 'não enviado' : i.motivo === 'VENCIDO' ? 'vencido' : `vence em ${i.dias} dia(s)`}`).join('; ');
+            p.fornecedores.push(aviso(`Segurança do trabalho — ${nome}: ${lista}${r.itens.length > 4 ? `; e mais ${r.itens.length - 4}` : ''}`));
+        }
+    }
 
     return p;
 }

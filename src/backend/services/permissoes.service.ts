@@ -139,7 +139,10 @@ export const POLITICA: Regra[] = [
     ['*', /^\/api\/(pos|faturamento)(\/|$)/, 'faturamento.gerenciar'],
 
     // Cadastros.
-    ['*', /^\/api\/(suppliers|funcionarios|qualificacoes|clientes|contratantes|contratantes-upsert)(\/|$)/, 'cadastros.gerenciar'],
+    // SST: o resumo (selo/aviso) é visto por quem contrata na atividade; documentos
+    // e anexos (dados pessoais) só por quem gerencia cadastros.
+    ['GET', /^\/api\/sst\/resumo(\/|$)/, 'LOGADO'],
+    ['*', /^\/api\/(suppliers|funcionarios|qualificacoes|sst|clientes|contratantes|contratantes-upsert)(\/|$)/, 'cadastros.gerenciar'],
 
     // Configurações.
     ['*', /^\/api\/(empresa|email-config)(\/|$)/, 'configuracoes.gerenciar'],

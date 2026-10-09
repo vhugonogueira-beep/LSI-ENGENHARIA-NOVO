@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Building2, CreditCard, Factory, HardHat, Mail, MapPin, Pencil, Phone, Plus, Search, Trash2, Wallet } from 'lucide-react';
+import { Building2, CreditCard, Factory, HardHat, Mail, MapPin, Pencil, Phone, Plus, Search, ShieldCheck, Trash2, Wallet } from 'lucide-react';
+import SegurancaTrabalhoModal, { SeloSst } from '../components/cadastros/SegurancaTrabalhoModal';
 import FornecedorFormModal, { CATEGORIA_INFO, type Supplier } from '../components/cadastros/FornecedorFormModal';
 import { useEhAdmin } from '../lib/permissoes';
 import { REGIAO_LABEL, chaveTexto, normalizarUf } from '../components/atividades/constants';
@@ -20,6 +21,11 @@ export function Fornecedores() {
     const ehAdmin = useEhAdmin(); // desativar cadastro é só do administrador
     // undefined = janela fechada; null = novo cadastro; objeto = editar
     const [editando, setEditando] = useState<Supplier | null | undefined>(undefined);
+    // Segurança do trabalho: selo por fornecedor e janela de documentos/equipe.
+    const [sst, setSst] = useState<Record<string, any>>({});
+    const [sstAberto, setSstAberto] = useState<Supplier | null>(null);
+    const [filtroSst, setFiltroSst] = useState('');
+    const carregarSst = () => fetch('/api/sst/resumo').then(r => (r.ok ? r.json() : {})).then(setSst).catch(() => setSst({}));
 
     const loadSuppliers = async () => {
         setLoading(true);
@@ -41,7 +47,7 @@ export function Fornecedores() {
         }
     };
 
-    useEffect(() => { loadSuppliers(); }, []);
+    useEffect(() => { loadSuppliers(); carregarSst(); }, []);
 
     const openCreate = () => setEditando(null);
     const openEdit = (sup: Supplier) => setEditando(sup);
@@ -87,10 +93,11 @@ export function Fornecedores() {
         const matchCategoria = !filtroCategoria || (s.categoria || 'OUTROS') === filtroCategoria;
         const matchEspecialidade = !filtroEspecialidade || chaveTexto(s.especialidade || '') === filtroEspecialidade;
         const matchUf = !filtroUf || ufDe(s) === filtroUf;
-        return matchSearch && noModulo(s) && matchCategoria && matchEspecialidade && matchUf;
+        const matchSst = !filtroSst || sst[s.id]?.situacao === filtroSst;
+        return matchSearch && noModulo(s) && matchCategoria && matchEspecialidade && matchUf && matchSst;
     });
-    const temFiltro = Boolean(filtroCategoria || filtroEspecialidade || filtroUf || search);
-    const limparFiltros = () => { setFiltroCategoria(''); setFiltroEspecialidade(''); setFiltroUf(''); setSearch(''); };
+    const temFiltro = Boolean(filtroCategoria || filtroEspecialidade || filtroUf || filtroSst || search);
+    const limparFiltros = () => { setFiltroCategoria(''); setFiltroEspecialidade(''); setFiltroUf(''); setFiltroSst(''); setSearch(''); };
 
     const catInfo = (cat: string | null) => CATEGORIA_INFO[cat || 'OUTROS'];
 
@@ -161,7 +168,7 @@ export function Fornecedores() {
                     </div>
                 </FiltroLinha>
 
-                <FiltroLinha rotulo="Especialidade e UF">
+                <FiltroLinha rotulo="Especialidade, UF e SST">
                     <GradeSeletores>
                         <select value={filtroEspecialidade} onChange={e => setFiltroEspecialidade(e.target.value)} aria-label="Especialidade" className={`${CAMPO} w-full`}>
                             <option value="">Toda especialidade</option>
@@ -170,6 +177,12 @@ export function Fornecedores() {
                         <select value={filtroUf} onChange={e => setFiltroUf(e.target.value)} aria-label="UF" className={`${CAMPO} w-full`}>
                             <option value="">Toda UF</option>
                             {ufsPresentes.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                        </select>
+                        <select value={filtroSst} onChange={e => setFiltroSst(e.target.value)} aria-label="Segurança do trabalho" className={`${CAMPO} w-full`}>
+                            <option value="">Segurança do trabalho: todos</option>
+                            <option value="PENDENTE">Com pendência</option>
+                            <option value="VENCE_EM_BREVE">Vencendo em até 30 dias</option>
+                            <option value="EM_DIA">Em dia</option>
                         </select>
                     </GradeSeletores>
                 </FiltroLinha>
@@ -212,6 +225,10 @@ export function Fornecedores() {
                                         : <p className="text-xs text-muted-foreground">—</p>}
                                 </div>
                                 <div className="flex gap-1 flex-shrink-0">
+                                    {sst[s.id] && sst[s.id].situacao !== 'NAO_SE_APLICA' && (
+                                        <button onClick={() => setSstAberto(s)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
+                                            aria-label={`Segurança do trabalho de ${s.nome}`} title="Segurança do trabalho: documentos e equipe"><ShieldCheck size={15} aria-hidden /></button>
+                                    )}
                                     <button onClick={() => openEdit(s)} className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground"
                                         aria-label={`Editar ${s.nome}`} title="Editar cadastro"><Pencil size={15} aria-hidden /></button>
                                     {ehAdmin && (
@@ -240,6 +257,12 @@ export function Fornecedores() {
                                     </p>
                                 )}
                             </div>
+                            {sst[s.id] && sst[s.id].situacao !== 'NAO_SE_APLICA' && (
+                                <div className="mb-3 flex flex-wrap items-center gap-2">
+                                    <SeloSst resumo={sst[s.id]} onClick={() => setSstAberto(s)} compacto />
+                                    {sst[s.id].membros > 0 && <span className="text-[11px] text-muted-foreground">Equipe: {sst[s.id].membros}</span>}
+                                </div>
+                            )}
                             <div className={`mt-auto flex items-center gap-1.5 pt-2 border-t border-border text-xs font-medium ${temCondicao ? 'text-ok' : 'text-muted-foreground'}`}>
                                 <Wallet size={14} aria-hidden />
                                 <span>
@@ -253,8 +276,9 @@ export function Fornecedores() {
 
             {editando !== undefined && (
                 <FornecedorFormModal supplier={editando} onClose={() => setEditando(undefined)}
-                    onSaved={() => { setEditando(undefined); loadSuppliers(); }} />
+                    onSaved={() => { setEditando(undefined); loadSuppliers(); carregarSst(); }} />
             )}
+            {sstAberto && <SegurancaTrabalhoModal supplier={sstAberto} onClose={() => setSstAberto(null)} onMudou={carregarSst} />}
         </div>
     );
 }

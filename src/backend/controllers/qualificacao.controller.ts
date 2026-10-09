@@ -5,6 +5,8 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
 import { listarMunicipios } from '../services/localidades.service';
+import { catalogo } from '../services/sst.service';
+import { removerArquivosDoDocumento } from '../services/sst-arquivo.service';
 
 /** Tipos que a LS controla, com a validade usual em meses (0 = sem vencimento). */
 export const TIPOS_QUALIFICACAO: Record<string, { rotulo: string; meses: number }> = {
@@ -25,7 +27,7 @@ export const TIPOS_QUALIFICACAO: Record<string, { rotulo: string; meses: number 
 const CAMPOS = [
     'tipo', 'descricao', 'numero', 'entidade',
     'data_emissao', 'data_validade', 'arquivo_url', 'observacoes',
-    'funcionario_id', 'supplier_id',
+    'funcionario_id', 'supplier_id', 'membro_id',
 ];
 
 async function getTenantId(req: Request): Promise<string> {
@@ -92,11 +94,18 @@ export class QualificacaoController {
             const tenant_id = await getTenantId(req);
             const dados = filtrar(req.body);
             if (!dados.tipo) return res.status(400).json({ error: 'Informe o tipo da qualificação' });
+            if (dados.membro_id) {
+                // Documento do membro também guarda o fornecedor, para limpeza e consulta.
+                const m = await prisma.membroEquipe.findUnique({ where: { id: dados.membro_id } });
+                if (!m) return res.status(400).json({ error: 'Membro da equipe não encontrado' });
+                dados.supplier_id = m.supplier_id;
+            }
             if (!dados.funcionario_id && !dados.supplier_id) {
                 return res.status(400).json({ error: 'Vincule a um funcionário ou a um prestador' });
             }
             // Validade sugerida a partir da emissão, quando o tipo tem prazo fixo.
-            const meses = TIPOS_QUALIFICACAO[dados.tipo]?.meses || 0;
+            const meses = TIPOS_QUALIFICACAO[dados.tipo]?.meses
+                || (await catalogo(tenant_id)).documentos.find(d => d.codigo === dados.tipo)?.meses || 0;
             if (!dados.data_validade && dados.data_emissao && meses > 0) {
                 const v = new Date(dados.data_emissao);
                 v.setMonth(v.getMonth() + meses);
@@ -120,6 +129,7 @@ export class QualificacaoController {
 
     static async remove(req: Request, res: Response) {
         try {
+            await removerArquivosDoDocumento(req.params.id);
             await prisma.qualificacao.delete({ where: { id: req.params.id } });
             res.json({ ok: true });
         } catch (e: any) {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Plus, Settings, Paperclip, Trash2, Mail, Copy, X } from 'lucide-react';
+import { AlertTriangle, Plus, Settings, Paperclip, Trash2, Mail, Copy, X } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState } from './ui';
 import { fmtData, fmtMoeda } from './constants';
@@ -91,6 +91,17 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [template, setTemplate] = useState<{ id: string; corpo_html: string } | null>(null);
     const [templateDraft, setTemplateDraft] = useState('');
     const [salvandoTemplate, setSalvandoTemplate] = useState(false);
+
+    // Segurança do trabalho do prestador escolhido: só avisa, não impede (09/10/2026).
+    const [sstFavorecido, setSstFavorecido] = useState<any>(null);
+    useEffect(() => {
+        const id = form.favorecido.startsWith('supplier:') ? form.favorecido.slice(9) : '';
+        setSstFavorecido(null);
+        if (!id) return;
+        let vivo = true;
+        authFetch(`/api/sst/resumo?ids=${id}`).then(r => (r.ok ? r.json() : {})).then((d: Record<string, any>) => { if (vivo) setSstFavorecido(d[id] || null); }).catch(() => undefined);
+        return () => { vivo = false; };
+    }, [form.favorecido]);
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -584,6 +595,20 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             )}
                             </div>
                         </Field>
+                        {sstFavorecido && ['PENDENTE', 'VENCE_EM_BREVE'].includes(sstFavorecido.situacao) && (
+                            <div role="status" className={`col-span-2 order-last rounded-lg border px-3 py-2 text-xs ${sstFavorecido.situacao === 'PENDENTE' ? 'border-crit/40 bg-crit/5' : 'border-warn/40 bg-warn/5'}`}>
+                                <p className={`flex items-center gap-1.5 font-semibold ${sstFavorecido.situacao === 'PENDENTE' ? 'text-crit' : 'text-warn'}`}>
+                                    <AlertTriangle size={14} aria-hidden /> Segurança do trabalho: {sstFavorecido.situacao === 'PENDENTE' ? `${sstFavorecido.pendencias} pendência(s)` : 'documento(s) vencendo em até 30 dias'}
+                                </p>
+                                <ul className="mt-1 space-y-0.5 text-muted-foreground">
+                                    {sstFavorecido.itens.slice(0, 5).map((i: any, k: number) => (
+                                        <li key={k}>{i.pessoa}: {i.documento} — {i.motivo === 'FALTANDO' ? 'não enviado' : i.motivo === 'VENCIDO' ? 'vencido' : `vence em ${i.dias} dia(s)`}</li>
+                                    ))}
+                                    {sstFavorecido.itens.length > 5 && <li>e mais {sstFavorecido.itens.length - 5}</li>}
+                                </ul>
+                                <p className="mt-1 text-muted-foreground">É só um aviso: a contratação pode seguir. Regularize em Fornecedores e prestadores → escudo do cartão.</p>
+                            </div>
+                        )}
                         <Field label="Finalidade">
                             <select className={inputClass} value={form.finalidade} onChange={e => setForm(f => ({
                                 ...f, finalidade: e.target.value,
