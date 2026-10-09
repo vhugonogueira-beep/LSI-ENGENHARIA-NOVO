@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Paperclip, Plus, RotateCcw, Save, Trash2, Upload, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FileText, Paperclip, Plus, RotateCcw, Save, Trash2, Upload, X } from 'lucide-react';
 import { Card, EmptyState, ErrorBanner, inputClass } from './ui';
 import { fmtMoeda } from './constants';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
+import type { AtividadeDetalhe } from './AtividadeCockpit';
+import { gerarPdfOrcamentoLs, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Orçamento LS — o preço ao cliente montado no modelo da LS, alternativa à PV
@@ -35,10 +37,12 @@ interface Importado { nome: string; nome_original: string; tamanho: number; envi
 
 let seq = 0;
 const novaChave = () => `l${++seq}`;
-const totalLinha = (l: { quantidade: number; valor_unitario: number }) => Math.round(l.quantidade * l.valor_unitario * 100) / 100;
+const totalLinha = totalItem;
 
-export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
+export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade }: {
     budgetId: string;
+    /** Dados do site e do cliente que vão no PDF. */
+    atividade?: AtividadeDetalhe;
     /** Só em rascunho; enviado ao cliente, fica de leitura. */
     editavel: boolean;
     onMudou?: () => void;
@@ -47,6 +51,8 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
     const [salvas, setSalvas] = useState('');
     const [linhasSalvas, setLinhasSalvas] = useState<Linha[]>([]);
     const [versao, setVersao] = useState({ versao_atual: 1, updated_at: '' });
+    const [meta, setMeta] = useState({ assunto: '', vigencia_dias: 30 });
+    const [gerandoPdf, setGerandoPdf] = useState(false);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState('');
     const [salvando, setSalvando] = useState(false);
@@ -67,6 +73,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
         setLinhasSalvas(itens);
         setSalvas(JSON.stringify(itens.map(({ chave, ...r }) => r)));
         setVersao({ versao_atual: b.versao_atual, updated_at: b.updated_at });
+        setMeta({ assunto: b.assunto || '', vigencia_dias: b.vigencia_dias || 30 });
         setImportados(a);
     }, [budgetId]);
     useEffect(() => { carregar().catch(e => setErro(e.message)).finally(() => setCarregando(false)); }, [carregar]);
@@ -150,6 +157,11 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
                 <button type="button" onClick={() => downloadAuthenticatedFile(`/api/budgets/${budgetId}/export/excel?grupo=preco_cliente`, 'orcamento-ls.xlsx')}
                     disabled={!linhas.length} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">
                     <Download size={14} aria-hidden /> Baixar Excel
+                </button>
+                <button type="button" onClick={() => setGerandoPdf(true)} disabled={!linhasSalvas.length || alterado}
+                    title={alterado ? 'Salve as alterações antes de gerar o PDF' : 'Orçamento no modelo executivo da LS'}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">
+                    <FileText size={14} aria-hidden /> Gerar PDF
                 </button>
                 {editavel && (
                     <button type="button" onClick={() => arquivoRef.current?.click()} disabled={lendo}
@@ -251,6 +263,11 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
                 </div>
             )}
 
+            {gerandoPdf && (
+                <ModalPdf budgetId={budgetId} atividade={atividade} meta={meta} revisao={versao.versao_atual}
+                    itens={linhasSalvas} onFechar={() => setGerandoPdf(false)} />
+            )}
+
             {leitura && (
                 <RevisaoLeitura leitura={leitura} temItens={linhas.length > 0} salvando={salvando}
                     onFechar={() => setLeitura(null)}
@@ -261,6 +278,87 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou }: {
                     }} />
             )}
         </Card>
+    );
+}
+
+/**
+ * Campos do PDF que o sistema não tem: número, condições comerciais. Ficam
+ * lembrados neste navegador por orçamento, para a próxima revisão sair igual.
+ */
+function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
+    budgetId: string;
+    atividade?: AtividadeDetalhe;
+    meta: { assunto: string; vigencia_dias: number };
+    revisao: number;
+    itens: Linha[];
+    onFechar: () => void;
+}) {
+    const chaveStorage = `ls_orcamento_pdf_${budgetId}`;
+    const [f, setF] = useState(() => {
+        const base = {
+            numero: '', escopo: meta.assunto || atividade?.descricao || atividade?.titulo || '',
+            responsavel: '', pagamento: '', prazo_execucao: '', validade_dias: meta.vigencia_dias,
+        };
+        try { return { ...base, ...JSON.parse(localStorage.getItem(chaveStorage) || '{}') }; } catch { return base; }
+    });
+    const [erro, setErro] = useState('');
+    const mudar = (campo: string) => (e: { target: { value: string } }) => setF((x: typeof f) => ({ ...x, [campo]: e.target.value }));
+
+    function gerar() {
+        try { localStorage.setItem(chaveStorage, JSON.stringify(f)); } catch { /* sem storage: só não lembra */ }
+        const local = [atividade?.municipio, atividade?.estado].filter(Boolean).join('-');
+        const dados: DadosPdfOrcamentoLs = {
+            numero: f.numero, escopo: f.escopo,
+            contratante: atividade?.sharing || atividade?.contratante?.nome || '',
+            site: atividade?.id_site_sharing || atividade?.codigo || '',
+            local,
+            acionamento: atividade?.data_abertura ? new Date(atividade.data_abertura).toLocaleDateString('pt-BR') : '',
+            revisao,
+            responsavel: f.responsavel, pagamento: f.pagamento, prazo_execucao: f.prazo_execucao,
+            validade_dias: Number(f.validade_dias) || meta.vigencia_dias,
+            itens: itens.map(({ chave, ...i }) => i),
+        };
+        try { gerarPdfOrcamentoLs(dados); onFechar(); } catch (e: any) { setErro(e.message || 'Erro ao gerar o PDF'); }
+    }
+
+    const campo = (rotulo: string, nome: string, extra?: { placeholder?: string; tipo?: string; largo?: boolean }) => (
+        <label className={`block ${extra?.largo ? 'sm:col-span-2' : ''}`}>
+            <span className="mb-1 block text-xs font-medium text-muted-foreground">{rotulo}</span>
+            <input type={extra?.tipo || 'text'} value={(f as any)[nome]} onChange={mudar(nome)} placeholder={extra?.placeholder || 'A definir'} className={inputClass} />
+        </label>
+    );
+
+    return (
+        <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-black/70 p-4" onClick={onFechar}>
+            <div role="dialog" aria-modal="true" aria-labelledby="titulo-pdf-ls" onClick={e => e.stopPropagation()}
+                className="w-full max-w-xl rounded-xl border border-border bg-card text-foreground shadow-2xl">
+                <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+                    <div>
+                        <h2 id="titulo-pdf-ls" className="flex items-center gap-2 text-base font-bold"><FileText size={18} aria-hidden /> Gerar orçamento em PDF</h2>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                            Modelo executivo da LS · {atividade?.id_site_sharing || 'site'} · Rev. {String(revisao).padStart(2, '0')} · {itens.length} item(ns). Campo vazio sai como "A definir".
+                        </p>
+                    </div>
+                    <button type="button" onClick={onFechar} aria-label="Fechar" className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"><X size={18} aria-hidden /></button>
+                </header>
+                <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+                    {campo('Número do orçamento', 'numero')}
+                    {campo('Validade (dias)', 'validade_dias', { tipo: 'number' })}
+                    {campo('Escopo (título do orçamento)', 'escopo', { placeholder: 'Ex.: Remanejamento RF, civil e elétrica', largo: true })}
+                    {campo('Responsável LS Office', 'responsavel')}
+                    {campo('Pagamento', 'pagamento', { placeholder: 'Ex.: 30 dias após medição' })}
+                    {campo('Prazo de execução', 'prazo_execucao', { placeholder: 'Ex.: 20 dias corridos', largo: true })}
+                </div>
+                {erro && <div className="px-5"><ErrorBanner message={erro} /></div>}
+                <footer className="flex justify-end gap-2 border-t border-border px-5 py-3">
+                    <button type="button" onClick={onFechar} className="inline-flex h-9 items-center rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60">Cancelar</button>
+                    <button type="button" onClick={gerar}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                        <FileText size={14} aria-hidden /> Gerar PDF
+                    </button>
+                </footer>
+            </div>
+        </div>
     );
 }
 

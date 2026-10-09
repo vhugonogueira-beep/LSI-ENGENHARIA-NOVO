@@ -13,7 +13,9 @@ export interface BudgetPricingInput {
 }
 
 function roundCurrency(value: number): number {
-    return Math.round((value + Number.EPSILON) * 100) / 100;
+    // Dois passos: 14,75 × 315,78 = 4657,755 é 4657,7549999… em ponto flutuante, e
+    // somar Number.EPSILON não alcança valores dessa ordem (ficava 4657,75).
+    return Math.round(Math.round(value * 1e6) / 1e4) / 100;
 }
 
 export function calcularValorUnitarioFinal(item: BudgetPricingInput): number {

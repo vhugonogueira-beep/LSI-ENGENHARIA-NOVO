@@ -94,6 +94,7 @@ export interface AtividadeDetalhe {
     descricao?: string | null;
     /** Pasta da obra no servidor; sai nos e-mails financeiros. */
     diretorio_url?: string | null;
+    data_abertura?: string | null;
     data_inicio_planejada?: string | null;
     data_fim_planejada?: string | null;
     data_conclusao?: string | null;

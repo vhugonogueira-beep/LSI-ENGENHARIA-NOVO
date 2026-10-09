@@ -336,7 +336,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                             {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho ({(STATUS_ORCAMENTO_LABEL[orcamentoAtivo.status] || orcamentoAtivo.status).toLowerCase()}); o modelo não pode mais ser trocado.</p>}
                         </div>
                         {modoLs
-                            ? <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} />
+                            ? <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} />
                             : <HighlineBudgetEditor budgetId={orcamentoAtivo.id} targetValue={targetValue} targetLabel={targetLabel} />}
                     </>
                 );
