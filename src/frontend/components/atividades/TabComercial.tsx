@@ -5,6 +5,8 @@ import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Empty
 import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento } from './constants';
 import HighlineBudgetEditor from './HighlineBudgetEditor';
 import OrcamentoLsEditor from './OrcamentoLsEditor';
+
+const STATUS_ORCAMENTO_LABEL: Record<string, string> = { RASCUNHO: 'Rascunho', ENVIADO: 'Enviado ao cliente', REVISAO: 'Em revisão', APROVADO: 'Aprovado', REPROVADO: 'Reprovado' };
 import { authFetch } from '../../lib/authFetch';
 
 // Blueprint LSI, seção 02: tanto "Implantação" quanto "Operação com Aprovação" passam
@@ -244,7 +246,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     <>
                         <Row label="Assunto" value={orcamentoAtivo.assunto || '—'} />
                         <Row label="Tipo" value={TIPO_ORCAMENTO_LABEL[orcamentoAtivo.tipo_orcamento || 'COTACAO_INTERNA']} />
-                        <Row label="Status" value={orcamentoAtivo.status} />
+                        <Row label="Status" value={STATUS_ORCAMENTO_LABEL[orcamentoAtivo.status] || orcamentoAtivo.status} />
                         <Row label="Versão atual" value={orcamentoAtivo.versao_atual} />
                         <Row label="Criado em" value={fmtData(orcamentoAtivo.created_at)} />
                     </>
@@ -331,7 +333,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                                 {opcao('PV_HIGHLINE', 'PV Highline', 'Planilha oficial do cliente, montada pelo catálogo da PV')}
                                 {opcao('ORCAMENTO_LS', 'Orçamento LS', 'Modelo da LS: importe um orçamento pronto (Excel ou PDF) ou monte os itens')}
                             </div>
-                            {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho ({orcamentoAtivo.status}); o modelo não pode mais ser trocado.</p>}
+                            {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho ({(STATUS_ORCAMENTO_LABEL[orcamentoAtivo.status] || orcamentoAtivo.status).toLowerCase()}); o modelo não pode mais ser trocado.</p>}
                         </div>
                         {modoLs
                             ? <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} />

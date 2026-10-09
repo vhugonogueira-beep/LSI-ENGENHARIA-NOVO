@@ -179,6 +179,20 @@ export function exigeEscolhaTipoOrcamento(atividade: { sharing: string; tipo_dem
     return atividade.sharing.trim().toUpperCase() === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO';
 }
 
+/**
+ * Texto todo em maiúsculas vindo de planilha ou cadastro ("DIGITAL (COM ASSINATURA)")
+ * vira caixa de frase para exibir. Texto misto ou sigla curta (até 4 letras) fica como está.
+ */
+export function fraseDeTexto(v?: string | null): string {
+    const s = String(v ?? '').trim();
+    if (s.length <= 4 || s !== s.toUpperCase() || !/[A-ZÀ-Ú]/.test(s)) return s;
+    const minusc = s.toLocaleLowerCase('pt-BR');
+    return minusc.charAt(0).toLocaleUpperCase('pt-BR') + minusc.slice(1);
+}
+
+/** Percentual no padrão brasileiro: 65,1%. */
+export const fmtPct = (v: number, casas = 1) => `${v.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })}%`;
+
 export function fmtMoeda(v?: number | null): string {
     if (v == null) return '—';
     return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 });
@@ -226,6 +240,10 @@ const TOM_POR_COR: Record<string, Tom> = {
 
 export function StatusPill({ status, map, tom, rotulo }: { status: string; map: Record<string, { label: string; color: string }>; tom?: Tom; rotulo?: string }) {
     const info = map[status] || { label: status, color: '#94a3b8' };
+    // Com rótulo da dimensão, não repete a palavra: "Custo · Custo comprometido" → "Custo · Comprometido".
+    const texto = rotulo && info.label.toLowerCase().startsWith(`${rotulo.toLowerCase()} `)
+        ? info.label.slice(rotulo.length + 1).replace(/^./, c => c.toUpperCase())
+        : info.label;
     // Status operacional segue TOM_STATUS — a mesma cor da faixa, do kanban e da barra.
     const t: Tom | undefined = tom
         || (map === STATUS_OPERACIONAL ? tomDe(TOM_STATUS, status) : TOM_POR_COR[info.color.toLowerCase()]);
@@ -234,7 +252,7 @@ export function StatusPill({ status, map, tom, rotulo }: { status: string; map: 
             <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap ${CHIP[t]}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${SOLIDO[t]}`} aria-hidden />
                 {rotulo && <span className="font-medium opacity-75">{rotulo}</span>}
-                {info.label}
+                {texto}
             </span>
         );
     }
@@ -246,7 +264,7 @@ export function StatusPill({ status, map, tom, rotulo }: { status: string; map: 
         >
             <span className="w-1.5 h-1.5 rounded-full" style={{ background: cor }} aria-hidden />
             {rotulo && <span className="font-medium opacity-75">{rotulo}</span>}
-            {info.label}
+            {texto}
         </span>
     );
 }

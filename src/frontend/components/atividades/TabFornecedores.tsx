@@ -16,7 +16,7 @@ import { usePermissao } from '../../lib/permissoes';
 const CONTRATO_STATUS = ['GERADO', 'ENVIADO', 'ASSINADO'];
 const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIADO: 'Enviado', ASSINADO: 'Assinado' };
 const CONTRATO_STATUS_TOM: Record<string, string> = { GERADO: 'bg-muted text-muted-foreground', ENVIADO: 'bg-warn/15 text-warn', ASSINADO: 'bg-ok/15 text-ok' };
-const PARCELA_TIPO_LABEL: Record<string, string> = { ENTRADA: 'Entrada', SALDO: 'Saldo', PARCELA: 'Parcela', ADIANTAMENTO: 'Adiantamento' };
+const PARCELA_TIPO_LABEL: Record<string, string> = { UNICA: 'Parcela única', ENTRADA: 'Entrada', SALDO: 'Saldo', PARCELA: 'Parcela', ADIANTAMENTO: 'Adiantamento' };
 
 const FINALIDADES = ['CABO', 'METALICO', 'QTM', 'MAO_DE_OBRA', 'LOCACAO', 'MATERIAL_CIVIL', 'MATERIAL_ELETRICO', 'EQUIPAMENTO', 'TRANSPORTE', 'REEMBOLSO', 'ADIANTAMENTO_VIAGEM', 'OUTROS'];
 const FINALIDADE_LABEL: Record<string, string> = {

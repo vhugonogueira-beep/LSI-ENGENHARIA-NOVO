@@ -123,7 +123,7 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                     <PrimaryButton onClick={salvarExecucao} disabled={salvando}>{salvando ? 'Salvando...' : 'Salvar execução'}</PrimaryButton>
                 </div>
                 {execForm.avanco_percentual === '100' && !execForm.data_real_conclusao && (
-                    <p className="text-xs text-warn mt-2">Preencha a data real de conclusão para fechar o status operacional (G7).</p>
+                    <p className="text-xs text-warn mt-2">Preencha a data real de conclusão para encerrar a execução.</p>
                 )}
             </Card>
 
@@ -133,7 +133,7 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
             >
                 {!podeEnviarRfi && (
                     <p className="text-xs text-muted-foreground mb-3">
-                        {usaRelatorioFotografico ? 'O relatório fotográfico' : 'O RFI'} só pode ser enviado com a execução concluída (G7) — marque 100% de avanço e a data real de conclusão acima.
+                        {usaRelatorioFotografico ? 'O relatório fotográfico' : 'O RFI'} só pode ser enviado com a execução concluída: marque 100% de avanço e a data real de conclusão acima.
                     </p>
                 )}
                 {usaRelatorioFotografico && podeEnviarRfi && (

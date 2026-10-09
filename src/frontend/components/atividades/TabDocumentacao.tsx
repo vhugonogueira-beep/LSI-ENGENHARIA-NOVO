@@ -1,3 +1,5 @@
+import { rotuloTipoSite } from './TipoObraCampo';
+import { fraseDeTexto } from './constants';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     CheckCircle2, ChevronDown, Download, FileText, Paperclip, RefreshCw,
@@ -233,7 +235,7 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
 
     return (
         <Card
-            title={`Documentação (${atividade.tipo_obra || 'tipo de obra não definido'})`}
+            title={`Documentação — ${atividade.tipo_obra ? rotuloTipoSite(atividade.tipo_obra) : 'tipo de site não definido'}`}
             action={(
                 <PrimaryButton onClick={syncMatrix} disabled={syncing}>
                     <RefreshCw size={14} aria-hidden className={`inline mr-1.5 ${syncing ? 'animate-spin' : ''}`} />
@@ -314,10 +316,10 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
                                                             <div className="min-w-0">
                                                                 <div className="text-sm font-medium break-words">{requirement.nome}</div>
                                                                 <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px] text-muted-foreground">
-                                                                    {requirement.forma_envio && <span>{requirement.forma_envio}</span>}
+                                                                    {requirement.forma_envio && <span>{fraseDeTexto(requirement.forma_envio)}</span>}
                                                                     {requirement.exige_assinatura && <span>Assinatura exigida</span>}
                                                                     {requirement.condicional && <span>Condicional</span>}
-                                                                    {requirement.etapa && <span>{requirement.etapa}</span>}
+                                                                    {requirement.etapa && <span>{fraseDeTexto(requirement.etapa)}</span>}
                                                                 </div>
                                                             </div>
                                                         </div>

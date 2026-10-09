@@ -153,7 +153,7 @@ function buildTabs(modelo: string, sharing: string) {
     return [
         { id: 'identificacao', label: 'Identificação', secondary: false },
         { id: 'comercial', label: ehHighline ? 'PV Highline' : 'Comercial', secondary: false },
-        { id: 'cotacao-ls', label: 'Cotação LS', secondary: false },
+        { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
         { id: 'planejamento', label: 'Planejamento', secondary: false },
         { id: 'documentacao', label: 'Documentação', secondary: false },
         { id: 'fornecedores', label: 'Pagamentos', secondary: false },

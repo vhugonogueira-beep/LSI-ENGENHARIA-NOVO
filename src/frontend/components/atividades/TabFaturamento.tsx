@@ -156,7 +156,7 @@ export default function TabFaturamento({ atividade, onRefresh }: { atividade: At
             <input ref={fileInputRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff" className="hidden" onChange={onArquivoSelecionado} />
 
             <Card
-                title="PO — Purchase Order"
+                title="Pedido de compra (PO)"
                 action={<PrimaryButton onClick={novaPO} disabled={enviando}><Upload size={14} className="inline mr-1" aria-hidden />{enviando ? 'Lendo PDF...' : 'Anexar PDF da PO'}</PrimaryButton>}
             >
                 <p className="text-xs text-muted-foreground mb-4">

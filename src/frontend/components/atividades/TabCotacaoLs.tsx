@@ -156,7 +156,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
             }
 
             const r = await fetch(`/api/budgets/${orcamentoAtivo.id}`);
-            if (!r.ok) throw new Error('Não foi possível carregar a Cotação LS');
+            if (!r.ok) throw new Error('Não foi possível carregar o custo LS');
             const data: BudgetDetail = await r.json();
             setBudget(data);
 
@@ -331,7 +331,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                     scope: 'internal',
                 }),
             });
-            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao salvar a Cotação LS');
+            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao salvar o custo LS');
             setBudget(await r.json());
             setSaved(true);
             onRefresh();
@@ -351,7 +351,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
             const ok = await salvar();
             if (!ok || !orcamentoAtivo) return;
             const r = await fetch(`/api/budgets/${orcamentoAtivo.id}/export/excel`);
-            if (!r.ok) throw new Error((await r.json().catch(() => null))?.error || 'Erro ao exportar a Cotação LS');
+            if (!r.ok) throw new Error((await r.json().catch(() => null))?.error || 'Erro ao exportar o custo LS');
             const blob = await r.blob();
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -370,20 +370,20 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
 
     if (!orcamentoAtivo) {
         return (
-            <Card title="Cotação LS">
-                <EmptyState text="Crie o orçamento na aba Identificação antes de montar a Cotação LS." />
+            <Card title="Custo LS">
+                <EmptyState text="Crie o orçamento na aba de orçamento antes de montar o custo LS." />
             </Card>
         );
     }
 
     if (loading) {
-        return <Card title="Cotação LS"><div className="py-10 text-center text-muted-foreground">Carregando catálogo...</div></Card>;
+        return <Card title="Custo LS"><div className="py-10 text-center text-muted-foreground">Carregando catálogo...</div></Card>;
     }
 
     const selecionados = Object.keys(draft).length;
 
     return (
-        <Card title="Cotação LS — custo interno">
+        <Card title="Custo LS — quanto a obra custa para a LS">
             {erro && <ErrorBanner message={erro} />}
 
             {catalogo.length === 0 ? (
@@ -571,7 +571,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
             {/* totais e ações */}
             <div className="mt-4 space-y-3">
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                    <SummaryValue label="Custo da obra (Cotação LS)" value={totais.final} emphasis />
+                    <SummaryValue label="Custo da obra (custo LS)" value={totais.final} emphasis />
                     <SummaryValue label="Venda de referência (LPU)" value={referencia} />
                     <SummaryValue
                         label={referencia > 0 ? `Margem sobre a referência (${Math.round(((referencia - totais.final) / referencia) * 100)}%)` : 'Margem sobre a referência'}

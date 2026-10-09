@@ -1,3 +1,4 @@
+import { fmtPct } from './constants';
 import { useState, useEffect, useCallback } from 'react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Row, Dinheiro, Vazio } from './ui';
@@ -47,24 +48,24 @@ export default function TabResultado({ atividade }: { atividade: AtividadeDetalh
                 <div className="grid grid-cols-2 gap-4">
                     <div className="text-center p-4 bg-secondary/40 rounded-lg">
                         <div className="text-xs text-muted-foreground mb-1">Margem projetada</div>
-                        <div className={`text-2xl font-bold ${margemProjetada < 0 ? 'text-crit' : ''}`}>{receita > 0 ? `${margemProjetada.toFixed(1)}%` : <Vazio />}</div>
+                        <div className={`text-2xl font-bold ${margemProjetada < 0 ? 'text-crit' : ''}`}>{receita > 0 ? fmtPct(margemProjetada) : <Vazio />}</div>
                         <div className="text-xs text-muted-foreground mt-1">{receita > 0 ? fmtMoeda(resultadoProjetado) : 'Sem valor de contrato'}</div>
                     </div>
                     <div className="text-center p-4 bg-secondary/40 rounded-lg">
                         <div className="text-xs text-muted-foreground mb-1">Margem realizada</div>
-                        <div className={`text-2xl font-bold ${margemRealizada < 0 ? 'text-crit' : ''}`}>{receita > 0 ? `${margemRealizada.toFixed(1)}%` : <Vazio />}</div>
+                        <div className={`text-2xl font-bold ${margemRealizada < 0 ? 'text-crit' : ''}`}>{receita > 0 ? fmtPct(margemRealizada) : <Vazio />}</div>
                         <div className="text-xs text-muted-foreground mt-1">{receita > 0 ? fmtMoeda(resultadoRealizado) : 'Sem valor de contrato'}</div>
                     </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-border text-center">
                     {receita > 0 ? (
                         <span className={`text-sm font-semibold ${desvio < 0 ? 'text-crit' : 'text-foreground'}`}>
-                            Desvio: {desvio >= 0 ? '+' : ''}{desvio.toFixed(1)} p.p.
+                            Desvio: {desvio >= 0 ? '+' : ''}{desvio.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} p.p.
                         </span>
                     ) : <span className="text-sm text-muted-foreground">Desvio: —</span>}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-3">
-                    Cálculo simplificado (v1) — "realizado" considera apenas custo efetivamente pago, não o custo a pagar comprometido.
+                    A margem realizada considera só o custo já pago; o custo comprometido ainda a pagar entra quando for pago.
                 </p>
             </Card>
         </div>

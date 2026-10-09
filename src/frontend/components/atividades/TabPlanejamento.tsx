@@ -362,7 +362,7 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
                                 <button
                                     type="button"
                                     onClick={() => setConferindo(item)}
-                                    className="ml-auto h-7 rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground"
+                                    className="ml-auto h-7 rounded-lg border border-primary/60 px-3 text-xs font-semibold text-primary hover:bg-primary/10"
                                 >
                                     Conferir etapa
                                 </button>
@@ -608,7 +608,7 @@ function ListaEtapas({ itens, onEdit, onExcluir, onStatus, onProgresso, onVisibi
                             </td>
                             <td className="py-2 font-medium">{it.titulo}</td>
                             <td className="py-2">
-                                <span className="text-[11px] font-bold px-1.5 py-0.5 rounded text-white" style={{ background: corDaEtapa(it.categoria) }}>
+                                <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded border" style={{ color: corDaEtapa(it.categoria), background: `${corDaEtapa(it.categoria)}1a`, borderColor: `${corDaEtapa(it.categoria)}55` }}>
                                     {CATEGORIA_LABEL[it.categoria] || it.categoria}
                                 </span>
                                 {it.motivo_atraso && (
@@ -731,7 +731,7 @@ function Gantt({ itens }: { itens: any[] }) {
                             <tr key={item.id} className="border-t border-border/50">
                                 <td className="px-3 py-1.5 font-medium sticky left-0 bg-card whitespace-nowrap">
                                     {item.titulo}
-                                    <span className="ml-2 text-[11px] font-bold px-1 py-0.5 rounded text-white" style={{ background: corDaEtapa(item.categoria) }}>
+                                    <span className="ml-2 text-[11px] font-semibold px-1.5 py-0.5 rounded border" style={{ color: corDaEtapa(item.categoria), background: `${corDaEtapa(item.categoria)}1a`, borderColor: `${corDaEtapa(item.categoria)}55` }}>
                                         {CATEGORIA_LABEL[item.categoria] || item.categoria}
                                     </span>
                                 </td>
