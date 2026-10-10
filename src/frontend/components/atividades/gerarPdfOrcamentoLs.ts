@@ -4,10 +4,12 @@ import { LOGO_MARCA_B64 } from '../../assets/logoMarca';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PDF do Orçamento LS no modelo executivo da LS (Orçamentos/01_executivo.pdf,
-// 09/10/2026): 1) capa com dados do site e resumo por grupo, 2) composição
-// item a item, 3) condições comerciais e aceite do contratante.
+// 09/10/2026): 1) capa com dados do site e a lista do que será executado,
+// 2) composição item a item, 3) condições comerciais e aceite do contratante.
 //
-// Grupo = prefixo do código do item (01.1 → 01). O título do item guarda
+// Sem resumo por grupo (10/10/2026): nem todo orçamento tem os itens agrupados
+// (mobilização, serviços, infra), então a capa lista os itens um a um.
+// Item sem código sai numerado na ordem (01, 02...). O título do item guarda
 // "Serviço — Descrição" (é assim que a importação junta as duas colunas);
 // aqui ele volta a ser separado nas duas colunas do modelo.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -36,13 +38,6 @@ const EMPRESA = [
     'implantacao@lsoffice.com.br | 98523-4355',
 ];
 
-/** Nomes dos grupos do modelo executivo; grupo fora da lista sai como "Grupo NN". */
-const GRUPOS: Record<string, string> = {
-    '01': 'Mobilização',
-    '02': 'Serviços',
-    '03': 'Infra elétrica - fornecimento e instalação',
-};
-
 type Cor = [number, number, number];
 const NAVY: Cor = [30, 45, 66];
 const TEXTO: Cor = [40, 48, 60];
@@ -58,10 +53,7 @@ const valor = (v: string) => (v || '').trim() || 'A definir';
 // Arredonda em dois passos: 14,75 × 315,78 = 4657,755 vira 4657,7549999… em ponto flutuante.
 export const totalItem = (i: { quantidade: number; valor_unitario: number }) => Math.round(Math.round(i.quantidade * i.valor_unitario * 1e6) / 1e4) / 100;
 
-export function grupoDoItem(codigo: string) {
-    const g = (codigo || '').trim().split(/[.\s]/)[0];
-    return /^\d+$/.test(g) ? g.padStart(2, '0') : '—';
-}
+const numeroItem = (i: ItemOrcamentoLs, idx: number) => (i.codigo_item || '').trim() || String(idx + 1).padStart(2, '0');
 
 /** "Serviço — Descrição" → [serviço, descrição]. Corta no último travessão. */
 export function separarServico(titulo: string): [string, string] {
@@ -148,10 +140,8 @@ export function gerarPdfOrcamentoLs(d: DadosPdfOrcamentoLs) {
     }
     y = caixaTotal(doc, y, total) + 10;
     doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(...NAVY);
-    doc.text('Resumo do investimento', M, y);
+    doc.text('Escopo de execução', M, y);
 
-    const grupos = new Map<string, number>();
-    d.itens.forEach(i => { const g = grupoDoItem(i.codigo_item); grupos.set(g, (grupos.get(g) || 0) + totalItem(i)); });
     const tabelaBase = {
         margin: { left: M, right: M, top: 32, bottom: 22 },
         theme: 'plain' as const,
@@ -162,11 +152,9 @@ export function gerarPdfOrcamentoLs(d: DadosPdfOrcamentoLs) {
     autoTable(doc, {
         ...tabelaBase,
         startY: y + 4,
-        columnStyles: { 0: { cellWidth: 25 }, 2: { cellWidth: 40, halign: 'right' } },
-        head: [['GRUPO', 'ESCOPO', 'VALOR']],
-        body: [...grupos.entries()]
-            .sort(([a], [b]) => a.localeCompare(b, 'pt-BR', { numeric: true }))
-            .map(([g, v]) => [g, GRUPOS[g] || (g === '—' ? 'Itens sem grupo' : `Grupo ${g}`), moeda(v)]),
+        columnStyles: { 0: { cellWidth: 18 }, 2: { cellWidth: 36, halign: 'right' } },
+        head: [['ITEM', 'SERVIÇO', 'VALOR']],
+        body: d.itens.map((i, idx) => [numeroItem(i, idx), separarServico(i.titulo)[0], moeda(totalItem(i))]),
     });
 
     // ── Página 2: composição
@@ -181,9 +169,9 @@ export function gerarPdfOrcamentoLs(d: DadosPdfOrcamentoLs) {
             3: { cellWidth: 13 }, 4: { cellWidth: 12 }, 5: { cellWidth: 27, halign: 'right' }, 6: { halign: 'right' },
         },
         head: [['ITEM', 'SERVIÇO', 'DESCRIÇÃO', 'QTD.', 'UN.', 'UNITÁRIO', 'TOTAL']],
-        body: d.itens.map(i => {
+        body: d.itens.map((i, idx) => {
             const [servico, descricao] = separarServico(i.titulo);
-            return [i.codigo_item || '—', servico, descricao, num(i.quantidade), i.unidade, moeda(i.valor_unitario), moeda(totalItem(i))];
+            return [numeroItem(i, idx), servico, descricao, num(i.quantidade), i.unidade, moeda(i.valor_unitario), moeda(totalItem(i))];
         }),
     });
     y = finalY(doc) + 8;
