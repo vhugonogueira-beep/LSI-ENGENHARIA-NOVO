@@ -249,7 +249,10 @@ export function gerarPdfOrcamentoLs(d: DadosPdfOrcamentoLs) {
         rodape(doc, d, p);
     }
 
-    const nomeArquivo = `Orcamento-LS-${(d.site || 'site').replace(/[^\w-]+/g, '_')}-Rev${String(d.revisao).padStart(2, '0')}.pdf`;
+    const rev = String(d.revisao).padStart(2, '0');
+    const nomeArquivo = d.numero
+        ? `${d.numero.replace(/[^\w-]+/g, '_')}-Rev${rev}.pdf`
+        : `Orcamento-LS-${(d.site || 'site').replace(/[^\w-]+/g, '_')}-Rev${rev}.pdf`;
     doc.save(nomeArquivo);
     return doc;
 }

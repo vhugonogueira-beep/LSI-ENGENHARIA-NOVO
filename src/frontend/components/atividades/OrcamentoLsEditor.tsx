@@ -28,6 +28,26 @@ interface Linha {
 }
 /** bloco gravado antes do campo Grupo existir. */
 const BLOCO_SEM_GRUPO = ['ORCAMENTO_LS', 'OUTROS'];
+
+/**
+ * Código do item gerado pela ordem (12/10/2026): 01, 02… ou, com grupos, 01.1, 01.2,
+ * 02.1… (grupo na ordem em que aparece). Código que veio do arquivo importado fica;
+ * os automáticos antigos (LS-001) são renumerados.
+ */
+export function codigosDosItens(linhas: { codigo_item: string; grupo: string }[]) {
+    const comGrupo = linhas.some(l => l.grupo.trim());
+    const ordemGrupo = new Map<string, number>();
+    const contagem = new Map<string, number>();
+    return linhas.map((l, i) => {
+        const c = l.codigo_item.trim();
+        if (c && !/^(LS|ITEM)-\d+$/i.test(c) && !/^\d{2}(\.\d+)?$/.test(c)) return c;
+        if (!comGrupo) return String(i + 1).padStart(2, '0');
+        const g = l.grupo.trim() || '—';
+        if (!ordemGrupo.has(g)) ordemGrupo.set(g, ordemGrupo.size + 1);
+        contagem.set(g, (contagem.get(g) || 0) + 1);
+        return `${String(ordemGrupo.get(g)).padStart(2, '0')}.${contagem.get(g)}`;
+    });
+}
 interface ItemLido extends Omit<Linha, 'chave'> { total: number; origem: string; divergente: boolean }
 interface Leitura {
     formato: 'EXCEL' | 'PDF';
@@ -55,7 +75,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     const [salvas, setSalvas] = useState('');
     const [linhasSalvas, setLinhasSalvas] = useState<Linha[]>([]);
     const [versao, setVersao] = useState({ versao_atual: 1, updated_at: '' });
-    const [meta, setMeta] = useState({ assunto: '', vigencia_dias: 30 });
+    const [meta, setMeta] = useState({ assunto: '', vigencia_dias: 30, numero: '' });
     const [gerandoPdf, setGerandoPdf] = useState(false);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState('');
@@ -77,12 +97,13 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         setLinhasSalvas(itens);
         setSalvas(JSON.stringify(itens.map(({ chave, ...r }) => r)));
         setVersao({ versao_atual: b.versao_atual, updated_at: b.updated_at });
-        setMeta({ assunto: b.assunto || '', vigencia_dias: b.vigencia_dias || 30 });
+        setMeta({ assunto: b.assunto || '', vigencia_dias: b.vigencia_dias || 30, numero: b.numero || '' });
         setImportados(a);
     }, [budgetId]);
     useEffect(() => { carregar().catch(e => setErro(e.message)).finally(() => setCarregando(false)); }, [carregar]);
 
     const total = useMemo(() => linhas.reduce((s, l) => s + totalLinha(l), 0), [linhas]);
+    const codigosTela = useMemo(() => codigosDosItens(linhas), [linhas]);
     const alterado = JSON.stringify(linhas.map(({ chave, ...r }) => r)) !== salvas;
 
     async function salvar(lista: Linha[] = linhas) {
@@ -90,13 +111,14 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         const invalida = lista.find(l => !l.titulo.trim() || !(l.quantidade > 0) || l.valor_unitario < 0);
         if (invalida) { setErro('Todo item precisa de descrição, quantidade maior que zero e valor unitário.'); return false; }
         setSalvando(true);
+        const codigos = codigosDosItens(lista);
         try {
             const r = await authFetch(`/api/budgets/${budgetId}/items`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     versaoAtual: versao.versao_atual, expectedUpdatedAt: versao.updated_at, scope: 'orcamento_ls',
                     items: lista.map((l, i) => ({
-                        codigo_item: l.codigo_item || `LS-${String(i + 1).padStart(3, '0')}`, titulo: l.titulo.trim(), unidade: l.unidade || 'un',
+                        codigo_item: codigos[i], titulo: l.titulo.trim(), unidade: l.unidade || 'un',
                         quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
                     })),
                 }),
@@ -178,6 +200,11 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             <input ref={arquivoRef} type="file" hidden accept=".xlsx,.xls,.xlsm,.pdf"
                 onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) lerArquivo(f); }} />
             <ErrorBanner message={erro} />
+            <p className="mb-3 text-xs text-muted-foreground">
+                Número do orçamento: {meta.numero
+                    ? <span className="font-id font-semibold text-foreground">{meta.numero}</span>
+                    : 'gerado pelo sistema no primeiro PDF ou ao abrir a negociação'} · Rev. {String(versao.versao_atual).padStart(2, '0')}
+            </p>
 
             {linhas.length === 0 ? (
                 <EmptyState text="Nenhum item no Orçamento LS. Importe um orçamento pronto (Excel ou PDF) ou adicione os itens à mão."
@@ -194,9 +221,9 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                             </tr>
                         </thead>
                         <tbody>
-                            {linhas.map(l => (
+                            {linhas.map((l, idx) => (
                                 <tr key={l.chave} className="border-b border-border/60 last:border-b-0">
-                                    <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Código" className={`${inputClass} font-id text-xs`} value={l.codigo_item} onChange={e => mudar(l.chave, 'codigo_item', e.target.value)} /></td>
+                                    <td className="px-3 py-1.5 font-id text-xs text-muted-foreground" title="Gerado pela ordem dos itens">{codigosTela[idx]}</td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Grupo" list={`grupos-${budgetId}`} placeholder="Sem grupo" className={inputClass} value={l.grupo} onChange={e => mudar(l.chave, 'grupo', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Descrição" className={inputClass} value={l.titulo} onChange={e => mudar(l.chave, 'titulo', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Unidade" className={inputClass} value={l.unidade} onChange={e => mudar(l.chave, 'unidade', e.target.value)} /></td>
@@ -273,7 +300,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
 
             {gerandoPdf && (
                 <ModalPdf budgetId={budgetId} atividade={atividade} meta={meta} revisao={versao.versao_atual}
-                    itens={linhasSalvas} onFechar={() => setGerandoPdf(false)} />
+                    itens={linhasSalvas} onFechar={() => setGerandoPdf(false)} onNumero={n => setMeta(m => ({ ...m, numero: n }))} />
             )}
 
             {leitura && (
@@ -293,18 +320,19 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
  * Campos do PDF que o sistema não tem: número, condições comerciais. Ficam
  * lembrados neste navegador por orçamento, para a próxima revisão sair igual.
  */
-function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
+function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar, onNumero }: {
     budgetId: string;
     atividade?: AtividadeDetalhe;
-    meta: { assunto: string; vigencia_dias: number };
+    meta: { assunto: string; vigencia_dias: number; numero: string };
     revisao: number;
     itens: Linha[];
     onFechar: () => void;
+    onNumero: (numero: string) => void;
 }) {
     const chaveStorage = `ls_orcamento_pdf_${budgetId}`;
     const [f, setF] = useState(() => {
         const base = {
-            numero: '', escopo: meta.assunto || atividade?.descricao || atividade?.titulo || '',
+            escopo: meta.assunto || atividade?.descricao || atividade?.titulo || '',
             responsavel: '', pagamento: '', prazo_execucao: '', validade_dias: meta.vigencia_dias,
             escopos: {} as Record<string, string>,
         };
@@ -314,11 +342,22 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
     const grupos = useMemo(() => gruposDoOrcamento(itens.map(({ chave, ...i }) => i)), [itens]);
     const mudar = (campo: string) => (e: { target: { value: string } }) => setF((x: typeof f) => ({ ...x, [campo]: e.target.value }));
 
-    function gerar() {
+    const [gerando, setGerando] = useState(false);
+    async function gerar() {
         try { localStorage.setItem(chaveStorage, JSON.stringify(f)); } catch { /* sem storage: só não lembra */ }
+        // Número gerado pelo sistema na primeira vez; nas seguintes volta o mesmo.
+        setGerando(true); setErro('');
+        let numero = meta.numero;
+        try {
+            const r = await authFetch(`/api/budgets/${budgetId}/numero`, { method: 'POST' });
+            const corpo = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(corpo.error || 'Erro ao gerar o número do orçamento');
+            numero = corpo.numero;
+            if (numero !== meta.numero) onNumero(numero);
+        } catch (e: any) { setErro(e.message); setGerando(false); return; }
         const local = [atividade?.municipio, atividade?.estado].filter(Boolean).join('-');
         const dados: DadosPdfOrcamentoLs = {
-            numero: f.numero, escopo: f.escopo,
+            numero, escopo: f.escopo,
             contratante: atividade?.sharing || atividade?.contratante?.nome || '',
             site: atividade?.id_site_sharing || atividade?.codigo || '',
             local,
@@ -329,7 +368,7 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
             itens: itens.map(({ chave, ...i }) => i),
             escopos: f.escopos || {},
         };
-        try { gerarPdfOrcamentoLs(dados); onFechar(); } catch (e: any) { setErro(e.message || 'Erro ao gerar o PDF'); }
+        try { gerarPdfOrcamentoLs(dados); onFechar(); } catch (e: any) { setErro(e.message || 'Erro ao gerar o PDF'); } finally { setGerando(false); }
     }
 
     const campo = (rotulo: string, nome: string, extra?: { placeholder?: string; tipo?: string; largo?: boolean }) => (
@@ -353,7 +392,12 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
                     <button type="button" onClick={onFechar} aria-label="Fechar" className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"><X size={18} aria-hidden /></button>
                 </header>
                 <div className="grid flex-1 gap-3 overflow-y-auto px-5 py-4 sm:grid-cols-2">
-                    {campo('Número do orçamento', 'numero')}
+                    <div className="block">
+                        <span className="mb-1 block text-xs font-medium text-muted-foreground">Número do orçamento</span>
+                        <p className={`flex h-[38px] items-center rounded-lg border border-border bg-secondary/30 px-3 text-sm ${meta.numero ? 'font-id font-semibold' : 'text-muted-foreground'}`}>
+                            {meta.numero || 'Gerado ao confirmar'}
+                        </p>
+                    </div>
                     {campo('Validade (dias)', 'validade_dias', { tipo: 'number' })}
                     {campo('Escopo (título do orçamento)', 'escopo', { placeholder: 'Ex.: Remanejamento RF, civil e elétrica', largo: true })}
                     {campo('Responsável LS Office', 'responsavel')}
@@ -380,9 +424,9 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
                 {erro && <div className="px-5"><ErrorBanner message={erro} /></div>}
                 <footer className="flex justify-end gap-2 border-t border-border px-5 py-3">
                     <button type="button" onClick={onFechar} className="inline-flex h-9 items-center rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60">Cancelar</button>
-                    <button type="button" onClick={gerar}
-                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
-                        <FileText size={14} aria-hidden /> Gerar PDF
+                    <button type="button" onClick={gerar} disabled={gerando}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                        <FileText size={14} aria-hidden /> {gerando ? 'Gerando…' : 'Gerar PDF'}
                     </button>
                 </footer>
             </div>

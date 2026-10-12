@@ -173,7 +173,7 @@ export async function getAtividade(req: Request, res: Response) {
                 statusHistorico: { orderBy: { criado_em: 'desc' } },
                 orcamentos: {
                     orderBy: { updated_at: 'desc' },
-                    select: { id: true, assunto: true, status: true, versao_atual: true, created_at: true, tipo_orcamento: true },
+                    select: { id: true, numero: true, assunto: true, status: true, versao_atual: true, created_at: true, tipo_orcamento: true },
                 },
             },
         });

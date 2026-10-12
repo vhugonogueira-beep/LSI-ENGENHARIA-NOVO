@@ -99,7 +99,7 @@ export interface AtividadeDetalhe {
     data_fim_planejada?: string | null;
     data_conclusao?: string | null;
     acionamento?: { codigo: string; titulo: string } | null;
-    orcamentos?: { id: string; assunto?: string | null; status: string; versao_atual: number; created_at: string; tipo_orcamento?: string }[];
+    orcamentos?: { id: string; numero?: string | null; assunto?: string | null; status: string; versao_atual: number; created_at: string; tipo_orcamento?: string }[];
     tenant_id?: string;
     [key: string]: any;
 }

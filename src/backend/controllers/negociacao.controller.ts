@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { emitirNumeroOrcamento } from '../services/orcamento-numero.service';
 import { prisma } from '../server';
 import { BudgetService } from '../services/budget.service';
 
@@ -32,6 +33,10 @@ export async function createNegociacao(req: Request, res: Response) {
         if (abertaExistente) {
             return res.status(400).json({ error: 'Já existe uma negociação aberta para este orçamento', negociacao_id: abertaExistente.id });
         }
+
+        // Abrir a negociação é enviar ao cliente: o orçamento recebe o número aqui,
+        // se ainda não tiver (12/10/2026). Sem Site ID na atividade, não abre.
+        await emitirNumeroOrcamento(budget_id, (req as any).user?.userId);
 
         // Só o preço ao cliente do modelo escolhido (PV ou Orçamento LS) — sem o custo da Cotação LS.
         const calc = BudgetService.calcularOrcamento(BudgetService.itensPrecoCliente(budget));

@@ -8,6 +8,7 @@ import { carregarPvDoCliente } from '../services/pv-cliente.service';
 import { lpusDaAtividade } from '../services/lpu-atividade.service';
 import { normalizarUf } from '../utils/uf';
 import { lerOrcamentoArquivo } from '../services/orcamento-importacao.service';
+import { emitirNumeroOrcamento } from '../services/orcamento-numero.service';
 import { guardarArquivoImportado, listarArquivosImportados, caminhoArquivoImportado, removerArquivoImportado } from '../services/orcamento-arquivo.service';
 
 async function getDemoTenantId() {
@@ -169,6 +170,15 @@ export class BudgetController {
             const caminho = caminhoArquivoImportado(req.params.id, req.params.nome);
             if (!caminho) return res.status(404).json({ error: 'Arquivo não encontrado' });
             res.download(caminho, req.params.nome.replace(/^\d+-/, ''));
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    /** Número do orçamento: gera na primeira chamada, devolve o mesmo nas seguintes. */
+    static async numero(req: Request, res: Response) {
+        try {
+            res.json({ numero: await emitirNumeroOrcamento(req.params.id, (req as any).user?.userId) });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }

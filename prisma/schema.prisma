@@ -321,6 +321,10 @@ model Budget {
   pricing_mode   String          @default("SUPPLIER_BASE") // SUPPLIER_BASE | BEST_PRICE_REGION
   tipo_orcamento String          @default("COTACAO_INTERNA") // COTACAO_INTERNA | PV_HIGHLINE — só relevante p/ Implantação + sharing Highline
   assunto        String?
+  /// Número do orçamento, gerado pelo sistema ao gerar o primeiro PDF ou abrir a
+  /// negociação (12/10/2026): ORC-<ano>-<seq>-<site>, ex. ORC-2026-001-PAMRB008.
+  /// Não muda nas revisões (a revisão é versao_atual). Ver orcamento-numero.service.
+  numero         String?
   vigencia_dias  Int             @default(30)
   status         String          @default("RASCUNHO") // RASCUNHO, ENVIADO, APROVADO, REPROVADO, REVISAO
   versao_atual   Int             @default(1)
@@ -330,6 +334,25 @@ model Budget {
   versions       BudgetVersion[]
   items          BudgetItem[]
   negociacoes    Negociacao[]
+
+  // Sem @@unique aqui de propósito: em tabela com dados, o db push do deploy pede
+  // --accept-data-loss e trava. A unicidade é garantida por NumeroOrcamentoEmitido.
+  @@index([tenant_id, numero])
+}
+
+/// Todo número de orçamento já emitido. O próximo sai do maior daqui, e nada é
+/// apagado: orçamento excluído ou reprovado continua dono do número, para um
+/// número que circulou em PDF ou e-mail nunca reaparecer em outro orçamento.
+model NumeroOrcamentoEmitido {
+  id         String   @id @default(uuid())
+  tenant_id  String
+  codigo     String // parte sequencial: ORC-2026-001 (única no ano, para todos os sites)
+  numero     String // número completo: ORC-2026-001-PAMRB008
+  budget_id  String?
+  emitido_por String?
+  created_at DateTime @default(now())
+
+  @@unique([tenant_id, codigo])
 }
 
 model BudgetVersion {

@@ -244,6 +244,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
             <Card title="Orçamento">
                 {orcamentoAtivo ? (
                     <>
+                        <Row label="Número" value={orcamentoAtivo.numero || 'Gerado pelo sistema no primeiro PDF ou ao abrir a negociação'} />
                         <Row label="Assunto" value={orcamentoAtivo.assunto || '—'} />
                         <Row label="Tipo" value={TIPO_ORCAMENTO_LABEL[orcamentoAtivo.tipo_orcamento || 'COTACAO_INTERNA']} />
                         <Row label="Status" value={STATUS_ORCAMENTO_LABEL[orcamentoAtivo.status] || orcamentoAtivo.status} />

@@ -15,6 +15,7 @@ import { CHIP, type Tom } from '../lib/cores';
 
 interface Orcamento {
     id: string;
+    numero: string | null;
     assunto: string | null;
     status: string;
     tipo_orcamento: string;
@@ -54,7 +55,7 @@ export default function Orcamentos({ onAbrirAtividade }: { onAbrirAtividade: (at
         return lista.filter(o => {
             if (status && o.status !== status) return false;
             if (!t) return true;
-            return [o.assunto, o.atividade?.codigo, o.atividade?.titulo, o.atividade?.id_site_sharing, o.atividade?.sharing]
+            return [o.numero, o.assunto, o.atividade?.codigo, o.atividade?.titulo, o.atividade?.id_site_sharing, o.atividade?.sharing]
                 .some(c => sem(String(c || '')).includes(t));
         });
     }, [lista, busca, status]);
@@ -104,7 +105,7 @@ export default function Orcamentos({ onAbrirAtividade }: { onAbrirAtividade: (at
                         <colgroup><col className="w-[26%]" /><col /><col className="w-36" /><col className="w-32" /><col className="w-20" /><col className="w-36" /><col className="w-28" /><col className="w-24" /></colgroup>
                         <thead>
                             <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">
-                                <th className="px-4 py-3">Atividade</th><th className="px-4 py-3">Assunto</th><th className="px-4 py-3">Modelo</th>
+                                <th className="px-4 py-3">Atividade</th><th className="px-4 py-3">Assunto e número</th><th className="px-4 py-3">Modelo</th>
                                 <th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Versão</th><th className="px-4 py-3 text-right">Total ao cliente</th>
                                 <th className="px-4 py-3">Atualizado</th><th className="px-4 py-3" aria-label="Ações" />
                             </tr>
@@ -125,7 +126,10 @@ export default function Orcamentos({ onAbrirAtividade }: { onAbrirAtividade: (at
                                                 </>
                                             ) : <div className="flex h-7 items-center text-xs text-warn">Sem atividade (fluxo antigo)</div>}
                                         </td>
-                                        <td className="px-4 py-3"><div className="flex min-h-7 items-center truncate" title={o.assunto || ''}>{o.assunto || '—'}</div></td>
+                                        <td className="px-4 py-3">
+                                            <div className="flex min-h-7 items-center truncate" title={o.assunto || ''}>{o.assunto || '—'}</div>
+                                            <div className={`truncate text-xs ${o.numero ? 'font-id text-foreground' : 'text-muted-foreground'}`}>{o.numero || 'Sem número (rascunho)'}</div>
+                                        </td>
                                         <td className="px-4 py-3"><div className="flex h-7 items-center">{TIPO_ORCAMENTO_LABEL[o.tipo_orcamento] || o.tipo_orcamento}</div></td>
                                         <td className="px-4 py-3"><div className="flex h-7 items-center">
                                             <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${CHIP[st?.tom || 'slate']}`}>{st?.rotulo || o.status}</span>

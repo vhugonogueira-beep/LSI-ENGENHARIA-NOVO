@@ -120,6 +120,11 @@ export class BudgetService {
     }
 
     static async createBudget(data: any) {
+        // Todo orçamento nasce dentro de uma atividade, mesmo que o cliente não
+        // aprove depois (12/10/2026). O número é gerado pelo sistema, nunca enviado.
+        if (!data?.atividade_id) throw new Error('O orçamento precisa ser criado dentro de uma atividade');
+        const { numero: _numero, ...semNumero } = data;
+        data = semNumero;
         // Orçamento de atividade nasce com a LPU de preço ao cliente escolhida por
         // área + cliente (lpu-atividade.service). Fica gravada: mudar a regra
         // depois não troca a base de um orçamento já criado.
@@ -133,9 +138,11 @@ export class BudgetService {
     }
 
     static async updateBudgetHeader(id: string, data: Partial<Budget>) {
+        // Número só pelo sistema (orcamento-numero.service).
+        const { numero: _numero, ...semNumero } = data as any;
         return prisma.budget.update({
             where: { id },
-            data
+            data: semNumero
         });
     }
 

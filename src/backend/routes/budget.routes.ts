@@ -22,6 +22,7 @@ router.put('/:id/header', BudgetController.updateHeader);
 router.put('/:id/items', BudgetController.updateItems);
 // PV Highline ou Orçamento LS (só em rascunho).
 router.put('/:id/modelo', BudgetController.definirModelo);
+router.post('/:id/numero', BudgetController.numero);
 // Lê o arquivo e devolve os itens para conferência; guarda o original.
 router.post('/:id/importar', uploadOrcamento, BudgetController.importarArquivo);
 router.get('/:id/importados', BudgetController.listarImportados);
