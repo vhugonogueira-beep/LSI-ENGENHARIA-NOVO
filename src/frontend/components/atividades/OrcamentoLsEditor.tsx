@@ -4,7 +4,7 @@ import { Card, EmptyState, ErrorBanner, inputClass } from './ui';
 import { fmtMoeda } from './constants';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
-import { gerarPdfOrcamentoLs, gruposDoOrcamento, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
+import { escopoPadrao, gerarPdfOrcamentoLs, gruposDoOrcamento, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Orçamento LS — o preço ao cliente montado no modelo da LS, alternativa à PV
@@ -405,15 +405,16 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar, onNumer
                     {campo('Prazo de execução', 'prazo_execucao', { placeholder: 'Ex.: 20 dias corridos', largo: true })}
                     <div className="sm:col-span-2 border-t border-border pt-3">
                         <p className="text-xs font-semibold">Resumo do investimento</p>
-                        {grupos.length === 0 ? (
-                            <p className="mt-1 text-xs text-muted-foreground">Nenhum item tem grupo: a capa lista os itens um a um. Para ter o resumo por grupo, preencha a coluna Grupo no editor.</p>
-                        ) : (
+                        {(
                             <div className="mt-2 space-y-2">
-                                <p className="text-xs text-muted-foreground">Escreva o escopo ou um comentário de cada grupo. Em branco, sai a lista dos serviços do grupo. O valor é a soma dos itens.</p>
+                                <p className="text-xs text-muted-foreground">
+                                    A página 1 mostra só a soma de cada grupo; o detalhe linha por linha vai na página 2. Escreva o escopo ou um comentário de cada grupo.
+                                    {grupos.length === 1 && grupos[0].nome === 'Serviços' && ' Para separar em grupos, preencha a coluna Grupo no editor.'}
+                                </p>
                                 {grupos.map(g => (
                                     <label key={g.nome} className="block">
                                         <span className="mb-1 flex justify-between text-xs font-medium text-muted-foreground"><span>{g.nome}</span><span className="tabular-nums">{fmtMoeda(g.valor)}</span></span>
-                                        <textarea rows={2} className={inputClass} value={f.escopos?.[g.nome] || ''} placeholder={g.servicos}
+                                        <textarea rows={2} className={inputClass} value={f.escopos?.[g.nome] || ''} placeholder={escopoPadrao(g.itens)}
                                             onChange={e => setF((x: typeof f) => ({ ...x, escopos: { ...(x.escopos || {}), [g.nome]: e.target.value } }))} />
                                     </label>
                                 ))}
