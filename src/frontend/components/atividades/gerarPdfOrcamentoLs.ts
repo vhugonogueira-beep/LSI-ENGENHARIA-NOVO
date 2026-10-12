@@ -7,14 +7,15 @@ import { LOGO_MARCA_B64 } from '../../assets/logoMarca';
 // 09/10/2026): 1) capa com dados do site e a lista do que será executado,
 // 2) composição item a item, 3) condições comerciais e aceite do contratante.
 //
-// Sem resumo por grupo (10/10/2026): nem todo orçamento tem os itens agrupados
-// (mobilização, serviços, infra), então a capa lista os itens um a um.
-// Item sem código sai numerado na ordem (01, 02...). O título do item guarda
+// Resumo por grupo (12/10/2026): o grupo é um campo de cada item, preenchido no
+// editor; o escopo de cada grupo é escrito na hora de gerar o PDF (em branco, sai
+// a lista dos serviços do grupo). Orçamento sem grupo nenhum lista os itens um a
+// um na capa ("Escopo de execução"). Item sem código sai numerado na ordem. O título do item guarda
 // "Serviço — Descrição" (é assim que a importação junta as duas colunas);
 // aqui ele volta a ser separado nas duas colunas do modelo.
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface ItemOrcamentoLs { codigo_item: string; titulo: string; unidade: string; quantidade: number; valor_unitario: number }
+export interface ItemOrcamentoLs { codigo_item: string; grupo?: string; titulo: string; unidade: string; quantidade: number; valor_unitario: number }
 
 export interface DadosPdfOrcamentoLs {
     numero: string;
@@ -29,6 +30,8 @@ export interface DadosPdfOrcamentoLs {
     prazo_execucao: string;
     validade_dias: number;
     itens: ItemOrcamentoLs[];
+    /** Escopo/comentário escrito para cada grupo do resumo (chave = nome do grupo). */
+    escopos?: Record<string, string>;
 }
 
 const EMPRESA = [
@@ -53,7 +56,27 @@ const valor = (v: string) => (v || '').trim() || 'A definir';
 // Arredonda em dois passos: 14,75 × 315,78 = 4657,755 vira 4657,7549999… em ponto flutuante.
 export const totalItem = (i: { quantidade: number; valor_unitario: number }) => Math.round(Math.round(i.quantidade * i.valor_unitario * 1e6) / 1e4) / 100;
 
-const numeroItem = (i: ItemOrcamentoLs, idx: number) => (i.codigo_item || '').trim() || String(idx + 1).padStart(2, '0');
+// Código gerado pelo sistema para item sem código (LS-001, ITEM-1) não vai para o cliente.
+const numeroItem = (i: ItemOrcamentoLs, idx: number) => {
+    const c = (i.codigo_item || '').trim();
+    return c && !/^(LS|ITEM)-\d+$/i.test(c) ? c : String(idx + 1).padStart(2, '0');
+};
+
+const SEM_GRUPO = 'Outros itens';
+
+/** Grupos na ordem em que aparecem, com a soma e os serviços de cada um. Vazio se nenhum item tem grupo. */
+export function gruposDoOrcamento(itens: ItemOrcamentoLs[]) {
+    if (!itens.some(i => (i.grupo || '').trim())) return [];
+    const mapa = new Map<string, { nome: string; valor: number; servicos: string[] }>();
+    for (const i of itens) {
+        const nome = (i.grupo || '').trim() || SEM_GRUPO;
+        const g = mapa.get(nome) || { nome, valor: 0, servicos: [] };
+        g.valor = Math.round((g.valor + totalItem(i)) * 100) / 100;
+        g.servicos.push(separarServico(i.titulo)[0]);
+        mapa.set(nome, g);
+    }
+    return [...mapa.values()].map(g => ({ ...g, servicos: g.servicos.join(', ') }));
+}
 
 /** "Serviço — Descrição" → [serviço, descrição]. Corta no último travessão. */
 export function separarServico(titulo: string): [string, string] {
@@ -140,7 +163,8 @@ export function gerarPdfOrcamentoLs(d: DadosPdfOrcamentoLs) {
     }
     y = caixaTotal(doc, y, total) + 10;
     doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(...NAVY);
-    doc.text('Escopo de execução', M, y);
+    const grupos = gruposDoOrcamento(d.itens);
+    doc.text(grupos.length ? 'Resumo do investimento' : 'Escopo de execução', M, y);
 
     const tabelaBase = {
         margin: { left: M, right: M, top: 32, bottom: 22 },
@@ -152,9 +176,15 @@ export function gerarPdfOrcamentoLs(d: DadosPdfOrcamentoLs) {
     autoTable(doc, {
         ...tabelaBase,
         startY: y + 4,
-        columnStyles: { 0: { cellWidth: 18 }, 2: { cellWidth: 36, halign: 'right' } },
-        head: [['ITEM', 'SERVIÇO', 'VALOR']],
-        body: d.itens.map((i, idx) => [numeroItem(i, idx), separarServico(i.titulo)[0], moeda(totalItem(i))]),
+        ...(grupos.length ? {
+            columnStyles: { 0: { cellWidth: 48, fontStyle: 'bold' as const }, 2: { cellWidth: 36, halign: 'right' as const } },
+            head: [['GRUPO', 'ESCOPO', 'VALOR']],
+            body: grupos.map(g => [g.nome, (d.escopos?.[g.nome] || '').trim() || g.servicos, moeda(g.valor)]),
+        } : {
+            columnStyles: { 0: { cellWidth: 18 }, 2: { cellWidth: 36, halign: 'right' as const } },
+            head: [['ITEM', 'SERVIÇO', 'VALOR']],
+            body: d.itens.map((i, idx) => [numeroItem(i, idx), separarServico(i.titulo)[0], moeda(totalItem(i))]),
+        }),
     });
 
     // ── Página 2: composição

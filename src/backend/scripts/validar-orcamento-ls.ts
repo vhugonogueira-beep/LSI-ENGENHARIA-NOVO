@@ -84,13 +84,19 @@ async function main() {
         console.log('\n── Leitura de Excel');
         const wb = new ExcelJS.Workbook(); const ws = wb.addWorksheet('Orçamento');
         ws.addRow(['ITEM', 'SERVIÇO', 'QTD', 'UNIDADE', 'VALOR UNITÁRIO', 'VALOR TOTAL']);
+        ws.addRow(['1', 'OBRA CIVIL', '', '', '', '']);
         ws.addRow(['L1', 'Fundação da torre', 1, 'vb', 8000, 8000]);
+        ws.addRow(['2 - MONTAGEM', '', '', '', '', '']);
         ws.addRow(['L2', 'Montagem de estrutura', 2, 'un', 'R$ 1.500,00', 'R$ 3.000,00']);
         ws.addRow(['', '', '', '', 'VALOR TOTAL', 11000]);
         const lx = await enviarArquivo(budgetId, 'orcamento-ls.xlsx', Buffer.from(await wb.xlsx.writeBuffer()), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         conferir('Excel lido: 2 itens, soma = total do documento', lx.ok && lx.corpo.itens?.length === 2 && lx.corpo.soma_itens === 11000 && lx.corpo.total_documento === 11000, JSON.stringify(lx.corpo).slice(0, 200));
-        const salvaLs = await salvarItens(budgetId, 'orcamento_ls', (lx.corpo.itens || []).map((i: any) => ({ ...i, bdi_percent: 0 })));
+        conferir('cabeçalho de bloco vira o grupo dos itens abaixo', lx.corpo.itens?.[0]?.grupo === 'Obra civil' && lx.corpo.itens?.[1]?.grupo === 'Montagem', JSON.stringify((lx.corpo.itens || []).map((i: any) => i.grupo)));
+        // O editor grava o grupo em bloco.
+        const salvaLs = await salvarItens(budgetId, 'orcamento_ls', (lx.corpo.itens || []).map((i: any) => ({ ...i, bloco: i.grupo || 'ORCAMENTO_LS', bdi_percent: 0 })));
         conferir('itens lidos salvos como Orçamento LS', salvaLs.ok, salvaLs.corpo.error);
+        const blocos = (await prisma.budgetItem.findMany({ where: { budget_id: budgetId, origem_item: 'ORCAMENTO_LS' }, orderBy: { ordem: 'asc' } })).map(i => i.bloco);
+        conferir('grupo do item gravado', blocos.join('|') === 'Obra civil|Montagem', blocos.join('|'));
         let n = await contar(budgetId);
         conferir('salvar o Orçamento LS não apagou PV nem custo', n.pv === 1 && n.custo === 1 && n.ls === 2, JSON.stringify(n));
         const custo2 = await salvarItens(budgetId, 'internal', [{ codigo_item: 'C1', titulo: 'Custo mão de obra', unidade: 'vb', quantidade: 2, valor_unitario: 400, bdi_percent: 0 }]);

@@ -25,6 +25,17 @@ export interface ItemLido {
     origem: string;
     /** O total lido não bate com quantidade × unitário. */
     divergente: boolean;
+    /** Grupo do bloco onde o item estava ("1 - MOBILIZAÇÃO" → "Mobilização"). */
+    grupo?: string;
+}
+
+/** "1 - MOBILIZAÇÃO" / "02. Serviços" → "Mobilização" / "Serviços". */
+export function nomeDoGrupo(texto: string) {
+    const s = texto.replace(/^\s*\d+(\.\d+)*\s*[-–—.:)]?\s*/, '').replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!s || !/[A-Za-zÀ-ú]/.test(s)) return '';
+    if (s !== s.toUpperCase()) return s;
+    const m = s.toLocaleLowerCase('pt-BR');
+    return m.charAt(0).toLocaleUpperCase('pt-BR') + m.slice(1);
 }
 
 export interface ResultadoLeitura {
@@ -113,6 +124,7 @@ export function lerOrcamentoExcel(buffer: Buffer): ResultadoLeitura {
         const itens: ItemLido[] = [];
         let total: number | null = null;
         let vazias = 0;
+        let grupoAtual = '';
         for (let i = cab.linha + 1; i < linhas.length; i++) {
             const l = linhas[i];
             const texto = l.map(c => String(c ?? '').trim()).join(' ').trim();
@@ -128,8 +140,9 @@ export function lerOrcamentoExcel(buffer: Buffer): ResultadoLeitura {
                 if (n != null) total = n;
                 continue;
             }
-            // Cabeçalho de bloco ("1 - MOBILIZAÇÃO"): sem quantidade nem preço.
-            if (qtd == null && unit == null) continue;
+            // Cabeçalho de bloco ("1 - MOBILIZAÇÃO"): sem quantidade nem preço — vira o grupo
+            // dos itens seguintes (10/10/2026; a pessoa confere e ajusta no editor).
+            if (qtd == null && unit == null) { const g = nomeDoGrupo(titulo || texto); if (g && tot == null) grupoAtual = g; continue; }
             const detalhe = cols.descricao !== undefined ? String(l[cols.descricao] ?? '').trim() : '';
             const item = montarItem({
                 codigo: cols.codigo !== undefined ? String(l[cols.codigo] ?? '') : '',
@@ -137,7 +150,7 @@ export function lerOrcamentoExcel(buffer: Buffer): ResultadoLeitura {
                 unidade: cols.unidade !== undefined ? String(l[cols.unidade] ?? '') : '',
                 quantidade: qtd, unitario: unit, total: tot, origem: `${aba}, linha ${i + 1}`,
             });
-            if (item) itens.push(item);
+            if (item) itens.push(grupoAtual ? { ...item, grupo: grupoAtual } : item);
         }
         if (itens.length && (!melhor || itens.length > melhor.itens.length)) melhor = { aba, itens, total };
     }

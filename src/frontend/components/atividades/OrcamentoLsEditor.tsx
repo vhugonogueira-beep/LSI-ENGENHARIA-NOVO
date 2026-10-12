@@ -4,7 +4,7 @@ import { Card, EmptyState, ErrorBanner, inputClass } from './ui';
 import { fmtMoeda } from './constants';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
-import { gerarPdfOrcamentoLs, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
+import { gerarPdfOrcamentoLs, gruposDoOrcamento, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Orçamento LS — o preço ao cliente montado no modelo da LS, alternativa à PV
@@ -19,11 +19,15 @@ import { gerarPdfOrcamentoLs, totalItem, type DadosPdfOrcamentoLs } from './gera
 interface Linha {
     chave: string;
     codigo_item: string;
+    /** Grupo do resumo do investimento (Mobilização, Serviços...). Vazio = sem grupo. Gravado em BudgetItem.bloco. */
+    grupo: string;
     titulo: string;
     unidade: string;
     quantidade: number;
     valor_unitario: number;
 }
+/** bloco gravado antes do campo Grupo existir. */
+const BLOCO_SEM_GRUPO = ['ORCAMENTO_LS', 'OUTROS'];
 interface ItemLido extends Omit<Linha, 'chave'> { total: number; origem: string; divergente: boolean }
 interface Leitura {
     formato: 'EXCEL' | 'PDF';
@@ -68,7 +72,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         ]);
         const itens: Linha[] = (b.items || [])
             .filter((i: any) => i.origem_item === 'ORCAMENTO_LS')
-            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
+            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
         setLinhas(itens);
         setLinhasSalvas(itens);
         setSalvas(JSON.stringify(itens.map(({ chave, ...r }) => r)));
@@ -93,7 +97,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     versaoAtual: versao.versao_atual, expectedUpdatedAt: versao.updated_at, scope: 'orcamento_ls',
                     items: lista.map((l, i) => ({
                         codigo_item: l.codigo_item || `LS-${String(i + 1).padStart(3, '0')}`, titulo: l.titulo.trim(), unidade: l.unidade || 'un',
-                        quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: 0, bloco: 'ORCAMENTO_LS', ordem: i,
+                        quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
                     })),
                 }),
             });
@@ -177,15 +181,15 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
 
             {linhas.length === 0 ? (
                 <EmptyState text="Nenhum item no Orçamento LS. Importe um orçamento pronto (Excel ou PDF) ou adicione os itens à mão."
-                    action={editavel ? <button type="button" onClick={() => setLinhas([{ chave: novaChave(), codigo_item: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
+                    action={editavel ? <button type="button" onClick={() => setLinhas([{ chave: novaChave(), codigo_item: '', grupo: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
                         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button> : undefined} />
             ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
-                    <table className="w-full min-w-[820px] table-fixed text-sm">
-                        <colgroup><col className="w-28" /><col /><col className="w-20" /><col className="w-24" /><col className="w-36" /><col className="w-36" /><col className="w-10" /></colgroup>
+                    <table className="w-full min-w-[980px] table-fixed text-sm">
+                        <colgroup><col className="w-28" /><col className="w-40" /><col /><col className="w-20" /><col className="w-24" /><col className="w-36" /><col className="w-36" /><col className="w-10" /></colgroup>
                         <thead>
                             <tr className="border-b border-border bg-secondary/30 text-left text-xs font-semibold text-muted-foreground">
-                                <th className="px-3 py-2.5">Código</th><th className="px-3 py-2.5">Descrição</th><th className="px-3 py-2.5">Unid.</th>
+                                <th className="px-3 py-2.5">Código</th><th className="px-3 py-2.5" title="Agrupa os itens no resumo do PDF">Grupo</th><th className="px-3 py-2.5">Descrição</th><th className="px-3 py-2.5">Unid.</th>
                                 <th className="px-3 py-2.5 text-right">Qtd</th><th className="px-3 py-2.5 text-right">Valor unitário</th><th className="px-3 py-2.5 text-right">Total</th><th />
                             </tr>
                         </thead>
@@ -193,6 +197,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                             {linhas.map(l => (
                                 <tr key={l.chave} className="border-b border-border/60 last:border-b-0">
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Código" className={`${inputClass} font-id text-xs`} value={l.codigo_item} onChange={e => mudar(l.chave, 'codigo_item', e.target.value)} /></td>
+                                    <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Grupo" list={`grupos-${budgetId}`} placeholder="Sem grupo" className={inputClass} value={l.grupo} onChange={e => mudar(l.chave, 'grupo', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Descrição" className={inputClass} value={l.titulo} onChange={e => mudar(l.chave, 'titulo', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Unidade" className={inputClass} value={l.unidade} onChange={e => mudar(l.chave, 'unidade', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Quantidade" type="number" min={0} step="any" className={`${inputClass} text-right`} value={l.quantidade} onChange={e => mudar(l.chave, 'quantidade', e.target.value)} /></td>
@@ -206,17 +211,20 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                         </tbody>
                         <tfoot>
                             <tr className="border-t border-border bg-secondary/20">
-                                <td colSpan={5} className="px-3 py-2.5 text-right text-sm font-semibold">Total do Orçamento LS</td>
+                                <td colSpan={6} className="px-3 py-2.5 text-right text-sm font-semibold">Total do Orçamento LS</td>
                                 <td className="px-3 py-2.5 text-right text-base font-bold tabular-nums">{fmtMoeda(total)}</td><td />
                             </tr>
                         </tfoot>
                     </table>
+                    <datalist id={`grupos-${budgetId}`}>
+                        {[...new Set([...linhas.map(l => l.grupo.trim()).filter(Boolean), 'Mobilização', 'Serviços', 'Infra elétrica - fornecimento e instalação'])].map(g => <option key={g} value={g} />)}
+                    </datalist>
                 </div>
             )}
 
             {editavel && (linhas.length > 0 || linhasSalvas.length > 0) && (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <button type="button" onClick={() => setLinhas(ls => [...ls, { chave: novaChave(), codigo_item: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
+                    <button type="button" onClick={() => setLinhas(ls => [...ls, { chave: novaChave(), codigo_item: '', grupo: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
                         className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button>
                     {linhasSalvas.length > 0 && (
                         <button type="button" onClick={excluirTodos} disabled={salvando}
@@ -272,7 +280,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                 <RevisaoLeitura leitura={leitura} temItens={linhas.length > 0} salvando={salvando}
                     onFechar={() => setLeitura(null)}
                     onConfirmar={async (itens, modo) => {
-                        const novos: Linha[] = itens.map(i => ({ chave: novaChave(), codigo_item: i.codigo_item, titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
+                        const novos: Linha[] = itens.map(i => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: i.grupo || '', titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
                         const lista = modo === 'SUBSTITUIR' ? novos : [...linhas, ...novos];
                         if (await salvar(lista)) setLeitura(null);
                     }} />
@@ -298,10 +306,12 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
         const base = {
             numero: '', escopo: meta.assunto || atividade?.descricao || atividade?.titulo || '',
             responsavel: '', pagamento: '', prazo_execucao: '', validade_dias: meta.vigencia_dias,
+            escopos: {} as Record<string, string>,
         };
         try { return { ...base, ...JSON.parse(localStorage.getItem(chaveStorage) || '{}') }; } catch { return base; }
     });
     const [erro, setErro] = useState('');
+    const grupos = useMemo(() => gruposDoOrcamento(itens.map(({ chave, ...i }) => i)), [itens]);
     const mudar = (campo: string) => (e: { target: { value: string } }) => setF((x: typeof f) => ({ ...x, [campo]: e.target.value }));
 
     function gerar() {
@@ -317,6 +327,7 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
             responsavel: f.responsavel, pagamento: f.pagamento, prazo_execucao: f.prazo_execucao,
             validade_dias: Number(f.validade_dias) || meta.vigencia_dias,
             itens: itens.map(({ chave, ...i }) => i),
+            escopos: f.escopos || {},
         };
         try { gerarPdfOrcamentoLs(dados); onFechar(); } catch (e: any) { setErro(e.message || 'Erro ao gerar o PDF'); }
     }
@@ -331,7 +342,7 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
     return (
         <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-black/70 p-4" onClick={onFechar}>
             <div role="dialog" aria-modal="true" aria-labelledby="titulo-pdf-ls" onClick={e => e.stopPropagation()}
-                className="w-full max-w-xl rounded-xl border border-border bg-card text-foreground shadow-2xl">
+                className="flex max-h-[94vh] w-full max-w-xl flex-col rounded-xl border border-border bg-card text-foreground shadow-2xl">
                 <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
                     <div>
                         <h2 id="titulo-pdf-ls" className="flex items-center gap-2 text-base font-bold"><FileText size={18} aria-hidden /> Gerar orçamento em PDF</h2>
@@ -341,13 +352,30 @@ function ModalPdf({ budgetId, atividade, meta, revisao, itens, onFechar }: {
                     </div>
                     <button type="button" onClick={onFechar} aria-label="Fechar" className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"><X size={18} aria-hidden /></button>
                 </header>
-                <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+                <div className="grid flex-1 gap-3 overflow-y-auto px-5 py-4 sm:grid-cols-2">
                     {campo('Número do orçamento', 'numero')}
                     {campo('Validade (dias)', 'validade_dias', { tipo: 'number' })}
                     {campo('Escopo (título do orçamento)', 'escopo', { placeholder: 'Ex.: Remanejamento RF, civil e elétrica', largo: true })}
                     {campo('Responsável LS Office', 'responsavel')}
                     {campo('Pagamento', 'pagamento', { placeholder: 'Ex.: 30 dias após medição' })}
                     {campo('Prazo de execução', 'prazo_execucao', { placeholder: 'Ex.: 20 dias corridos', largo: true })}
+                    <div className="sm:col-span-2 border-t border-border pt-3">
+                        <p className="text-xs font-semibold">Resumo do investimento</p>
+                        {grupos.length === 0 ? (
+                            <p className="mt-1 text-xs text-muted-foreground">Nenhum item tem grupo: a capa lista os itens um a um. Para ter o resumo por grupo, preencha a coluna Grupo no editor.</p>
+                        ) : (
+                            <div className="mt-2 space-y-2">
+                                <p className="text-xs text-muted-foreground">Escreva o escopo ou um comentário de cada grupo. Em branco, sai a lista dos serviços do grupo. O valor é a soma dos itens.</p>
+                                {grupos.map(g => (
+                                    <label key={g.nome} className="block">
+                                        <span className="mb-1 flex justify-between text-xs font-medium text-muted-foreground"><span>{g.nome}</span><span className="tabular-nums">{fmtMoeda(g.valor)}</span></span>
+                                        <textarea rows={2} className={inputClass} value={f.escopos?.[g.nome] || ''} placeholder={g.servicos}
+                                            onChange={e => setF((x: typeof f) => ({ ...x, escopos: { ...(x.escopos || {}), [g.nome]: e.target.value } }))} />
+                                    </label>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
                 {erro && <div className="px-5"><ErrorBanner message={erro} /></div>}
                 <footer className="flex justify-end gap-2 border-t border-border px-5 py-3">
