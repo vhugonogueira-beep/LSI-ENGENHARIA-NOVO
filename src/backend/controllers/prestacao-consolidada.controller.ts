@@ -1,10 +1,60 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
 
-const CATEGORIAS = ['ALIMENTACAO', 'HOSPEDAGEM', 'COMBUSTIVEL', 'PEDAGIO', 'TRANSPORTE', 'MATERIAL', 'SERVICO', 'FRETE', 'OUTROS'];
+// Tipos de gasto (12/10/2026): Vistoria, Combustível e Outros. Os antigos
+// continuam aceitos para não perder o que já foi lançado.
+const CATEGORIAS = ['VISTORIA', 'COMBUSTIVEL', 'OUTROS', 'ALIMENTACAO', 'HOSPEDAGEM', 'PEDAGIO', 'TRANSPORTE', 'MATERIAL', 'SERVICO', 'FRETE'];
 const cent = (v: number) => Math.round(v * 100) / 100;
 
+/**
+ * Para onde o dinheiro destes depósitos pode ir (12/10/2026):
+ *   - adiantamento de projeto -> as atividades do projeto;
+ *   - adiantamento de atividade que está num projeto -> ela e as outras do projeto;
+ *   - adiantamento de atividade sem projeto -> só ela.
+ * Nunca para fora do projeto: é o que impede o custo de uma vistoria da Oi cair
+ * numa obra da Claro. Devolve também os projetos envolvidos, para recusar uma
+ * prestação que misture projetos diferentes.
+ */
+async function escopoDosReembolsos(reembolsoIds: string[]) {
+    const reembolsos = await prisma.reembolso.findMany({
+        where: { id: { in: reembolsoIds } },
+        select: { acionamento_id: true, atividade_id: true, atividade: { select: { acionamento_id: true } } },
+    });
+    const projetos = new Set<string>();
+    const avulsas = new Set<string>();
+    for (const r of reembolsos) {
+        const projeto = r.acionamento_id || r.atividade?.acionamento_id;
+        if (projeto) projetos.add(projeto);
+        else if (r.atividade_id) avulsas.add(r.atividade_id);
+    }
+    const daProjeto = projetos.size
+        ? await prisma.atividade.findMany({ where: { acionamento_id: { in: [...projetos] } }, select: { id: true } })
+        : [];
+    const ids = [...new Set([...daProjeto.map(a => a.id), ...avulsas])];
+    const atividades = await prisma.atividade.findMany({
+        where: { id: { in: ids } },
+        select: { id: true, codigo: true, titulo: true, id_site_sharing: true },
+        orderBy: { codigo: 'asc' },
+    });
+    return { projetos: [...projetos], avulsas: [...avulsas], atividades };
+}
+
+const destinos = (atividades: { id: string; codigo: string; titulo: string; id_site_sharing: string | null }[]) =>
+    atividades.map(a => ({ id: a.id, codigo: a.codigo, titulo: a.titulo, site: a.id_site_sharing }));
+
+async function idsDosReembolsosDaPrestacao(prestacaoId: string) {
+    const v = await prisma.prestacaoContasPagamento.findMany({ where: { prestacao_id: prestacaoId }, select: { pagamento: { select: { reembolso_id: true } } } });
+    return [...new Set(v.map(x => x.pagamento.reembolso_id))];
+}
+
 async function detalhar(id: string) {
+    const p = await carregar(id);
+    if (!p) return null;
+    const escopo = await escopoDosReembolsos(await idsDosReembolsosDaPrestacao(id));
+    return { ...p, atividades_destino: destinos(escopo.atividades) };
+}
+
+async function carregar(id: string) {
     return prisma.prestacaoContasConsolidada.findUnique({
         where: { id },
         include: {
@@ -12,12 +62,12 @@ async function detalhar(id: string) {
                 include: {
                     pagamento: {
                         include: {
-                            reembolso: { include: { atividade: { select: { id: true, codigo: true, titulo: true } } } },
+                            reembolso: { include: { atividade: { select: { id: true, codigo: true, titulo: true } }, acionamento: { select: { id: true, codigo: true, titulo: true } } } },
                         },
                     },
                 },
             },
-            despesas: { orderBy: { ordem: 'asc' } },
+            despesas: { orderBy: { ordem: 'asc' }, include: { atividade: { select: { id: true, codigo: true, id_site_sharing: true } } } },
         },
     });
 }
@@ -25,19 +75,28 @@ async function detalhar(id: string) {
 export async function listarPrestacoesConsolidadas(req: Request, res: Response) {
     try {
         const atividadeId = req.query.atividade_id as string | undefined;
-        res.json(await prisma.prestacaoContasConsolidada.findMany({
-            where: atividadeId ? {
-                OR: [
-                    { atividade_id: atividadeId },
-                    { pagamentos: { some: { pagamento: { reembolso: { atividade_id: atividadeId } } } } },
-                ],
-            } : {},
+        const projetoId = req.query.acionamento_id as string | undefined;
+        const where: any = atividadeId ? {
+            OR: [
+                { atividade_id: atividadeId },
+                { pagamentos: { some: { pagamento: { reembolso: { atividade_id: atividadeId } } } } },
+                { despesas: { some: { atividade_id: atividadeId } } },
+            ],
+        } : projetoId ? {
+            pagamentos: { some: { pagamento: { reembolso: { OR: [{ acionamento_id: projetoId }, { atividade: { acionamento_id: projetoId } }] } } } },
+        } : {};
+        const lista = await prisma.prestacaoContasConsolidada.findMany({
+            where,
             include: {
-                pagamentos: { include: { pagamento: { include: { reembolso: { include: { atividade: { select: { id: true, codigo: true, titulo: true } } } } } } } },
-                despesas: { orderBy: { ordem: 'asc' } },
+                pagamentos: { include: { pagamento: { include: { reembolso: { include: { atividade: { select: { id: true, codigo: true, titulo: true } }, acionamento: { select: { id: true, codigo: true, titulo: true } } } } } } } },
+                despesas: { orderBy: { ordem: 'asc' }, include: { atividade: { select: { id: true, codigo: true, id_site_sharing: true } } } },
             },
             orderBy: { created_at: 'desc' },
-        }));
+        });
+        res.json(await Promise.all(lista.map(async p => {
+            const escopo = await escopoDosReembolsos([...new Set(p.pagamentos.map(v => v.pagamento.reembolso_id))]);
+            return { ...p, atividades_destino: destinos(escopo.atividades) };
+        })));
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 }
 
@@ -64,6 +123,12 @@ export async function criarPrestacaoConsolidada(req: Request, res: Response) {
         const chavesFavorecido = new Set(pagamentos.map(p =>
             p.reembolso.funcionario_id || p.reembolso.supplier_id || p.reembolso.cpf_cnpj || p.reembolso.favorecido_nome.toLocaleLowerCase('pt-BR')));
         if (chavesFavorecido.size !== 1) return res.status(400).json({ error: 'A prestação consolidada deve reunir pagamentos do mesmo favorecido' });
+        // Depósitos de projetos diferentes não se misturam: cada gasto só pode ir
+        // para atividades do mesmo projeto do dinheiro (12/10/2026).
+        const escopo = await escopoDosReembolsos([...new Set(pagamentos.map(p => p.reembolso_id))]);
+        if (escopo.projetos.length > 1 || (escopo.projetos.length === 1 && escopo.avulsas.length > 0)) {
+            return res.status(400).json({ error: 'Os depósitos são de projetos diferentes. Faça uma prestação de contas para cada projeto.' });
+        }
         const atividades = new Set(pagamentos.map(p => p.reembolso.atividade_id));
         const base = pagamentos[0].reembolso;
         const prestacao = await prisma.prestacaoContasConsolidada.create({
@@ -86,11 +151,22 @@ export async function atualizarPrestacaoConsolidada(req: Request, res: Response)
         if (!atual) return res.status(404).json({ error: 'Prestação consolidada não encontrada' });
         if (atual.status === 'APROVADA') return res.status(400).json({ error: 'Prestação já aprovada e bloqueada para edição' });
         const despesas = Array.isArray(req.body.despesas) ? req.body.despesas : [];
+        const escopo = await escopoDosReembolsos(await idsDosReembolsosDaPrestacao(atual.id));
+        const permitidas = new Set(escopo.atividades.map(a => a.id));
+        // Com um destino só possível, ele vem preenchido; com vários, cada gasto diz o seu.
+        const unica = escopo.atividades.length === 1 ? escopo.atividades[0].id : null;
         for (const d of despesas) {
             const valor = Number(d.valor);
-            if (!String(d.descricao || '').trim() || !Number.isFinite(valor) || valor <= 0) {
+            const descricao = String(d.descricao || '').trim();
+            if (!descricao || !Number.isFinite(valor) || valor <= 0) {
                 return res.status(400).json({ error: 'Toda despesa precisa de descrição e valor maior que zero' });
             }
+            const destino = d.atividade_id || unica;
+            if (!destino) return res.status(400).json({ error: `Informe o site/atividade de destino da despesa "${descricao}"` });
+            if (!permitidas.has(destino)) {
+                return res.status(400).json({ error: `A despesa "${descricao}" aponta para uma atividade fora do projeto deste adiantamento` });
+            }
+            d.atividade_id = destino;
         }
         await prisma.$transaction(async tx => {
             await tx.prestacaoContasDespesa.deleteMany({ where: { prestacao_id: atual.id } });
@@ -105,6 +181,7 @@ export async function atualizarPrestacaoConsolidada(req: Request, res: Response)
                             descricao: String(d.descricao).trim(),
                             categoria: CATEGORIAS.includes(String(d.categoria || '').toUpperCase()) ? String(d.categoria).toUpperCase() : 'OUTROS',
                             valor: cent(Number(d.valor)), anexo_url: d.anexo_url || null, ordem,
+                            atividade_id: d.atividade_id,
                         })),
                     },
                 },

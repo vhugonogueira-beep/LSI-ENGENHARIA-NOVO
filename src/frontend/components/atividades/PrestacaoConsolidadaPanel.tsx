@@ -3,13 +3,16 @@ import { CheckCircle2, Plus, Send, Trash2, X } from 'lucide-react';
 import { fmtMoeda } from './constants';
 import { GhostButton, PrimaryButton, inputClass } from './ui';
 
-const CATEGORIAS = ['ALIMENTACAO', 'HOSPEDAGEM', 'COMBUSTIVEL', 'PEDAGIO', 'TRANSPORTE', 'MATERIAL', 'SERVICO', 'FRETE', 'OUTROS'];
-const CAT_LABEL: Record<string, string> = { ALIMENTACAO: 'Alimentação', HOSPEDAGEM: 'Hospedagem', COMBUSTIVEL: 'Combustível', PEDAGIO: 'Pedágio', TRANSPORTE: 'Transporte', MATERIAL: 'Material', SERVICO: 'Serviço', FRETE: 'Frete', OUTROS: 'Outros' };
+// Tipos de gasto (12/10/2026): Vistoria, Combustível e Outros. Um lançamento
+// antigo com outro tipo continua aparecendo com o nome dele.
+const CATEGORIAS = ['VISTORIA', 'COMBUSTIVEL', 'OUTROS'];
+const CAT_LABEL: Record<string, string> = { VISTORIA: 'Vistoria', COMBUSTIVEL: 'Combustível', OUTROS: 'Outros', ALIMENTACAO: 'Alimentação', HOSPEDAGEM: 'Hospedagem', PEDAGIO: 'Pedágio', TRANSPORTE: 'Transporte', MATERIAL: 'Material', SERVICO: 'Serviço', FRETE: 'Frete' };
 const STATUS_LABEL: Record<string, string> = { EM_PREENCHIMENTO: 'Em preenchimento', ENVIADA: 'Enviada ao financeiro', EM_ANALISE: 'Em análise', APROVADA: 'Aprovada', AJUSTES_SOLICITADOS: 'Ajustes solicitados' };
-const linhaVazia = () => ({ data: '', categoria: 'ALIMENTACAO', descricao: '', valor: '', anexo_url: '' });
+const linhaVazia = () => ({ data: '', categoria: 'VISTORIA', descricao: '', valor: '', anexo_url: '', atividade_id: '' });
 
-export default function PrestacaoConsolidadaPanel({ atividadeId, processos, onRefresh }: {
+export default function PrestacaoConsolidadaPanel({ atividadeId, projetoId, processos, onRefresh }: {
     atividadeId?: string;
+    projetoId?: string;
     processos: any[];
     onRefresh: () => Promise<void>;
 }) {
@@ -23,10 +26,10 @@ export default function PrestacaoConsolidadaPanel({ atividadeId, processos, onRe
     const [salvando, setSalvando] = useState(false);
 
     const carregar = async () => {
-        const r = await fetch(`/api/prestacoes-contas${atividadeId ? `?atividade_id=${atividadeId}` : ''}`);
+        const r = await fetch(`/api/prestacoes-contas${atividadeId ? `?atividade_id=${atividadeId}` : projetoId ? `?acionamento_id=${projetoId}` : ''}`);
         setPrestacoes(r.ok ? await r.json() : []);
     };
-    useEffect(() => { carregar(); }, [atividadeId]);
+    useEffect(() => { carregar(); }, [atividadeId, projetoId]);
 
     const elegiveis = useMemo(() => processos.flatMap(processo =>
         processo.natureza === 'ADIANTAMENTO'
@@ -38,7 +41,7 @@ export default function PrestacaoConsolidadaPanel({ atividadeId, processos, onRe
     const abrir = (p: any) => {
         setAtual(p);
         setLinhas((p.despesas || []).length
-            ? p.despesas.map((d: any) => ({ ...d, data: d.data ? String(d.data).slice(0, 10) : '', valor: String(d.valor) }))
+            ? p.despesas.map((d: any) => ({ ...d, data: d.data ? String(d.data).slice(0, 10) : '', valor: String(d.valor), atividade_id: d.atividade_id || '' }))
             : [linhaVazia()]);
         setParecer(p.parecer_financeiro || ''); setErro('');
     };
@@ -46,7 +49,21 @@ export default function PrestacaoConsolidadaPanel({ atividadeId, processos, onRe
     const despesasPayload = () => linhas.filter(l => l.descricao || Number(l.valor)).map(l => ({
         data: l.data || null, categoria: l.categoria, descricao: l.descricao,
         valor: Number(String(l.valor).replace(',', '.')), anexo_url: l.anexo_url || null,
+        atividade_id: l.atividade_id || null,
     }));
+    // Destinos possíveis: as atividades do adiantamento e, se ele é de um projeto, as do projeto.
+    const destinos: { id: string; codigo: string; titulo: string; site: string | null }[] = atual?.atividades_destino || [];
+    const variosDestinos = destinos.length > 1;
+    const porSite = useMemo(() => {
+        const m = new Map<string, number>();
+        for (const l of linhas) {
+            const v = Number(String(l.valor).replace(',', '.')) || 0;
+            if (!v) continue;
+            const chave = l.atividade_id || (destinos.length === 1 ? destinos[0].id : '');
+            m.set(chave, (m.get(chave) || 0) + v);
+        }
+        return [...m.entries()].map(([id, valor]) => ({ id, valor, d: destinos.find(x => x.id === id) }));
+    }, [linhas, destinos]);
 
     const criar = async () => {
         if (!selecionados.length) { setErro('Selecione ao menos um depósito pago'); return; }
@@ -93,11 +110,16 @@ export default function PrestacaoConsolidadaPanel({ atividadeId, processos, onRe
 
         {selecionando && <div className="fixed inset-0 z-[2250] bg-black/75 flex items-center justify-center p-4"><div className="bg-card border border-border rounded-xl w-full max-w-2xl p-5"><div className="flex justify-between mb-4"><div><h2 className="font-bold">Selecionar depósitos</h2><p className="text-xs text-muted-foreground mt-1">Somente depósitos pagos e ainda não prestados aparecem aqui.</p></div><button type="button" onClick={() => setSelecionando(false)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden/></button></div>{erro && <div className="mb-3 rounded bg-crit/10 p-2 text-sm text-crit">{erro}</div>}<div className="max-h-[55vh] overflow-auto flex flex-col gap-2">{elegiveis.map(({ processo, pagamento }) => <label key={pagamento.id} className="flex items-center gap-3 rounded-lg border border-border p-3 cursor-pointer hover:bg-secondary/30"><input type="checkbox" checked={selecionados.includes(pagamento.id)} onChange={e => setSelecionados(s => e.target.checked ? [...s, pagamento.id] : s.filter(id => id !== pagamento.id))}/><div className="flex-1"><strong className="text-sm">{processo.favorecido_nome}<span className="ml-3 font-normal text-muted-foreground">Depósito {pagamento.numero}</span></strong><div className="text-[11px] text-muted-foreground flex flex-wrap gap-x-3">{processo.atividade?.codigo && <span className="font-id">{processo.atividade.codigo}</span>}<span>{processo.destino || processo.motivo || 'Adiantamento'}</span></div></div><strong>{fmtMoeda(pagamento.valor)}</strong></label>)}</div><div className="flex justify-end gap-2 mt-5"><GhostButton onClick={() => setSelecionando(false)}>Cancelar</GhostButton><PrimaryButton onClick={criar} disabled={salvando || !selecionados.length}>Criar com {selecionados.length} depósito(s)</PrimaryButton></div></div></div>}
 
-        {atual && <div className="fixed inset-0 z-[2260] bg-black/75 flex items-center justify-center p-4"><div className="bg-card border border-border rounded-xl w-full max-w-5xl max-h-[92vh] overflow-auto p-5"><div className="flex justify-between"><div><h2 className="font-bold text-lg">Prestação consolidada</h2><p className="text-xs text-muted-foreground flex flex-wrap gap-x-3"><span>{atual.favorecido_nome}</span><span>{atual.pagamentos.length} depósito(s)</span><span>{STATUS_LABEL[atual.status] || atual.status}</span></p></div><button type="button" onClick={() => setAtual(null)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden/></button></div>{erro && <div className="my-3 rounded bg-crit/10 p-2 text-sm text-crit">{erro}</div>}
+        {atual && <div className="fixed inset-0 z-[2260] bg-black/75 flex items-center justify-center p-4"><div className="bg-card border border-border rounded-xl w-full max-w-6xl max-h-[92vh] overflow-auto p-5"><div className="flex justify-between"><div><h2 className="font-bold text-lg">Prestação consolidada</h2><p className="text-xs text-muted-foreground flex flex-wrap gap-x-3"><span>{atual.favorecido_nome}</span><span>{atual.pagamentos.length} depósito(s)</span><span>{STATUS_LABEL[atual.status] || atual.status}</span></p></div><button type="button" onClick={() => setAtual(null)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden/></button></div>{erro && <div className="my-3 rounded bg-crit/10 p-2 text-sm text-crit">{erro}</div>}
             <div className="grid grid-cols-3 gap-3 my-4"><Resumo label="Total adiantado" valor={fmtMoeda(atual.valor_adiantado)}/><Resumo label="Despesas lançadas" valor={fmtMoeda(total)}/><Resumo label={atual.valor_adiantado - total > 0 ? 'A devolver' : atual.valor_adiantado - total < 0 ? 'A reembolsar' : 'Equilibrada'} valor={fmtMoeda(Math.abs(atual.valor_adiantado - total))} cor={atual.valor_adiantado - total === 0 ? 'text-ok' : 'text-warn'}/></div>
-            <div className="mb-4 flex flex-wrap gap-2">{atual.pagamentos.map((v: any) => <span key={v.id} className="inline-flex gap-x-2 rounded bg-secondary/50 px-2 py-1 text-[11px]"><span className="font-id">{v.pagamento.reembolso.atividade?.codigo || 'Atividade'}</span><span>Depósito {v.pagamento.numero}</span><span>{fmtMoeda(v.pagamento.valor)}</span></span>)}</div>
-            <div className="overflow-x-auto"><table className="w-full text-xs"><thead><tr className="text-left text-muted-foreground"><th className="p-2">Data</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Comprovante/link</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{linhas.map((l, i) => <tr key={i} className="border-t border-border"><td className="p-1"><input type="date" className={inputClass} value={l.data} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, data: e.target.value } : v))}/></td><td className="p-1"><select className={inputClass} value={l.categoria} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, categoria: e.target.value } : v))}>{CATEGORIAS.map(c => <option key={c} value={c}>{CAT_LABEL[c]}</option>)}</select></td><td className="p-1"><input className={inputClass} value={l.descricao} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, descricao: e.target.value } : v))}/></td><td className="p-1"><input type="number" step="0.01" className={`${inputClass} w-28`} value={l.valor} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, valor: e.target.value } : v))}/></td><td className="p-1"><input className={inputClass} value={l.anexo_url || ''} placeholder="URL ou referência" onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, anexo_url: e.target.value } : v))}/></td><td><button type="button" aria-label="Excluir despesa" title="Excluir despesa" className="p-2 text-muted-foreground hover:text-crit" onClick={() => setLinhas(x => x.filter((_, j) => j !== i))}><Trash2 size={14} aria-hidden/></button></td></tr>)}</tbody></table></div>
+            <div className="mb-4 flex flex-wrap gap-2">{atual.pagamentos.map((v: any) => <span key={v.id} className="inline-flex gap-x-2 rounded bg-secondary/50 px-2 py-1 text-[11px]"><span className="font-id">{v.pagamento.reembolso.atividade?.codigo || (v.pagamento.reembolso.acionamento ? `Projeto ${v.pagamento.reembolso.acionamento.codigo}` : 'Atividade')}</span><span>Depósito {v.pagamento.numero}</span><span>{fmtMoeda(v.pagamento.valor)}</span></span>)}</div>
+            <div className="overflow-x-auto"><table className="w-full text-xs"><thead><tr className="text-left text-muted-foreground"><th className="p-2">Data</th>{variosDestinos && <th>Site / atividade</th>}<th>Tipo de gasto</th><th>Descrição</th><th>Valor</th><th>Comprovante/link</th><th><span className="sr-only">Ações</span></th></tr></thead><tbody>{linhas.map((l, i) => <tr key={i} className="border-t border-border"><td className="p-1"><input type="date" className={inputClass} value={l.data} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, data: e.target.value } : v))}/></td>{variosDestinos && <td className="p-1"><select aria-label="Site ou atividade de destino" className={`${inputClass} ${!l.atividade_id && (l.descricao || l.valor) ? 'border-warn' : ''}`} value={l.atividade_id || ''} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, atividade_id: e.target.value } : v))}><option value="">Escolha o site…</option>{destinos.map(d => <option key={d.id} value={d.id}>{d.site || d.codigo} — {d.titulo}</option>)}</select></td>}<td className="p-1"><select className={`${inputClass} min-w-[130px]`} value={l.categoria} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, categoria: e.target.value } : v))}>{[...new Set([...CATEGORIAS, l.categoria])].map(c => <option key={c} value={c}>{CAT_LABEL[c] || c}</option>)}</select></td><td className="p-1"><input className={inputClass} value={l.descricao} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, descricao: e.target.value } : v))}/></td><td className="p-1"><input type="number" step="0.01" className={`${inputClass} w-28`} value={l.valor} onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, valor: e.target.value } : v))}/></td><td className="p-1"><input className={inputClass} value={l.anexo_url || ''} placeholder="URL ou referência" onChange={e => setLinhas(x => x.map((v, j) => j === i ? { ...v, anexo_url: e.target.value } : v))}/></td><td><button type="button" aria-label="Excluir despesa" title="Excluir despesa" className="p-2 text-muted-foreground hover:text-crit" onClick={() => setLinhas(x => x.filter((_, j) => j !== i))}><Trash2 size={14} aria-hidden/></button></td></tr>)}</tbody></table></div>
             <button type="button" className="mt-2 text-xs text-primary" onClick={() => setLinhas(x => [...x, linhaVazia()])}><Plus size={14} className="inline" aria-hidden/> Adicionar despesa</button>
+            {destinos.length === 1 && <p className="mt-2 text-[11px] text-muted-foreground">Todos os gastos vão para <span className="font-id">{destinos[0].site || destinos[0].codigo}</span> — {destinos[0].titulo}.</p>}
+            {variosDestinos && porSite.length > 0 && <div className="mt-4 rounded-lg border border-border p-3">
+                <h3 className="mb-2 text-xs font-semibold">Gasto por site</h3>
+                <div className="flex flex-wrap gap-2">{porSite.map(s => <span key={s.id || 'sem'} className={`inline-flex gap-2 rounded-md px-2 py-1 text-[11px] ${s.d ? 'bg-secondary/50' : 'bg-warn/15 text-warn'}`}><span className="font-id">{s.d ? (s.d.site || s.d.codigo) : 'Sem site escolhido'}</span><strong>{fmtMoeda(s.valor)}</strong></span>)}</div>
+            </div>}
             <div className="flex justify-end gap-2 mt-5"><GhostButton onClick={salvar} disabled={salvando || atual.status === 'APROVADA'}>Salvar rascunho</GhostButton><PrimaryButton onClick={enviar} disabled={salvando || total <= 0 || atual.status === 'APROVADA'}><Send size={14} className="inline mr-1" aria-hidden/>Enviar ao financeiro</PrimaryButton></div>
             {['ENVIADA', 'EM_ANALISE', 'AJUSTES_SOLICITADOS'].includes(atual.status) && <div className="mt-5 rounded-lg border border-warn/30 bg-warn/5 p-4"><h3 className="text-sm font-semibold mb-2">Análise financeira</h3><textarea className={inputClass} value={parecer} onChange={e => setParecer(e.target.value)} placeholder="Parecer ou ajustes solicitados"/><div className="flex justify-end gap-2 mt-2"><GhostButton onClick={() => analisar('AJUSTES_SOLICITADOS')}>Solicitar ajustes</GhostButton><PrimaryButton onClick={() => analisar('APROVADA')}><CheckCircle2 size={14} className="inline mr-1" aria-hidden/>Aprovar</PrimaryButton></div></div>}
         </div></div>}

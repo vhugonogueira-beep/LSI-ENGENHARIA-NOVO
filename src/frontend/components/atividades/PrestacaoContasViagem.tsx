@@ -24,7 +24,15 @@ const hojeLocal = () => {
   return new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 };
 
-export default function PrestacaoContasViagem({ atividade, refreshKey = 0, standalone = false }: { atividade?: AtividadeDetalhe; refreshKey?: number; standalone?: boolean }) {
+export default function PrestacaoContasViagem({ atividade, projeto, refreshKey = 0, standalone = false, embutido = false }: {
+  atividade?: AtividadeDetalhe;
+  /** Painel do projeto: adiantamentos do projeto e das atividades dele (12/10/2026). */
+  projeto?: { id: string; codigo: string; titulo: string };
+  refreshKey?: number;
+  standalone?: boolean;
+  /** Dentro de outro painel: sem o título e o espaçamento próprios. */
+  embutido?: boolean;
+}) {
   const [itens, setItens] = useState<any[]>([]);
   const [editor, setEditor] = useState<any | null>(null);
   const [email, setEmail] = useState<any | null>(null);
@@ -45,11 +53,11 @@ export default function PrestacaoContasViagem({ atividade, refreshKey = 0, stand
   const alvoMemoriaRef = useRef<any | null>(null);
 
   const carregar = async () => {
-    const r = await fetch(`/api/reembolsos${atividade ? `?atividade_id=${atividade.id}` : ''}`);
+    const r = await fetch(`/api/reembolsos${atividade ? `?atividade_id=${atividade.id}` : projeto ? `?acionamento_id=${projeto.id}` : ''}`);
     const d = r.ok ? await r.json() : [];
     setItens(Array.isArray(d) ? d : []);
   };
-  useEffect(() => { carregar(); }, [atividade?.id, refreshKey]);
+  useEffect(() => { carregar(); }, [atividade?.id, projeto?.id, refreshKey]);
 
   /** Abre o rateio de um adiantamento de projeto. */
   const abrirRateio = async (processo: any) => {
@@ -231,9 +239,9 @@ Esta ação não pode ser desfeita.`)) return;
   };
 
   if (!itens.length && !standalone) return null;
-  return <section className={standalone ? 'p-5' : 'mt-5 border-t border-border pt-4'}>
+  return <section className={embutido ? '' : standalone ? 'p-5' : 'mt-5 border-t border-border pt-4'}>
     <input ref={memoriaRef} type="file" multiple className="hidden" onChange={anexarMemoria}/>
-    <div className="flex items-center gap-2 mb-3"><Calculator size={16} className="text-info" aria-hidden/><div><h3 className={standalone ? 'text-lg font-bold' : 'text-sm font-bold'}>Reembolsos, adiantamentos e prestação de contas</h3>{standalone && <p className="text-xs text-muted-foreground">Pagamentos, documentos de cálculo e prestações consolidadas.</p>}</div></div>
+    <div className={embutido ? 'hidden' : 'flex items-center gap-2 mb-3'}><Calculator size={16} className="text-info" aria-hidden/><div><h3 className={standalone ? 'text-lg font-bold' : 'text-sm font-bold'}>Reembolsos, adiantamentos e prestação de contas</h3>{standalone && <p className="text-xs text-muted-foreground">Pagamentos, documentos de cálculo e prestações consolidadas.</p>}</div></div>
     {erro && <div className="mb-3 rounded bg-crit/10 p-2 text-sm text-crit">{erro}</div>}
     {!itens.length ? <div className="border border-dashed border-border rounded-lg p-8 text-center text-sm text-muted-foreground">Nenhum reembolso ou adiantamento registrado.</div> : <div className="flex flex-col gap-4">{itens.map(processo => {
       const adiantamento = processo.natureza === 'ADIANTAMENTO';
@@ -326,7 +334,7 @@ Esta ação não pode ser desfeita.`)) return;
               className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Salvar</button>
           </div>
         </div>}
-        <div className="text-[11px] text-muted-foreground flex flex-wrap gap-x-3">{processo.atividade?.codigo && <span className="font-id">{processo.atividade.codigo}</span>}<span>{adiantamento ? (processo.destino || 'Destino não informado') : (processo.motivo || 'Reembolso de despesa')}</span></div>
+        <div className="text-[11px] text-muted-foreground flex flex-wrap gap-x-3">{processo.atividade?.codigo && <span className="font-id">{processo.atividade.codigo}</span>}{processo.acionamento?.codigo && <span className="font-semibold text-info">Adiantamento do projeto {processo.acionamento.codigo}</span>}<span>{adiantamento ? (processo.destino || 'Destino não informado') : (processo.motivo || 'Reembolso de despesa')}</span></div>
         <FinancialAttachments count={arquivos.length} addAction={<button type="button" onClick={() => escolherMemoria(processo)} disabled={anexando === `memoria:${processo.id}`} className="text-[11px] font-semibold text-primary hover:underline disabled:opacity-50">{anexando === `memoria:${processo.id}` ? 'Enviando...' : 'Adicionar'}</button>}>
           {arquivos.map((arquivo: any) => {
             const extensao = String(arquivo.nome_original || '').split('.').pop()?.toLowerCase() || '';
@@ -351,7 +359,7 @@ Esta ação não pode ser desfeita.`)) return;
       </FinancialBeneficiaryCard>;
     })}</div>}
 
-    <PrestacaoConsolidadaPanel atividadeId={atividade?.id} processos={itens} onRefresh={carregar}/>
+    <PrestacaoConsolidadaPanel atividadeId={atividade?.id} projetoId={projeto?.id} processos={itens} onRefresh={carregar}/>
 
     {editor && <div className="fixed inset-0 z-[2150] bg-black/75 flex items-center justify-center p-4"><div className="bg-card border border-border rounded-xl w-full max-w-lg p-5"><div className="flex justify-between mb-4"><div><h2 className="font-bold">{editor.pagamentoId ? `Editar depósito ${editor.numero}` : 'Adicionar depósito'}</h2><p className="text-xs text-muted-foreground mt-1">Cada depósito possui agendamento, status e comprovante próprios.</p></div><button type="button" onClick={() => setEditor(null)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden/></button></div>{erro && <div className="mb-3 rounded border border-crit/40 bg-crit/10 p-2 text-xs text-crit">{erro}</div>}<div className="grid grid-cols-2 gap-3"><label className="text-xs">Valor do depósito<input type="number" step="0.01" disabled={editor.bloqueiaValor} className={`${inputClass} mt-1`} value={editor.valor} onChange={e => setEditor({ ...editor, valor: e.target.value })}/></label><label className="text-xs">Forma de pagamento<select className={`${inputClass} mt-1`} value={editor.forma_pagamento} onChange={e => setEditor({ ...editor, forma_pagamento: e.target.value })}><option value="PIX">PIX</option><option value="TED">Transferência bancária</option><option value="BOLETO">Boleto</option><option value="DINHEIRO">Dinheiro</option></select></label><label className="text-xs">Data da solicitação<input type="date" className={`${inputClass} mt-1`} value={editor.data_solicitacao} onChange={e => setEditor({ ...editor, data_solicitacao: e.target.value })}/></label><label className="text-xs">Data prevista<input type="date" className={`${inputClass} mt-1`} value={editor.data_prevista} onChange={e => setEditor({ ...editor, data_prevista: e.target.value })}/></label><label className="text-xs col-span-2">Observações<input className={`${inputClass} mt-1`} value={editor.observacoes} onChange={e => setEditor({ ...editor, observacoes: e.target.value })}/></label></div><div className="flex justify-end gap-2 mt-5"><GhostButton onClick={() => setEditor(null)}>Cancelar</GhostButton><PrimaryButton onClick={salvarPagamento} disabled={salvando || !editor.valor}>{editor.pagamentoId ? 'Salvar' : 'Adicionar depósito'}</PrimaryButton></div></div></div>}
 

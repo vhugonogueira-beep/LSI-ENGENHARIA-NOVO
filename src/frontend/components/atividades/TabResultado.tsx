@@ -41,6 +41,9 @@ export default function TabResultado({ atividade }: { atividade: AtividadeDetalh
                 <Row label="Custo previsto (orçado)" value={<Dinheiro v={custoPrevisto} />} />
                 <Row label="Custo comprometido (contratado)" value={<Dinheiro v={custoComprometido} className={receita > 0 && custoComprometido > receita ? 'text-crit' : undefined} />} />
                 <Row label="Custo pago" value={<Dinheiro v={custoPago} className={receita > 0 && custoPago > receita ? 'text-crit' : undefined} />} />
+                {(financeiro?.custo_adiantamentos || 0) > 0 && (
+                    <Row label="Dos quais: gastos de adiantamento destinados a este site" value={<Dinheiro v={financeiro?.custo_adiantamentos} />} />
+                )}
                 <Row label="Custo a pagar" value={<Dinheiro v={custoAPagar} />} />
             </Card>
 

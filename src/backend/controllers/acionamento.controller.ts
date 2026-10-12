@@ -272,6 +272,7 @@ export async function financeiroDoProjeto(req: Request, res: Response) {
                         status_operacional: true, id_site_sharing: true,
                         contratacoesFornecedor: { select: { valor_contratado: true, status: true } },
                         despesasRateadas: { select: { valor: true } },
+                        despesasPrestacao: { select: { valor: true } },
                     },
                 },
                 reembolsos: {
@@ -296,12 +297,24 @@ export async function financeiroDoProjeto(req: Request, res: Response) {
             valor_contrato: a.valor_contrato,
             custo_comprometido: soma(a.contratacoesFornecedor.filter(c => c.status !== 'CANCELADA').map(c => c.valor_contratado)),
             // A fatia do adiantamento do projeto que foi atribuída a esta atividade.
-            custo_rateado: soma(a.despesasRateadas.map(d => d.valor)),
+            custo_rateado: soma([...a.despesasRateadas, ...a.despesasPrestacao].map(d => d.valor)),
         }));
 
-        const adiantado = soma(projeto.reembolsos.flatMap(r => r.pagamentos.map(p => p.valor)));
-        const rateado = soma(projeto.reembolsos.flatMap(r => r.despesas.filter(d => d.atividade_id).map(d => d.valor)));
-        const semRateio = soma(projeto.reembolsos.flatMap(r => r.despesas.filter(d => !d.atividade_id).map(d => d.valor)));
+        // Adiantamentos do projeto e das atividades dele (12/10/2026: o adiantamento
+        // de uma atividade pode ser distribuído entre as outras do mesmo projeto).
+        const ids = projeto.atividades.map(a => a.id);
+        const deAtividades = await prisma.reembolso.findMany({
+            where: { atividade_id: { in: ids }, natureza: 'ADIANTAMENTO' },
+            include: { pagamentos: { select: { valor: true, status: true } }, despesas: { select: { valor: true, atividade_id: true } } },
+        });
+        const todos = [...projeto.reembolsos, ...deAtividades];
+        const prestado = await prisma.prestacaoContasDespesa.aggregate({
+            where: { prestacao: { pagamentos: { some: { pagamento: { reembolso_id: { in: todos.map(r => r.id) } } } } } },
+            _sum: { valor: true },
+        });
+        const adiantado = soma(todos.flatMap(r => r.pagamentos.filter(p => ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status)).map(p => p.valor)));
+        const rateado = soma([...todos.flatMap(r => r.despesas.filter(d => d.atividade_id).map(d => d.valor)), prestado._sum.valor || 0]);
+        const semRateio = soma(todos.flatMap(r => r.despesas.filter(d => !d.atividade_id).map(d => d.valor)));
 
         res.json({
             projeto: { id: projeto.id, codigo: projeto.codigo, titulo: projeto.titulo },

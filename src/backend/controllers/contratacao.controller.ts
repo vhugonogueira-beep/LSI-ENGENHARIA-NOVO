@@ -448,6 +448,16 @@ export async function getFinanceiroAtividade(req: Request, res: Response) {
                 }
             }
         }
+        // Gastos de prestação de contas destinados a esta atividade (12/10/2026):
+        // é o dinheiro de adiantamento — da própria atividade ou do projeto — que
+        // virou despesa comprovada aqui. Entra como custo já pago.
+        const [prestacao, rateio] = await Promise.all([
+            prisma.prestacaoContasDespesa.aggregate({ where: { atividade_id }, _sum: { valor: true } }),
+            prisma.reembolsoDespesa.aggregate({ where: { atividade_id }, _sum: { valor: true } }),
+        ]);
+        const custoAdiantamentos = round2((prestacao._sum.valor || 0) + (rateio._sum.valor || 0));
+        custoComprometido += custoAdiantamentos;
+        custoPago += custoAdiantamentos;
         const custoAPagar = round2(custoComprometido - custoPago);
 
         res.json({
@@ -455,6 +465,7 @@ export async function getFinanceiroAtividade(req: Request, res: Response) {
             custo_comprometido: round2(custoComprometido),
             custo_pago: round2(custoPago),
             custo_a_pagar: custoAPagar,
+            custo_adiantamentos: custoAdiantamentos,
             contratacoes,
         });
     } catch (e: any) {

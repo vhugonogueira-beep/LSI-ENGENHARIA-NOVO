@@ -1001,6 +1001,8 @@ model Atividade {
   despesasRateadas ReembolsoDespesa[]
   reembolsos             Reembolso[]
   prestacoesContasConsolidadas PrestacaoContasConsolidada[]
+  // Gastos da prestação de contas destinados a esta atividade (12/10/2026).
+  despesasPrestacao PrestacaoContasDespesa[]
 }
 
 model AtividadeStatusHistorico {
@@ -1842,8 +1844,14 @@ model PrestacaoContasDespesa {
   valor        Float
   anexo_url    String?
   ordem        Int                          @default(0)
+  // Destino do gasto (12/10/2026): para qual site/atividade foi o dinheiro. Só
+  // aceita a atividade do próprio adiantamento ou outra do mesmo projeto — é
+  // assim que o custo do adiantamento de projeto desce para cada vistoria.
+  atividade_id String?
+  atividade    Atividade?                   @relation(fields: [atividade_id], references: [id])
 
   @@index([prestacao_id, ordem])
+  @@index([atividade_id])
 }
 
 model ReembolsoDespesa {

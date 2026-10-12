@@ -968,3 +968,41 @@ comprovante). O cockpit recalcula ao abrir, ao recarregar e a cada troca de aba.
 
 A abertura de atividade não pede mais valor de contrato nem custo orçado — eles
 nascem do orçamento/negociação; a aba Resultado alerta enquanto faltarem.
+
+## 12/10/2026 — Adiantamento de projeto e destino por site na prestação de contas
+
+Pedido: um adiantamento (ex.: R$ 3.000) para várias vistorias da Oi do mesmo
+projeto, e na prestação de contas dizer quanto foi para cada site.
+
+Decisões do usuário:
+- duas formas de lançar: **A)** adiantamento pedido no projeto; **B)** adiantamento
+  pedido numa atividade que está num projeto, distribuível entre as atividades
+  do mesmo projeto;
+- **nada fora do projeto** (trava que impede misturar custo de clientes);
+- prestador continua **pago por atividade** (sem pagamento em grupo);
+- tipos de gasto: **Vistoria, Combustível e Outros** (os antigos seguem aceitos);
+- saldo da prestação vira acerto por reembolso (A devolver / A reembolsar).
+
+Implementação:
+- `PrestacaoContasDespesa.atividade_id` (+ `Atividade.despesasPrestacao`): o destino
+  de cada gasto. `prestacao-consolidada.controller.ts` calcula os destinos possíveis
+  (`escopoDosReembolsos`): projeto → atividades do projeto; atividade num projeto →
+  ela e as outras do projeto; atividade sem projeto → só ela (preenchido sozinho).
+  Recusa gasto sem destino (quando há vários), destino fora do projeto e prestação
+  com depósitos de projetos diferentes. `GET /api/prestacoes-contas` aceita
+  `?acionamento_id=` e, por atividade, inclui as prestações que destinaram gasto a ela.
+- `GET /api/reembolsos?acionamento_id=` lista os adiantamentos do projeto e das
+  atividades dele.
+- Custo: `GET /api/contratacoes/financeiro/:atividade` soma os gastos destinados
+  (prestação consolidada + rateio antigo) em `custo_adiantamentos`, dentro de custo
+  pago; `financeiroDoProjeto` passa a contar só depósitos pagos como adiantado e
+  inclui adiantamentos das atividades do projeto e os gastos das prestações.
+- Tela: visão Projetos → projeto aberto → **Pagamentos do projeto**
+  (`PagamentosDoProjeto.tsx`), com **Solicitar adiantamento do projeto**; a
+  prestação consolidada ganhou a coluna Site/atividade e o quadro "Gasto por site".
+  Na aba Resultado, a linha "gastos de adiantamento destinados a este site".
+
+Verificação: `validar-adiantamento-projeto.ts` (17 verificações).
+
+Pendente: na base local ficaram três projetos de teste antigos ("Vistoria de
+Energia OI — teste", ACI-2026-001 a 003), aguardando o usuário autorizar a exclusão.

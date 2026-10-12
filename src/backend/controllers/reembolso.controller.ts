@@ -90,8 +90,12 @@ function comTotais(r: any) {
 export async function listReembolsos(req: Request, res: Response) {
     try {
         const atividade_id = req.query.atividade_id as string | undefined;
+        const acionamento_id = req.query.acionamento_id as string | undefined;
         const itens = await prisma.reembolso.findMany({
-            where: atividade_id ? { atividade_id } : {},
+            // Por projeto: os adiantamentos do projeto e os das atividades dele.
+            where: atividade_id ? { atividade_id }
+                : acionamento_id ? { OR: [{ acionamento_id }, { atividade: { acionamento_id } }] }
+                : {},
             include: {
                 despesas: {
                     orderBy: { ordem: 'asc' },

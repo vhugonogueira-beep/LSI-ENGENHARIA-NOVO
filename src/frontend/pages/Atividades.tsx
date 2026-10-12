@@ -1,4 +1,5 @@
 import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../components/atividades/TipoObraCampo';
+import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
 import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin } from 'lucide-react';
 import {
@@ -708,6 +709,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         {(p.atividades || []).length === 0 && (
                                             <div className="px-4 py-6 text-center text-xs text-muted-foreground">Projeto sem atividades. Agrupe pela visão de Lista.</div>
                                         )}
+                                        <PagamentosDoProjeto projeto={{ id: p.id, codigo: p.codigo, titulo: p.titulo }} onMudou={carregarProjetos} />
                                     </div>
                                 )}
                             </div>
