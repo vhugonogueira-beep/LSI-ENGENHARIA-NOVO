@@ -1,7 +1,7 @@
 import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../components/atividades/TipoObraCampo';
 import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin } from 'lucide-react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
+import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
@@ -108,6 +108,24 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [projetoAlvo, setProjetoAlvo] = useState('');
     const [projetoAberto, setProjetoAberto] = useState<any | null>(null);
     const [search, setSearch] = useState('');
+    // Lista com projetos em "cortina" (12/10/2026): as atividades de um projeto ficam
+    // recolhidas numa linha só, que abre ao clicar. Agrupamento e cortinas abertas
+    // ficam lembrados neste navegador (conveniência; sem storage, começa agrupado e fechado).
+    const [agrupar, setAgruparState] = useState<boolean>(() => {
+        try { return localStorage.getItem('ls_atividades_agrupar') !== 'nao'; } catch { return true; }
+    });
+    const setAgrupar = (v: boolean) => {
+        setAgruparState(v);
+        try { localStorage.setItem('ls_atividades_agrupar', v ? 'sim' : 'nao'); } catch { /* sem storage: só não lembra */ }
+    };
+    const [abertos, setAbertosState] = useState<string[]>(() => {
+        try { return JSON.parse(localStorage.getItem('ls_atividades_projetos_abertos') || '[]'); } catch { return []; }
+    });
+    const setAbertos = (f: (v: string[]) => string[]) => setAbertosState(v => {
+        const novo = f(v);
+        try { localStorage.setItem('ls_atividades_projetos_abertos', JSON.stringify(novo)); } catch { /* sem storage: só não lembra */ }
+        return novo;
+    });
     const [documentFilter, setDocumentFilter] = useState('TODAS');
     // Excluir é só do administrador (o backend confere de novo).
     const ehAdmin = useEhAdmin();
@@ -213,7 +231,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     }, []);
 
     useEffect(() => { load(); }, [load]);
-    useEffect(() => { if (view === 'projetos') carregarProjetos(); }, [view, carregarProjetos]);
+    // A lista e o kanban também precisam dos projetos (cortina e etiqueta).
+    useEffect(() => { carregarProjetos(); }, [view, carregarProjetos]);
 
     /** Agrupa as atividades marcadas num projeto — novo ou existente. */
     async function agruparSelecionadas() {
@@ -371,6 +390,26 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
             && (!filtros.gestor || (a.gestor || a.responsavel || '') === filtros.gestor);
     });
     const filtradas = semSituacao.filter(situacaoAtual.teste);
+
+    const projetosPorId = new Map<string, any>(projetos.map(p => [p.id, p]));
+    const buscaAtiva = search.trim().length > 0;
+    // Projetos no topo (os mais recentes primeiro), depois as atividades avulsas.
+    // Os filtros valem para as atividades de dentro: o projeto aparece se ao menos
+    // uma delas atende.
+    const blocos: ({ tipo: 'avulsa'; a: Atividade } | { tipo: 'projeto'; projeto: any; atividades: Atividade[]; total: number })[] = (() => {
+        if (!agrupar) return filtradas.map(a => ({ tipo: 'avulsa' as const, a }));
+        const porProjeto = new Map<string, Atividade[]>();
+        const avulsas: Atividade[] = [];
+        for (const a of filtradas) {
+            if (a.acionamento_id && projetosPorId.has(a.acionamento_id)) porProjeto.set(a.acionamento_id, [...(porProjeto.get(a.acionamento_id) || []), a]);
+            else avulsas.push(a);
+        }
+        const grupos = [...porProjeto.entries()]
+            .map(([id, ats]) => ({ tipo: 'projeto' as const, projeto: projetosPorId.get(id), atividades: ats, total: atividades.filter(x => x.acionamento_id === id).length }))
+            .sort((x, y) => String(y.projeto.codigo).localeCompare(String(x.projeto.codigo)));
+        return [...grupos, ...avulsas.map(a => ({ tipo: 'avulsa' as const, a }))];
+    })();
+    const idsProjetosVisiveis = blocos.flatMap(b => (b.tipo === 'projeto' ? [b.projeto.id] : []));
 
     // As listas dos filtros mostram só o que existe na carteira, com a contagem.
     const contar = (valores: (string | null | undefined)[]) => {
@@ -534,7 +573,16 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 )}
                 {/* Contagem e limpeza ficam presas à tabela que descrevem, não soltas à direita dos filtros. */}
                 <div className="mb-2 flex items-center justify-between gap-3 px-1 text-xs text-muted-foreground">
-                    <span><strong className="font-semibold text-foreground tabular-nums">{filtradas.length}</strong> de {atividades.length} atividade(s)</span>
+                    <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span><strong className="font-semibold text-foreground tabular-nums">{filtradas.length}</strong> de {atividades.length} atividade(s)</span>
+                        <label className="inline-flex cursor-pointer items-center gap-1.5">
+                            <input type="checkbox" checked={agrupar} onChange={e => setAgrupar(e.target.checked)} /> Agrupar por projeto
+                        </label>
+                        {agrupar && idsProjetosVisiveis.length > 0 && !buscaAtiva && (<>
+                            <button type="button" onClick={() => setAbertos(v => [...new Set([...v, ...idsProjetosVisiveis])])} className="font-semibold text-primary hover:underline">Abrir todos</button>
+                            <button type="button" onClick={() => setAbertos(v => v.filter(id => !idsProjetosVisiveis.includes(id)))} className="font-semibold text-primary hover:underline">Recolher todos</button>
+                        </>)}
+                    </span>
                     {filtrosAtivos > 0 && (
                         <button onClick={limparFiltros} className="h-7 px-2 text-xs font-semibold text-primary hover:underline">
                             Limpar filtros ({filtrosAtivos})
@@ -573,13 +621,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             {filtradas.length === 0 && (
                                 <tr><td colSpan={7} className="text-center py-10 text-muted-foreground">Nenhuma atividade encontrada.</td></tr>
                             )}
-                            {filtradas.map(a => {
+                            {(() => {
+                            const linha = (a: Atividade, aninhada = false) => {
                                 const avanco = Math.min(100, Math.max(0, a.avanco_percentual ?? 0));
                                 const local = [normalizarUf(a.estado) || a.estado, a.municipio].filter(Boolean).join(' / ');
                                 const gestor = a.gestor || a.responsavel;
                                 const tom = tomStatus(a.status_operacional);
                                 return (
-                                    <tr key={a.id} className={`border-b border-border/60 last:border-b-0 border-l-4 ${FAIXA[tom]} hover:bg-secondary/20 transition-colors`}>
+                                    <tr key={a.id} className={`border-b border-border/60 last:border-b-0 border-l-4 ${FAIXA[tom]} ${aninhada ? 'bg-secondary/[0.12]' : ''} hover:bg-secondary/20 transition-colors`}>
                                         {/* Toda célula abre com uma linha de 28px (h-7): Site ID, cliente,
                                             status, avanço, saldo e ações ficam na mesma altura. */}
                                         <td className="px-3 py-3 align-top">
@@ -590,7 +639,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             </div>
                                         </td>
                                         {/* O Site ID é a âncora da linha: é por ele que a obra é chamada. */}
-                                        <td className="px-3 py-3 align-top">
+                                        <td className={`px-3 py-3 align-top ${aninhada ? 'pl-9' : ''}`}>
                                             {a.id_site_sharing
                                                 ? <div className="flex h-7 items-center font-id text-base font-semibold text-foreground" title={a.titulo}>{a.id_site_sharing}</div>
                                                 : <div className="flex h-7 items-center text-sm text-muted-foreground" title={a.titulo}>Sem Site ID</div>}
@@ -650,7 +699,80 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         </td>
                                     </tr>
                                 );
-                            })}
+                            };
+                            const projetoLinha = (b: { projeto: any; atividades: Atividade[]; total: number }) => {
+                                const p = b.projeto;
+                                const filhos = b.atividades;
+                                const aberto = buscaAtiva || abertos.includes(p.id);
+                                const alternar = () => setAbertos(v => v.includes(p.id) ? v.filter(id => id !== p.id) : [...v, p.id]);
+                                const porStatus = new Map<string, number>();
+                                filhos.forEach(a => porStatus.set(a.status_operacional, (porStatus.get(a.status_operacional) || 0) + 1));
+                                const soma = (f: (a: Atividade) => number) => filhos.reduce((t, a) => t + f(a), 0);
+                                const pend = [
+                                    { n: filhos.filter(atrasada).length, texto: (n: number) => `${n} com prazo vencido`, tom: 'text-crit' },
+                                    { n: soma(a => a.documentos_correcao || 0), texto: (n: number) => `${n} ${n === 1 ? 'documento' : 'documentos'} em correção`, tom: 'text-crit' },
+                                    { n: soma(a => a.documentos_pendentes || 0), texto: (n: number) => `${n} ${n === 1 ? 'documento pendente' : 'documentos pendentes'}`, tom: 'text-warn' },
+                                    { n: filhos.filter(a => !a.po && a.status_operacional !== 'CONCLUIDA').length, texto: (n: number) => `${n} sem PO`, tom: 'text-warn' },
+                                    { n: soma(a => a.comprovantes_pendentes || 0), texto: (n: number) => `${n} ${n === 1 ? 'comprovante pendente' : 'comprovantes pendentes'}`, tom: 'text-warn' },
+                                ].filter(x => x.n > 0);
+                                const r = p.resumo || {};
+                                const marcados = filhos.every(a => selecionadas.includes(a.id));
+                                return (
+                                    <Fragment key={`p-${p.id}`}>
+                                        <tr onClick={alternar} className="cursor-pointer border-b border-border/60 border-l-4 border-l-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors">
+                                            <td className="px-3 py-3 align-top" onClick={e => e.stopPropagation()}>
+                                                <div className="flex h-7 items-center">
+                                                    <input type="checkbox" checked={marcados} aria-label={`Selecionar as atividades do projeto ${p.codigo}`}
+                                                        onChange={e => setSelecionadas(v => e.target.checked ? [...new Set([...v, ...filhos.map(a => a.id)])] : v.filter(id => !filhos.some(a => a.id === id)))} />
+                                                </div>
+                                            </td>
+                                            <td colSpan={2} className="px-3 py-3 align-top">
+                                                <div className="flex h-7 items-center gap-2 min-w-0">
+                                                    <button type="button" aria-expanded={aberto} aria-label={`${aberto ? 'Recolher' : 'Abrir'} o projeto ${p.codigo}`}
+                                                        onClick={e => { e.stopPropagation(); alternar(); }} className="rounded p-0.5 text-primary hover:bg-primary/15">
+                                                        {aberto ? <ChevronDown size={16} aria-hidden /> : <ChevronRight size={16} aria-hidden />}
+                                                    </button>
+                                                    <FolderOpen size={16} aria-hidden className="shrink-0 text-primary" />
+                                                    <span className="font-id text-xs text-primary">{p.codigo}</span>
+                                                    <strong className="truncate text-sm font-semibold" title={p.titulo}>{p.titulo}</strong>
+                                                </div>
+                                                <div className="mt-1 pl-7 text-xs text-muted-foreground">
+                                                    Projeto · {filhos.length === b.total ? `${b.total} atividade(s)` : `${filhos.length} de ${b.total} atividades atendem aos filtros`}
+                                                </div>
+                                            </td>
+                                            <td className="px-3 py-3 align-top">
+                                                <div className="flex min-h-7 flex-wrap items-center gap-x-2 gap-y-1">
+                                                    {[...porStatus.entries()].map(([st, n]) => (
+                                                        <span key={st} className="inline-flex items-center gap-1"><StatusPill status={st} map={STATUS_OPERACIONAL} /><span className="text-xs font-semibold tabular-nums">{n}</span></span>
+                                                    ))}
+                                                </div>
+                                                {pend.length > 0 && (
+                                                    <div className="mt-1.5 flex flex-col gap-0.5 text-xs">
+                                                        {pend.map(x => <span key={x.tom + x.n + x.texto(x.n)} className={`flex items-center gap-1 font-medium ${x.tom}`}><AlertTriangle size={12} aria-hidden className="shrink-0" />{x.texto(x.n)}</span>)}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td colSpan={2} className="px-3 py-3 align-top text-right text-xs">
+                                                {(r.adiantado || 0) > 0
+                                                    ? <div className="flex h-7 items-center justify-end gap-1 text-muted-foreground">Adiantado <strong className="text-foreground">{fmtMoeda(r.adiantado)}</strong></div>
+                                                    : <div className="flex h-7 items-center justify-end text-muted-foreground">Sem adiantamento</div>}
+                                                {(r.a_ratear || 0) > 0 && <span className="rounded-full bg-warn/15 px-2 py-0.5 font-semibold text-warn">A ratear {fmtMoeda(r.a_ratear)}</span>}
+                                            </td>
+                                            <td className="px-3 py-3 align-top" onClick={e => e.stopPropagation()}>
+                                                <div className="flex h-7 items-center justify-end">
+                                                    <button type="button" onClick={() => { setProjetoAberto(p); setView('projetos'); }} title="Adiantamentos e prestação de contas do projeto"
+                                                        className="inline-flex h-7 items-center gap-1 rounded-lg border border-border px-2.5 text-xs font-semibold text-foreground hover:bg-secondary/60 whitespace-nowrap">
+                                                        <Wallet size={14} aria-hidden /> Pagamentos
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {aberto && filhos.map(a => linha(a, true))}
+                                    </Fragment>
+                                );
+                            };
+                            return blocos.map(b => (b.tipo === 'projeto' ? projetoLinha(b) : linha(b.a)));
+                            })()}
                         </tbody>
                     </table>
                 </div>
@@ -759,7 +881,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                     <OperadoraChip operadora={a.operadora} />
                                                 </div>
                                                 <div className="mt-1.5 text-sm leading-snug">{a.titulo}</div>
-                                                <div className="mt-0.5 font-id text-[11px] text-muted-foreground">{a.codigo}</div>
+                                                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
+                                                    <span className="font-id">{a.codigo}</span>
+                                                    {a.acionamento_id && projetosPorId.get(a.acionamento_id) && (
+                                                        <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-1.5 py-0.5 font-id text-primary" title={`Projeto ${projetosPorId.get(a.acionamento_id).titulo}`}>
+                                                            <FolderOpen size={12} aria-hidden /> {projetosPorId.get(a.acionamento_id).codigo}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <PendenciasDaLinha a={a} />
                                                 {a.tipo_demanda === 'IMPLANTACAO' && (a.documentos_total || 0) > 0 && (
                                                     <div className="mt-2 pt-2 border-t border-border/70">
