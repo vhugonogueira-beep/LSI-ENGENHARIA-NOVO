@@ -1,7 +1,7 @@
 import React from 'react';
 import { LOGO_MARCA_B64 } from '../assets/logoMarca';
 import {
-    BarChart3, Building2, ClipboardList, CreditCard, Download, Folder, Handshake, Home,
+    BarChart3, Building2, ClipboardList, CreditCard, Download, Folder, Handshake, LayoutDashboard,
     Library, LogOut, MapPin, Pin, PinOff, Receipt, Settings, Target, TrendingUp, Upload, User,
     type LucideIcon,
 } from 'lucide-react';
@@ -214,7 +214,7 @@ export default function Sidebar(props: SidebarProps) {
                         "Demandas / Dashboard / Orçamento / Obras", e Pagamentos e Faturamento
                         moravam em "Obras". Recolhido, um traço fino separa os grupos. */}
                     <Grupo texto="Operação" primeiro />
-                    <NavItem id="overview" icon={Home} label="Visão geral" />
+                    <NavItem id="overview" icon={LayoutDashboard} label="Dashboard" />
                     <NavItem id="atividades" icon={Target} label="Atividades" />
                     <NavItem id="demandas" icon={ClipboardList} label="Pipeline" />
                     <NavItem id="sites" icon={MapPin} label="Sites" />

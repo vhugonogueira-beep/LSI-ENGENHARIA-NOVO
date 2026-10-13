@@ -1,310 +1,353 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Layers, PencilLine, Send, CheckCircle2, Banknote, Play, Trophy, Plus, Home } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    ArrowRight, Banknote, CheckCircle2, Clock, FileWarning, FolderOpen, Layers, LayoutDashboard, Paperclip, Play, Receipt, Wallet,
+} from 'lucide-react';
 import PageHeader from '../components/PageHeader';
-// Mesmos rótulos das telas de Atividades — evita a Visão Geral chamar o mesmo
-// status por outro nome.
-import { STATUS_OPERACIONAL } from '../components/atividades/constants';
-// Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
-import { T } from '../theme';
-// Cor com significado (docs/DESIGN-SYSTEM.md): cada KPI e cada status tem a sua.
-import { TOM_SHARING, TOM_STATUS, TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
+import { ALTERNADOR, CAMPO, SEGMENTO } from '../components/FiltroPainel';
+import {
+    STATUS_OPERACIONAL, SUBTIPOS_OPERACAO_LABEL, TIPOS_DEMANDA_LABEL, UFS, fmtMoeda, normalizarUf, regiaoPorUf, REGIAO_LABEL,
+} from '../components/atividades/constants';
+import { rotuloTipoSite } from '../components/atividades/TipoObraCampo';
+import { SOLIDO, TEXTO, VEU, TOM_AREA, TOM_MODULO, TOM_OPERADORA, TOM_SHARING, TOM_STATUS, tomDe, type Tom } from '../lib/cores';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Dashboard (12/10/2026; antes "Visão geral", só de orçamentos). Visão de toda a
+// carteira: volume, implantação × operação, detentoras, operadoras, UFs, tipos de
+// site, situação, pendências, projetos e orçamentos. Os dados vêm da carteira de
+// atividades (GET /api/atividades/carteira), que já traz custo pago, PO,
+// documentos e comprovantes calculados em lote — sem uma chamada por atividade.
+// O filtro de área (Implantação/Operação) e de detentora vale para tudo na tela.
+// ─────────────────────────────────────────────────────────────────────────────
 
-// Ausência não tem cor nem número: zero sai como "—" (docs/DESIGN-SYSTEM.md).
-function fmtMoeda(v?: number | null) {
-  if (v == null || v === 0) return null;
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
+interface Atividade {
+    id: string; codigo: string; titulo: string; tipo_demanda: string; subtipo_demanda?: string | null;
+    sharing: string; operadora?: string | null; estado?: string | null; tipo_obra?: string | null;
+    status_operacional: string; valor_contrato?: number | null; custo_pago?: number; data_fim_planejada?: string | null;
+    data_abertura?: string | null; created_at?: string; acionamento_id?: string | null; po?: unknown;
+    documentos_pendentes?: number; documentos_correcao?: number; comprovantes_pendentes?: number;
 }
 
-function fmtData(d?: string | null) {
-  if (!d) return '—';
-  return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
-}
+const STATUS_ORCAMENTO: Record<string, string> = { RASCUNHO: 'Rascunho', ENVIADO: 'Enviado', APROVADO: 'Aprovado', REPROVADO: 'Reprovado', REVISAO: 'Em revisão' };
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
-const STATUS_ORCAMENTO: Record<string, { label: string; color: string }> = {
-  RASCUNHO:  { label: 'Rascunho',  color: hexTom('slate') },
-  ENVIADO:   { label: 'Enviado',   color: hexTom('blue')  },
-  APROVADO:  { label: 'Aprovado',  color: hexTom('green') },
-  REPROVADO: { label: 'Reprovado', color: T.red           },
-  REVISAO:   { label: 'Revisão',   color: hexTom('amber') },
-};
+const moeda = (v: number) => (v ? fmtMoeda(v) : '—');
+const pct = (v: number) => `${v.toLocaleString('pt-BR', { maximumFractionDigits: 1 })}%`;
+const atrasada = (a: Atividade) => !!a.data_fim_planejada && a.status_operacional !== 'CONCLUIDA'
+    && new Date(a.data_fim_planejada).getTime() < new Date(new Date().toDateString()).getTime();
 
-interface DashboardProps {
-  onNavigateTo?: (tab: string) => void;
-}
-
-export function Dashboard({ onNavigateTo }: DashboardProps) {
-  const [budgets, setBudgets] = useState<any[]>([]);
-  // Atividade é a entidade central do Blueprint; Demanda é o modelo antigo, que
-  // esta tela lia até set/2026 — por isso mostrava números de outro cadastro.
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [orfaos, setOrfaos] = useState(0);
-
-  const load = useCallback(async () => {
-    try {
-      const [bResp, dResp] = await Promise.all([
-        fetch('/api/budgets'),
-        fetch('/api/atividades/stats'),
-      ]);
-      if (bResp.ok) {
-        const todos = await bResp.json();
-        // Orçamento agora nasce dentro da Atividade. Os soltos sao resquicio do
-        // fluxo antigo e inflavam os indicadores com obra que nao existe.
-        setBudgets(Array.isArray(todos) ? todos.filter((b: any) => b.atividade_id) : []);
-        setOrfaos(Array.isArray(todos) ? todos.filter((b: any) => !b.atividade_id).length : 0);
-      }
-      if (dResp.ok) setStats(await dResp.json());
-    } catch {
-      // backend offline — mostra zeros
-    } finally {
-      setLoading(false);
+function contar<T>(lista: T[], chave: (x: T) => string, valor?: (x: T) => number) {
+    const m = new Map<string, { n: number; v: number }>();
+    for (const x of lista) {
+        const k = chave(x) || '—';
+        const atual = m.get(k) || { n: 0, v: 0 };
+        atual.n += 1;
+        atual.v += valor ? valor(x) : 0;
+        m.set(k, atual);
     }
-  }, []);
+    return [...m.entries()].map(([k, x]) => ({ chave: k, ...x })).sort((a, b) => b.n - a.n || b.v - a.v);
+}
 
-  useEffect(() => { load(); }, [load]);
+export function Dashboard({ onNavigateTo }: { onNavigateTo?: (tab: string) => void }) {
+    const [atividades, setAtividades] = useState<Atividade[]>([]);
+    const [budgets, setBudgets] = useState<any[]>([]);
+    const [projetos, setProjetos] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [area, setArea] = useState<'TODAS' | 'IMPLANTACAO' | 'OPERACAO'>('TODAS');
+    const [detentora, setDetentora] = useState('');
 
-  // ── KPIs de orçamentos
-  const totalOrc      = budgets.length;
-  const rascunhos     = budgets.filter(b => b.status === 'RASCUNHO').length;
-  const enviados      = budgets.filter(b => b.status === 'ENVIADO').length;
-  const aprovados     = budgets.filter(b => b.status === 'APROVADO').length;
-  const receitaAprov  = budgets.filter(b => b.status === 'APROVADO').reduce((s: number, b: any) => s + (b.valor_total ?? 0), 0);
+    const load = useCallback(async () => {
+        try {
+            const [aR, bR, pR] = await Promise.all([fetch('/api/atividades/carteira'), fetch('/api/budgets'), fetch('/api/acionamentos')]);
+            setAtividades(aR.ok ? await aR.json() : []);
+            const b = bR.ok ? await bR.json() : [];
+            setBudgets(Array.isArray(b) ? b.filter((x: any) => x.atividade_id) : []);
+            setProjetos(pR.ok ? await pR.json() : []);
+        } catch { /* backend fora: a tela mostra vazio */ } finally { setLoading(false); }
+    }, []);
+    useEffect(() => { load(); }, [load]);
 
-  // ── KPIs de atividades
-  const porOperacional = (stats?.porOperacional ?? []) as { status_operacional: string; _count: number }[];
-  const porSharing = (stats?.porSharing ?? []) as { sharing: string; _count: number }[];
-  const totalAtividades = stats?.totais?._count ?? 0;
-  const emExecucao = porOperacional.find(s => s.status_operacional === 'EM_EXECUCAO')?._count ?? 0;
-  const receitaAtividades = stats?.totais?._sum?.valor_contrato ?? 0;
+    const detentoras = useMemo(() => [...new Set(atividades.map(a => a.sharing).filter(Boolean))].sort(), [atividades]);
+    const lista = useMemo(() => atividades.filter(a =>
+        (area === 'TODAS' || a.tipo_demanda === area) && (!detentora || a.sharing === detentora)), [atividades, area, detentora]);
 
-  // ── Últimos orçamentos (5)
-  const ultimosOrc = [...budgets]
-    .sort((a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime())
-    .slice(0, 5);
+    const n = useMemo(() => {
+        const abertas = lista.filter(a => a.status_operacional !== 'CONCLUIDA');
+        const receita = lista.reduce((s, a) => s + (a.valor_contrato || 0), 0);
+        const custo = lista.reduce((s, a) => s + (a.custo_pago || 0), 0);
+        return {
+            total: lista.length,
+            abertas: abertas.length,
+            execucao: lista.filter(a => a.status_operacional === 'EM_EXECUCAO').length,
+            atrasadas: lista.filter(atrasada).length,
+            concluidas: lista.filter(a => a.status_operacional === 'CONCLUIDA').length,
+            receita, custo,
+            margem: receita > 0 ? ((receita - custo) / receita) * 100 : null,
+            semPO: abertas.filter(a => !a.po).length,
+            comprovantes: lista.reduce((s, a) => s + (a.comprovantes_pendentes || 0), 0),
+            documentos: lista.reduce((s, a) => s + (a.documentos_pendentes || 0), 0),
+            correcao: lista.reduce((s, a) => s + (a.documentos_correcao || 0), 0),
+            emProjeto: lista.filter(a => a.acionamento_id).length,
+        };
+    }, [lista]);
 
+    const valor = (a: Atividade) => a.valor_contrato || 0;
+    const porArea = useMemo(() => ['IMPLANTACAO', 'OPERACAO'].map(t => {
+        const doTipo = lista.filter(a => a.tipo_demanda === t);
+        return { tipo: t, n: doTipo.length, v: doTipo.reduce((s, a) => s + valor(a), 0), abertas: doTipo.filter(a => a.status_operacional !== 'CONCLUIDA').length };
+    }), [lista]);
+    const subtipos = useMemo(() => contar(lista.filter(a => a.tipo_demanda === 'OPERACAO'), a => a.subtipo_demanda || 'SEM_SUBTIPO'), [lista]);
+    const porSharing = useMemo(() => contar(lista, a => a.sharing, valor), [lista]);
+    const porOperadora = useMemo(() => contar(lista, a => a.operadora || 'SEM_OPERADORA', valor), [lista]);
+    const porUf = useMemo(() => contar(lista, a => normalizarUf(a.estado) || 'SEM_UF', valor), [lista]);
+    const porRegiao = useMemo(() => contar(lista.filter(a => normalizarUf(a.estado)), a => regiaoPorUf(a.estado)), [lista]);
+    const porTipoSite = useMemo(() => contar(lista.filter(a => a.tipo_demanda === 'IMPLANTACAO'), a => a.tipo_obra || 'SEM_TIPO'), [lista]);
+    const porStatus = useMemo(() => Object.keys(STATUS_OPERACIONAL).map(s => ({ s, n: lista.filter(a => a.status_operacional === s).length })), [lista]);
 
+    // Volume: atividades abertas por mês, nos últimos 6 meses, separadas por área.
+    const porMes = useMemo(() => {
+        const hoje = new Date();
+        const meses = Array.from({ length: 6 }, (_, i) => { const d = new Date(hoje.getFullYear(), hoje.getMonth() - 5 + i, 1); return { ano: d.getFullYear(), mes: d.getMonth() }; });
+        return meses.map(m => {
+            const doMes = lista.filter(a => { const d = new Date(a.data_abertura || a.created_at || 0); return d.getFullYear() === m.ano && d.getMonth() === m.mes; });
+            return { rotulo: `${MESES[m.mes]}/${String(m.ano).slice(2)}`, impl: doMes.filter(a => a.tipo_demanda === 'IMPLANTACAO').length, oper: doMes.filter(a => a.tipo_demanda === 'OPERACAO').length };
+        });
+    }, [lista]);
+    const maxMes = Math.max(1, ...porMes.map(m => m.impl + m.oper));
 
-  return (
-    <div className="p-8" style={{ minHeight: '100vh', background: T.bg0, color: T.txPri }}>
+    // Orçamentos seguem o mesmo filtro, pela atividade de cada um.
+    const idsVisiveis = useMemo(() => new Set(lista.map(a => a.id)), [lista]);
+    const orc = useMemo(() => {
+        const bs = budgets.filter(b => idsVisiveis.has(b.atividade_id));
+        const soma = (st: string) => bs.filter(b => b.status === st).reduce((s, b) => s + (b.total_cliente || 0), 0);
+        return {
+            total: bs.length, rascunho: bs.filter(b => b.status === 'RASCUNHO').length, enviado: bs.filter(b => b.status === 'ENVIADO').length,
+            aprovado: bs.filter(b => b.status === 'APROVADO').length, valorAprovado: soma('APROVADO'), valorEnviado: soma('ENVIADO'),
+            ultimos: [...bs].sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()).slice(0, 5),
+        };
+    }, [budgets, idsVisiveis]);
 
-      <PageHeader icone={Home} tom={TOM_MODULO.overview} titulo="Visão geral"
-        descricao="Visão geral de orçamentos, atividades e receita" />
+    const irAtividades = () => onNavigateTo?.('atividades');
+    const nomeUf = (sigla: string) => UFS.find(u => u.sigla === sigla)?.nome || sigla;
 
-      {orfaos > 0 && (
-        <div style={{
-          marginBottom: 18, padding: '10px 14px', borderRadius: 10,
-          background: `${T.amber}12`, border: `1px solid ${T.amber}55`, fontSize: 12, color: T.txSec,
-        }}>
-          <strong style={{ color: T.amber }}>{orfaos} orçamento(s) sem atividade</strong>, do fluxo antigo, quando
-          o orçamento podia ser criado solto. Não entram nos indicadores abaixo.
-        </div>
-      )}
-
-      {/* ── KPI Row — Orçamentos ── */}
-      <div style={{ marginBottom: 8 }}>
-        <h2 style={secaoStyle}>Orçamentos das atividades</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
-          {[
-            { label: 'Total',            value: totalOrc,               tom: 'indigo' as Tom, icon: <Layers size={16} aria-hidden /> },
-            { label: 'Rascunhos',        value: rascunhos,              tom: 'slate' as Tom,  icon: <PencilLine size={16} aria-hidden />, vazio: 'Nenhum rascunho' },
-            { label: 'Enviados',         value: enviados,               tom: 'blue' as Tom,   icon: <Send size={16} aria-hidden />, vazio: 'Nenhum enviado ao cliente' },
-            { label: 'Aprovados',        value: aprovados,              tom: 'green' as Tom,  icon: <CheckCircle2 size={16} aria-hidden />, vazio: 'Nenhum aprovado ainda' },
-            { label: 'Receita aprovada', value: fmtMoeda(receitaAprov), tom: 'green' as Tom,  icon: <Banknote size={16} aria-hidden />, small: true, vazio: 'Sem orçamento aprovado' },
-          ].map(k => (
-            <KpiCard key={k.label} {...k} loading={loading} />
-          ))}
-        </div>
-      </div>
-
-      {/* ── KPI Row — Atividades ── */}
-      <div style={{ marginBottom: 28 }}>
-        <h2 style={{ ...secaoStyle, marginTop: 20 }}>Atividades</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
-          {[
-            { label: 'Total de atividades',          value: totalAtividades,             tom: 'indigo' as Tom, icon: <Layers size={16} aria-hidden /> },
-            { label: 'Em execução',                  value: emExecucao,                  tom: 'blue' as Tom,   icon: <Play size={16} aria-hidden />, vazio: 'Nenhuma em execução' },
-            { label: 'Valor contratado',             value: fmtMoeda(receitaAtividades), tom: 'cyan' as Tom,   icon: <Banknote size={16} aria-hidden />, small: true, vazio: 'Nenhum contrato fechado' },
-            { label: 'Detentora com mais atividades',  value: topSharing(porSharing),      tom: 'cyan' as Tom,   icon: <Trophy size={16} aria-hidden />, small: true },
-          ].map(k => (
-            <KpiCard key={k.label} {...k} loading={loading} />
-          ))}
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-
-        {/* ── Últimos Orçamentos ── */}
-        <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.brBase}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>Últimos orçamentos</span>
-            {onNavigateTo && (
-              <button onClick={() => onNavigateTo('historico')} style={linkBtnStyle}>
-                Ver todos os orçamentos
-              </button>
-            )}
-          </div>
-          {loading ? (
-            <div style={{ padding: '28px 18px', color: T.txMut, fontSize: 13, textAlign: 'center' }}>Carregando...</div>
-          ) : ultimosOrc.length === 0 ? (
-            <div style={{ padding: '28px 18px', color: T.txMut, fontSize: 13, textAlign: 'center' }}>
-              Nenhum orçamento criado ainda.
-              {onNavigateTo && (
-                <div style={{ marginTop: 10 }}>
-                  <button onClick={() => onNavigateTo('orcv2')} style={{ ...linkBtnStyle, fontSize: 13 }}>
-                    <Plus size={14} aria-hidden /> Criar primeiro orçamento
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div>
-              {ultimosOrc.map((b, i) => {
-                const st = STATUS_ORCAMENTO[b.status] ?? { label: b.status, color: T.txMut };
-                return (
-                  <div key={b.id} style={{
-                    padding: '11px 18px',
-                    borderBottom: i < ultimosOrc.length - 1 ? `1px solid ${T.brSub}` : 'none',
-                    display: 'flex', alignItems: 'flex-start', gap: 12,
-                  }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div title={b.assunto || b.contratante?.nome || undefined} style={{ fontSize: 13, fontWeight: 600, color: T.txPri, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {b.assunto || b.contratante?.nome || '—'}
-                      </div>
-                      <div style={{ fontSize: 11, color: T.txMut, marginTop: 2, display: 'flex', gap: 12 }}>
-                        <span className="font-id">{b.site?.id_site ?? '—'}</span>
-                        <span>{fmtData(b.created_at)}</span>
-                      </div>
+    return (
+        <div className="p-8 text-foreground">
+            <PageHeader icone={LayoutDashboard} tom={TOM_MODULO.overview} titulo="Dashboard"
+                descricao="Carteira de atividades, clientes, operadoras e orçamentos"
+                acoes={
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className={ALTERNADOR} role="group" aria-label="Área">
+                            {(['TODAS', 'IMPLANTACAO', 'OPERACAO'] as const).map(t => (
+                                <button key={t} onClick={() => setArea(t)} aria-pressed={area === t}
+                                    className={`${SEGMENTO} ${area === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
+                                    {t === 'TODAS' ? 'Todas' : TIPOS_DEMANDA_LABEL[t]}
+                                </button>
+                            ))}
+                        </div>
+                        <select aria-label="Detentora" value={detentora} onChange={e => setDetentora(e.target.value)} className={`${CAMPO} w-48`}>
+                            <option value="">Todas as detentoras</option>
+                            {detentoras.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
                     </div>
-                    <span style={{
-                      fontSize: 11, fontWeight: 600, padding: '2px 9px', borderRadius: 20,
-                      background: `${st.color}18`, color: st.color, flexShrink: 0, minWidth: 76, textAlign: 'center',
-                    }}>
-                      {st.label}
+                } />
+
+            {loading ? <p className="py-16 text-center text-sm text-muted-foreground">Carregando…</p> : (<>
+            {/* ── Números principais */}
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+                <Kpi icone={Layers} rotulo="Atividades" valor={n.total || '—'} detalhe={n.total ? `${n.abertas} em aberto` : 'Nenhuma atividade'} onClick={irAtividades} />
+                <Kpi icone={Play} rotulo="Em execução" valor={n.execucao || '—'} tom="blue" />
+                <Kpi icone={Clock} rotulo="Prazo vencido" valor={n.atrasadas || '—'} tom={n.atrasadas ? 'rose' : undefined} detalhe={n.atrasadas ? 'término planejado passou' : 'Nenhuma atrasada'} />
+                <Kpi icone={CheckCircle2} rotulo="Concluídas" valor={n.concluidas || '—'} tom={n.concluidas ? 'green' : undefined} />
+                <Kpi icone={Banknote} rotulo="Valor contratado" valor={moeda(n.receita)} pequeno />
+                <Kpi icone={Wallet} rotulo="Custo pago" valor={moeda(n.custo)} pequeno
+                    detalhe={n.margem == null ? 'Sem valor contratado' : `Margem ${pct(n.margem)}`} />
+            </div>
+
+            {/* ── Implantação × operação e situação */}
+            <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                <Painel titulo="Implantação × operação" className="lg:col-span-2">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        {porArea.map(x => (
+                            <div key={x.tipo} className={`rounded-lg border border-border p-4 ${VEU[tomDe(TOM_AREA, x.tipo)]}`}>
+                                <p className={`text-xs font-semibold ${TEXTO[tomDe(TOM_AREA, x.tipo)]}`}>{TIPOS_DEMANDA_LABEL[x.tipo]}</p>
+                                <p className="mt-1 text-3xl font-semibold tabular-nums">{x.n || '—'}</p>
+                                <p className="mt-1 text-xs text-muted-foreground">{x.n ? `${x.abertas} em aberto · ${moeda(x.v)} contratado` : 'Nenhuma atividade'}</p>
+                            </div>
+                        ))}
+                    </div>
+                    {subtipos.length > 0 && (
+                        <div className="mt-4">
+                            <p className="mb-2 text-xs font-medium text-muted-foreground">Operação por tipo de serviço</p>
+                            <Barras itens={subtipos.map(s => ({ rotulo: s.chave === 'SEM_SUBTIPO' ? 'Sem tipo' : SUBTIPOS_OPERACAO_LABEL[s.chave] || s.chave, n: s.n, tom: 'teal' as Tom }))} />
+                        </div>
+                    )}
+                </Painel>
+                <Painel titulo="Situação das atividades" acao={<Link onClick={irAtividades}>Abrir atividades</Link>}>
+                    <Barras itens={porStatus.map(s => ({ rotulo: STATUS_OPERACIONAL[s.s].label, n: s.n, tom: tomDe(TOM_STATUS, s.s) }))} mostrarZero />
+                </Painel>
+            </div>
+
+            {/* ── Clientes */}
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <Painel titulo="Por detentora (sharing)">
+                    <Barras itens={porSharing.map(s => ({ rotulo: s.chave, n: s.n, extra: moeda(s.v), tom: tomDe(TOM_SHARING, s.chave), onClick: () => setDetentora(detentora === s.chave ? '' : s.chave) }))} />
+                </Painel>
+                <Painel titulo="Por operadora">
+                    <Barras itens={porOperadora.map(s => ({ rotulo: s.chave === 'SEM_OPERADORA' ? 'Sem operadora' : s.chave, n: s.n, extra: moeda(s.v), tom: tomDe(TOM_OPERADORA, s.chave) }))} />
+                </Painel>
+                <Painel titulo="Por estado">
+                    <Barras itens={porUf.slice(0, 8).map(s => ({ rotulo: s.chave === 'SEM_UF' ? 'Sem UF' : `${s.chave} · ${nomeUf(s.chave)}`, n: s.n, extra: moeda(s.v), tom: 'indigo' as Tom }))} />
+                    {porRegiao.length > 0 && (
+                        <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                            {porRegiao.map(r => <span key={r.chave}>{REGIAO_LABEL[r.chave] || r.chave} <strong className="text-foreground tabular-nums">{r.n}</strong></span>)}
+                        </p>
+                    )}
+                </Painel>
+            </div>
+
+            {/* ── Volume, tipos de site, pendências */}
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <Painel titulo="Volume por mês" subtitulo="Atividades abertas nos últimos 6 meses">
+                    <div className="flex h-40 items-end gap-3">
+                        {porMes.map(m => (
+                            <div key={m.rotulo} className="flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${m.rotulo}: ${m.impl} implantação, ${m.oper} operação`}>
+                                <span className="text-xs font-semibold tabular-nums">{m.impl + m.oper || ''}</span>
+                                <div className="flex w-full max-w-[36px] flex-col-reverse overflow-hidden rounded-t" style={{ height: `${((m.impl + m.oper) / maxMes) * 100}%` }}>
+                                    <div className={SOLIDO[tomDe(TOM_AREA, 'IMPLANTACAO')]} style={{ height: `${m.impl + m.oper ? (m.impl / (m.impl + m.oper)) * 100 : 0}%` }} />
+                                    <div className={SOLIDO[tomDe(TOM_AREA, 'OPERACAO')]} style={{ height: `${m.impl + m.oper ? (m.oper / (m.impl + m.oper)) * 100 : 0}%` }} />
+                                </div>
+                                <span className="text-[11px] text-muted-foreground">{m.rotulo}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <p className="mt-3 flex gap-4 text-[11px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1.5"><span className={`h-2 w-2 rounded-sm ${SOLIDO[tomDe(TOM_AREA, 'IMPLANTACAO')]}`} />Implantação</span>
+                        <span className="inline-flex items-center gap-1.5"><span className={`h-2 w-2 rounded-sm ${SOLIDO[tomDe(TOM_AREA, 'OPERACAO')]}`} />Operação</span>
+                    </p>
+                </Painel>
+                <Painel titulo="Implantação por tipo de site">
+                    {porTipoSite.length
+                        ? <Barras itens={porTipoSite.map(s => ({ rotulo: s.chave === 'SEM_TIPO' ? 'Sem tipo' : rotuloTipoSite(s.chave), n: s.n, tom: 'blue' as Tom }))} />
+                        : <p className="text-sm text-muted-foreground">Nenhuma implantação no filtro.</p>}
+                </Painel>
+                <Painel titulo="Pendências" acao={<Link onClick={irAtividades}>Resolver</Link>}>
+                    <ul className="space-y-2 text-sm">
+                        <Pendencia icone={Clock} n={n.atrasadas} texto="com prazo vencido" grave />
+                        <Pendencia icone={FileWarning} n={n.correcao} texto="documentos em correção" grave />
+                        <Pendencia icone={FileWarning} n={n.documentos} texto="documentos pendentes" />
+                        <Pendencia icone={Receipt} n={n.semPO} texto="atividades em aberto sem PO" />
+                        <Pendencia icone={Paperclip} n={n.comprovantes} texto="comprovantes de pagamento pendentes" />
+                    </ul>
+                    {!n.atrasadas && !n.correcao && !n.documentos && !n.semPO && !n.comprovantes && <p className="text-sm text-ok">Nenhuma pendência no filtro.</p>}
+                </Painel>
+            </div>
+
+            {/* ── Projetos e orçamentos */}
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+                <Painel titulo="Projetos" acao={<Link onClick={irAtividades}>Ver projetos</Link>}>
+                    <div className="flex items-baseline gap-2"><FolderOpen size={18} aria-hidden className="text-primary" />
+                        <span className="text-3xl font-semibold tabular-nums">{projetos.filter((p: any) => (p.atividades?.length ?? p._count?.atividades ?? 1) > 0).length || '—'}</span>
+                        <span className="text-sm text-muted-foreground">projeto(s) com atividades</span></div>
+                    <p className="mt-2 text-xs text-muted-foreground">{n.emProjeto ? `${n.emProjeto} de ${n.total} atividades estão agrupadas em projetos (${pct((n.emProjeto / Math.max(1, n.total)) * 100)}).` : 'Nenhuma atividade agrupada no filtro.'}</p>
+                </Painel>
+                <Painel titulo="Orçamentos" className="lg:col-span-2" acao={<Link onClick={() => onNavigateTo?.('historico')}>Ver todos os orçamentos</Link>}>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <Mini rotulo="Total" valor={orc.total} />
+                        <Mini rotulo="Rascunho" valor={orc.rascunho} />
+                        <Mini rotulo="Enviados" valor={orc.enviado} detalhe={orc.valorEnviado ? moeda(orc.valorEnviado) : undefined} />
+                        <Mini rotulo="Aprovados" valor={orc.aprovado} detalhe={orc.valorAprovado ? moeda(orc.valorAprovado) : undefined} />
+                    </div>
+                    {orc.ultimos.length > 0 && (
+                        <ul className="mt-4 divide-y divide-border/60 text-sm">
+                            {orc.ultimos.map((b: any) => (
+                                <li key={b.id} className="flex items-center gap-3 py-2">
+                                    <span className="min-w-0 flex-1 truncate">{b.numero && <span className="mr-2 font-id text-xs text-muted-foreground">{b.numero}</span>}{b.assunto || b.atividade?.titulo || 'Orçamento'}</span>
+                                    {b.atividade?.id_site_sharing && <span className="font-id text-xs text-muted-foreground">{b.atividade.id_site_sharing}</span>}
+                                    <span className="tabular-nums text-xs">{b.total_cliente ? moeda(b.total_cliente) : '—'}</span>
+                                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{STATUS_ORCAMENTO[b.status] || b.status}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </Painel>
+            </div>
+            </>)}
+        </div>
+    );
+}
+
+function Kpi({ icone: Icone, rotulo, valor, detalhe, tom, pequeno, onClick }: {
+    icone: typeof Layers; rotulo: string; valor: React.ReactNode; detalhe?: string; tom?: Tom; pequeno?: boolean; onClick?: () => void;
+}) {
+    const Corpo = onClick ? 'button' : 'div';
+    return (
+        <Corpo onClick={onClick} className={`flex items-start gap-3 rounded-xl border border-border bg-card p-4 text-left ${onClick ? 'hover:border-primary/50' : ''}`}>
+            <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/60 text-muted-foreground"><Icone size={16} aria-hidden /></span>
+            <span className="min-w-0">
+                <span className="block text-xs font-medium text-muted-foreground">{rotulo}</span>
+                <span className={`block font-semibold tabular-nums ${pequeno ? 'text-lg' : 'text-2xl'} ${tom ? TEXTO[tom] : ''}`}>{valor}</span>
+                {detalhe && <span className="block truncate text-[11px] text-muted-foreground">{detalhe}</span>}
+            </span>
+        </Corpo>
+    );
+}
+
+function Painel({ titulo, subtitulo, acao, className = '', children }: { titulo: string; subtitulo?: string; acao?: React.ReactNode; className?: string; children: React.ReactNode }) {
+    return (
+        <section className={`rounded-xl border border-border bg-card p-5 ${className}`}>
+            <header className="mb-4 flex items-start justify-between gap-3">
+                <div><h2 className="text-[15px] font-semibold">{titulo}</h2>{subtitulo && <p className="text-xs text-muted-foreground">{subtitulo}</p>}</div>
+                {acao}
+            </header>
+            {children}
+        </section>
+    );
+}
+
+function Link({ onClick, children }: { onClick?: () => void; children: React.ReactNode }) {
+    return <button type="button" onClick={onClick} className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-primary hover:underline">{children}<ArrowRight size={12} aria-hidden /></button>;
+}
+
+/** Lista de barras horizontais: rótulo, barra proporcional, quantidade e valor. */
+function Barras({ itens, mostrarZero }: { itens: { rotulo: string; n: number; extra?: string; tom: Tom; onClick?: () => void }[]; mostrarZero?: boolean }) {
+    const visiveis = mostrarZero ? itens : itens.filter(i => i.n > 0);
+    if (!visiveis.length) return <p className="text-sm text-muted-foreground">Nada no filtro.</p>;
+    const max = Math.max(1, ...visiveis.map(i => i.n));
+    return (
+        <ul className="space-y-2.5">
+            {visiveis.map(i => {
+                const conteudo = (<>
+                    <span className="w-32 shrink-0 truncate text-left text-xs" title={i.rotulo}>{i.rotulo}</span>
+                    <span className="h-2 flex-1 overflow-hidden rounded-full bg-[hsl(var(--progress-track))]">
+                        <span className={`block h-full rounded-full ${SOLIDO[i.tom]}`} style={{ width: `${(i.n / max) * 100}%` }} />
                     </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* ── Pipeline de Atividades ── */}
-        <div style={{ background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 18px', borderBottom: `1px solid ${T.brBase}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span style={{ fontSize: 15, fontWeight: 700, color: T.txPri }}>Pipeline de atividades</span>
-            {onNavigateTo && (
-              <button onClick={() => onNavigateTo('atividades')} style={linkBtnStyle}>
-                Abrir atividades
-              </button>
-            )}
-          </div>
-          {loading ? (
-            <div style={{ padding: '28px 18px', color: T.txMut, fontSize: 13, textAlign: 'center' }}>Carregando...</div>
-          ) : porOperacional.length === 0 ? (
-            <div style={{ padding: '28px 18px', color: T.txMut, fontSize: 13, textAlign: 'center' }}>
-              Nenhuma atividade cadastrada.
-              {onNavigateTo && (
-                <div style={{ marginTop: 10 }}>
-                  <button onClick={() => onNavigateTo('atividades')} style={{ ...linkBtnStyle, fontSize: 13 }}>
-                    <Plus size={14} aria-hidden /> Criar primeira atividade
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div style={{ padding: '14px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {Object.entries(STATUS_OPERACIONAL).map(([key, info]) => {
-                const item = porOperacional.find(s => s.status_operacional === key);
-                const count = item?._count ?? 0;
-                const maxCount = Math.max(...porOperacional.map(s => s._count), 1);
-                const pct = Math.round((count / maxCount) * 100);
-                // Barra na cor do status — a mesma da pílula e do kanban.
-                const corStatus = hexTom(tomDe(TOM_STATUS, key, 'slate'));
+                    <span className="w-8 text-right text-xs font-semibold tabular-nums">{i.n || '—'}</span>
+                    {i.extra !== undefined && <span className="w-24 text-right text-[11px] tabular-nums text-muted-foreground">{i.extra}</span>}
+                </>);
                 return (
-                  <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ width: 110, fontSize: 11, color: count > 0 ? T.txSec : T.txMut, fontWeight: 600, flexShrink: 0 }}>{info.label}</div>
-                    <div style={{ flex: 1, background: T.bg3, borderRadius: 4, height: 6, overflow: 'hidden' }}>
-                      <div style={{ width: `${pct}%`, height: '100%', background: corStatus, borderRadius: 4, transition: 'width 0.4s ease' }} />
-                    </div>
-                    <div style={{ width: 32, textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 12, fontWeight: 700, color: count > 0 ? T.txPri : T.txMut }}>{count > 0 ? count : '—'}</div>
-                  </div>
+                    <li key={i.rotulo}>
+                        {i.onClick
+                            ? <button type="button" onClick={i.onClick} className="flex w-full items-center gap-3 rounded hover:bg-secondary/30" title="Filtrar por esta detentora">{conteudo}</button>
+                            : <div className="flex items-center gap-3">{conteudo}</div>}
+                    </li>
                 );
-              })}
-            </div>
-          )}
-        </div>
-
-      </div>
-
-      {/* ── Por Sharing ── */}
-      {!loading && porSharing.length > 0 && (
-        <div style={{ marginTop: 20, background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: '16px 18px' }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: T.txPri, marginBottom: 14 }}>Atividades por detentora</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
-            {porSharing.map(s => {
-              const cor = hexTom(tomDe(TOM_SHARING, s.sharing, 'slate'));
-              return (
-                <div key={s.sharing} style={{
-                  background: `${cor}14`, border: `1px solid ${cor}40`, borderLeft: `4px solid ${cor}`, borderRadius: 10,
-                  padding: '12px 18px', display: 'flex', alignItems: 'center', gap: 10,
-                }}>
-                  <div style={{ fontSize: 24, fontWeight: 700, color: T.txPri, fontVariantNumeric: 'tabular-nums', minWidth: 32, textAlign: 'right' }}>{s._count}</div>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: cor, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={s.sharing}>{s.sharing}</div>
-                </div>
-              );
             })}
-          </div>
+        </ul>
+    );
+}
+
+function Pendencia({ icone: Icone, n, texto, grave }: { icone: typeof Layers; n: number; texto: string; grave?: boolean }) {
+    if (!n) return null;
+    return <li className={`flex items-center gap-2 font-medium ${grave ? 'text-crit' : 'text-warn'}`}><Icone size={14} aria-hidden className="shrink-0" /><span className="tabular-nums">{n}</span> {texto}</li>;
+}
+
+function Mini({ rotulo, valor, detalhe }: { rotulo: string; valor: number; detalhe?: string }) {
+    return (
+        <div className="rounded-lg bg-secondary/30 p-3">
+            <p className="text-xs text-muted-foreground">{rotulo}</p>
+            <p className="text-xl font-semibold tabular-nums">{valor || '—'}</p>
+            {detalhe && <p className="text-[11px] text-muted-foreground">{detalhe}</p>}
         </div>
-      )}
-
-    </div>
-  );
+    );
 }
 
-function KpiCard({ label, value, icon, loading, small, tom = 'slate', vazio: textoVazio }: { label: string; value: any; icon: React.ReactNode; loading?: boolean; small?: boolean; tom?: Tom; vazio?: string }) {
-  // Zero, vazio e "sem dado" aparecem como "—" em texto apagado.
-  const vazio = value == null || value === 0 || value === '—' || value === 'R$ 0,00';
-  void tom; // tom continua aceito, mas o cartão é neutro (revisão de 08/10/2026)
-  return (
-    <div style={{
-      background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12,
-      padding: '14px 16px', display: 'flex', alignItems: 'flex-start', gap: 12, minWidth: 0,
-    }}>
-      <div style={{
-        color: T.txMut, background: T.bg3, flexShrink: 0, display: 'flex',
-        width: 34, height: 34, borderRadius: 8, alignItems: 'center', justifyContent: 'center',
-      }}>
-        {icon}
-      </div>
-      {/* Valor numa linha de altura fixa, ancorada na base: números grandes e
-          textos menores ficam na mesma linha de leitura ao longo da fileira. */}
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ fontSize: 12, color: T.txMut, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={label}>{label}</div>
-        <div title={typeof value === 'string' ? value : undefined} style={{
-          fontSize: vazio && textoVazio ? 13 : small ? 15 : 24, fontWeight: vazio && textoVazio ? 500 : 600, color: vazio ? T.txMut : T.txPri,
-          lineHeight: '28px', height: 28, marginTop: 2, display: 'flex', alignItems: 'flex-end',
-          fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>
-          {loading ? '…' : vazio ? (textoVazio || '—') : value}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function topSharing(porSharing: { sharing: string; _count: number }[]) {
-  if (!porSharing?.length) return '—';
-  const top = [...porSharing].sort((a, b) => b._count - a._count)[0];
-  return top ? `${top.sharing} (${top._count})` : '—';
-}
-
-const secaoStyle: React.CSSProperties = {
-  fontSize: 12, fontWeight: 600, color: T.txMut, margin: '0 0 10px',
-};
-
-const linkBtnStyle: React.CSSProperties = {
-  background: 'transparent', border: 'none', cursor: 'pointer',
-  color: T.blue, fontSize: 12, fontWeight: 600, padding: 0,
-  display: 'inline-flex', alignItems: 'center', gap: 4,
-};
+export default Dashboard;

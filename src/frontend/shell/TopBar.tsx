@@ -17,7 +17,7 @@ const ICONE_MODULO: Record<string, LucideIcon> = {
 // os emojis de ícone viraram lucide-react e o que vinha da closure do App virou prop.
 
 export const TAB_LABELS: Record<string, string> = {
-    overview: "Visão geral",
+    overview: "Dashboard",
     demandas: "Pipeline",
     atividades: "Atividades",
     pagamentos: "Controle de pagamentos",
