@@ -752,7 +752,12 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
                 pagamentos: { orderBy: { numero: 'asc' }, include: { anexos: true } },
                 arquivos: { orderBy: { created_at: 'asc' } },
                 atividade: { include: { contratante: { select: { nome: true } } } },
-                acionamento: { include: { contratante: { select: { nome: true } } } },
+                acionamento: {
+                    include: {
+                        contratante: { select: { nome: true } },
+                        atividades: { select: { id_site_sharing: true, codigo: true }, orderBy: { codigo: 'asc' } },
+                    },
+                },
             },
         });
         if (!r) return res.status(404).json({ error: 'Reembolso não encontrado' });
@@ -813,6 +818,18 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
             logo_url: empresa?.logo_url || null,
             site: a.id_site_sharing || a.codigo,
             nome_site: a.id_site_operadora || null,
+            // Adiantamento de projeto: o nome e os sites dizem ao financeiro para que
+            // obras o dinheiro vai, já que o valor só é dividido na prestação.
+            projeto_nome: projeto?.titulo || null,
+            sites_projeto: projeto?.atividades?.length
+                ? (() => {
+                    const sites = [...new Set(projeto.atividades.map(x => x.id_site_sharing || x.codigo))];
+                    return sites.length > 12 ? `${sites.slice(0, 12).join(', ')} e mais ${sites.length - 12}` : sites.join(', ');
+                })()
+                : null,
+            codigo_processo: r.codigo || null,
+            numero_deposito: pagamento?.numero ?? null,
+            prestacao_contas: adiantamento ? 'Obrigatória: gastos lançados por site no sistema' : null,
             cliente: a.operadora || null,
             sharing: a.contratante?.nome || a.sharing,
             tipo_demanda: a.tipo_demanda,

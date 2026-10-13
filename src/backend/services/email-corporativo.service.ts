@@ -97,6 +97,14 @@ export interface DadosEmail {
     // Demanda
     site?: string | null;
     nome_site?: string | null;
+    /** Adiantamento de projeto (12/10/2026): nome do projeto e os sites dele. */
+    projeto_nome?: string | null;
+    sites_projeto?: string | null;
+    /** Código do processo (ADT-2026-0002) e número do depósito. */
+    codigo_processo?: string | null;
+    numero_deposito?: number | null;
+    /** Adiantamento: o favorecido presta contas depois, gasto por gasto. */
+    prestacao_contas?: string | null;
     cliente?: string | null;
     sharing?: string | null;
     // Classificacao da atividade que originou a solicitacao. Nunca inferir pelo
@@ -529,6 +537,8 @@ export function gerarEmailCorporativo(d: DadosEmail): { assunto: string; html: s
 
     const identificacao = [
         linha('Site / Projeto', d.site, true),
+        linha('Projeto', d.projeto_nome),
+        linha('Sites do projeto', d.sites_projeto),
         linha('Nome do site', d.nome_site),
         linha('Operadora', d.cliente),
         linha('Sharing / Contratante', d.sharing),
@@ -574,9 +584,13 @@ export function gerarEmailCorporativo(d: DadosEmail): { assunto: string; html: s
         linha('Centro de custo', d.centro_custo),
         linha('PO / Pedido', d.po),
         linha('Contrato', d.contrato),
+        linha('Processo', d.codigo_processo ? `${d.codigo_processo}${d.numero_deposito ? ` · depósito ${d.numero_deposito}` : ''}` : null),
+        linha('Prestação de contas', d.prestacao_contas),
     ].join('');
 
-    const financeiras = [
+    // Adiantamento não tem "já pago" nem "saldo": o acerto é feito na prestação
+    // de contas, não em parcelas (12/10/2026). A seção inteira sai.
+    const financeiras = d.tipo === 'ADIANTAMENTO' ? '' : [
         // O total contratado virou o complemento sob o valor em destaque
         // (VALOR_COMPLEMENTO). Aqui ele seria o mesmo número outra vez.
 
@@ -595,7 +609,9 @@ export function gerarEmailCorporativo(d: DadosEmail): { assunto: string; html: s
     const noCartao = d.forma_pagamento === 'CARTAO_CREDITO';
     // Pagamento por PIX não usa banco/agência/conta: quem paga só precisa da
     // chave. Mantê-los ali só dá o que conferir sem necessidade.
-    const porPix = d.forma_pagamento === 'PIX' && temValor(d.pix);
+    // No adiantamento a conta sai completa mesmo com PIX (12/10/2026): é o mesmo
+    // pedido de um pagamento normal, e o financeiro confere tudo antes de transferir.
+    const porPix = d.forma_pagamento === 'PIX' && temValor(d.pix) && d.tipo !== 'ADIANTAMENTO';
 
     const bancarias = [
         linha('Forma de pagamento', d.forma_pagamento ? (ROTULO_FORMA[d.forma_pagamento] || d.forma_pagamento) : null, true),
@@ -606,6 +622,7 @@ export function gerarEmailCorporativo(d: DadosEmail): { assunto: string; html: s
         // Favorecido e data prevista não se repetem aqui: os dois já estão na
         // faixa de resumo do topo. Repetir rouba atenção do que é único.
         linha('Razão social', d.razao_social),
+        // Favorecido, CPF e chave PIX já estão nos cartões do topo: não se repetem aqui.
         // O documento subiu para a caixa de destaque do favorecido; repetir
         // aqui seria o mesmo número em dois lugares da mesma tela.
 
@@ -651,7 +668,9 @@ export function gerarEmailCorporativo(d: DadosEmail): { assunto: string; html: s
         ? 'Favor prosseguir com a compra conforme as informações acima e registrar a despesa no respectivo site/projeto e centro de custo. Após o recebimento, favor anexar a nota fiscal ao processo/diretório financeiro.'
         : d.tipo === 'FORMALIZACAO_CARTAO'
             ? 'Favor conferir os documentos da compra, vincular o lançamento à fatura do cartão e ao respectivo site/projeto e centro de custo. A quitação da fatura é o evento de saída financeira; esta formalização não deve ser paga novamente ao fornecedor.'
-            : 'Favor realizar a programação conforme as informações acima e registrar a despesa no respectivo site/projeto e centro de custo. Após a realização do pagamento, favor anexar o comprovante ao respectivo processo/diretório financeiro.';
+            : d.tipo === 'ADIANTAMENTO'
+                ? 'Favor realizar a programação do adiantamento conforme os dados acima. Após o depósito, favor anexar o comprovante ao processo. O favorecido presta contas de cada gasto, por site, no sistema; a diferença entre o adiantado e o gasto é acertada por reembolso.'
+                : 'Favor realizar a programação conforme as informações acima e registrar a despesa no respectivo site/projeto e centro de custo. Após a realização do pagamento, favor anexar o comprovante ao respectivo processo/diretório financeiro.';
 
 
     const condicoes = {
@@ -664,7 +683,7 @@ export function gerarEmailCorporativo(d: DadosEmail): { assunto: string; html: s
         // condição de pagamento — imprimia o título "Condições financeiras" com
         // uma moldura vazia embaixo.
         CONDICOES: financeiras.trim() !== '',
-        PARCIAL: temValor(saldo) && (saldo as number) > 0,
+        PARCIAL: d.tipo !== 'ADIANTAMENTO' && temValor(saldo) && (saldo as number) > 0,
         CONDICAO_SALDO: temValor(d.condicao_liberacao_saldo),
         MATERIAIS: d.tipo === 'COMPRA_MATERIAL' && materiais.length > 0,
         ENTREGA: d.tipo === 'COMPRA_MATERIAL' && entrega.trim() !== '',

@@ -101,5 +101,21 @@ console.log('\n── Vale para todas as modalidades, não só reembolso');
     conferir('os 6 tipos dizem o que está sendo pago', semDescricao.length === 0, semDescricao.join(', '));
 }
 
+console.log('\n── Adiantamento de projeto (12/10/2026)');
+{
+    const { html } = gerarEmailCorporativo({
+        ...base, tipo: 'ADIANTAMENTO', site: 'ACI-2026-004', descricao: 'Técnicos em campo no fim de semana',
+        valor_pagamento: 3000, valor_total: 3000, valor_pago: 0, agencia: '0001', conta: '12345-6', tipo_conta: 'CORRENTE',
+        projeto_nome: 'VISTORIA DE ENERGIA OI', sites_projeto: 'MGBLH118, GOTMB016', codigo_processo: 'ADT-2026-0002', numero_deposito: 1,
+        prestacao_contas: 'Obrigatória: gastos lançados por site no sistema',
+    });
+    const texto = visivel(html);
+    conferir('sem "Valor já pago" nem "Saldo remanescente"', !/Valor já pago|Saldo remanescente|Condições financeiras/i.test(texto));
+    conferir('projeto e sites do projeto aparecem', texto.includes('VISTORIA DE ENERGIA OI') && texto.includes('MGBLH118, GOTMB016'));
+    conferir('conta completa mesmo com PIX', /Banco\s+Banco Inter/.test(texto) && /Agência\s+0001/.test(texto) && /Conta\s+12345-6/.test(texto));
+    conferir('processo, depósito e prestação de contas', texto.includes('ADT-2026-0002 · depósito 1') && texto.includes('Prestação de contas'));
+    conferir('chave PIX no destaque', texto.includes('91981047902'));
+}
+
 console.log(falhas === 0 ? '\nTudo certo.\n' : `\n${falhas} falha(s).\n`);
 process.exitCode = falhas === 0 ? 0 : 1;
