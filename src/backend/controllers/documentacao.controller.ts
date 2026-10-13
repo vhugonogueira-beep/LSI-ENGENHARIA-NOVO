@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
-import { gerarMatrizDocumental, recalcularStatusDocumental } from '../services/documentacao.service';
+import { gerarMatrizDocumental, recalcularStatusDocumental, completarRequisitosGerais } from '../services/documentacao.service';
 import { avaliarProntoParaFaturar } from '../services/gates.service';
 import {
     deleteStoredDocumentFile,
@@ -86,6 +86,9 @@ export async function listDocumentosAtividade(req: Request, res: Response) {
         });
         if (!atividade) return res.status(404).json({ error: 'Atividade não encontrada' });
 
+        // Requisito geral novo (ex.: relatório de fiscalização) entra também nas
+        // matrizes que já existiam, ao abrir a aba.
+        await completarRequisitosGerais(atividade_id);
         const existingCount = await prisma.documentoAtividade.count({
             where: { atividade_id, aplicavel: true },
         });
