@@ -1,5 +1,5 @@
 import {
-    BarChart3, Bell, Building2, ClipboardList, CreditCard, Folder, Handshake, Home, LayoutGrid, Library,
+    BarChart3, Bell, Building2, ClipboardList, CreditCard, Folder, Handshake, LayoutDashboard, LayoutGrid, Library,
     MapPin, Moon, Receipt, RefreshCw, Search, Settings, Sun, Target, TrendingUp, User, type LucideIcon,
 } from 'lucide-react';
 import { T, tema, aplicarTema } from '../theme';
@@ -7,7 +7,7 @@ import { TOM_MODULO, hexTom, type Tom } from '../lib/cores';
 
 /** Ícone de cada módulo — o mesmo do menu lateral. */
 const ICONE_MODULO: Record<string, LucideIcon> = {
-    overview: Home, demandas: ClipboardList, dashboard: TrendingUp, historico: Folder, orcv2: Folder,
+    overview: LayoutDashboard, demandas: ClipboardList, dashboard: TrendingUp, historico: Folder, orcv2: Folder,
     lpus: Library, atividades: Target, projetos: Target, controle: Target, fornecedores: Building2,
     funcionarios: Building2, relatorios: BarChart3, faturamento: Receipt, pagamentos: CreditCard,
     clientes: Handshake, sites: MapPin, perfil: User, configuracoes: Settings,
@@ -18,10 +18,10 @@ const ICONE_MODULO: Record<string, LucideIcon> = {
 
 export const TAB_LABELS: Record<string, string> = {
     overview: "Dashboard",
-    demandas: "Pipeline",
+    demandas: "Kanban",
     atividades: "Atividades",
     pagamentos: "Controle de pagamentos",
-    lpus: "Bases de preço (LPUs)",
+    lpus: "LPUs",
     perfil: "Meu perfil",
     configuracoes: "Configurações",
     dashboard: "Dashboard financeiro",

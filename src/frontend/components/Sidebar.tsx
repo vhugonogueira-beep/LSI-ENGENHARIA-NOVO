@@ -210,31 +210,29 @@ export default function Sidebar(props: SidebarProps) {
 
                 <nav style={{ padding: isExpanded ? "8px 6px" : "8px 4px", flex: 1, overflowX: "hidden" }}>
 
-                    {/* Grupos por tipo de trabalho (revisão de 08/10/2026). Antes eram
-                        "Demandas / Dashboard / Orçamento / Obras", e Pagamentos e Faturamento
-                        moravam em "Obras". Recolhido, um traço fino separa os grupos. */}
-                    <Grupo texto="Operação" primeiro />
+                    {/* Grupos por tipo de trabalho; recolhido, um traço fino separa os grupos.
+                        Revisão de 13/10/2026: Rollout reúne o dia a dia da carteira — Dashboard,
+                        Atividades, Kanban (antes "Pipeline") e Orçamentos, que nascem dentro da
+                        Atividade (não há "Novo orçamento" solto). Sites foi para Cadastros. */}
+                    <Grupo texto="Rollout" primeiro />
                     <NavItem id="overview" icon={LayoutDashboard} label="Dashboard" />
                     <NavItem id="atividades" icon={Target} label="Atividades" />
-                    <NavItem id="demandas" icon={ClipboardList} label="Pipeline" />
+                    <NavItem id="demandas" icon={ClipboardList} label="Kanban" />
+                    <NavItem id="historico" icon={Folder} label="Orçamentos" />
+
+                    <Grupo texto="Cadastros" />
                     <NavItem id="sites" icon={MapPin} label="Sites" />
+                    <NavItem id="fornecedores" icon={Building2} label="Pessoas e fornecedores" />
 
                     <Grupo texto="Comercial" />
-                    {/* Orçamento nasce dentro da Atividade (abas PV Highline e Cotação LS).
-                        "Novo Orçamento" saiu da sidebar para não existir um segundo caminho,
-                        que criava orçamento solto, sem obra. */}
-                    <NavItem id="historico" icon={Folder} label="Orçamentos" />
-                    <NavItem id="lpus" icon={Library} label="Bases de preço (LPUs)" />
                     <NavItem id="clientes" icon={Handshake} label="Clientes" />
+                    <NavItem id="lpus" icon={Library} label="LPUs" />
 
                     <Grupo texto="Financeiro" />
                     <NavItem id="pagamentos" icon={CreditCard} label="Controle de pagamentos" />
                     <NavItem id="faturamento" icon={Receipt} label="Faturamento" />
                     <NavItem id="dashboard" icon={TrendingUp} label="Dashboard financeiro" />
                     <NavItem id="relatorios" icon={BarChart3} label="Relatórios" />
-
-                    <Grupo texto="Cadastros" />
-                    <NavItem id="fornecedores" icon={Building2} label="Pessoas e fornecedores" />
 
                     {/* O avatar e a logo continuam como atalhos, mas o acesso principal a
                         Meu Perfil e Configurações precisa estar no menu. */}
