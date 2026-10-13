@@ -61,15 +61,17 @@ export default function Sidebar(props: SidebarProps) {
     // Item ativo: sempre o azul do sistema (era a cor do módulo).
     const fundoAtivo = (_t: Tom) => '#1768D5';
 
-    const TituloSecao = ({ texto, tom }: { texto: string; tom: Tom }) => (
-        <div data-tom={tom} style={{ fontSize: 11, fontWeight: 500, color: T.txDis, marginBottom: 6, paddingLeft: 14, paddingTop: 14, letterSpacing: "0.02em" }}>
-            {texto}
-        </div>
-    );
-
     // Título de grupo no menu aberto; no recolhido, só um traço que separa os grupos.
+    // Título do grupo (13/10/2026): maiúsculo, maior e numa faixa de fundo própria,
+    // para separar Rollout / Cadastros / Comercial / Financeiro / Sistema de relance.
     const Grupo = ({ texto, primeiro = false }: { texto: string; primeiro?: boolean }) => isExpanded
-        ? <TituloSecao texto={texto} tom="slate" />
+        ? (
+            <div role="heading" aria-level={2} style={{
+                margin: primeiro ? "4px 2px 6px" : "14px 2px 6px", padding: "7px 12px", borderRadius: 8,
+                background: `${T.blue}1F`, borderLeft: `3px solid ${T.blue}`,
+                color: T.txPri, fontSize: 12.5, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+            }}>{texto}</div>
+        )
         : (primeiro ? null : <div aria-hidden="true" style={{ height: 1, background: T.brBase, margin: "8px 12px" }} />);
 
     const NavItem = ({ id, icon: Icone, label, badge, indent = false, onClick, activeOverride = undefined, color = null }: NavItemProps) => {

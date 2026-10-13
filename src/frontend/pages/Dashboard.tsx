@@ -152,7 +152,7 @@ export function Dashboard({ onNavigateTo }: { onNavigateTo?: (tab: string) => vo
 
             {loading ? <p className="py-16 text-center text-sm text-muted-foreground">Carregando…</p> : (<>
             {/* ── Números principais */}
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
                 <Kpi icone={Layers} rotulo="Atividades" valor={n.total || '—'} detalhe={n.total ? `${n.abertas} em aberto` : 'Nenhuma atividade'} onClick={irAtividades} />
                 <Kpi icone={Play} rotulo="Em execução" valor={n.execucao || '—'} tom="blue" />
                 <Kpi icone={Clock} rotulo="Prazo vencido" valor={n.atrasadas || '—'} tom={n.atrasadas ? 'rose' : undefined} detalhe={n.atrasadas ? 'término planejado passou' : 'Nenhuma atrasada'} />
