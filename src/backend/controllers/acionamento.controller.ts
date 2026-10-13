@@ -96,11 +96,14 @@ export async function updateAcionamento(req: Request, res: Response) {
 
         const existing = await prisma.acionamento.findUnique({ where: { id } });
         if (!existing) return res.status(404).json({ error: 'Acionamento não encontrado' });
+        if (titulo !== undefined && String(titulo).trim().length < 3) {
+            return res.status(400).json({ error: 'Dê um nome ao projeto (mínimo de 3 letras)' });
+        }
 
         const acionamento = await prisma.acionamento.update({
             where: { id },
             data: {
-                titulo: titulo ?? existing.titulo,
+                titulo: titulo !== undefined ? String(titulo).trim() : existing.titulo,
                 canal_recebimento: canal_recebimento !== undefined ? canal_recebimento : existing.canal_recebimento,
                 descricao_bruta: descricao_bruta !== undefined ? descricao_bruta : existing.descricao_bruta,
                 contratante_id: contratante_id !== undefined ? contratante_id : existing.contratante_id,
@@ -126,6 +129,17 @@ export async function deleteAcionamento(req: Request, res: Response) {
         const atividadesVinculadas = await prisma.atividade.count({ where: { acionamento_id: id } });
         if (atividadesVinculadas > 0) {
             return res.status(400).json({ error: 'Não é possível excluir: há atividades vinculadas a este acionamento' });
+        }
+        // Dinheiro e orçamento do projeto não somem com ele: sem esta trava a
+        // exclusão caía num erro de chave estrangeira sem explicação (12/10/2026).
+        const [adiantamentos, orcamentos] = await Promise.all([
+            prisma.reembolso.count({ where: { acionamento_id: id } }),
+            prisma.budget.count({ where: { acionamento_id: id } }),
+        ]);
+        if (adiantamentos || orcamentos) {
+            return res.status(400).json({
+                error: `Não é possível excluir: o projeto tem ${[adiantamentos && `${adiantamentos} adiantamento(s)`, orcamentos && `${orcamentos} orçamento(s)`].filter(Boolean).join(' e ')} ligados a ele`,
+            });
         }
         await prisma.acionamento.delete({ where: { id } });
         res.json({ ok: true });
@@ -216,6 +230,31 @@ export async function agruparAtividades(req: Request, res: Response) {
 
         const projeto = await prisma.acionamento.findUnique({ where: { id } });
         if (!projeto) return res.status(404).json({ error: 'Projeto não encontrado' });
+
+        // Atividade que recebeu gasto do adiantamento do projeto não sai dele: o
+        // gasto ficaria apontando para fora do projeto, que é justamente o que a
+        // prestação de contas proíbe (12/10/2026).
+        const sairao = await prisma.atividade.findMany({
+            where: { acionamento_id: id, ...(ids.length ? { id: { notIn: ids } } : {}) },
+            select: { id: true },
+        });
+        if (sairao.length) {
+            const comGasto = await prisma.atividade.findMany({
+                where: {
+                    id: { in: sairao.map(a => a.id) },
+                    OR: [
+                        { despesasRateadas: { some: { reembolso: { acionamento_id: id } } } },
+                        { despesasPrestacao: { some: { prestacao: { pagamentos: { some: { pagamento: { reembolso: { acionamento_id: id } } } } } } } },
+                    ],
+                },
+                select: { codigo: true, id_site_sharing: true },
+            });
+            if (comGasto.length) {
+                return res.status(400).json({
+                    error: `${comGasto.map(a => a.id_site_sharing || a.codigo).join(', ')} recebeu gasto do adiantamento do projeto. Tire esse gasto da prestação de contas antes de tirar a atividade do projeto.`,
+                });
+            }
+        }
 
         if (ids.length) {
             const encontradas = await prisma.atividade.findMany({

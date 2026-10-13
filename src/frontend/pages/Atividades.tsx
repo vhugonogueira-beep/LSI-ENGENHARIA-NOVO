@@ -1,7 +1,7 @@
 import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../components/atividades/TipoObraCampo';
 import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
 import { Fragment, useState, useEffect, useCallback } from 'react';
-import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet } from 'lucide-react';
+import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
@@ -107,6 +107,11 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [novoProjeto, setNovoProjeto] = useState('');
     const [projetoAlvo, setProjetoAlvo] = useState('');
     const [projetoAberto, setProjetoAberto] = useState<any | null>(null);
+    // Gestão do projeto na visão Projetos (12/10/2026): renomear, excluir vazio,
+    // tirar atividade; projetos vazios ficam recolhidos num link no fim.
+    const [renomeando, setRenomeando] = useState<{ id: string; titulo: string } | null>(null);
+    const [mostrarVazios, setMostrarVazios] = useState(false);
+    const [erroProjeto, setErroProjeto] = useState('');
     const [search, setSearch] = useState('');
     // Lista com projetos em "cortina" (12/10/2026): as atividades de um projeto ficam
     // recolhidas numa linha só, que abre ao clicar. Agrupamento e cortinas abertas
@@ -779,21 +784,66 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 </>
             ) : view === 'projetos' ? (
                 <div className="flex flex-col gap-3">
+                    {erroProjeto && <div role="alert" className="rounded-lg border border-crit/40 bg-crit/10 px-3 py-2 text-sm text-crit">{erroProjeto}</div>}
                     {projetos.length === 0 && (
                         <div className="rounded-xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
                             Nenhum projeto ainda. Na visão de Lista, marque as atividades e use <strong className="text-foreground">Agrupar</strong>.
                         </div>
                     )}
-                    {projetos.map(p => {
+                    {(() => {
+                    const qtd = (p: any) => p.resumo?.atividades ?? (p.atividades?.length || 0);
+                    const vazios = projetos.filter(p => qtd(p) === 0);
+                    const visiveis = mostrarVazios ? projetos : projetos.filter(p => qtd(p) > 0);
+                    const renomear = async (p: any) => {
+                        if (!renomeando) return;
+                        setErroProjeto('');
+                        const r = await fetch(`/api/acionamentos/${p.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ titulo: renomeando.titulo }) });
+                        if (!r.ok) { setErroProjeto((await r.json().catch(() => ({}))).error || 'Erro ao renomear o projeto'); return; }
+                        setRenomeando(null);
+                        await carregarProjetos();
+                    };
+                    const excluir = async (p: any) => {
+                        if (!confirm(`Excluir o projeto ${p.codigo} — ${p.titulo}? Ele está sem atividades.`)) return;
+                        setErroProjeto('');
+                        const r = await fetch(`/api/acionamentos/${p.id}`, { method: 'DELETE' });
+                        if (!r.ok) { setErroProjeto((await r.json().catch(() => ({}))).error || 'Erro ao excluir o projeto'); return; }
+                        if (projetoAberto?.id === p.id) setProjetoAberto(null);
+                        await carregarProjetos();
+                    };
+                    const tirar = async (p: any, a: any) => {
+                        if (!confirm(`Tirar ${a.site || a.codigo} do projeto ${p.codigo}? A atividade continua existindo, só deixa de fazer parte do grupo.`)) return;
+                        setErroProjeto('');
+                        const restantes = (p.atividades || []).filter((x: any) => x.id !== a.id).map((x: any) => x.id);
+                        const r = await fetch(`/api/acionamentos/${p.id}/atividades`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ atividade_ids: restantes }) });
+                        if (!r.ok) { setErroProjeto((await r.json().catch(() => ({}))).error || 'Erro ao tirar a atividade do projeto'); return; }
+                        await Promise.all([load(), carregarProjetos()]);
+                    };
+                    return <>
+                    {visiveis.map(p => {
                         const r = p.resumo || {};
                         const aberto = projetoAberto?.id === p.id;
+                        const vazio = qtd(p) === 0;
+                        const editando = renomeando?.id === p.id;
                         return (
-                            <div key={p.id} className={`rounded-xl border border-border border-l-4 ${FAIXA[TOM_MODULO.atividades]} bg-card overflow-hidden`}>
+                            <div key={p.id} className={`rounded-xl border border-border border-l-4 ${vazio ? 'border-l-border opacity-80' : FAIXA[TOM_MODULO.atividades]} bg-card overflow-hidden`}>
+                                <div className="flex items-center gap-2 pr-3 hover:bg-primary/[0.04]">
+                                {editando ? (
+                                    <form className="flex flex-1 items-center gap-2 px-4 py-2.5" onSubmit={e => { e.preventDefault(); renomear(p); }}>
+                                        <span className={`font-id text-xs ${TEXTO[TOM_MODULO.atividades]}`}>{p.codigo}</span>
+                                        <input autoFocus aria-label="Nome do projeto" value={renomeando!.titulo} onChange={e => setRenomeando({ id: p.id, titulo: e.target.value })}
+                                            onKeyDown={e => { if (e.key === 'Escape') setRenomeando(null); }}
+                                            className="h-8 min-w-0 flex-1 rounded-lg border border-border bg-background px-2 text-sm" />
+                                        <button type="submit" className="inline-flex h-8 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground"><Check size={14} aria-hidden /> Salvar</button>
+                                        <button type="button" onClick={() => setRenomeando(null)} className="h-8 rounded-lg px-2 text-xs text-muted-foreground hover:text-foreground">Cancelar</button>
+                                    </form>
+                                ) : (
                                 <button onClick={() => setProjetoAberto(aberto ? null : p)}
-                                    className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-left hover:bg-primary/[0.04]">
+                                    className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-left">
                                     <span className={`font-id text-xs ${TEXTO[TOM_MODULO.atividades]}`}>{p.codigo}</span>
                                     <strong className="text-sm">{p.titulo}</strong>
-                                    <span className="text-[11px] text-muted-foreground">{r.atividades ?? (p.atividades?.length || 0)} atividade(s)</span>
+                                    {vazio
+                                        ? <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">Vazio</span>
+                                        : <span className="text-[11px] text-muted-foreground">{qtd(p)} atividade(s)</span>}
                                     <span className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
                                         <span className="text-muted-foreground">Receita <Valor v={r.receita} /></span>
                                         <span className="text-muted-foreground">Contratado <Valor v={r.custo_comprometido} /></span>
@@ -805,6 +855,18 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             : (r.rateado || 0) > 0 && <span className="rounded-full bg-ok/15 px-2 py-0.5 font-semibold text-ok">Rateado {fmtMoeda(r.rateado)}</span>}
                                     </span>
                                 </button>
+                                )}
+                                {!editando && (
+                                    <div className="flex shrink-0 items-center gap-1">
+                                        <button type="button" onClick={() => setRenomeando({ id: p.id, titulo: p.titulo })} aria-label={`Renomear o projeto ${p.codigo}`} title="Renomear projeto"
+                                            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"><Pencil size={14} aria-hidden /></button>
+                                        {ehAdmin && vazio && (
+                                            <button type="button" onClick={() => excluir(p)} aria-label={`Excluir o projeto ${p.codigo}`} title="Excluir projeto (só sem atividades)"
+                                                className="rounded-md p-1.5 text-muted-foreground hover:bg-crit/10 hover:text-crit"><Trash2 size={14} aria-hidden /></button>
+                                        )}
+                                    </div>
+                                )}
+                                </div>
                                 {aberto && (
                                     <div className="border-t border-border">
                                         {(p.atividades || []).map((a: any) => {
@@ -814,8 +876,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             const status: string | undefined = a.status_operacional || daCarteira?.status_operacional;
                                             const area: string | undefined = a.tipo_demanda || daCarteira?.tipo_demanda;
                                             return (
-                                            <button key={a.id} onClick={() => setSelecionadaId(a.id)}
-                                                className={`flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b border-border/60 px-4 py-2.5 text-left text-xs last:border-b-0 hover:bg-secondary/30 ${status ? `border-l-4 ${FAIXA[tomStatus(status)]}` : ''}`}>
+                                            <div key={a.id} className={`flex items-center border-b border-border/60 pr-3 last:border-b-0 hover:bg-secondary/30 ${status ? `border-l-4 ${FAIXA[tomStatus(status)]}` : ''}`}>
+                                            <button onClick={() => setSelecionadaId(a.id)}
+                                                className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5 text-left text-xs">
                                                 <span className={`font-id text-xs ${TEXTO[TOM_MODULO.atividades]}`}>{a.codigo}</span>
                                                 <span>{a.titulo}</span>
                                                 {status && <StatusPill status={status} map={STATUS_OPERACIONAL} />}
@@ -826,10 +889,13 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                     {(a.custo_rateado || 0) > 0 && <span>Rateado <Valor v={a.custo_rateado} /></span>}
                                                 </span>
                                             </button>
+                                            <button type="button" onClick={() => tirar(p, a)} aria-label={`Tirar ${a.site || a.codigo} do projeto`} title="Tirar do projeto (a atividade continua existindo)"
+                                                className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-warn/10 hover:text-warn"><FolderMinus size={14} aria-hidden /></button>
+                                            </div>
                                             );
                                         })}
                                         {(p.atividades || []).length === 0 && (
-                                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">Projeto sem atividades. Agrupe pela visão de Lista.</div>
+                                            <div className="px-4 py-6 text-center text-xs text-muted-foreground">Projeto sem atividades. Agrupe pela visão de Lista{ehAdmin ? ' ou exclua o projeto pela lixeira acima' : ''}.</div>
                                         )}
                                         <PagamentosDoProjeto projeto={{ id: p.id, codigo: p.codigo, titulo: p.titulo }} onMudou={carregarProjetos} />
                                     </div>
@@ -837,6 +903,13 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             </div>
                         );
                     })}
+                    {vazios.length > 0 && (
+                        <button type="button" onClick={() => setMostrarVazios(v => !v)} className="self-start text-xs font-semibold text-primary hover:underline">
+                            {mostrarVazios ? 'Esconder projetos vazios' : `Mostrar ${vazios.length} projeto(s) vazio(s)`}
+                        </button>
+                    )}
+                    </>;
+                    })()}
                 </div>
             ) : (
                 <div className="flex gap-4 overflow-x-auto pb-4">

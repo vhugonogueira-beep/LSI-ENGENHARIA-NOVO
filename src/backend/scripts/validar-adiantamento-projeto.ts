@@ -110,6 +110,24 @@ async function main() {
         ] });
         conferir('distribuído para o próprio site e para outro do projeto', okB.ok, okB.corpo.error);
 
+        console.log('\n── Gestão do projeto');
+        const curto = await put(`/acionamentos/${projetoId}`, { titulo: 'ab' });
+        conferir('nome curto demais é recusado', curto.status === 400, `HTTP ${curto.status}`);
+        const renomeado = await put(`/acionamentos/${projetoId}`, { titulo: `  Vistorias Oi renomeado ${SUFIXO}  ` });
+        conferir('projeto renomeado (sem espaços nas pontas)', renomeado.ok && renomeado.corpo.titulo === `Vistorias Oi renomeado ${SUFIXO}`, JSON.stringify(renomeado.corpo.titulo || renomeado.corpo));
+        const tirarComGasto = await put(`/acionamentos/${projetoId}/atividades`, { atividade_ids: [a2.id, a3.id] });
+        conferir('atividade com gasto do adiantamento do projeto não sai do projeto', tirarComGasto.status === 400 && /recebeu gasto/.test(tirarComGasto.corpo.error), JSON.stringify(tirarComGasto.corpo));
+        const comAtividades = await json(`/acionamentos/${projetoId}`, { method: 'DELETE' });
+        conferir('projeto com atividades não é excluído', comAtividades.status === 400);
+        const vazio = await post('/acionamentos', { titulo: `Projeto vazio ${SUFIXO}`, descricao_bruta: TESTE });
+        const { reembolso: rVazio } = await adiantamento({ acionamento_id: vazio.corpo.id }, 50);
+        const comDinheiro = await json(`/acionamentos/${vazio.corpo.id}`, { method: 'DELETE' });
+        conferir('projeto com adiantamento não é excluído (mensagem clara)', comDinheiro.status === 400 && /adiantamento/.test(comDinheiro.corpo.error), JSON.stringify(comDinheiro.corpo));
+        await prisma.reembolso.delete({ where: { id: rVazio.id } });
+        reembolsos.splice(reembolsos.indexOf(rVazio.id), 1);
+        const excluido = await json(`/acionamentos/${vazio.corpo.id}`, { method: 'DELETE' });
+        conferir('projeto vazio é excluído', excluido.ok, JSON.stringify(excluido.corpo));
+
         console.log('\n── Fora de projeto e mistura');
         const { pagamentoId: pgFora } = await adiantamento({ atividade_id: fora.id }, 200);
         const { pagamentoId: pgA2 } = await adiantamento({ acionamento_id: projetoId }, 100);
