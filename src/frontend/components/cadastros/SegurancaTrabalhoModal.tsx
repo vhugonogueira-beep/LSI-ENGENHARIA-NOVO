@@ -11,13 +11,13 @@ import { downloadAuthenticatedFile } from '../../lib/authFetch';
 // equipe com os documentos de cada membro. Pendência só avisa, não bloqueia.
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface DocCatalogo { codigo: string; nome: string; meses: number; grupo: string; personalizado?: boolean; id?: string }
+interface DocCatalogo { codigo: string; nome: string; meses: number; grupo: string; validade?: boolean; personalizado?: boolean; id?: string }
 interface TrabCatalogo { codigo: string; nome: string; exige: string[]; personalizado?: boolean; id?: string }
 interface Catalogo { documentos: DocCatalogo[]; trabalhos: TrabCatalogo[] }
 interface Arquivo { id: string; nome_original: string; tamanho_bytes: number }
 interface Documento {
     id: string; tipo: string; rotulo: string; descricao?: string | null; numero?: string | null; entidade?: string | null;
-    data_emissao?: string | null; data_validade?: string | null; situacao: string; diasRestantes: number | null; arquivos: Arquivo[];
+    data_emissao?: string | null; data_validade?: string | null; situacao: string; diasRestantes: number | null; arquivos: Arquivo[]; possui_validade?: boolean;
 }
 interface Pendencia { pessoa: string; codigo: string; documento: string; motivo: 'FALTANDO' | 'VENCIDO' | 'VENCE_EM_BREVE'; dias?: number | null }
 interface Resumo { situacao: 'EM_DIA' | 'VENCE_EM_BREVE' | 'PENDENTE' | 'NAO_SE_APLICA'; pendencias: number; vencendo: number }
@@ -57,6 +57,7 @@ export function SeloSst({ resumo, onClick, compacto }: { resumo?: Resumo | null;
 }
 
 function PillDocumento({ d }: { d: Documento }) {
+    if (d.possui_validade === false) return <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">Validade: não se aplica</span>;
     if (d.situacao === 'VENCIDO') return <span className="rounded-full bg-crit/10 px-2 py-0.5 text-[11px] font-semibold text-crit">Vencido há {Math.abs(d.diasRestantes || 0)} dia(s)</span>;
     if (d.situacao === 'VENCE_EM_BREVE') return <span className="rounded-full bg-warn/10 px-2 py-0.5 text-[11px] font-semibold text-warn">Vence em {d.diasRestantes} dia(s)</span>;
     if (d.situacao === 'VALIDO') return <span className="rounded-full bg-ok/10 px-2 py-0.5 text-[11px] font-semibold text-ok">Válido até {dataBr(d.data_validade)}</span>;
@@ -226,12 +227,16 @@ function Documentos({ docs, exigidos, catalogo, dono, onMudou, onNovoTipo, setEr
                             <input className={inputClass} value={form.entidade} onChange={e => setForm({ ...form, entidade: e.target.value })} placeholder="Ex.: SSP/PA, SENAI" /></label>
                         <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">Data de emissão</span>
                             <input type="date" className={inputClass} value={form.data_emissao} onChange={e => setForm({ ...form, data_emissao: e.target.value })} /></label>
+                        {(catalogo.documentos.find(d => d.codigo === form.tipo)?.validade ?? true) ? (
                         <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">Validade</span>
                             <input type="date" className={inputClass} value={form.data_validade} onChange={e => setForm({ ...form, data_validade: e.target.value })} />
                             {!form.data_validade && (catalogo.documentos.find(d => d.codigo === form.tipo)?.meses || 0) > 0 && (
                                 <span className="mt-1 block text-[11px] text-muted-foreground">Em branco: calculada pela emissão ({catalogo.documentos.find(d => d.codigo === form.tipo)?.meses} meses).</span>
                             )}
                         </label>
+                        ) : (
+                            <p className="self-end pb-2 text-xs text-muted-foreground">Validade: não se aplica (documento de identificação não vence).</p>
+                        )}
                         <label className="block sm:col-span-2"><span className="mb-1 block text-xs font-medium text-muted-foreground">Anexo (PDF ou foto)</span>
                             <input type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.heic" onChange={e => setArquivo(e.target.files?.[0] || null)}
                                 className="block w-full text-xs file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1.5 file:text-xs file:font-semibold" /></label>
@@ -256,11 +261,12 @@ function Documentos({ docs, exigidos, catalogo, dono, onMudou, onNovoTipo, setEr
 function NovoItemCatalogo({ tipo, catalogo, onFechar, onCriado }: { tipo: 'TRABALHO' | 'DOCUMENTO'; catalogo: Catalogo; onFechar: () => void; onCriado: () => void }) {
     const [nome, setNome] = useState('');
     const [meses, setMeses] = useState('0');
+    const [temValidade, setTemValidade] = useState(true);
     const [exige, setExige] = useState<string[]>([]);
     const [erro, setErro] = useState('');
     async function criar(e: React.FormEvent) {
         e.preventDefault(); setErro('');
-        try { await enviar('/api/sst/catalogo', 'POST', { tipo, nome, meses: Number(meses), exige }); onCriado(); } catch (er: any) { setErro(er.message); }
+        try { await enviar('/api/sst/catalogo', 'POST', { tipo, nome, meses: Number(meses), exige, possui_validade: temValidade }); onCriado(); } catch (er: any) { setErro(er.message); }
     }
     return (
         <div className="fixed inset-0 z-[9700] flex items-center justify-center bg-black/60 p-4" onClick={onFechar}>
@@ -273,8 +279,13 @@ function NovoItemCatalogo({ tipo, catalogo, onFechar, onCriado }: { tipo: 'TRABA
                 <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">Nome</span>
                     <input autoFocus className={inputClass} value={nome} onChange={e => setNome(e.target.value)} placeholder={tipo === 'TRABALHO' ? 'Ex.: Solda e corte a quente' : 'Ex.: NR-34 — Solda'} /></label>
                 {tipo === 'DOCUMENTO' ? (
-                    <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">Validade usual (meses; 0 = não vence)</span>
-                        <input type="number" min={0} max={120} className={inputClass} value={meses} onChange={e => setMeses(e.target.value)} /></label>
+                    <div className="space-y-2">
+                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={temValidade} onChange={e => setTemValidade(e.target.checked)} /> Este documento tem data de validade</label>
+                        {temValidade && (
+                            <label className="block"><span className="mb-1 block text-xs font-medium text-muted-foreground">Validade usual (meses; 0 = informar à mão)</span>
+                                <input type="number" min={0} max={120} className={inputClass} value={meses} onChange={e => setMeses(e.target.value)} /></label>
+                        )}
+                    </div>
                 ) : (
                     <div><span className="mb-1 block text-xs font-medium text-muted-foreground">Documentos exigidos</span>
                         <div className="flex max-h-56 flex-wrap gap-1.5 overflow-y-auto">

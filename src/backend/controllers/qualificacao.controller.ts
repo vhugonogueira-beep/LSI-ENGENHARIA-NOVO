@@ -5,7 +5,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
 import { listarMunicipios } from '../services/localidades.service';
-import { catalogo } from '../services/sst.service';
+import { catalogo, conferirDatasDocumento, possuiValidade } from '../services/sst.service';
 import { removerArquivosDoDocumento } from '../services/sst-arquivo.service';
 
 /** Tipos que a LS controla, com a validade usual em meses (0 = sem vencimento). */
@@ -103,10 +103,16 @@ export class QualificacaoController {
             if (!dados.funcionario_id && !dados.supplier_id) {
                 return res.status(400).json({ error: 'Vincule a um funcionário ou a um prestador' });
             }
+            // Documento de identificação (RG, CPF…) não tem validade: a data some (14/10/2026).
+            const cat = await catalogo(tenant_id);
+            const temValidade = possuiValidade(cat, dados.tipo);
+            if (!temValidade) dados.data_validade = null;
+            const erroData = conferirDatasDocumento(dados, temValidade);
+            if (erroData) return res.status(400).json({ error: erroData });
             // Validade sugerida a partir da emissão, quando o tipo tem prazo fixo.
             const meses = TIPOS_QUALIFICACAO[dados.tipo]?.meses
-                || (await catalogo(tenant_id)).documentos.find(d => d.codigo === dados.tipo)?.meses || 0;
-            if (!dados.data_validade && dados.data_emissao && meses > 0) {
+                || cat.documentos.find(d => d.codigo === dados.tipo)?.meses || 0;
+            if (temValidade && !dados.data_validade && dados.data_emissao && meses > 0) {
                 const v = new Date(dados.data_emissao);
                 v.setMonth(v.getMonth() + meses);
                 dados.data_validade = v;
@@ -121,6 +127,15 @@ export class QualificacaoController {
         try {
             const dados = filtrar(req.body);
             if (Object.keys(dados).length === 0) return res.status(400).json({ error: 'Nada para alterar' });
+            const atual = await prisma.qualificacao.findUnique({ where: { id: req.params.id } });
+            if (!atual) return res.status(404).json({ error: 'Documento não encontrado' });
+            const temValidade = possuiValidade(await catalogo(atual.tenant_id), dados.tipo || atual.tipo);
+            if (!temValidade) dados.data_validade = null;
+            const erroData = conferirDatasDocumento({
+                data_emissao: dados.data_emissao !== undefined ? dados.data_emissao : atual.data_emissao,
+                data_validade: dados.data_validade !== undefined ? dados.data_validade : atual.data_validade,
+            }, temValidade);
+            if (erroData) return res.status(400).json({ error: erroData });
             res.json(await prisma.qualificacao.update({ where: { id: req.params.id }, data: dados }));
         } catch (e: any) {
             res.status(400).json({ error: e.message });

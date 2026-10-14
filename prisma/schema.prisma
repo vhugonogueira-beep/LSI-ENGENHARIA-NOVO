@@ -492,6 +492,8 @@ model ItemCatalogoSst {
   codigo     String
   nome       String
   meses      Int      @default(0) // validade usual do documento (0 = sem vencimento)
+  /// DOCUMENTO: o tipo tem data de validade? RG e CPF não têm (14/10/2026).
+  possui_validade Boolean @default(true)
   exige      String? // TRABALHO: JSON com os códigos de documento exigidos
   ativo      Boolean  @default(true)
   created_at DateTime @default(now())

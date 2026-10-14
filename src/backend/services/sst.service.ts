@@ -7,30 +7,30 @@
 
 import { prisma } from '../server';
 
-export interface DocumentoSst { codigo: string; nome: string; meses: number; grupo: 'PESSOAL' | 'SST' | 'EMPRESA'; personalizado?: boolean; id?: string }
+export interface DocumentoSst { codigo: string; nome: string; meses: number; grupo: 'PESSOAL' | 'SST' | 'EMPRESA'; validade: boolean; personalizado?: boolean; id?: string }
 export interface TrabalhoSst { codigo: string; nome: string; exige: string[]; personalizado?: boolean; id?: string }
 
 /** Documentos de fábrica, com a validade usual em meses (0 = sem vencimento). */
 export const DOCUMENTOS_PADRAO: DocumentoSst[] = [
-    { codigo: 'RG', nome: 'RG — Identidade', meses: 0, grupo: 'PESSOAL' },
-    { codigo: 'CPF', nome: 'CPF', meses: 0, grupo: 'PESSOAL' },
-    { codigo: 'CNH', nome: 'CNH', meses: 0, grupo: 'PESSOAL' },
-    { codigo: 'COMPROVANTE_RESIDENCIA', nome: 'Comprovante de residência', meses: 0, grupo: 'PESSOAL' },
-    { codigo: 'ASO', nome: 'ASO — Atestado de saúde ocupacional', meses: 12, grupo: 'SST' },
-    { codigo: 'NR06', nome: 'NR-06 — EPI (ficha de entrega)', meses: 0, grupo: 'SST' },
-    { codigo: 'NR10', nome: 'NR-10 — Segurança em eletricidade', meses: 24, grupo: 'SST' },
-    { codigo: 'NR10_SEP', nome: 'NR-10 SEP — Sistema elétrico de potência', meses: 12, grupo: 'SST' },
-    { codigo: 'NR11', nome: 'NR-11 — Movimentação de cargas', meses: 24, grupo: 'SST' },
-    { codigo: 'NR12', nome: 'NR-12 — Máquinas e equipamentos', meses: 24, grupo: 'SST' },
-    { codigo: 'NR18', nome: 'NR-18 — Construção civil', meses: 24, grupo: 'SST' },
-    { codigo: 'NR33', nome: 'NR-33 — Espaço confinado', meses: 12, grupo: 'SST' },
-    { codigo: 'NR35', nome: 'NR-35 — Trabalho em altura', meses: 24, grupo: 'SST' },
-    { codigo: 'RESGATE', nome: 'Resgate em altura', meses: 24, grupo: 'SST' },
-    { codigo: 'PGR', nome: 'PGR — Programa de gerenciamento de riscos', meses: 24, grupo: 'EMPRESA' },
-    { codigo: 'PCMSO', nome: 'PCMSO — Controle médico de saúde ocupacional', meses: 12, grupo: 'EMPRESA' },
-    { codigo: 'SEGURO_VIDA', nome: 'Seguro de vida', meses: 12, grupo: 'EMPRESA' },
-    { codigo: 'ART', nome: 'ART — Anotação de responsabilidade técnica', meses: 0, grupo: 'EMPRESA' },
-    { codigo: 'OUTRO', nome: 'Outro documento', meses: 0, grupo: 'PESSOAL' },
+    { codigo: 'RG', nome: 'RG — Identidade', meses: 0, grupo: 'PESSOAL', validade: false },
+    { codigo: 'CPF', nome: 'CPF', meses: 0, grupo: 'PESSOAL', validade: false },
+    { codigo: 'CNH', nome: 'CNH', meses: 0, grupo: 'PESSOAL', validade: true },
+    { codigo: 'COMPROVANTE_RESIDENCIA', nome: 'Comprovante de residência', meses: 0, grupo: 'PESSOAL', validade: false },
+    { codigo: 'ASO', nome: 'ASO — Atestado de saúde ocupacional', meses: 12, grupo: 'SST', validade: true },
+    { codigo: 'NR06', nome: 'NR-06 — EPI (ficha de entrega)', meses: 0, grupo: 'SST', validade: false },
+    { codigo: 'NR10', nome: 'NR-10 — Segurança em eletricidade', meses: 24, grupo: 'SST', validade: true },
+    { codigo: 'NR10_SEP', nome: 'NR-10 SEP — Sistema elétrico de potência', meses: 12, grupo: 'SST', validade: true },
+    { codigo: 'NR11', nome: 'NR-11 — Movimentação de cargas', meses: 24, grupo: 'SST', validade: true },
+    { codigo: 'NR12', nome: 'NR-12 — Máquinas e equipamentos', meses: 24, grupo: 'SST', validade: true },
+    { codigo: 'NR18', nome: 'NR-18 — Construção civil', meses: 24, grupo: 'SST', validade: true },
+    { codigo: 'NR33', nome: 'NR-33 — Espaço confinado', meses: 12, grupo: 'SST', validade: true },
+    { codigo: 'NR35', nome: 'NR-35 — Trabalho em altura', meses: 24, grupo: 'SST', validade: true },
+    { codigo: 'RESGATE', nome: 'Resgate em altura', meses: 24, grupo: 'SST', validade: true },
+    { codigo: 'PGR', nome: 'PGR — Programa de gerenciamento de riscos', meses: 24, grupo: 'EMPRESA', validade: true },
+    { codigo: 'PCMSO', nome: 'PCMSO — Controle médico de saúde ocupacional', meses: 12, grupo: 'EMPRESA', validade: true },
+    { codigo: 'SEGURO_VIDA', nome: 'Seguro de vida', meses: 12, grupo: 'EMPRESA', validade: true },
+    { codigo: 'ART', nome: 'ART — Anotação de responsabilidade técnica', meses: 0, grupo: 'EMPRESA', validade: false },
+    { codigo: 'OUTRO', nome: 'Outro documento', meses: 0, grupo: 'PESSOAL', validade: true },
 ];
 
 /** Trabalhos de fábrica e o que cada um exige (tabela aprovada em 09/10/2026). */
@@ -60,13 +60,29 @@ export async function catalogo(tenant_id: string) {
     const proprios = await prisma.itemCatalogoSst.findMany({ where: { tenant_id, ativo: true }, orderBy: { nome: 'asc' } });
     const documentos: DocumentoSst[] = [
         ...DOCUMENTOS_PADRAO,
-        ...proprios.filter(i => i.tipo === 'DOCUMENTO').map(i => ({ codigo: i.codigo, nome: i.nome, meses: i.meses, grupo: 'SST' as const, personalizado: true, id: i.id })),
+        ...proprios.filter(i => i.tipo === 'DOCUMENTO').map(i => ({ codigo: i.codigo, nome: i.nome, meses: i.meses, grupo: 'SST' as const, validade: i.possui_validade, personalizado: true, id: i.id })),
     ];
     const trabalhos: TrabalhoSst[] = [
         ...TRABALHOS_PADRAO,
         ...proprios.filter(i => i.tipo === 'TRABALHO').map(i => ({ codigo: i.codigo, nome: i.nome, exige: lerLista(i.exige), personalizado: true, id: i.id })),
     ];
     return { documentos, trabalhos };
+}
+
+/** O tipo de documento tem data de validade? Tipo desconhecido: sim (não se perde controle). */
+export const possuiValidade = (cat: { documentos: DocumentoSst[] }, codigo: string) => cat.documentos.find(d => d.codigo === codigo)?.validade ?? true;
+
+/**
+ * Datas de um documento (14/10/2026): sem validade, a data some; com validade,
+ * ano entre 1900 e 2100 e validade não anterior à emissão. Devolve o erro ou null.
+ */
+export function conferirDatasDocumento(dados: { data_emissao?: Date | null; data_validade?: Date | null }, temValidade: boolean): string | null {
+    const anoOk = (d?: Date | null) => !d || (d.getUTCFullYear() >= 1900 && d.getUTCFullYear() <= 2100);
+    if (!anoOk(dados.data_emissao)) return 'Data de emissão inválida: use um ano entre 1900 e 2100';
+    if (!temValidade) return null;
+    if (!anoOk(dados.data_validade)) return 'Validade inválida: use um ano entre 1900 e 2100';
+    if (dados.data_emissao && dados.data_validade && dados.data_validade < dados.data_emissao) return 'A validade não pode ser anterior à data de emissão';
+    return null;
 }
 
 /** Código estável a partir do nome: "Solda e corte" → "SOLDA_E_CORTE". */
@@ -140,7 +156,7 @@ export async function sstDoFornecedor(supplierId: string) {
     const pf = s.tipo !== 'PESSOA_JURIDICA';
     const trabalhos = lerLista(s.sst_trabalhos);
     const nomeDoc = (c: string) => cat.documentos.find(d => d.codigo === c)?.nome || c;
-    const comSituacao = (qs: any[]) => qs.map(q => ({ ...q, rotulo: q.tipo === 'OUTRO' && q.descricao ? q.descricao : nomeDoc(q.tipo), ...situacaoValidade(q.data_validade) }));
+    const comSituacao = (qs: any[]) => qs.map(q => ({ ...q, rotulo: q.tipo === 'OUTRO' && q.descricao ? q.descricao : nomeDoc(q.tipo), possui_validade: possuiValidade(cat, q.tipo), ...situacaoValidade(q.data_validade) }));
 
     // PJ: quem sobe na torre são os membros da equipe; a empresa em si não tem NR.
     const proprio = avaliarPessoa(s.nome, pf, pf ? trabalhos : [], s.qualificacoes, cat);

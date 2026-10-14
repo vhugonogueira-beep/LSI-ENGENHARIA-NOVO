@@ -39,7 +39,8 @@ router.post('/catalogo', rota(async (req, res) => {
     const exige = tipo === 'TRABALHO' ? JSON.parse(lista(req.body.exige)) : [];
     if (tipo === 'TRABALHO' && !exige.length) return res.status(400).json({ error: 'Escolha ao menos um documento exigido para este trabalho' });
     const existente = await prisma.itemCatalogoSst.findUnique({ where: { tenant_id_codigo: { tenant_id, codigo } } });
-    const dados = { tipo, nome, meses: Math.max(0, Math.min(120, Number(req.body.meses) || 0)), exige: tipo === 'TRABALHO' ? JSON.stringify(exige) : null, ativo: true };
+    const possui_validade = req.body.possui_validade !== false;
+    const dados = { tipo, nome, meses: possui_validade ? Math.max(0, Math.min(120, Number(req.body.meses) || 0)) : 0, possui_validade, exige: tipo === 'TRABALHO' ? JSON.stringify(exige) : null, ativo: true };
     const item = existente
         ? await prisma.itemCatalogoSst.update({ where: { id: existente.id }, data: dados })
         : await prisma.itemCatalogoSst.create({ data: { tenant_id, codigo, ...dados } });

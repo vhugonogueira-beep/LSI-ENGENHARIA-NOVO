@@ -71,6 +71,17 @@ async function main() {
         conferir('ASO novo resolve (vale o de validade mais longa)', codigos(sst.corpo.pendencias) === 'NR10:VENCE_EM_BREVE', codigos(sst.corpo.pendencias));
         conferir('resumo VENCE_EM_BREVE', sst.corpo.resumo.situacao === 'VENCE_EM_BREVE', sst.corpo.resumo.situacao);
 
+        console.log('\n── Validade (14/10/2026)');
+        const rgComValidade = await post('/qualificacoes', { supplier_id: id, tipo: 'RG', numero: '999', data_validade: '0001-01-01' });
+        conferir('RG ignora validade (documento de identificação não vence)', rgComValidade.ok && rgComValidade.corpo.data_validade == null, JSON.stringify(rgComValidade.corpo.data_validade ?? rgComValidade.corpo.error));
+        await json(`/qualificacoes/${rgComValidade.corpo.id}`, { method: 'DELETE' });
+        const asoInvertido = await post('/qualificacoes', { supplier_id: id, tipo: 'ASO', data_emissao: dia(0), data_validade: dia(-10) });
+        conferir('validade anterior à emissão é recusada', asoInvertido.status === 400 && /anterior/.test(asoInvertido.corpo.error), JSON.stringify(asoInvertido.corpo));
+        const anoAbsurdo = await post('/qualificacoes', { supplier_id: id, tipo: 'NR35', data_validade: '0001-01-01' });
+        conferir('ano fora de 1900–2100 é recusado', anoAbsurdo.status === 400 && /1900/.test(anoAbsurdo.corpo.error), JSON.stringify(anoAbsurdo.corpo));
+        const docsRg = (await json(`/sst/fornecedores/${id}`)).corpo.documentos.filter((d: any) => d.tipo === 'RG');
+        conferir('RG sai com "validade não se aplica" para a tela', docsRg.length > 0 && docsRg.every((d: any) => d.possui_validade === false));
+
         console.log('\n── Anexos');
         const fd = new FormData();
         fd.append('arquivo', new Blob([new Uint8Array(Buffer.from('%PDF-1.4 teste'))], { type: 'application/pdf' }), 'rg-frente.pdf');
