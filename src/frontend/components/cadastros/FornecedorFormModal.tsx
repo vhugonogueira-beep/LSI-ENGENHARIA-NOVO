@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
-    BarChart3, Cog, DraftingCompass, Factory, Forklift, HardHat, Microscope, Package, Truck, UserRound, Wallet, Wrench, X,
+    BarChart3, Cog, DraftingCompass, Factory, Forklift, HardHat, Microscope, Package, Truck, UserRound, Wrench, X,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import DadosBancariosForm from './DadosBancariosForm';
@@ -68,10 +68,8 @@ const FORM_INIT = {
     especialidade: '', email: '', telefone: '', endereco: '', cidade: '', uf: '', regiao: '',
     banco: '', agencia: '', conta: '', tipo_conta: '', pix_tipo: 'CNPJ', pix: '', forma_pagamento: 'PIX', observacoes: '',
 };
-const CONDICAO_FORM_INIT = { nome: '', percentual_entrada: '20', percentual_saldo: '80', gatilho_saldo: 'CONCLUSAO' };
 
 const inputCls = "w-full border border-border rounded-lg p-2.5 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30";
-const smallInputCls = "text-xs border border-border rounded-md px-2 py-1.5 bg-secondary/40 text-foreground placeholder:text-muted-foreground focus:outline-none";
 const labelCls = "block text-sm font-medium mb-1 text-foreground";
 
 function formDoSupplier(s: Supplier) {
@@ -97,17 +95,10 @@ export default function FornecedorFormModal({ supplier, onClose, onSaved, onEsco
 }) {
     const editingId = supplier?.id || null;
     const [form, setForm] = useState(() => (supplier ? formDoSupplier(supplier) : FORM_INIT));
-    const [condicoesModal, setCondicoesModal] = useState<CondicaoPagamento[]>([]);
-    const [condicaoForm, setCondicaoForm] = useState(CONDICAO_FORM_INIT);
     const [saving, setSaving] = useState(false);
     const [erro, setErro] = useState('');
     const isPF = form.tipo === 'PESSOA_FISICA';
     const isMaterial = form.categoria === 'MATERIAL';
-
-    useEffect(() => {
-        if (!editingId) return;
-        fetch(`/api/suppliers/${editingId}/condicoes-pagamento`).then(r => (r.ok ? r.json() : [])).then(setCondicoesModal);
-    }, [editingId]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -147,18 +138,6 @@ export default function FornecedorFormModal({ supplier, onClose, onSaved, onEsco
             if (!resp.ok) { setErro(saved.error || 'Erro ao salvar o cadastro'); return; }
             const supplierId = editingId || saved.id;
 
-            // Condição de pagamento preenchida no próprio cadastro (não exige passo separado).
-            if (condicaoForm.nome.trim()) {
-                const entrada = parseFloat(condicaoForm.percentual_entrada);
-                const saldo = parseFloat(condicaoForm.percentual_saldo);
-                if (Math.round(entrada + saldo) === 100) {
-                    await fetch(`/api/suppliers/${supplierId}/condicoes-pagamento`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nome: condicaoForm.nome, percentual_entrada: entrada, percentual_saldo: saldo, gatilho_saldo: condicaoForm.gatilho_saldo }),
-                    });
-                }
-            }
             onSaved({ ...(supplier || {}), ...saved, id: supplierId });
         } catch {
             setErro('Erro ao salvar o cadastro');
@@ -285,36 +264,8 @@ export default function FornecedorFormModal({ supplier, onClose, onSaved, onEsco
                         onChange={(campo, valor) => setForm(f => ({ ...f, [campo === 'pix_chave' ? 'pix' : campo]: valor }))}
                     />
 
-                    {/* Condição de pagamento — agora dentro do próprio cadastro */}
-                    <div className="rounded-lg p-3.5 border border-primary/20 bg-primary/5">
-                        <div className="text-xs font-semibold text-muted-foreground mb-2 flex items-center gap-1.5">
-                            <Wallet size={14} aria-hidden /> Condição de pagamento padrão
-                        </div>
-                        {condicoesModal.length > 0 && (
-                            <div className="flex flex-col gap-1.5 mb-3">
-                                {condicoesModal.map(c => (
-                                    <div key={c.id} className="text-xs bg-secondary/50 rounded-md px-2.5 py-1.5">
-                                        <span className="font-semibold">{c.nome}</span> — {c.percentual_entrada}% entrada + {c.percentual_saldo}% saldo ({c.gatilho_saldo === 'INICIO' ? 'no início' : c.gatilho_saldo === 'MARCO' ? 'em marco' : 'na conclusão'})
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        <div className="grid grid-cols-4 gap-2">
-                            <input value={condicaoForm.nome} onChange={e => setCondicaoForm(f => ({ ...f, nome: e.target.value }))}
-                                className={`col-span-2 ${smallInputCls}`} placeholder="Nome (ex: 20+80)" />
-                            <input type="number" value={condicaoForm.percentual_entrada}
-                                onChange={e => setCondicaoForm(f => ({ ...f, percentual_entrada: e.target.value, percentual_saldo: String(100 - parseFloat(e.target.value || '0')) }))}
-                                className={smallInputCls} placeholder="% Entrada" />
-                            <input type="number" value={condicaoForm.percentual_saldo} onChange={e => setCondicaoForm(f => ({ ...f, percentual_saldo: e.target.value }))}
-                                className={smallInputCls} placeholder="% Saldo" />
-                        </div>
-                        <select value={condicaoForm.gatilho_saldo} onChange={e => setCondicaoForm(f => ({ ...f, gatilho_saldo: e.target.value }))} className={`${smallInputCls} mt-2 w-full`}>
-                            <option value="INICIO">Saldo pago no início</option>
-                            <option value="MARCO">Saldo pago em marco intermediário</option>
-                            <option value="CONCLUSAO">Saldo pago na conclusão</option>
-                        </select>
-                        <p className="text-[11px] text-muted-foreground mt-1.5">Preencha o nome para salvar esta condição junto com o cadastro. Deixe em branco para não criar nenhuma agora.</p>
-                    </div>
+                    {/* Condição de pagamento não faz parte do cadastro (14/10/2026): é escolhida
+                        ao lançar o pagamento na atividade. As já salvas continuam lá. */}
 
                     <div>
                         <label className={labelCls}>Observações</label>

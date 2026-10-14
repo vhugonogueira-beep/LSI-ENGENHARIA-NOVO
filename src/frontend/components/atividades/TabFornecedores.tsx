@@ -92,6 +92,32 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [templateDraft, setTemplateDraft] = useState('');
     const [salvandoTemplate, setSalvandoTemplate] = useState(false);
 
+    // Condição de pagamento (14/10/2026): sai do cadastro e é escolhida aqui, no
+    // pagamento. As condições já salvas do favorecido aparecem para reaproveitar,
+    // e a combinação digitada pode virar uma condição nova.
+    const [condicoesFav, setCondicoesFav] = useState<{ id: string; nome: string; percentual_entrada: number; percentual_saldo: number; gatilho_saldo: string }[]>([]);
+    const [nomeNovaCondicao, setNomeNovaCondicao] = useState('');
+    const supplierFavorecido = form.favorecido.startsWith('supplier:') ? form.favorecido.slice(9) : '';
+    useEffect(() => {
+        setCondicoesFav([]); setNomeNovaCondicao('');
+        if (!supplierFavorecido) return;
+        let vivo = true;
+        authFetch(`/api/suppliers/${supplierFavorecido}/condicoes-pagamento`).then(r => (r.ok ? r.json() : [])).then(d => { if (vivo) setCondicoesFav(Array.isArray(d) ? d : []); }).catch(() => undefined);
+        return () => { vivo = false; };
+    }, [supplierFavorecido]);
+    async function salvarCondicaoNova() {
+        const entrada = parseFloat(form.percentual_entrada), saldo = parseFloat(form.percentual_saldo);
+        if (!supplierFavorecido || !nomeNovaCondicao.trim()) return;
+        if (Math.round(entrada + saldo) !== 100) { setErro('Entrada + saldo precisa somar 100%'); return; }
+        const r = await authFetch(`/api/suppliers/${supplierFavorecido}/condicoes-pagamento`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nome: nomeNovaCondicao.trim(), percentual_entrada: entrada, percentual_saldo: saldo, gatilho_saldo: form.gatilho_saldo }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) { setErro(d.error || 'Erro ao salvar a condição'); return; }
+        setCondicoesFav(cs => [...cs, d]); setNomeNovaCondicao('');
+    }
+
     // Segurança do trabalho do prestador escolhido: só avisa, não impede (09/10/2026).
     const [sstFavorecido, setSstFavorecido] = useState<any>(null);
     useEffect(() => {
@@ -652,7 +678,25 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 </select>
                             </Field>
                             {form.forma_pagamento === 'CARTAO_CREDITO' && <Field label="Cartão corporativo"><select className={inputClass} value={form.cartao_id} onChange={e => setForm(f=>({...f,cartao_id:e.target.value}))}><option value="">Selecione...</option>{cartoes.map(c=><option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido?` (${c.apelido})`:''}</option>)}</select></Field>}
-                        </> : <><Field label="Gatilho do saldo">
+                        </> : <>{supplierFavorecido && (
+                            <div className="col-span-2 rounded-lg border border-border bg-secondary/20 p-3">
+                                <p className="mb-2 text-xs font-medium text-muted-foreground">Condição de pagamento</p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <select aria-label="Condição de pagamento salva" className={`${inputClass} min-w-0 flex-1`} defaultValue=""
+                                        onChange={e => {
+                                            const c = condicoesFav.find(x => x.id === e.target.value);
+                                            if (c) setForm(f => ({ ...f, percentual_entrada: String(c.percentual_entrada), percentual_saldo: String(c.percentual_saldo), gatilho_saldo: c.gatilho_saldo }));
+                                        }}>
+                                        <option value="">{condicoesFav.length ? 'Usar uma condição salva…' : 'Nenhuma condição salva para este favorecido'}</option>
+                                        {condicoesFav.map(c => <option key={c.id} value={c.id}>{c.nome} — {c.percentual_entrada}% entrada + {c.percentual_saldo}% saldo</option>)}
+                                    </select>
+                                    <input className={`${inputClass} w-40`} value={nomeNovaCondicao} onChange={e => setNomeNovaCondicao(e.target.value)} placeholder="Nome (ex.: 20+80)" aria-label="Nome da nova condição" />
+                                    <button type="button" onClick={salvarCondicaoNova} disabled={!nomeNovaCondicao.trim()}
+                                        className="h-9 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">Salvar como condição</button>
+                                </div>
+                                <p className="mt-1.5 text-[11px] text-muted-foreground">Escolher uma condição preenche entrada, saldo e gatilho abaixo. "Salvar como condição" guarda a combinação atual para os próximos pagamentos.</p>
+                            </div>
+                        )}<Field label="Gatilho do saldo">
                             <select className={inputClass} value={form.gatilho_saldo} onChange={e => setForm(f => ({ ...f, gatilho_saldo: e.target.value }))}>
                                 <option value="INICIO">Início</option>
                                 <option value="MARCO">Marco</option>
