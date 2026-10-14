@@ -1,7 +1,7 @@
 import AvisoSemAssinatura from '../components/perfil/AvisoSemAssinatura';
 import { useState, useEffect, useCallback } from 'react';
 import { Receipt, Download, CheckCircle2, Send, Wallet, ChevronDown, ChevronRight, Mail, CornerDownRight } from 'lucide-react';
-import { T } from '../theme';
+import { T, estilosVivos } from '../theme';
 import { fmtMoeda, fmtData } from '../components/atividades/constants';
 import { authFetch, downloadAuthenticatedFile } from '../lib/authFetch';
 import { CHIP, FAIXA, SOLIDO, TOM_SHARING, TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
@@ -37,13 +37,13 @@ interface Faturamento {
 // Cada etapa tem a sua cor, numa escala que vai do frio ao "em dia":
 // Pronto índigo → Enviado azul → Em faturamento ciano → NF emitida violeta →
 // Faturado e Recebido verde (lib/cores.ts; docs/DESIGN-SYSTEM.md).
-const FATURAMENTO_STAGES = [
+const FATURAMENTO_STAGES = estilosVivos(() => ([
     { id: 'ENVIADO_FINANCEIRO', label: 'Enviado ao financeiro', color: hexTom('blue') },
     { id: 'EM_FATURAMENTO', label: 'Em faturamento', color: hexTom('cyan') },
     { id: 'NF_EMITIDA', label: 'NF emitida', color: hexTom('violet') },
     { id: 'FATURADO', label: 'Faturado', color: hexTom('green') },
     { id: 'RECEBIDO', label: 'Recebido', color: hexTom('green') },
-];
+]));
 /** Código do banco (TIPO_X) em frase: "Tipo x". */
 const emFrase = (v: string) => { const t = String(v || '').replace(/_/g, ' ').toLocaleLowerCase('pt-BR'); return t.charAt(0).toLocaleUpperCase('pt-BR') + t.slice(1); };
 const STAGE_INDEX: Record<string, number> = Object.fromEntries(FATURAMENTO_STAGES.map((s, i) => [s.id, i]));

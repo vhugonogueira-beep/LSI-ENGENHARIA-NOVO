@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { authFetch } from "../lib/authFetch";
 import { useEhAdmin } from "../lib/permissoes";
 import UsuariosAcessos from "../components/configuracoes/UsuariosAcessos";
-import { T as TEMA } from "../theme";
+import { T as TEMA, estilosVivos } from "../theme";
 import { Building2, Landmark, CreditCard, Mail, Users, X, Plus, Settings } from "lucide-react";
 import { hexTom, TOM_MODULO, type Tom } from "../lib/cores";
 import PageHeader from "../components/PageHeader";
@@ -39,13 +39,13 @@ const T = {
 
 // Medidas alinhadas com as classes usadas nas telas em Tailwind: card
 // `rounded-xl` (12px), input/botão `rounded-lg` (8px) e altura `h-9` (36px).
-const S = {
+const S = estilosVivos(() => ({
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "16px 18px" } as React.CSSProperties,
   input: { height: 36, padding: "0 12px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", width: "100%", boxSizing: "border-box" } as React.CSSProperties,
   label: { fontSize: 11, color: T.txMut, display: "block", marginBottom: 4, fontWeight: 600 } as React.CSSProperties,
   btn: { height: 36, padding: "0 16px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, cursor: "pointer", color: T.txPri, fontWeight: 700 } as React.CSSProperties,
   btnBlue: { background: T.blue, color: "hsl(var(--primary-foreground))", borderColor: T.blue } as React.CSSProperties,
-};
+}));
 
 // S.input tem altura fixa de 36px para casar com o `h-9` das telas em Tailwind.
 // Textarea precisa crescer, então recompõe a altura e o padding vertical.

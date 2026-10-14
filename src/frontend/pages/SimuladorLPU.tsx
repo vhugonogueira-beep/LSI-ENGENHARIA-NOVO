@@ -14,7 +14,7 @@ import { calcLegacyBudgetItemTotals, calcLegacyBudgetTotals, hydrateLegacyBudget
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import * as XLSX from "xlsx";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
-import { T } from '../theme';
+import { T, estilosVivos } from '../theme';
 
 // Ícone lucide alinhado ao texto, no lugar dos emojis que as telas legadas usavam.
 const Ico = ({ as: Icone, size = 15 }: { as: LucideIcon; size?: number }) => (
@@ -292,16 +292,16 @@ const fmt = (v) => (v || 0).toLocaleString("pt-BR", { style: "currency", currenc
 const pct = (a, b) => b > 0 ? Math.min(100, Math.round((a / b) * 100)) : 0;
 
 
-const ST_COLOR = {
+const ST_COLOR = estilosVivos(() => ({
   "Prospectando": T.purple, "Planejado": T.txMut, "Em Andamento": T.blue,
   "Pausado": T.amber, "Concluído": T.green, "Cancelado": T.red,
   "Em Execução": T.blue, "Alerta": T.red,
-};
+}));
 const NF_PAGO_STATUS = new Set(["Pago", "Paga"]);
 const NF_ATRASO_STATUS = new Set(["Em Atraso", "Vencida"]);
 const PAGAMENTO_PAGO_STATUS = new Set(["Pago"]);
 const DESPESA_CONFIRMADA_STATUS = new Set(["Validada", "Reembolsada", "Pago"]);
-const NF_COLOR = {
+const NF_COLOR = estilosVivos(() => ({
   "Pago": T.green,
   "Paga": T.green,
   "Aguardando Pagamento": T.amber,
@@ -311,9 +311,9 @@ const NF_COLOR = {
   "Cancelada": T.redD,
   "A Pagar": T.amber,
   "Pendente": T.purple,
-};
-const CAT_COLOR = { "Material": T.blue, "MO": T.orange, "Serviço": T.purple, "Equipamento": T.cyan, "Locação": T.amber };
-const OP_COLOR = { "Vivo": "#818cf8", "Claro": T.red, "TIM": T.blue, "Oi": T.amber, "Outros": T.txMut };
+}));
+const CAT_COLOR = estilosVivos(() => ({ "Material": T.blue, "MO": T.orange, "Serviço": T.purple, "Equipamento": T.cyan, "Locação": T.amber }));
+const OP_COLOR = estilosVivos(() => ({ "Vivo": "#818cf8", "Claro": T.red, "TIM": T.blue, "Oi": T.amber, "Outros": T.txMut }));
 const normalizeNFStatus = (status) => {
   const current = String(status || "").trim();
   if (current === "Cancelada") return "Cancelada";

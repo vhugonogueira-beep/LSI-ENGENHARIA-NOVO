@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
-import { T } from '../theme';
+import { T, estilosVivos } from '../theme';
 import { Check, Clock, User, Pencil, MessageCircle, Trash2, ChevronLeft, ChevronRight, CalendarDays, Kanban, ClipboardList, Plus } from 'lucide-react';
 
 
@@ -48,7 +48,7 @@ const Btn = ({ children, onClick, blue, green, red, small, style: extra }: any) 
 const Input = (props: any) => <input {...props} style={{ padding: "5px 8px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, fontFamily: "inherit", outline: "none", width: "100%", ...props.style }} />;
 const Select = (props: any) => <select {...props} style={{ padding: "4px 6px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 6, background: T.bg3, color: T.txPri, fontFamily: "inherit", outline: "none", ...props.style }} />;
 const Label = ({ children, htmlFor }: any) => <label htmlFor={htmlFor} style={{ fontSize: 11, color: T.txMut, marginBottom: 2, display: "block" }}>{children}</label>;
-const iconBtn: React.CSSProperties = { background: "none", border: "none", cursor: "pointer", padding: 2, color: T.txMut, display: "inline-flex" };
+const iconBtn = estilosVivos((): React.CSSProperties => ({ background: "none", border: "none", cursor: "pointer", padding: 2, color: T.txMut, display: "inline-flex" }));
 
 export default function TabSecretaria() {
   const [tasks, setTasks] = useState<SecTask[]>([]);

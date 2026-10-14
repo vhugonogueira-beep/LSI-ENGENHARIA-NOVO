@@ -7,7 +7,7 @@ import {
   type FinancialAction,
 } from "../components/financeiro/FinancialCards";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
-import { T } from '../theme';
+import { T, estilosVivos } from '../theme';
 import FilaAprovacoes from "../components/financeiro/FilaAprovacoes";
 import PageHeader from "../components/PageHeader";
 import { CreditCard, Search, X } from "lucide-react";
@@ -27,12 +27,12 @@ import { FiltroPainel, FiltroLinha, CAMPO, ALTERNADOR, SEGMENTO } from "../compo
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-const S = {
+const S = estilosVivos(() => ({
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 12, padding: "14px 16px" } as React.CSSProperties,
   input: { padding: "8px 10px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", boxSizing: "border-box" } as React.CSSProperties,
   btn: { padding: "7px 13px", fontSize: 12, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg1, cursor: "pointer", color: T.txPri, fontWeight: 700 } as React.CSSProperties,
   btnBlue: { background: T.blue, color: "#fff", borderColor: T.blue } as React.CSSProperties,
-};
+}));
 
 const PAGOS = ["PAGO", "COMPROVANTE_RECEBIDO", "CONFERIDO"];
 

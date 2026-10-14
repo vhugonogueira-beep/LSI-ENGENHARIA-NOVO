@@ -4,7 +4,7 @@ import { loadSharingClients } from "./sharingClients";
 import { carregarTemplatesDoBanco, findTemplate, templatesDeFallback } from "./lpuTemplates";
 import { gerarPdfBudgetV2 } from "./gerarPdfV2";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
-import { T } from '../theme';
+import { T, estilosVivos } from '../theme';
 import { TOM_MODULO, TOM_OPERADORA, TOM_SHARING, hexTom } from '../lib/cores';
 import { BarChart3, Blocks, Check, ClipboardList, Cog, FileText, HardHat, Link2, MapPin, NotebookPen, Package, Plus, Save, ShoppingCart, Wallet, Wrench, X } from "lucide-react";
 
@@ -26,9 +26,9 @@ const corSharing = (...chaves: (string | null | undefined)[]) => {
   }
   return hexTom("slate");
 };
-const COR_MODULO = hexTom(TOM_MODULO.orcv2);
+const COR_MODULO = () => hexTom(TOM_MODULO.orcv2);
 const caixaIcone = (tam: number): React.CSSProperties => ({
-  width: tam, height: tam, borderRadius: 8, background: COR_MODULO + "1f", color: COR_MODULO,
+  width: tam, height: tam, borderRadius: 8, background: COR_MODULO() + "1f", color: COR_MODULO(),
   display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
 });
 
@@ -37,7 +37,7 @@ const caixaIcone = (tam: number): React.CSSProperties => ({
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 // ── Styles ──
-const S = {
+const S = estilosVivos(() => ({
   card: { background: T.bg2, border: `1px solid ${T.brBase}`, borderRadius: 8, padding: "14px 16px" } as React.CSSProperties,
   input: { padding: "5px 10px", fontSize: 11, border: `1px solid ${T.brBase}`, borderRadius: 8, background: T.bg3, color: T.txPri, outline: "none", fontFamily: "inherit", width: "100%", transition: "all 0.15s" } as React.CSSProperties,
   label: { fontSize: 11, color: T.txSec, display: "block", marginBottom: 3, fontWeight: 600 } as React.CSSProperties,
@@ -45,7 +45,7 @@ const S = {
   btnBlue: { background: T.blue, color: "#fff", borderColor: T.blue } as React.CSSProperties,
   btnGreen: { background: T.greenD, color: "#fff", borderColor: T.greenD } as React.CSSProperties,
   ghost: { background: "transparent", border: `1px solid ${T.brBase}`, color: T.txSec, borderRadius: 8, padding: "5px 12px", cursor: "pointer", fontSize: 11, transition: "all 0.15s" } as React.CSSProperties,
-};
+}));
 
 interface TabOrcV2Props {
   dbImpl: any[];        // DB existente implantação

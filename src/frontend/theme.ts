@@ -10,10 +10,10 @@
 // canal alfa ao final da cor. Com `hsl(var())` essas 83 bordas e brilhos
 // virariam CSS inválido e sumiriam da tela.
 //
-// O tema é resolvido uma vez, no carregamento do módulo. Assim os objetos de
-// estilo derivados em escopo de módulo (`const S = { card: { background:
-// T.bg2 } }`, espalhados pelas telas) continuam válidos sem precisar de hook,
-// contexto ou qualquer mudança na estrutura dos componentes.
+// Trocar o tema não recarrega a página (14/10/2026): `T` e `TMenu` são
+// atualizados no lugar e a aplicação é redesenhada (evento "ls-tema", ouvido em
+// main.tsx). Estilos guardados em escopo de módulo usam `estilosVivos`, que os
+// recalcula a cada uso — um objeto montado uma vez guardaria a cor antiga.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type NomeTema = 'claro' | 'escuro';
@@ -85,17 +85,19 @@ export function temaSalvo(): NomeTema {
     return 'claro';
 }
 
-export const tema: NomeTema = temaSalvo();
+export let tema: NomeTema = temaSalvo();
 
-/** Paleta do conteúdo — muda com o tema. */
-export const T: Paleta = PALETAS[tema];
+/** Paleta do conteúdo — muda com o tema (mesmo objeto, valores trocados). */
+export const T: Paleta = { ...PALETAS[tema] };
 
 /**
  * Paleta do menu lateral. O menu é marinho nos dois temas, com texto claro,
  * então não pode herdar `txPri` do conteúdo: no tema claro isso colocaria
  * texto quase preto sobre fundo marinho.
  */
-export const TMenu: Paleta = {
+function paletaMenu(nome: NomeTema): Paleta {
+    const base = PALETAS[nome];
+    return {
     ...ESCURA,
     // Texto e ícones do menu, claros nos dois temas (referência Executivo).
     txPri: '#FFFFFF',
@@ -103,16 +105,18 @@ export const TMenu: Paleta = {
     txMut: '#C2D5EC',
     txDis: '#9FB6D2',
     blue: '#1768D5',
-    bgSidebar: T.bgSidebar,
-    bg0: T.bgSidebar,
-    bg1: tema === 'claro' ? '#123156' : '#0E1A2B',
-    bg2: T.bgSidebar,
-    bg3: tema === 'claro' ? '#16375A' : '#182B43',
-    bg4: tema === 'claro' ? '#1B4168' : '#203651',
-    brSub: tema === 'claro' ? '#16375A' : '#1F3149',
-    brBase: tema === 'claro' ? '#1E4368' : '#2B4059',
-    brStrong: tema === 'claro' ? '#2A5683' : '#3A5273',
-};
+    bgSidebar: base.bgSidebar,
+    bg0: base.bgSidebar,
+    bg1: nome === 'claro' ? '#123156' : '#0E1A2B',
+    bg2: base.bgSidebar,
+    bg3: nome === 'claro' ? '#16375A' : '#182B43',
+    bg4: nome === 'claro' ? '#1B4168' : '#203651',
+    brSub: nome === 'claro' ? '#16375A' : '#1F3149',
+    brBase: nome === 'claro' ? '#1E4368' : '#2B4059',
+    brStrong: nome === 'claro' ? '#2A5683' : '#3A5273',
+    };
+}
+export const TMenu: Paleta = paletaMenu(tema);
 
 /**
  * Carimba o tema no elemento raiz para as telas escritas em Tailwind, que leem
@@ -126,13 +130,38 @@ export function carimbarTema(nome: NomeTema = tema) {
 }
 carimbarTema();
 
+export const EVENTO_TEMA = 'ls-tema';
+
 /**
- * Troca o tema. Recarrega a página de propósito: a paleta é resolvida no
- * carregamento do módulo e alimenta objetos de estilo criados em escopo de
- * módulo, que não seriam recalculados por um re-render do React.
+ * Troca o tema sem recarregar a página (14/10/2026): grava a escolha, carimba o
+ * HTML (telas em Tailwind), troca as cores de `T`/`TMenu` no lugar e avisa a
+ * aplicação para se redesenhar. A tela, os filtros e o que estava aberto ficam.
  */
 export function aplicarTema(nome: NomeTema) {
-    try { localStorage.setItem(CHAVE, nome); } catch { /* segue e recarrega mesmo assim */ }
+    try { localStorage.setItem(CHAVE, nome); } catch { /* sem storage: só não lembra */ }
+    tema = nome;
     carimbarTema(nome);
-    window.location.reload();
+    Object.assign(T, PALETAS[nome]);
+    Object.assign(TMenu, paletaMenu(nome));
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(EVENTO_TEMA, { detail: nome }));
+}
+
+/**
+ * Objeto de estilo que acompanha o tema: recalculado a cada leitura. Para
+ * constantes de escopo de módulo que usam cores do tema (`const S = {...}`).
+ */
+export function estilosVivos<X extends object>(fabrica: () => X): X {
+    return new Proxy({} as X, {
+        get: (_alvo, chave) => {
+            const atual: any = fabrica();
+            const v = atual[chave as any];
+            return typeof v === 'function' ? v.bind(atual) : v;
+        },
+        has: (_alvo, chave) => chave in (fabrica() as any),
+        ownKeys: () => Reflect.ownKeys(fabrica() as any),
+        getOwnPropertyDescriptor: (_alvo, chave) => {
+            const d = Reflect.getOwnPropertyDescriptor(fabrica() as any, chave);
+            return d ? { ...d, configurable: true } : undefined;
+        },
+    });
 }
