@@ -48,6 +48,13 @@ const hojeLocal = () => {
     return new Date(agora.getTime() - agora.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 };
 
+/** "Nome fantasia (razão social)" quando há fantasia; senão, a razão social. */
+function nomeFornecedor(s: { nome: string; nome_fantasia?: string | null }): string {
+    const fantasia = (s.nome_fantasia || '').trim();
+    const razao = s.nome.trim();
+    return fantasia && fantasia.toLowerCase() !== razao.toLowerCase() ? `${fantasia} (${razao})` : razao;
+}
+
 export default function TabFornecedores({ atividade }: { atividade: AtividadeDetalhe }) {
     const [contratacoes, setContratacoes] = useState<any[]>([]);
     const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -607,7 +614,8 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             }}>
                                 <option value="">Selecione...</option>
                                 <optgroup label="Fornecedores e prestadores">
-                                    {suppliers.map(s => <option key={s.id} value={`supplier:${s.id}`}>{s.nome}</option>)}
+                                    {/* Nome fantasia na frente (14/10/2026): é por ele que a empresa é lembrada. */}
+                                    {[...suppliers].sort((a, b) => nomeFornecedor(a).localeCompare(nomeFornecedor(b))).map(s => <option key={s.id} value={`supplier:${s.id}`}>{nomeFornecedor(s)}</option>)}
                                 </optgroup>
                                 <optgroup label="Funcionários LS">
                                     {funcionarios.map(f => <option key={f.id} value={`funcionario:${f.id}`}>{f.nome}{f.cargo ? ` (${f.cargo})` : ''}</option>)}
@@ -815,7 +823,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         ];
                         return <FinancialBeneficiaryCard
                             key={c.id}
-                            name={c.supplier?.nome || c.funcionario?.nome || 'Favorecido'}
+                            name={(c.supplier && (c.supplier.nome_fantasia || c.supplier.nome)) || c.funcionario?.nome || 'Favorecido'}
                             category={FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ').toLowerCase()}
                             total={fmtMoeda(c.valor_contratado)}
                             status={c.contrato && <select aria-label="Status do contrato" value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className={`rounded-md border-0 px-2 py-1 text-[11px] font-semibold ${CONTRATO_STATUS_TOM[c.contrato.status] || CONTRATO_STATUS_TOM.GERADO}`}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>}

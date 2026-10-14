@@ -191,7 +191,7 @@ export async function createContratacao(req: Request, res: Response) {
                 created_by: (req as any).user?.email || null,
                 parcelas: { create: parcelasCreate },
             },
-            include: { parcelas: true, supplier: { select: { nome: true, categoria: true } }, funcionario: { select: { nome: true, cargo: true } } },
+            include: { parcelas: true, supplier: { select: { nome: true, nome_fantasia: true, categoria: true } }, funcionario: { select: { nome: true, cargo: true } } },
         });
 
         await marcarCustoComprometido(atividade_id);
@@ -212,7 +212,7 @@ export async function listContratacoes(req: Request, res: Response) {
         const contratacoes = await prisma.contratacaoFornecedor.findMany({
             where,
             include: {
-                supplier: { select: { nome: true, categoria: true, forma_pagamento: true, pix: true } },
+                supplier: { select: { nome: true, nome_fantasia: true, categoria: true, forma_pagamento: true, pix: true } },
                 funcionario: { select: { nome: true, cargo: true, pix_chave: true, forma_pagamento: true } },
                 parcelas: true,
                 contrato: { include: { arquivos: { orderBy: { created_at: 'desc' } } } },
@@ -435,7 +435,7 @@ export async function getFinanceiroAtividade(req: Request, res: Response) {
 
         const contratacoes = await prisma.contratacaoFornecedor.findMany({
             where: { atividade_id, status: 'ATIVA' },
-            include: { parcelas: true, supplier: { select: { nome: true, categoria: true } }, funcionario: { select: { nome: true, cargo: true } } },
+            include: { parcelas: true, supplier: { select: { nome: true, nome_fantasia: true, categoria: true } }, funcionario: { select: { nome: true, cargo: true } } },
         });
 
         let custoComprometido = 0;
