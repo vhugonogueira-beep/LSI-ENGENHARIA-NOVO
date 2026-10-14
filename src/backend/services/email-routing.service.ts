@@ -74,9 +74,18 @@ export async function resolveEmailRouting(tenantId: string, tipo: EmailRoutingTy
     // CC pessoal de quem gera o e-mail (Meu Perfil), somado ao roteamento
     // global — nunca repete quem já está no Para. Se a pessoa editou o CC na
     // prévia, vale o que ela deixou.
-    if (usuarioId && overrides?.cc === undefined) {
-        const usuario = await prisma.user.findUnique({ where: { id: usuarioId }, select: { email_cc_padrao: true } });
-        cc = [...new Set([...cc, ...lenient(usuario?.email_cc_padrao)])].filter(email => !para.includes(email));
+    const usuario = usuarioId
+        ? await prisma.user.findUnique({ where: { id: usuarioId }, select: { email: true, email_cc_padrao: true } })
+        : null;
+    if (usuario && overrides?.cc === undefined) {
+        cc = [...new Set([...cc, ...lenient(usuario.email_cc_padrao)])].filter(email => !para.includes(email));
+    }
+    // Quem gera o e-mail é quem envia (14/10/2026): o próprio endereço sai da
+    // cópia, sempre — inclusive quando a prévia foi editada. Ex.: o Rodolfo está
+    // no CC padrão dos pagamentos; quando é ele quem envia, não se copia.
+    if (usuario?.email) {
+        const proprio = usuario.email.trim().toLowerCase();
+        cc = cc.filter(email => email.trim().toLowerCase() !== proprio);
     }
     // Não existe destinatário padrão embutido: um e-mail de pagamento que sai
     // para o endereço errado é pior do que um "Para" vazio. Em compensação,
