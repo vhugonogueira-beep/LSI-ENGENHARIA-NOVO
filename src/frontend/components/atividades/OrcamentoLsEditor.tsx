@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FileText, Paperclip, Plus, RotateCcw, Save, Trash2, Upload, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FileText, Paperclip, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
 import { Card, EmptyState, ErrorBanner, inputClass } from './ui';
 import { fmtMoeda } from './constants';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
-import { escopoPadrao, gerarPdfOrcamentoLs, gruposDoOrcamento, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
+import { escopoPadrao, gerarPdfOrcamentoLs, gruposDoOrcamento, separarServico, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Orçamento LS — o preço ao cliente montado no modelo da LS, alternativa à PV
@@ -81,6 +81,40 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     const [versao, setVersao] = useState({ versao_atual: 1, updated_at: '' });
     const [meta, setMeta] = useState({ assunto: '', vigencia_dias: 30, numero: '' });
     const [gerandoPdf, setGerandoPdf] = useState(false);
+    // Agente de IA (14/10/2026): revisa as descrições e escreve a partir dos comentários.
+    const [ia, setIa] = useState<{ disponivel: boolean; modelo: string } | null>(null);
+    const [revisando, setRevisando] = useState(false);
+    const [revisao, setRevisao] = useState<RevisaoIa | null>(null);
+    const [descrevendo, setDescrevendo] = useState<Linha | null>(null);
+    useEffect(() => { fetch('/api/ia/status').then(r => (r.ok ? r.json() : null)).then(setIa).catch(() => setIa(null)); }, []);
+    const contextoIa = { tipo_site: atividade?.tipo_obra || null, sharing: atividade?.sharing || null, tipo_demanda: atividade?.tipo_demanda || null, escopo: meta.assunto || atividade?.titulo || null };
+
+    async function revisarComIa() {
+        setErro(''); setRevisando(true);
+        try {
+            const itens = linhas.map((l, indice) => {
+                const [servico, descricao] = separarServico(l.titulo);
+                return { indice, codigo: l.codigo_item, servico, descricao, unidade: l.unidade, quantidade: l.quantidade };
+            });
+            const r = await authFetch('/api/ia/orcamento/revisar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ budget_id: budgetId, itens, contexto: contextoIa }) });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(d.error || 'Erro ao revisar com a IA');
+            // A revisão aponta para as linhas pela chave, para não errar se a lista mudar.
+            setRevisao({ ...d, chaves: linhas.map(l => l.chave) });
+        } catch (e: any) { setErro(e.message); } finally { setRevisando(false); }
+    }
+
+    /** Aplica uma sugestão na linha (serviço e descrição vivem juntos no título). */
+    function aplicarSugestao(chave: string, campo: string, texto: string) {
+        setLinhas(ls => ls.map(l => {
+            if (l.chave !== chave) return l;
+            if (campo === 'unidade') return { ...l, unidade: texto };
+            const [servico, descricao] = separarServico(l.titulo);
+            const novoServico = campo === 'servico' ? texto : servico;
+            const novaDescricao = campo === 'descricao' ? texto : descricao;
+            return { ...l, titulo: novaDescricao ? `${novoServico} — ${novaDescricao}` : novoServico };
+        }));
+    }
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState('');
     const [salvando, setSalvando] = useState(false);
@@ -188,6 +222,13 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     disabled={!linhas.length} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">
                     <Download size={14} aria-hidden /> Baixar Excel
                 </button>
+                {editavel && (
+                    <button type="button" onClick={revisarComIa} disabled={!ia?.disponivel || !linhas.length || revisando}
+                        title={!ia?.disponivel ? 'IA ainda não configurada: falta a chave da API no servidor' : 'A IA lê as descrições e sugere correções e melhorias'}
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-violet-500/40 px-3 text-xs font-semibold text-violet-400 hover:bg-violet-500/10 disabled:opacity-40">
+                        <Sparkles size={14} aria-hidden /> {revisando ? 'Revisando…' : 'Revisar com IA'}
+                    </button>
+                )}
                 <button type="button" onClick={() => setGerandoPdf(true)} disabled={!linhasSalvas.length || alterado}
                     title={alterado ? 'Salve as alterações antes de gerar o PDF' : 'Orçamento no modelo executivo da LS'}
                     className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">
@@ -217,7 +258,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
                     <table className="w-full min-w-[980px] table-fixed text-sm">
-                        <colgroup><col className="w-28" /><col className="w-40" /><col /><col className="w-20" /><col className="w-24" /><col className="w-36" /><col className="w-36" /><col className="w-10" /></colgroup>
+                        <colgroup><col className="w-28" /><col className="w-40" /><col /><col className="w-20" /><col className="w-24" /><col className="w-36" /><col className="w-36" /><col className={editavel ? 'w-20' : 'w-10'} /></colgroup>
                         <thead>
                             <tr className="border-b border-border bg-secondary/30 text-left text-xs font-semibold text-muted-foreground">
                                 <th className="px-3 py-2.5">Código</th><th className="px-3 py-2.5" title="Agrupa os itens no resumo do PDF">Grupo</th><th className="px-3 py-2.5">Descrição</th><th className="px-3 py-2.5">Unid.</th>
@@ -234,7 +275,10 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Quantidade" type="number" min={0} step="any" className={`${inputClass} text-right`} value={l.quantidade} onChange={e => mudar(l.chave, 'quantidade', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Valor unitário" type="number" min={0} step="0.01" className={`${inputClass} text-right`} value={l.valor_unitario} onChange={e => mudar(l.chave, 'valor_unitario', e.target.value)} /></td>
                                     <td className="px-3 py-1.5 text-right font-semibold tabular-nums">{fmtMoeda(totalLinha(l))}</td>
-                                    <td className="px-1 py-1.5 text-center">
+                                    <td className="px-1 py-1.5 text-center whitespace-nowrap">
+                                        {editavel && <button type="button" onClick={() => setDescrevendo(l)} disabled={!ia?.disponivel} aria-label="Escrever a descrição com IA"
+                                            title={ia?.disponivel ? 'Escrever a descrição com IA a partir dos seus comentários' : 'IA ainda não configurada: falta a chave da API no servidor'}
+                                            className="mr-1 rounded-md border border-border p-1.5 text-violet-400 hover:border-violet-500/50 hover:bg-violet-500/10 disabled:opacity-40"><Wand2 size={14} aria-hidden /></button>}
                                         {editavel && <button type="button" onClick={() => setLinhas(ls => ls.filter(x => x.chave !== l.chave))} aria-label="Remover item" title="Remover item" className="rounded-md border border-border p-1.5 text-muted-foreground hover:border-crit/50 hover:bg-crit/10 hover:text-crit"><Trash2 size={14} aria-hidden /></button>}
                                     </td>
                                 </tr>
@@ -302,6 +346,19 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                 </div>
             )}
 
+            {revisao && (
+                <RevisaoIaModal revisao={revisao} linhas={linhas} onAplicar={aplicarSugestao} onFechar={() => setRevisao(null)} modelo={ia?.modelo} />
+            )}
+            {descrevendo && (
+                <DescreverIaModal linha={descrevendo} contexto={contextoIa} budgetId={budgetId}
+                    onUsar={(servico, descricao, unidade) => {
+                        const chave = descrevendo.chave;
+                        setLinhas(ls => ls.map(l => (l.chave !== chave ? l : { ...l, titulo: descricao ? `${servico} — ${descricao}` : servico, unidade: unidade || l.unidade })));
+                        setDescrevendo(null);
+                    }}
+                    onFechar={() => setDescrevendo(null)} />
+            )}
+
             {gerandoPdf && (
                 <ModalPdf budgetId={budgetId} atividade={atividade} meta={meta} revisao={versao.versao_atual}
                     itens={linhasSalvas} onFechar={() => setGerandoPdf(false)} onNumero={n => setMeta(m => ({ ...m, numero: n }))} />
@@ -317,6 +374,130 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     }} />
             )}
         </Card>
+    );
+}
+
+interface SugestaoIa { indice: number; campo: 'servico' | 'descricao' | 'unidade'; atual: string; sugerido: string; motivo: string; tipo: string }
+interface RevisaoIa { sugestoes: SugestaoIa[]; observacoes: string[]; chaves: string[] }
+const CAMPO_IA: Record<string, string> = { servico: 'Serviço', descricao: 'Descrição', unidade: 'Unidade' };
+const TIPO_IA: Record<string, string> = { ortografia: 'Português', clareza: 'Clareza', unidade: 'Unidade', padrao: 'Padrão LS' };
+
+/** Sugestões da IA, item a item: aceitar ou ignorar. Nada muda sem aceitar; depois, salvar. */
+function RevisaoIaModal({ revisao, linhas, onAplicar, onFechar, modelo }: {
+    revisao: RevisaoIa; linhas: Linha[]; onAplicar: (chave: string, campo: string, texto: string) => void; onFechar: () => void; modelo?: string;
+}) {
+    const [decididas, setDecididas] = useState<Record<number, 'aceita' | 'ignorada'>>({});
+    const pendentes = revisao.sugestoes.map((s, i) => ({ s, i })).filter(({ i }) => !decididas[i]);
+    const aceitar = (s: SugestaoIa, i: number) => { const chave = revisao.chaves[s.indice]; if (chave) onAplicar(chave, s.campo, s.sugerido); setDecididas(d => ({ ...d, [i]: 'aceita' })); };
+    const aceitas = Object.values(decididas).filter(v => v === 'aceita').length;
+    return (
+        <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-black/70 p-4" onClick={onFechar}>
+            <div role="dialog" aria-modal="true" aria-labelledby="titulo-ia" onClick={e => e.stopPropagation()}
+                className="flex max-h-[92vh] w-full max-w-4xl flex-col rounded-xl border border-border bg-card text-foreground shadow-2xl">
+                <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+                    <div>
+                        <h2 id="titulo-ia" className="flex items-center gap-2 text-base font-bold"><Sparkles size={18} aria-hidden className="text-violet-400" /> Revisão com IA</h2>
+                        <p className="mt-0.5 text-xs text-muted-foreground">{revisao.sugestoes.length} sugestão(ões){modelo ? ` · ${modelo}` : ''}. Aceite o que fizer sentido; depois salve o orçamento.</p>
+                    </div>
+                    <button type="button" onClick={onFechar} aria-label="Fechar" className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"><X size={18} aria-hidden /></button>
+                </header>
+                <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+                    {revisao.observacoes.length > 0 && (
+                        <div className="rounded-lg border border-violet-500/30 bg-violet-500/5 px-4 py-3 text-xs">
+                            <p className="mb-1 font-semibold text-violet-400">Sobre o orçamento como um todo</p>
+                            <ul className="list-disc space-y-0.5 pl-4">{revisao.observacoes.map((o, i) => <li key={i}>{o}</li>)}</ul>
+                        </div>
+                    )}
+                    {!revisao.sugestoes.length && <p className="text-sm text-ok">Nenhuma correção sugerida: os itens já estão claros e no padrão.</p>}
+                    {revisao.sugestoes.map((s, i) => {
+                        const linha = linhas.find(l => l.chave === revisao.chaves[s.indice]);
+                        const decisao = decididas[i];
+                        return (
+                            <div key={i} className={`rounded-lg border px-4 py-3 ${decisao ? 'border-border opacity-60' : 'border-border'}`}>
+                                <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
+                                    <span className="font-id text-muted-foreground">Item {s.indice + 1}{linha?.codigo_item ? ` · ${linha.codigo_item}` : ''}</span>
+                                    <span className="rounded bg-muted px-1.5 py-0.5 font-medium">{CAMPO_IA[s.campo]}</span>
+                                    <span className="rounded bg-violet-500/10 px-1.5 py-0.5 font-medium text-violet-400">{TIPO_IA[s.tipo] || s.tipo}</span>
+                                    <span className="text-muted-foreground">{s.motivo}</span>
+                                </div>
+                                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                                    <div><p className="text-[11px] text-muted-foreground">Atual</p><p className={s.atual ? 'line-through decoration-crit/60' : 'italic text-muted-foreground'}>{s.atual || 'vazio'}</p></div>
+                                    <div><p className="text-[11px] text-muted-foreground">Sugerido</p><p className="font-medium">{s.sugerido}</p></div>
+                                </div>
+                                <div className="mt-2 flex justify-end gap-2">
+                                    {decisao ? <span className="text-xs font-semibold text-muted-foreground">{decisao === 'aceita' ? 'Aceita' : 'Ignorada'}</span> : (<>
+                                        <button type="button" onClick={() => setDecididas(d => ({ ...d, [i]: 'ignorada' }))} className="h-8 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60">Ignorar</button>
+                                        <button type="button" onClick={() => aceitar(s, i)} className="h-8 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90">Aceitar</button>
+                                    </>)}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+                <footer className="flex items-center justify-between gap-2 border-t border-border px-5 py-3">
+                    <span className="text-xs text-muted-foreground">{aceitas ? `${aceitas} aceita(s) — feche e clique em Salvar alterações` : 'A IA pode errar: confira antes de aceitar.'}</span>
+                    <div className="flex gap-2">
+                        {pendentes.length > 1 && <button type="button" onClick={() => pendentes.forEach(({ s, i }) => aceitar(s, i))} className="h-9 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60">Aceitar todas ({pendentes.length})</button>}
+                        <button type="button" onClick={onFechar} className="h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Concluir</button>
+                    </div>
+                </footer>
+            </div>
+        </div>
+    );
+}
+
+/** Descrição a partir dos comentários de quem orça. */
+function DescreverIaModal({ linha, contexto, budgetId, onUsar, onFechar }: {
+    linha: Linha; contexto: Record<string, unknown>; budgetId: string;
+    onUsar: (servico: string, descricao: string, unidade: string) => void; onFechar: () => void;
+}) {
+    const [servicoAtual, descricaoAtual] = separarServico(linha.titulo);
+    const [comentario, setComentario] = useState(descricaoAtual || servicoAtual || '');
+    const [resultado, setResultado] = useState<{ servico: string; descricao: string; unidade: string } | null>(null);
+    const [carregando, setCarregando] = useState(false);
+    const [erro, setErro] = useState('');
+    async function gerar() {
+        setErro(''); setCarregando(true);
+        try {
+            const r = await authFetch('/api/ia/orcamento/descrever', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ budget_id: budgetId, comentario, servico: servicoAtual, unidade: linha.unidade, contexto }) });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(d.error || 'Erro ao gerar a descrição');
+            setResultado(d);
+        } catch (e: any) { setErro(e.message); } finally { setCarregando(false); }
+    }
+    return (
+        <div className="fixed inset-0 z-[9500] flex items-center justify-center bg-black/70 p-4" onClick={onFechar}>
+            <div role="dialog" aria-modal="true" aria-labelledby="titulo-ia-desc" onClick={e => e.stopPropagation()}
+                className="w-full max-w-xl rounded-xl border border-border bg-card text-foreground shadow-2xl">
+                <header className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+                    <div>
+                        <h2 id="titulo-ia-desc" className="flex items-center gap-2 text-base font-bold"><Wand2 size={18} aria-hidden className="text-violet-400" /> Escrever com IA</h2>
+                        <p className="mt-0.5 text-xs text-muted-foreground">Conte do seu jeito o que será feito: medidas, materiais, local. A IA escreve no padrão da LS.</p>
+                    </div>
+                    <button type="button" onClick={onFechar} aria-label="Fechar" className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary/60 hover:text-foreground"><X size={18} aria-hidden /></button>
+                </header>
+                <div className="space-y-3 px-5 py-4">
+                    <ErrorBanner message={erro} />
+                    <textarea rows={4} className={inputClass} value={comentario} onChange={e => setComentario(e.target.value)}
+                        placeholder="Ex.: radier 3x3, concreto 25 MPa, base dos equipamentos, conforme projeto" />
+                    {resultado && (
+                        <div className="rounded-lg border border-violet-500/30 bg-violet-500/5 p-3 text-sm">
+                            <p className="text-[11px] text-muted-foreground">Serviço</p><p className="font-semibold">{resultado.servico}</p>
+                            <p className="mt-2 text-[11px] text-muted-foreground">Descrição</p><p>{resultado.descricao}</p>
+                            {resultado.unidade && <><p className="mt-2 text-[11px] text-muted-foreground">Unidade sugerida</p><p>{resultado.unidade}</p></>}
+                        </div>
+                    )}
+                </div>
+                <footer className="flex justify-end gap-2 border-t border-border px-5 py-3">
+                    <button type="button" onClick={gerar} disabled={carregando || comentario.trim().length < 3}
+                        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-violet-500/40 px-3 text-sm font-semibold text-violet-400 hover:bg-violet-500/10 disabled:opacity-40">
+                        <Sparkles size={14} aria-hidden /> {carregando ? 'Escrevendo…' : resultado ? 'Gerar de novo' : 'Gerar descrição'}
+                    </button>
+                    <button type="button" disabled={!resultado} onClick={() => resultado && onUsar(resultado.servico, resultado.descricao, resultado.unidade)}
+                        className="h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40">Usar este texto</button>
+                </footer>
+            </div>
+        </div>
     );
 }
 

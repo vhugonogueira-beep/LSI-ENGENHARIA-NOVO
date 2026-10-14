@@ -113,6 +113,7 @@ import empresaRoutes from './routes/empresa.routes';
 import funcionarioRoutes from './routes/funcionario.routes';
 import qualificacaoRoutes from './routes/qualificacao.routes';
 import sstRoutes from './routes/sst.routes';
+import iaRoutes from './routes/ia.routes';
 import localidadesRoutes from './routes/localidades.routes';
 import usuariosRoutes from './routes/usuarios.routes';
 import aprovacoesPagamentoRoutes from './routes/aprovacoes-pagamento.routes';
@@ -172,6 +173,7 @@ app.use('/api/faturamento', faturamentoRoutes);
 app.use('/api/contratos', contratoRoutes);
 app.use('/api/email-config', emailRoutingRoutes);
 app.use('/api/clientes', clienteRoutes);
+app.use('/api/ia', iaRoutes);
 app.use('/api/payment-attachments', paymentAttachmentRoutes);
 // Antes do masterRoutes: o /api/sites antigo (lista/cria sem regra) fica encoberto.
 app.use('/api/sites', siteRoutes);

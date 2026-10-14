@@ -133,6 +133,8 @@ export const POLITICA: Regra[] = [
 
     // Orçamento.
     ['*', /^\/api\/(budgets|negociacoes|pricebooks|bdi|inflation|import)(\/|$)/, 'orcamentos.gerenciar'],
+    // Agente de IA do orçamento (14/10/2026): usa quem edita orçamento.
+    ['POST', /^\/api\/ia\/orcamento\//, 'orcamentos.gerenciar'],
     ['*', /^\/api\/(templates|catalog-services)(\/|$)/, 'orcamentos.gerenciar'],
 
     // Faturamento.
