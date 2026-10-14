@@ -3,6 +3,7 @@ import multer from 'multer';
 import { prisma } from '../server';
 import { catalogo, codigoDoNome, resumoSst, sstDoFornecedor } from '../services/sst.service';
 import { guardarArquivoSst, caminhoArquivoSst, removerArquivoSst } from '../services/sst-arquivo.service';
+import { confirmarLeitura, lerDocumento } from '../services/leitura-documento.service';
 
 // Segurança do trabalho de fornecedores e prestadores. Documentos (Qualificacao)
 // seguem em /api/qualificacoes; aqui ficam catálogo, equipe, anexos e resumo.
@@ -103,7 +104,10 @@ router.post('/documentos/:id/arquivos', (req, res, next) => upload.single('arqui
     next();
 }), rota(async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'Envie o arquivo no campo "arquivo"' });
-    res.status(201).json(await guardarArquivoSst(req.params.id, req.file, (req as any).user?.userId));
+    const arquivo = await guardarArquivoSst(req.params.id, req.file, (req as any).user?.userId);
+    // RG/CNH: a leitura do anexo roda em segundo plano para não travar o envio.
+    lerDocumento(req.params.id).catch(() => undefined);
+    res.status(201).json(arquivo);
 }));
 
 router.get('/arquivos/:id', rota(async (req, res) => {
@@ -114,8 +118,21 @@ router.get('/arquivos/:id', rota(async (req, res) => {
 }));
 
 router.delete('/arquivos/:id', rota(async (req, res) => {
-    await removerArquivoSst(req.params.id);
+    const arquivo = await removerArquivoSst(req.params.id);
+    // Sem o anexo, a leitura é refeita com os que sobraram.
+    lerDocumento(arquivo.qualificacao_id).catch(() => undefined);
     res.status(204).end();
+}));
+
+// Leitura de RG/CNH (14/10/2026): "Reler anexo" e dados informados à mão.
+const resumoLeitura = (d: any) => d && ({ leitura_status: d.leitura_status, leitura_detalhe: d.leitura_detalhe, cpf_mascarado: d.cpf_lido ? `***.***.***-${d.cpf_lido.slice(-2)}` : null, rg_identificado: Boolean(d.rg_lido), data_validade: d.data_validade });
+router.post('/documentos/:id/ler', rota(async (req, res) => {
+    const d = await lerDocumento(req.params.id, true);
+    if (!d) return res.status(400).json({ error: 'Só RG e CNH têm leitura de dados' });
+    res.json(resumoLeitura(d));
+}));
+router.put('/documentos/:id/leitura', rota(async (req, res) => {
+    res.json(resumoLeitura(await confirmarLeitura(req.params.id, req.body || {})));
 }));
 
 export default router;

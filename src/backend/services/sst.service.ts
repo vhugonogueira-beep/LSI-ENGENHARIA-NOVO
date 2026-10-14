@@ -99,9 +99,28 @@ export function situacaoValidade(validade: Date | null | undefined) {
     return { situacao: 'VALIDO', diasRestantes: dias };
 }
 
+/**
+ * Regra central "documento X atende exigência Y" (14/10/2026). Um documento
+ * sempre atende o próprio tipo; RG com CPF impresso atende CPF; CNH dentro da
+ * validade atende RG e CPF lidos nela — CNH vencida não abona nada.
+ * Para incluir outra equivalência no futuro, é aqui.
+ */
+export function exigenciasAtendidas(doc: { tipo: string; data_validade: Date | null; cpf_lido?: string | null; rg_lido?: string | null }): string[] {
+    const atende = [doc.tipo];
+    if (doc.tipo === 'RG' && doc.cpf_lido) atende.push('CPF');
+    if (doc.tipo === 'CNH' && situacaoValidade(doc.data_validade).situacao !== 'VENCIDO') {
+        if (doc.rg_lido) atende.push('RG');
+        if (doc.cpf_lido) atende.push('CPF');
+    }
+    return atende;
+}
+
+/** CPF mascarado para a tela: ***.***.***-NN. */
+export const cpfMascarado = (cpf?: string | null) => (cpf ? `***.***.***-${cpf.slice(-2)}` : null);
+
 export interface Pendencia { pessoa: string; codigo: string; documento: string; motivo: 'FALTANDO' | 'VENCIDO' | 'VENCE_EM_BREVE'; dias?: number | null }
 
-type Doc = { tipo: string; data_validade: Date | null };
+type Doc = { tipo: string; data_validade: Date | null; cpf_lido?: string | null; rg_lido?: string | null };
 
 /**
  * Pendências de uma pessoa (o prestador PF ou um membro da equipe; a empresa
@@ -115,9 +134,10 @@ export function avaliarPessoa(pessoa: string, ehPessoaFisica: boolean, trabalhos
 
     const pendencias: Pendencia[] = [];
     for (const codigo of exigidos) {
-        const doTipo = docs.filter(d => d.tipo === codigo);
+        // Vale o próprio documento ou outro que o abone (RG com CPF, CNH com RG/CPF).
+        const doTipo = docs.filter(d => exigenciasAtendidas(d).includes(codigo));
         if (!doTipo.length) { pendencias.push({ pessoa, codigo, documento: nomeDoc(codigo), motivo: 'FALTANDO' }); continue; }
-        if (doTipo.some(d => !d.data_validade)) continue;
+        if (doTipo.some(d => d.tipo !== codigo || !d.data_validade)) continue;
         const melhor = doTipo.reduce((a, b) => (a.data_validade! > b.data_validade! ? a : b));
         const s = situacaoValidade(melhor.data_validade);
         if (s.situacao === 'VENCIDO' || s.situacao === 'VENCE_EM_BREVE') pendencias.push({ pessoa, codigo, documento: nomeDoc(codigo), motivo: s.situacao, dias: s.diasRestantes });
@@ -156,7 +176,12 @@ export async function sstDoFornecedor(supplierId: string) {
     const pf = s.tipo !== 'PESSOA_JURIDICA';
     const trabalhos = lerLista(s.sst_trabalhos);
     const nomeDoc = (c: string) => cat.documentos.find(d => d.codigo === c)?.nome || c;
-    const comSituacao = (qs: any[]) => qs.map(q => ({ ...q, rotulo: q.tipo === 'OUTRO' && q.descricao ? q.descricao : nomeDoc(q.tipo), possui_validade: possuiValidade(cat, q.tipo), ...situacaoValidade(q.data_validade) }));
+    // Números lidos saem só mascarados para a tela (LGPD).
+    const comSituacao = (qs: any[]) => qs.map(q => ({
+        ...q, cpf_lido: undefined, rg_lido: undefined,
+        cpf_mascarado: cpfMascarado(q.cpf_lido), rg_identificado: Boolean(q.rg_lido), atende: exigenciasAtendidas(q),
+        rotulo: q.tipo === 'OUTRO' && q.descricao ? q.descricao : nomeDoc(q.tipo), possui_validade: possuiValidade(cat, q.tipo), ...situacaoValidade(q.data_validade),
+    }));
 
     // PJ: quem sobe na torre são os membros da equipe; a empresa em si não tem NR.
     const proprio = avaliarPessoa(s.nome, pf, pf ? trabalhos : [], s.qualificacoes, cat);
@@ -184,8 +209,8 @@ export async function resumoSst(tenant_id: string, supplierIds?: string[]) {
         where: { tenant_id, ...(supplierIds ? { id: { in: supplierIds } } : {}) },
         select: {
             id: true, nome: true, tipo: true, categoria: true, sst_trabalhos: true,
-            qualificacoes: { where: { membro_id: null }, select: { tipo: true, data_validade: true } },
-            membrosEquipe: { where: { ativo: true }, select: { nome: true, sst_trabalhos: true, qualificacoes: { select: { tipo: true, data_validade: true } } } },
+            qualificacoes: { where: { membro_id: null }, select: { tipo: true, data_validade: true, cpf_lido: true, rg_lido: true } },
+            membrosEquipe: { where: { ativo: true }, select: { nome: true, sst_trabalhos: true, qualificacoes: { select: { tipo: true, data_validade: true, cpf_lido: true, rg_lido: true } } } },
         },
     });
     const cat = await catalogo(tenant_id);

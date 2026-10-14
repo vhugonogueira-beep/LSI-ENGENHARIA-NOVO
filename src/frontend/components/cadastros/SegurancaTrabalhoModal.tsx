@@ -18,6 +18,7 @@ interface Arquivo { id: string; nome_original: string; tamanho_bytes: number }
 interface Documento {
     id: string; tipo: string; rotulo: string; descricao?: string | null; numero?: string | null; entidade?: string | null;
     data_emissao?: string | null; data_validade?: string | null; situacao: string; diasRestantes: number | null; arquivos: Arquivo[]; possui_validade?: boolean;
+    leitura_status?: string | null; leitura_detalhe?: string | null; cpf_mascarado?: string | null; rg_identificado?: boolean; atende?: string[];
 }
 interface Pendencia { pessoa: string; codigo: string; documento: string; motivo: 'FALTANDO' | 'VENCIDO' | 'VENCE_EM_BREVE'; dias?: number | null }
 interface Resumo { situacao: 'EM_DIA' | 'VENCE_EM_BREVE' | 'PENDENTE' | 'NAO_SE_APLICA'; pendencias: number; vencendo: number }
@@ -126,6 +127,8 @@ function Documentos({ docs, exigidos, catalogo, dono, onMudou, onNovoTipo, setEr
                 ? await enviar(`/api/qualificacoes/${editandoId}`, 'PUT', corpo)
                 : await enviar('/api/qualificacoes', 'POST', { ...corpo, ...dono });
             if (arquivo) await anexar(doc.id, arquivo);
+            // RG/CNH: lê o anexo agora, para "Faltam" já sair atualizado.
+            if (arquivo && ['RG', 'CNH'].includes(form.tipo)) await enviar(`/api/sst/documentos/${doc.id}/ler`, 'POST').catch(() => undefined);
             setForm(null); setArquivo(null); setEditandoId(null);
             onMudou();
         } catch (er: any) { setErro(er.message); } finally { setSalvando(false); }
@@ -141,7 +144,11 @@ function Documentos({ docs, exigidos, catalogo, dono, onMudou, onNovoTipo, setEr
     }
     async function anexarNoDoc(d: Documento, f?: File) {
         if (!f) return;
-        try { await anexar(d.id, f); onMudou(); } catch (er: any) { setErro(er.message); }
+        try {
+            await anexar(d.id, f);
+            if (['RG', 'CNH'].includes(d.tipo)) await enviar(`/api/sst/documentos/${d.id}/ler`, 'POST').catch(() => undefined);
+            onMudou();
+        } catch (er: any) { setErro(er.message); }
     }
 
     const grupos = useMemo(() => {
@@ -182,6 +189,7 @@ function Documentos({ docs, exigidos, catalogo, dono, onMudou, onNovoTipo, setEr
                             <button type="button" onClick={() => excluir(d)} aria-label={`Excluir ${d.rotulo}`} title="Excluir" className="rounded p-1.5 text-muted-foreground hover:bg-crit/10 hover:text-crit"><Trash2 size={14} aria-hidden /></button>
                         </div>
                     </div>
+                    {['RG', 'CNH'].includes(d.tipo) && <LeituraDocumento d={d} onMudou={onMudou} setErro={setErro} />}
                     <div className="mt-2 flex flex-wrap items-center gap-1.5">
                         {d.arquivos.map(a => (
                             <span key={a.id} className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-xs">
@@ -252,6 +260,58 @@ function Documentos({ docs, exigidos, catalogo, dono, onMudou, onNovoTipo, setEr
                 <button type="button" onClick={() => abrirNovo()} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60">
                     <FileText size={14} aria-hidden /> Adicionar documento
                 </button>
+            )}
+        </div>
+    );
+}
+
+const LEITURA_ROTULO: Record<string, { texto: string; tom: string }> = {
+    CPF_ENCONTRADO: { texto: 'CPF impresso no RG: o CPF também fica atendido', tom: 'text-ok' },
+    CPF_EM_BRANCO: { texto: 'RG sem CPF — anexar o CPF', tom: 'text-warn' },
+    LEITURA_OK: { texto: 'CNH lida: atende CNH, RG e CPF', tom: 'text-ok' },
+    LEITURA_PARCIAL: { texto: 'CNH lida em parte', tom: 'text-warn' },
+    NAO_FOI_POSSIVEL_LER: { texto: 'Não foi possível ler o anexo', tom: 'text-warn' },
+    CONFIRMADO_MANUAL: { texto: 'Dados informados à mão', tom: 'text-ok' },
+};
+
+/**
+ * Leitura de RG/CNH (14/10/2026): o que foi lido do anexo (mascarado), "Reler
+ * anexo" e, quando a leitura não funciona, os dados informados à mão.
+ */
+function LeituraDocumento({ d, onMudou, setErro }: { d: Documento; onMudou: () => void; setErro: (m: string) => void }) {
+    const [informando, setInformando] = useState(false);
+    const [cpf, setCpf] = useState('');
+    const [rg, setRg] = useState('');
+    const [ocupado, setOcupado] = useState(false);
+    const info = d.leitura_status ? LEITURA_ROTULO[d.leitura_status] : null;
+    async function reler() {
+        setOcupado(true); setErro('');
+        try { await enviar(`/api/sst/documentos/${d.id}/ler`, 'POST'); onMudou(); } catch (e: any) { setErro(e.message); } finally { setOcupado(false); }
+    }
+    async function confirmar(e: React.FormEvent) {
+        e.preventDefault(); setOcupado(true); setErro('');
+        try { await enviar(`/api/sst/documentos/${d.id}/leitura`, 'PUT', { cpf, rg }); setInformando(false); setCpf(''); setRg(''); onMudou(); } catch (er: any) { setErro(er.message); } finally { setOcupado(false); }
+    }
+    if (!d.arquivos.length && !d.leitura_status) return <p className="mt-1.5 text-[11px] text-muted-foreground">Anexe o {d.tipo} para o sistema ler{d.tipo === 'CNH' ? ' o RG e o CPF' : ' se o CPF está impresso'}.</p>;
+    return (
+        <div className="mt-1.5 space-y-1.5 text-[11px]">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {info && <span className={`font-semibold ${info.tom}`}>{info.texto}</span>}
+                {d.leitura_detalhe && <span className="text-muted-foreground">{d.leitura_detalhe}</span>}
+                {d.cpf_mascarado && <span className="font-id">CPF: {d.cpf_mascarado}</span>}
+                {d.rg_identificado && <span>RG identificado</span>}
+                {d.atende && d.atende.length > 1 && <span className="rounded bg-ok/10 px-1.5 py-0.5 font-medium text-ok">Atende: {d.atende.join(', ')}</span>}
+                <button type="button" onClick={reler} disabled={ocupado || !d.arquivos.length} className="font-semibold text-primary hover:underline disabled:opacity-40">Reler anexo</button>
+                <button type="button" onClick={() => setInformando(v => !v)} className="font-semibold text-primary hover:underline">Informar dados</button>
+            </div>
+            {informando && (
+                <form onSubmit={confirmar} className="flex flex-wrap items-end gap-2 rounded-lg border border-border bg-secondary/20 p-2">
+                    <label className="block"><span className="mb-0.5 block text-muted-foreground">CPF {d.tipo === 'RG' ? '(se estiver no RG)' : ''}</span>
+                        <input className={`${inputClass} h-8 w-40 text-xs`} value={cpf} onChange={e => setCpf(e.target.value)} placeholder="000.000.000-00" /></label>
+                    {d.tipo === 'CNH' && <label className="block"><span className="mb-0.5 block text-muted-foreground">RG (Doc. Identidade)</span>
+                        <input className={`${inputClass} h-8 w-36 text-xs`} value={rg} onChange={e => setRg(e.target.value)} /></label>}
+                    <button type="submit" disabled={ocupado} className="h-8 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-50">Confirmar</button>
+                </form>
             )}
         </div>
     );

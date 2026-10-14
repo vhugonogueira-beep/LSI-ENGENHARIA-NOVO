@@ -1990,6 +1990,13 @@ model Qualificacao {
   data_emissao   DateTime?
   data_validade  DateTime?
   arquivo_url    String?
+  // Leitura do anexo de RG/CNH (14/10/2026). Só os números e a situação —
+  // nunca o texto lido (LGPD). RG: CPF_ENCONTRADO | CPF_EM_BRANCO;
+  // CNH: LEITURA_OK | LEITURA_PARCIAL; ambos: NAO_FOI_POSSIVEL_LER | CONFIRMADO_MANUAL.
+  leitura_status  String?
+  leitura_detalhe String?
+  cpf_lido        String?
+  rg_lido         String?
   observacoes    String?
   created_at     DateTime     @default(now())
   updated_at     DateTime     @updatedAt

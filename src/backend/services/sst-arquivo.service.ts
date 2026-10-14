@@ -55,6 +55,7 @@ export async function caminhoArquivoSst(arquivoId: string) {
 export async function removerArquivoSst(arquivoId: string) {
     const arquivo = await prisma.qualificacaoArquivo.delete({ where: { id: arquivoId } });
     await fs.unlink(absoluto(arquivo.storage_key)).catch(() => undefined);
+    return arquivo;
 }
 
 /** Antes de apagar um documento: os anexos saem do disco (o banco apaga em cascata). */
