@@ -14,6 +14,8 @@ export interface BudgetPricingInput {
 
 /** Grupos próprios de preço ao cliente, separados do custo (Cotação/Custo LS). */
 export const GRUPOS_PRECO_CLIENTE = ['ORCAMENTO_LS', 'PV_CLIENTE'];
+/** Grupos com editor próprio, fora do custo: os de preço ao cliente e a PV O&M Highline (14/10/2026). */
+export const GRUPOS_PROPRIOS = [...GRUPOS_PRECO_CLIENTE, 'PV_OM_HIGHLINE'];
 
 function roundCurrency(value: number): number {
     // Dois passos: 14,75 × 315,78 = 4657,755 é 4657,7549999… em ponto flutuante, e
@@ -165,7 +167,7 @@ export class BudgetService {
         if (budget.tipo_orcamento === 'ORCAMENTO_LS') return ativos.filter(i => i.origem_item === 'ORCAMENTO_LS');
         if (budget.tipo_orcamento === 'PV_CLIENTE') return ativos.filter(i => i.origem_item === 'PV_CLIENTE');
         if (budget.tipo_orcamento === 'PV_HIGHLINE') return ativos.filter(i => i.highline_template_row != null);
-        return ativos.filter(i => !GRUPOS_PRECO_CLIENTE.includes(i.origem_item));
+        return ativos.filter(i => !GRUPOS_PROPRIOS.includes(i.origem_item));
     }
 
     /** Escolhe o modelo do orçamento ao cliente: PV Highline ou Orçamento LS. Só em rascunho. */
@@ -286,9 +288,10 @@ export class BudgetService {
                 total_linha: totalLinha,
                 source_pricebook_item_id: daBase?.itemId || item.source_pricebook_item_id || null,
                 highline_template_row: templateRow,
+                codigo_vinculo: item.codigo_vinculo ? String(item.codigo_vinculo).trim().toUpperCase() : null,
                 origem_item: catalogItem ? 'CATALOGO_HIGHLINE'
                     : grupoDoEscopo ? grupoDoEscopo
-                    : (item.origem_item && !GRUPOS_PRECO_CLIENTE.includes(item.origem_item) ? item.origem_item : 'INTERNO'),
+                    : (item.origem_item && !GRUPOS_PROPRIOS.includes(item.origem_item) ? item.origem_item : 'INTERNO'),
                 user_overridden: catalogItem ? alteradoManualmente : Boolean(item.user_overridden),
                 ativo,
                 ordem: Number.isFinite(Number(item.ordem)) ? Number(item.ordem) : index,
@@ -331,6 +334,7 @@ export class BudgetService {
             }),
             source_pricebook_item_id: item.source_pricebook_item_id,
             highline_template_row: highlineTemplateRow,
+            codigo_vinculo: (item as any).codigo_vinculo ?? null,
             origem_item: item.origem_item,
             user_overridden: item.user_overridden,
             ativo: item.ativo,
@@ -348,7 +352,7 @@ export class BudgetService {
             : [];
         // Salvar a Cotação LS não apaga o Orçamento LS nem a PV do cliente, e vice-versa.
         const preservedOutros = effectiveScope === 'internal'
-            ? await prisma.budgetItem.findMany({ where: { budget_id: budgetId, highline_template_row: null, origem_item: { in: GRUPOS_PRECO_CLIENTE } } })
+            ? await prisma.budgetItem.findMany({ where: { budget_id: budgetId, highline_template_row: null, origem_item: { in: GRUPOS_PROPRIOS } } })
             : grupoDoEscopo
                 ? await prisma.budgetItem.findMany({ where: { budget_id: budgetId, NOT: { origem_item: grupoDoEscopo } } })
                 : [];
@@ -397,6 +401,13 @@ export class BudgetService {
                 });
             }
         });
+
+        // Operação Highline: a PV O&M acompanha as quantidades do Orçamento LS (14/10/2026).
+        if (escopoOrcamentoLs && budget.atividade?.sharing.trim().toUpperCase() === 'HIGHLINE' && budget.atividade.tipo_demanda === 'OPERACAO'
+            && normalized.some(i => i.codigo_vinculo)) {
+            const { montarPvOm } = await import('./pv-om-highline.service');
+            await montarPvOm(budgetId);
+        }
 
         return this.getBudgetById(budgetId);
     }

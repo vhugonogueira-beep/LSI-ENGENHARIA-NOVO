@@ -3,8 +3,9 @@
  *
  *   - Highline Implantação (PAMRB008) → PV Padrão Highline, achada pelo Sharing
  *     mesmo com o contratante "Highline do Brasil";
- *   - Highline Operação, sem base própria → genérica de Operação;
- *   - criada uma base de Operação da Highline, ela passa a valer;
+ *   - Highline Operação → "PV O&M Highline" (importada em 14/10/2026, padrão do
+ *     grupo); sem ela, a genérica de Operação;
+ *   - uma base nova do mesmo grupo não desloca a padrão; marcada como padrão, vale;
  *   - duas bases no mesmo grupo: vence a padrão, e marcar uma desmarca a outra;
  *   - orçamento novo grava a base escolhida.
  *
@@ -51,7 +52,10 @@ async function main() {
         if (baseCusto && !baseCusto.contratante_id) conferir('custo → LPU LS Office Geral', a.corpo.custo?.nome === 'LPU LS Office Geral', JSON.stringify(a.corpo.custo));
         else console.log('   (pulado) custo: a "LPU LS Office Geral" está ligada a um cliente no cadastro atual');
         const o = await lpus(operacao.id);
-        conferir('Highline Operação sem base própria → genérica de Operação', o.corpo.precoCliente?.nome === 'LPU Genérico — Manutenção', JSON.stringify(o.corpo.precoCliente));
+        // A PV O&M Highline é a base própria de operação da Highline (14/10/2026).
+        const pvOm = await prisma.priceBook.findFirst({ where: { nome_lpu: 'PV O&M Highline', status: 'ATIVA' } });
+        conferir(pvOm ? 'Highline Operação → PV O&M Highline' : 'Highline Operação sem base própria → genérica de Operação',
+            o.corpo.precoCliente?.nome === (pvOm ? 'PV O&M Highline' : 'LPU Genérico — Manutenção'), JSON.stringify(o.corpo.precoCliente));
 
         console.log('\n── Base própria do cliente');
         const nova = await json('/pricebooks', {
@@ -61,7 +65,8 @@ async function main() {
         conferir('base de Operação da Highline criada', nova.ok, `HTTP ${nova.status} ${nova.corpo.error || ''}`);
         if (nova.ok) bases.push(nova.corpo.id);
         const o2 = await lpus(operacao.id);
-        conferir('Highline Operação passa a usar a base própria', o2.corpo.precoCliente?.id === nova.corpo.id, JSON.stringify(o2.corpo.precoCliente));
+        if (pvOm?.padrao) conferir('base nova não desloca a padrão do grupo (PV O&M Highline)', o2.corpo.precoCliente?.id === pvOm.id, JSON.stringify(o2.corpo.precoCliente));
+        else conferir('Highline Operação passa a usar a base própria', o2.corpo.precoCliente?.id === nova.corpo.id, JSON.stringify(o2.corpo.precoCliente));
         const a2 = await lpus(implantacao.id);
         conferir('Implantação não é afetada', a2.corpo.precoCliente?.nome === 'PV Padrão Highline');
 
@@ -94,6 +99,8 @@ async function main() {
         if (orc.ok) orcamentos.push(orc.corpo.id);
         conferir('orçamento nasce com a LPU escolhida', orc.corpo.pricebook_id === nova.corpo.id, `${orc.corpo.pricebook_id}`);
     } finally {
+        // Marcar as bases de teste como padrão desmarcou a PV O&M Highline: volta.
+        await prisma.priceBook.updateMany({ where: { nome_lpu: 'PV O&M Highline' }, data: { padrao: true } });
         if (orcamentos.length) {
             await prisma.budgetVersion.deleteMany({ where: { budget_id: { in: orcamentos } } }).catch(() => undefined);
             await prisma.budget.deleteMany({ where: { id: { in: orcamentos } } });

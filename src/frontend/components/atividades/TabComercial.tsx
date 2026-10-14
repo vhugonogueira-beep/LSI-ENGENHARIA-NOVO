@@ -5,6 +5,7 @@ import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Empty
 import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento, nomePvSharing } from './constants';
 import HighlineBudgetEditor from './HighlineBudgetEditor';
 import OrcamentoLsEditor from './OrcamentoLsEditor';
+import { PvOmHighlineEditor } from './PvOmHighline';
 
 const STATUS_ORCAMENTO_LABEL: Record<string, string> = { RASCUNHO: 'Rascunho', ENVIADO: 'Enviado ao cliente', REVISAO: 'Em revisão', APROVADO: 'Aprovado', REPROVADO: 'Reprovado' };
 import { authFetch } from '../../lib/authFetch';
@@ -56,6 +57,9 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     // do Orçamento LS — importar Excel/PDF ou montar item a item.
     const ehHighline = atividade.sharing.trim().toUpperCase() === 'HIGHLINE';
     const ehPvSites = !ehHighline;
+    // Operação Highline (14/10/2026): Orçamento LS pela LPU Operações + PV O&M Highline.
+    const ehOmHighline = ehHighline && atividade.tipo_demanda === 'OPERACAO';
+    const [visaoOm, setVisaoOm] = useState<'LS' | 'PV_OM'>('LS');
     const nomePv = nomePvSharing(atividade.sharing);
     const precisaEscolherTipo = exigeEscolhaTipoOrcamento(atividade);
     const faltaContratante = !atividade.contratante_id;
@@ -137,7 +141,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     contratante_id: atividade.contratante_id,
                     atividade_id: atividade.id,
                     assunto: atividade.titulo,
-                    tipo_orcamento: precisaEscolherTipo ? tipoOrcamentoNovo : ehPvSites ? 'PV_CLIENTE' : 'COTACAO_INTERNA',
+                    tipo_orcamento: precisaEscolherTipo ? tipoOrcamentoNovo : ehPvSites ? 'PV_CLIENTE' : ehOmHighline ? 'ORCAMENTO_LS' : 'COTACAO_INTERNA',
                 }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao criar orçamento');
@@ -344,6 +348,33 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                         {modoLs
                             ? <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} />
                             : <HighlineBudgetEditor budgetId={orcamentoAtivo.id} targetValue={targetValue} targetLabel={targetLabel} />}
+                    </>
+                );
+            })()}
+
+            {orcamentoAtivo && ehOmHighline && (() => {
+                // Os dois vão para a Highline: não é escolha de modelo, são duas visões
+                // do mesmo orçamento. A PV O&M nasce dos vínculos dos itens do Orçamento LS.
+                const editavel = orcamentoAtivo.status === 'RASCUNHO';
+                const aba = (v: 'LS' | 'PV_OM', tituloAba: string, texto: string) => (
+                    <button type="button" aria-pressed={visaoOm === v} onClick={() => setVisaoOm(v)}
+                        className={`flex-1 rounded-lg border-2 p-3 text-left transition-colors ${visaoOm === v ? 'border-primary bg-primary/10' : 'border-border bg-secondary/30 hover:border-primary/50'}`}>
+                        <div className={`text-sm font-bold ${visaoOm === v ? 'text-primary' : ''}`}>{tituloAba}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{texto}</div>
+                    </button>
+                );
+                return (
+                    <>
+                        <div className="mb-4 rounded-xl border border-border bg-card p-4">
+                            <p className="mb-2 text-xs font-semibold text-muted-foreground">Os dois orçamentos vão para a Highline</p>
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                {aba('LS', 'Orçamento LS', 'Composto pela LPU Operações; importe (Excel ou PDF), adicione da LPU ou monte os itens')}
+                                {aba('PV_OM', 'PV O&M Highline', 'Na codificação O&M da Highline, montada pelos vínculos dos itens do Orçamento LS')}
+                            </div>
+                        </div>
+                        {visaoOm === 'LS'
+                            ? <OrcamentoLsEditor key="om-ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} vinculoHighline />
+                            : <PvOmHighlineEditor key="om-pv" budgetId={orcamentoAtivo.id} />}
                     </>
                 );
             })()}

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FileText, Paperclip, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, FileText, Library, Link2, Paperclip, Plus, RotateCcw, Save, Sparkles, Trash2, Upload, Wand2, X } from 'lucide-react';
 import { Card, EmptyState, ErrorBanner, inputClass } from './ui';
 import { fmtMoeda } from './constants';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
+import { LpuPickerModal, VinculacaoPvOmModal, type ItemDaLpu } from './PvOmHighline';
 import { escopoPadrao, gerarPdfOrcamentoLs, gruposDoOrcamento, separarServico, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -25,6 +26,10 @@ interface Linha {
     unidade: string;
     quantidade: number;
     valor_unitario: number;
+    /** Item vindo da LPU (14/10/2026): de onde saiu, para a sugestão de vínculo. */
+    source_pricebook_item_id?: string | null;
+    /** Operação Highline: código O&M da Highline a que o item corresponde na PV O&M. */
+    codigo_vinculo?: string | null;
 }
 /** bloco gravado antes do campo Grupo existir. */
 const BLOCO_SEM_GRUPO = ['ORCAMENTO_LS', 'OUTROS'];
@@ -63,8 +68,10 @@ let seq = 0;
 const novaChave = () => `l${++seq}`;
 const totalLinha = totalItem;
 
-export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade, titulo = 'Orçamento LS — preço ao cliente', grupo = 'ORCAMENTO_LS' }: {
+export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade, titulo = 'Orçamento LS — preço ao cliente', grupo = 'ORCAMENTO_LS', vinculoHighline = false }: {
     budgetId: string;
+    /** Operação Highline (14/10/2026): cada item vincula a um código O&M; o PDF pede o vínculo antes. */
+    vinculoHighline?: boolean;
     /** Grupo de itens que este editor mostra e grava: Orçamento LS ou a PV da sharing (13/10/2026). */
     grupo?: 'ORCAMENTO_LS' | 'PV_CLIENTE';
     /** "PV Sites — preço ao cliente" nas atividades fora da Highline (13/10/2026). */
@@ -81,6 +88,8 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     const [versao, setVersao] = useState({ versao_atual: 1, updated_at: '' });
     const [meta, setMeta] = useState({ assunto: '', vigencia_dias: 30, numero: '' });
     const [gerandoPdf, setGerandoPdf] = useState(false);
+    const [escolhendoLpu, setEscolhendoLpu] = useState(false);
+    const [vinculando, setVinculando] = useState<null | 'avulso' | 'pdf'>(null);
     // Agente de IA (14/10/2026): revisa as descrições e escreve a partir dos comentários.
     const [ia, setIa] = useState<{ disponivel: boolean; modelo: string } | null>(null);
     const [revisando, setRevisando] = useState(false);
@@ -130,7 +139,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         ]);
         const itens: Linha[] = (b.items || [])
             .filter((i: any) => i.origem_item === grupo)
-            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
+            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario, source_pricebook_item_id: i.source_pricebook_item_id || null, codigo_vinculo: i.codigo_vinculo || null }));
         setLinhas(itens);
         setLinhasSalvas(itens);
         setSalvas(JSON.stringify(itens.map(({ chave, ...r }) => r)));
@@ -158,6 +167,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     items: lista.map((l, i) => ({
                         codigo_item: codigos[i], titulo: l.titulo.trim(), unidade: l.unidade || 'un',
                         quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
+                        source_pricebook_item_id: l.source_pricebook_item_id || null, codigo_vinculo: l.codigo_vinculo || null,
                     })),
                 }),
             });
@@ -210,6 +220,22 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         }
     }
 
+    /** Itens escolhidos na LPU viram linhas: categoria como grupo, preço de venda da LPU. */
+    function adicionarDaLpu(itens: ItemDaLpu[]) {
+        setLinhas(ls => [...ls, ...itens.map(i => ({
+            chave: novaChave(), codigo_item: '', grupo: i.subtipo || '',
+            titulo: i.detalhamento && i.detalhamento.trim() && i.detalhamento.trim() !== i.descricao.trim() ? `${i.descricao} — ${i.detalhamento}` : i.descricao,
+            unidade: i.unidade || 'un', quantidade: 1, valor_unitario: i.valor_venda || 0, source_pricebook_item_id: i.id, codigo_vinculo: null,
+        }))]);
+        setEscolhendoLpu(false);
+    }
+    const semVinculo = linhasSalvas.filter(l => !l.codigo_vinculo).length;
+    /** Operação Highline: antes do PDF, os itens sem código O&M passam pela vinculação. */
+    function pedirPdf() {
+        if (vinculoHighline && editavel && semVinculo > 0) { setVinculando('pdf'); return; }
+        setGerandoPdf(true);
+    }
+
     const mudar = (chave: string, campo: keyof Linha, valor: string) => setLinhas(ls => ls.map(l => l.chave !== chave ? l
         : { ...l, [campo]: campo === 'quantidade' || campo === 'valor_unitario' ? Math.max(0, Number(valor.replace(',', '.')) || 0) : valor }));
 
@@ -229,7 +255,14 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                         <Sparkles size={14} aria-hidden /> {revisando ? 'Revisando…' : 'Revisar com IA'}
                     </button>
                 )}
-                <button type="button" onClick={() => setGerandoPdf(true)} disabled={!linhasSalvas.length || alterado}
+                {vinculoHighline && editavel && (
+                    <button type="button" onClick={() => setVinculando('avulso')} disabled={!linhasSalvas.length || alterado}
+                        title={alterado ? 'Salve as alterações antes de vincular' : 'Ligar cada item a um código O&M da Highline (PV O&M)'}
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">
+                        <Link2 size={14} aria-hidden /> Vincular à PV O&M{semVinculo ? ` (${semVinculo} sem código)` : ''}
+                    </button>
+                )}
+                <button type="button" onClick={pedirPdf} disabled={!linhasSalvas.length || alterado}
                     title={alterado ? 'Salve as alterações antes de gerar o PDF' : 'Orçamento no modelo executivo da LS'}
                     className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">
                     <FileText size={14} aria-hidden /> Gerar PDF
@@ -253,8 +286,11 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
 
             {linhas.length === 0 ? (
                 <EmptyState text="Nenhum item ainda. Importe um orçamento pronto (Excel ou PDF) ou adicione os itens à mão."
-                    action={editavel ? <button type="button" onClick={() => setLinhas([{ chave: novaChave(), codigo_item: '', grupo: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
-                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button> : undefined} />
+                    action={editavel ? <div className="flex flex-wrap justify-center gap-2">
+                        {atividade && <button type="button" onClick={() => setEscolhendoLpu(true)}
+                            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground"><Library size={14} aria-hidden /> Adicionar da LPU</button>}
+                        <button type="button" onClick={() => setLinhas([{ chave: novaChave(), codigo_item: '', grupo: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button></div> : undefined} />
             ) : (
                 <div className="overflow-x-auto rounded-lg border border-border">
                     <table className="w-full min-w-[980px] table-fixed text-sm">
@@ -270,7 +306,8 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                                 <tr key={l.chave} className="border-b border-border/60 last:border-b-0">
                                     <td className="px-3 py-1.5 font-id text-xs text-muted-foreground" title="Gerado pela ordem dos itens">{codigosTela[idx]}</td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Grupo" list={`grupos-${budgetId}`} placeholder="Sem grupo" className={inputClass} value={l.grupo} onChange={e => mudar(l.chave, 'grupo', e.target.value)} /></td>
-                                    <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Descrição" className={inputClass} value={l.titulo} onChange={e => mudar(l.chave, 'titulo', e.target.value)} /></td>
+                                    <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Descrição" className={inputClass} value={l.titulo} onChange={e => mudar(l.chave, 'titulo', e.target.value)} />
+                                        {vinculoHighline && <div className={`mt-0.5 flex items-center gap-1 text-[10px] ${l.codigo_vinculo ? 'text-muted-foreground' : 'text-warn'}`}><Link2 size={10} aria-hidden />{l.codigo_vinculo ? `PV O&M: ${l.codigo_vinculo}` : 'sem código O&M'}</div>}</td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Unidade" className={inputClass} value={l.unidade} onChange={e => mudar(l.chave, 'unidade', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Quantidade" type="number" min={0} step="any" className={`${inputClass} text-right`} value={l.quantidade} onChange={e => mudar(l.chave, 'quantidade', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Valor unitário" type="number" min={0} step="0.01" className={`${inputClass} text-right`} value={l.valor_unitario} onChange={e => mudar(l.chave, 'valor_unitario', e.target.value)} /></td>
@@ -301,6 +338,10 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                     <button type="button" onClick={() => setLinhas(ls => [...ls, { chave: novaChave(), codigo_item: '', grupo: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
                         className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button>
+                    {atividade && (
+                        <button type="button" onClick={() => setEscolhendoLpu(true)}
+                            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60"><Library size={14} aria-hidden /> Adicionar da LPU</button>
+                    )}
                     {linhasSalvas.length > 0 && (
                         <button type="button" onClick={excluirTodos} disabled={salvando}
                             className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-crit/40 px-3 text-sm font-semibold text-crit hover:bg-crit/10 disabled:opacity-40">
@@ -359,6 +400,14 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     onFechar={() => setDescrevendo(null)} />
             )}
 
+            {escolhendoLpu && atividade && <LpuPickerModal atividadeId={atividade.id} onAdicionar={adicionarDaLpu} onFechar={() => setEscolhendoLpu(false)} />}
+            {vinculando && (
+                <VinculacaoPvOmModal budgetId={budgetId}
+                    aviso={vinculando === 'pdf' ? `Antes do PDF: ${semVinculo} item(ns) ainda sem código O&M. Na operação Highline vão os dois orçamentos — o Orçamento LS e a PV O&M.` : undefined}
+                    textoConcluir={vinculando === 'pdf' ? 'Salvar e gerar o PDF' : 'Salvar vínculos'}
+                    onFechar={() => setVinculando(null)}
+                    onConcluir={async () => { const depois = vinculando === 'pdf'; setVinculando(null); await carregar(); onMudou?.(); if (depois) setGerandoPdf(true); }} />
+            )}
             {gerandoPdf && (
                 <ModalPdf budgetId={budgetId} atividade={atividade} meta={meta} revisao={versao.versao_atual}
                     itens={linhasSalvas} onFechar={() => setGerandoPdf(false)} onNumero={n => setMeta(m => ({ ...m, numero: n }))} />

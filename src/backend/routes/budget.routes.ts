@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { BudgetController } from '../controllers/budget.controller';
+import { editarPvOm, listarPvOm, salvarVinculos, sugestoesVinculo } from '../services/pv-om-highline.service';
 
 const router = Router();
 // Orçamento pronto (Excel ou PDF) para virar o Orçamento LS — lido em memória.
@@ -32,5 +33,13 @@ router.post('/:id/versions', BudgetController.createVersion);
 router.get('/:id/export/html', BudgetController.exportHtml);
 router.get('/:id/export/excel', BudgetController.exportExcel);
 router.get('/:id/export/pv-highline', BudgetController.exportHighlinePv);
+// PV O&M Highline (14/10/2026): operação Highline envia o Orçamento LS e a PV O&M.
+const rota = (f: (req: Request) => Promise<unknown>) => async (req: Request, res: Response) => {
+    try { res.json(await f(req)); } catch (e: any) { res.status(400).json({ error: e.message }); }
+};
+router.get('/:id/pv-om', rota(req => listarPvOm(req.params.id)));
+router.get('/:id/pv-om/vinculos', rota(req => sugestoesVinculo(req.params.id)));
+router.put('/:id/pv-om/vinculos', rota(req => salvarVinculos(req.params.id, Array.isArray(req.body?.vinculos) ? req.body.vinculos : [])));
+router.put('/:id/pv-om/itens', rota(req => editarPvOm(req.params.id, Array.isArray(req.body?.itens) ? req.body.itens : [])));
 
 export default router;

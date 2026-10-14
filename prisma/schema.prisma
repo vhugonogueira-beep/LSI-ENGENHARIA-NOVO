@@ -384,7 +384,10 @@ model BudgetItem {
   total_linha              Float // Armazenado pra cache
   source_pricebook_item_id String?
   highline_template_row    Int? // linha oficial da aba Quantitativos; identidade estável mesmo com códigos repetidos
-  origem_item              String  @default("INTERNO") // INTERNO | CATALOGO_HIGHLINE | LPU_FORNECEDOR
+  origem_item              String  @default("INTERNO") // INTERNO | CATALOGO_HIGHLINE | LPU_FORNECEDOR | ORCAMENTO_LS | PV_CLIENTE | PV_OM_HIGHLINE
+  // Item do Orçamento LS em operação Highline: código O&M da Highline a que ele
+  // corresponde na PV O&M (14/10/2026). Vários itens LS podem ir para o mesmo código.
+  codigo_vinculo           String?
   user_overridden          Boolean @default(false)
   ativo                    Boolean @default(true)
   ordem                    Int

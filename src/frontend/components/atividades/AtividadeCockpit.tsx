@@ -124,7 +124,9 @@ export interface AtividadeDetalhe {
 //   itens complementares aos do catálogo Highline). Planejamento/APC/Execução & RFI não
 //   são três abas irmãs — viram etapas dentro de uma única aba "Planejamento"
 //   (ver TabPlanejamento.tsx), que é quem decide como somar novas etapas no futuro.
-function buildTabs(modelo: string, sharing: string) {
+function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
+    // Operação Highline (14/10/2026): Orçamento LS + PV O&M Highline na mesma aba.
+    const omHighline = sharing?.trim().toUpperCase() === 'HIGHLINE' && tipoDemanda === 'OPERACAO';
     // Fora da Highline o orçamento ao cliente é a PV da sharing — "PV Sites" (13/10/2026).
     const pvSites = sharing?.trim().toUpperCase() !== 'HIGHLINE';
     const nomePv = nomePvSharing(sharing);
@@ -133,7 +135,7 @@ function buildTabs(modelo: string, sharing: string) {
             { id: 'identificacao', label: 'Identificação', secondary: false },
             // Operação também precisa saber o que cobra e o que gasta. Mesmo par
             // da Implantação, com os nomes que a LS usa em operação.
-            { id: 'comercial', label: pvSites ? nomePv : 'Orçamento LS', secondary: false },
+            { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : pvSites ? nomePv : 'Orçamento LS', secondary: false },
             { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
             { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
             { id: 'resultado', label: 'Resultado', secondary: false },
@@ -144,7 +146,7 @@ function buildTabs(modelo: string, sharing: string) {
     if (modelo === 'EXECUCAO_COM_APROVACAO') {
         return [
             { id: 'identificacao', label: 'Identificação', secondary: false },
-            { id: 'comercial', label: pvSites ? nomePv : 'Orçamento LS', secondary: false },
+            { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : pvSites ? nomePv : 'Orçamento LS', secondary: false },
             { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
             { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
             { id: 'fornecedores', label: 'Pagamentos', secondary: false },
@@ -156,7 +158,7 @@ function buildTabs(modelo: string, sharing: string) {
     const ehHighline = sharing?.trim().toUpperCase() === 'HIGHLINE';
     return [
         { id: 'identificacao', label: 'Identificação', secondary: false },
-        { id: 'comercial', label: ehHighline ? 'PV Highline' : nomePv, secondary: false },
+        { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : ehHighline ? 'PV Highline' : nomePv, secondary: false },
         { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
         { id: 'planejamento', label: 'Planejamento', secondary: false },
         { id: 'documentacao', label: 'Documentação', secondary: false },
@@ -199,7 +201,7 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
 
     useEffect(() => {
         if (!atividade) return;
-        const ids = buildTabs(atividade.modelo_operacao, atividade.sharing).map(t => t.id);
+        const ids = buildTabs(atividade.modelo_operacao, atividade.sharing, atividade.tipo_demanda).map(t => t.id);
         if (!ids.includes(activeTab)) setActiveTab('identificacao');
     }, [atividade?.modelo_operacao, atividade?.sharing]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -210,7 +212,7 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
     const modelo = atividade.modelo_operacao;
     const isImplantacaoCompleta = modelo === 'MEDIANTE_APROVACAO';
     const usaRelatorioFotografico = !isImplantacaoCompleta;
-    const tabs = buildTabs(modelo, atividade.sharing);
+    const tabs = buildTabs(modelo, atividade.sharing, atividade.tipo_demanda);
     const tabProps = { atividade, onRefresh: load, usaRelatorioFotografico };
     const alertasDaAba = (id: string) => (pendencias[id] || []).filter(x => x.nivel === 'ALERTA').length;
     const abasPendentes = tabs.map(t => ({ ...t, n: alertasDaAba(t.id) })).filter(t => t.n > 0);
