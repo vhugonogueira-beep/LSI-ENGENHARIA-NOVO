@@ -91,6 +91,7 @@ export async function createContratacao(req: Request, res: Response) {
             condicao_id, percentual_entrada, percentual_saldo, gatilho_saldo,
             observacoes, forma_pagamento: formaInformada, cartao_id,
             processo_tipo, formalizacao_posterior, data_compra_cartao, data_pagamento, fatura_referencia,
+            saldos,
         } = req.body;
 
         if (!atividade_id || (!supplier_id && !funcionario_id) || (supplier_id && funcionario_id) || !finalidade || valor_contratado == null) {
@@ -148,6 +149,23 @@ export async function createContratacao(req: Request, res: Response) {
         const valorEntrada = round2(valorNum * entrada / 100);
         const valorSaldo = round2(valorNum - valorEntrada);
 
+        // Saldo programado (14/10/2026): o que não é pago agora vira uma ou mais
+        // parcelas de SALDO pendentes, cada uma com a sua data prevista.
+        const saldosProgramados: { percentual: number; data_prevista: Date }[] = [];
+        if (Array.isArray(saldos) && saldos.length && saldo > 0 && !formalizacao) {
+            for (const item of saldos) {
+                const pct = parseFloat(item?.percentual);
+                const data = item?.data_prevista ? new Date(item.data_prevista) : null;
+                if (!(pct > 0)) return res.status(400).json({ error: 'Cada parcela do saldo precisa de um percentual maior que zero' });
+                if (!data || isNaN(data.getTime())) return res.status(400).json({ error: 'Informe a data prevista de cada parcela do saldo' });
+                saldosProgramados.push({ percentual: pct, data_prevista: data });
+            }
+            const somaSaldos = saldosProgramados.reduce((s, x) => s + x.percentual, 0);
+            if (Math.abs(somaSaldos - saldo) > 0.01) {
+                return res.status(400).json({ error: `As parcelas do saldo somam ${round2(somaSaldos)}%, mas o saldo é ${round2(saldo)}%` });
+            }
+        }
+
         // Só nasce parcela que tem valor. Entrada de 100% (ou de 0%) é pagamento
         // único — gerar um saldo de R$ 0,00 ao lado só cria uma linha que alguém
         // vai tentar solicitar.
@@ -166,7 +184,18 @@ export async function createContratacao(req: Request, res: Response) {
             status: 'PENDENTE',
             data_pagamento: formalizacao ? new Date(dataEfetiva) : null,
         };
-        const parcelasCreate = (entrada > 0 && saldo > 0)
+        // Saldo em várias parcelas: a última absorve o arredondamento.
+        const parcelasSaldo = saldosProgramados.map((x, i) => {
+            const anteriores = saldosProgramados.slice(0, i).reduce((s, y) => s + round2(valorNum * y.percentual / 100), 0);
+            const valor = i === saldosProgramados.length - 1 ? round2(valorSaldo - anteriores) : round2(valorNum * x.percentual / 100);
+            return { tipo: 'SALDO', percentual: x.percentual, valor, ...dadosPagamento, data_prevista: x.data_prevista };
+        });
+        const parcelasCreate = saldosProgramados.length
+            ? [
+                ...(entrada > 0 ? [{ tipo: 'ENTRADA', percentual: entrada, valor: valorEntrada, ...dadosPagamento }] : []),
+                ...parcelasSaldo,
+            ]
+            : (entrada > 0 && saldo > 0)
             ? [
                 { tipo: 'ENTRADA', percentual: entrada, valor: valorEntrada, ...dadosPagamento },
                 { tipo: 'SALDO', percentual: saldo, valor: valorSaldo, ...dadosPagamento },

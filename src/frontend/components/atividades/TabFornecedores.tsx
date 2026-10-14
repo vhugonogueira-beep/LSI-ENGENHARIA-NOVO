@@ -34,7 +34,7 @@ const FINALIDADE_LABEL: Record<string, string> = {
     OUTROS: 'Outros',
 };
 const FORM_INIT = {
-    favorecido: '', finalidade: 'MAO_DE_OBRA', valor_contratado: '', percentual_entrada: '0', percentual_saldo: '100',
+    favorecido: '', finalidade: 'MAO_DE_OBRA', valor_contratado: '', percentual_entrada: '100', percentual_saldo: '0',
     gatilho_saldo: 'CONCLUSAO', observacoes: '', destino: '', data_inicio_viagem: '', data_fim_viagem: '',
     data_despesa: '', data_solicitacao: '', data_prevista: '', forma_pagamento: '', cartao_id: '',
     processo_tipo: 'PAYMENT_REQUEST', formalizacao_posterior: false, data_pagamento_realizado: '', fatura_referencia: '',
@@ -112,6 +112,29 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         authFetch(`/api/suppliers/${supplierFavorecido}/condicoes-pagamento`).then(r => (r.ok ? r.json() : [])).then(d => { if (vivo) setCondicoesFav(Array.isArray(d) ? d : []); }).catch(() => undefined);
         return () => { vivo = false; };
     }, [supplierFavorecido]);
+    // Saldo programado (14/10/2026): o que não é pago agora vira parcela(s)
+    // pendente(s) com data prevista. Uma linha por parcela do saldo.
+    const [saldos, setSaldos] = useState<{ percentual: string; data_prevista: string }[]>([]);
+    const pagoAgora = Math.min(100, Math.max(0, parseFloat(form.percentual_entrada) || 0));
+    const saldoPct = Math.round((100 - pagoAgora) * 100) / 100;
+    const valorTotal = parseFloat(form.valor_contratado) || 0;
+    const reaisDe = (pct: number) => Math.round(valorTotal * pct) / 100;
+    const somaSaldos = Math.round(saldos.reduce((s, x) => s + (parseFloat(x.percentual) || 0), 0) * 100) / 100;
+    function definirPagoAgora(pct: number) {
+        const p = Math.min(100, Math.max(0, Math.round(pct * 100) / 100));
+        const resto = Math.round((100 - p) * 100) / 100;
+        setForm(f => ({ ...f, percentual_entrada: String(p), percentual_saldo: String(resto) }));
+        setSaldos(v => (resto > 0 ? [{ percentual: String(resto), data_prevista: v[0]?.data_prevista || '' }] : []));
+    }
+    function dividirSaldo() {
+        setSaldos(v => {
+            if (!v.length) return v;
+            const ultimo = v[v.length - 1];
+            const metade = Math.round((parseFloat(ultimo.percentual) || 0) / 2 * 100) / 100;
+            const outra = Math.round(((parseFloat(ultimo.percentual) || 0) - metade) * 100) / 100;
+            return [...v.slice(0, -1), { ...ultimo, percentual: String(metade) }, { percentual: String(outra), data_prevista: '' }];
+        });
+    }
     async function salvarCondicaoNova() {
         const entrada = parseFloat(form.percentual_entrada), saldo = parseFloat(form.percentual_saldo);
         if (!supplierFavorecido || !nomeNovaCondicao.trim()) return;
@@ -204,9 +227,11 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             } catch (e: any) { setErro(e.message); } finally { setSalvando(false); }
             return;
         }
-        if (Math.round(parseFloat(form.percentual_entrada) + parseFloat(form.percentual_saldo)) !== 100) {
-            setErro('Percentual de entrada + saldo deve somar 100');
-            return;
+        const formalizando = form.processo_tipo === 'PAYMENT_FORMALIZATION';
+        if (!formalizando && !(pagoAgora > 0)) { setErro('Informe quanto está sendo pago agora (maior que 0%)'); return; }
+        if (!formalizando && saldoPct > 0) {
+            if (Math.abs(somaSaldos - saldoPct) > 0.01) { setErro(`As parcelas do saldo somam ${somaSaldos}%, mas o saldo é ${saldoPct}%`); return; }
+            if (saldos.some(x => !x.data_prevista)) { setErro('Informe a data prevista de cada parcela do saldo'); return; }
         }
         setSalvando(true);
         setErro('');
@@ -220,9 +245,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     funcionario_id: form.favorecido.startsWith('funcionario:') ? form.favorecido.slice(12) : null,
                     finalidade: form.finalidade,
                     valor_contratado: parseFloat(form.valor_contratado),
-                    percentual_entrada: parseFloat(form.percentual_entrada),
-                    percentual_saldo: parseFloat(form.percentual_saldo),
+                    percentual_entrada: formalizando ? 0 : pagoAgora,
+                    percentual_saldo: formalizando ? 100 : saldoPct,
                     gatilho_saldo: form.gatilho_saldo,
+                    saldos: !formalizando && saldoPct > 0 ? saldos.map(x => ({ percentual: parseFloat(x.percentual), data_prevista: x.data_prevista })) : undefined,
                     observacoes: form.observacoes || null,
                     forma_pagamento: form.forma_pagamento,
                     cartao_id: form.forma_pagamento === 'CARTAO_CREDITO' ? form.cartao_id : null,
@@ -235,6 +261,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao contratar fornecedor');
             setForm(FORM_INIT);
+            setSaldos([]);
             setShowForm(false);
             await load();
         } catch (e: any) {
@@ -658,8 +685,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 ...f,
                                 processo_tipo: e.target.value,
                                 formalizacao_posterior: e.target.value === 'PAYMENT_FORMALIZATION',
-                                percentual_entrada: e.target.value === 'PAYMENT_FORMALIZATION' ? '0' : f.percentual_entrada,
-                                percentual_saldo: e.target.value === 'PAYMENT_FORMALIZATION' ? '100' : f.percentual_saldo,
+                                // Formalização é sempre pagamento único; o percentual
+                                // pago agora só vale para solicitação.
+                                percentual_entrada: e.target.value === 'PAYMENT_FORMALIZATION' ? '100' : f.percentual_entrada,
+                                percentual_saldo: e.target.value === 'PAYMENT_FORMALIZATION' ? '0' : f.percentual_saldo,
                                 data_pagamento_realizado: e.target.value === 'PAYMENT_FORMALIZATION' ? (f.data_pagamento_realizado || hojeLocal()) : '',
                             }))}>
                                 <option value="PAYMENT_REQUEST">Solicitação de pagamento</option>
@@ -693,30 +722,66 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     <select aria-label="Condição de pagamento salva" className={`${inputClass} min-w-0 flex-1`} defaultValue=""
                                         onChange={e => {
                                             const c = condicoesFav.find(x => x.id === e.target.value);
-                                            if (c) setForm(f => ({ ...f, percentual_entrada: String(c.percentual_entrada), percentual_saldo: String(c.percentual_saldo), gatilho_saldo: c.gatilho_saldo }));
+                                            // Condição antiga "0% entrada / 100% saldo" é pagamento único: 100% agora.
+                                            if (c) { definirPagoAgora(c.percentual_entrada > 0 ? c.percentual_entrada : 100); setForm(f => ({ ...f, gatilho_saldo: c.gatilho_saldo })); }
                                         }}>
                                         <option value="">{condicoesFav.length ? 'Usar uma condição salva…' : 'Nenhuma condição salva para este favorecido'}</option>
-                                        {condicoesFav.map(c => <option key={c.id} value={c.id}>{c.nome} — {c.percentual_entrada}% entrada + {c.percentual_saldo}% saldo</option>)}
+                                        {condicoesFav.map(c => <option key={c.id} value={c.id}>{c.nome} — {c.percentual_entrada > 0 && c.percentual_entrada < 100 ? `${c.percentual_entrada}% agora + ${c.percentual_saldo}% de saldo` : 'pagamento único (100%)'}</option>)}
                                     </select>
                                     <input className={`${inputClass} w-40`} value={nomeNovaCondicao} onChange={e => setNomeNovaCondicao(e.target.value)} placeholder="Nome (ex.: 20+80)" aria-label="Nome da nova condição" />
                                     <button type="button" onClick={salvarCondicaoNova} disabled={!nomeNovaCondicao.trim()}
                                         className="h-9 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">Salvar como condição</button>
                                 </div>
-                                <p className="mt-1.5 text-[11px] text-muted-foreground">Escolher uma condição preenche entrada, saldo e gatilho abaixo. "Salvar como condição" guarda a combinação atual para os próximos pagamentos.</p>
+                                <p className="mt-1.5 text-[11px] text-muted-foreground">Escolher uma condição preenche quanto é pago agora e o saldo abaixo. "Salvar como condição" guarda a combinação atual para os próximos pagamentos.</p>
                             </div>
-                        )}<Field label="Gatilho do saldo">
-                            <select className={inputClass} value={form.gatilho_saldo} onChange={e => setForm(f => ({ ...f, gatilho_saldo: e.target.value }))}>
-                                <option value="INICIO">Início</option>
-                                <option value="MARCO">Marco</option>
-                                <option value="CONCLUSAO">Conclusão</option>
-                            </select>
-                        </Field>
-                        <Field label="% Entrada">
-                            <input type="number" className={inputClass} value={form.percentual_entrada} onChange={e => setForm(f => ({ ...f, percentual_entrada: e.target.value, percentual_saldo: String(100 - parseFloat(e.target.value || '0')) }))} />
-                        </Field>
-                        <Field label="% Saldo">
-                            <input type="number" className={inputClass} value={form.percentual_saldo} onChange={e => setForm(f => ({ ...f, percentual_saldo: e.target.value }))} />
-                        </Field>
+                        )}
+                        {/* Quanto é pago agora (14/10/2026): 100% é pagamento único; abaixo
+                            disso, o resto vira saldo programado com data prevista. */}
+                        <div className="col-span-2 rounded-lg border border-border p-3">
+                            <p className="mb-2 text-xs font-medium text-muted-foreground">Quanto está sendo pago agora</p>
+                            <div className="flex flex-wrap items-center gap-2">
+                                {[100, 50].map(p => (
+                                    <button key={p} type="button" onClick={() => definirPagoAgora(p)} aria-pressed={pagoAgora === p}
+                                        className={`h-9 rounded-lg border px-4 text-sm font-semibold ${pagoAgora === p ? 'border-primary bg-primary text-primary-foreground' : 'border-border hover:bg-secondary/60'}`}>{p}%</button>
+                                ))}
+                                <label className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">Outro
+                                    <span className="w-24"><input type="number" min={0} max={100} step="0.01" aria-label="Percentual pago agora" className={inputClass}
+                                        value={form.percentual_entrada} onChange={e => definirPagoAgora(parseFloat(e.target.value || '0'))} /></span> %
+                                </label>
+                                <label className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">ou R$
+                                    <span className="w-36"><input type="number" min={0} step="0.01" aria-label="Valor pago agora" className={inputClass} disabled={!valorTotal}
+                                        value={valorTotal ? reaisDe(pagoAgora) : ''} onChange={e => valorTotal && definirPagoAgora((parseFloat(e.target.value || '0') / valorTotal) * 100)} /></span>
+                                </label>
+                            </div>
+                            {saldoPct <= 0 ? (
+                                <p className="mt-2 text-[11px] text-muted-foreground">Pagamento único: o valor todo é solicitado agora.</p>
+                            ) : (
+                                <div className="mt-3 rounded-lg border border-warn/40 bg-warn/5 p-3">
+                                    <p className="text-sm font-semibold">Saldo remanescente: {fmtMoeda(reaisDe(saldoPct))} ({saldoPct}%)</p>
+                                    <p className="mb-2 text-[11px] text-muted-foreground">Fica programado como pagamento pendente deste favorecido, para solicitar na data prevista.</p>
+                                    <div className="flex flex-col gap-2">
+                                        {saldos.map((x, i) => (
+                                            <div key={i} className="flex flex-wrap items-center gap-2 whitespace-nowrap text-xs">
+                                                <span className="w-14 font-semibold">Saldo {saldos.length > 1 ? i + 1 : ''}</span>
+                                                <span className="w-24"><input type="number" min={0} step="0.01" aria-label={`Percentual da parcela ${i + 1} do saldo`} className={inputClass}
+                                                    value={x.percentual} onChange={e => setSaldos(v => v.map((y, k) => (k === i ? { ...y, percentual: e.target.value } : y)))} /></span>
+                                                <span className="w-28 text-muted-foreground">% = {fmtMoeda(reaisDe(parseFloat(x.percentual) || 0))}</span>
+                                                <span className="text-muted-foreground">Data prevista</span>
+                                                <span className="w-44"><input type="date" aria-label={`Data prevista da parcela ${i + 1} do saldo`} className={inputClass}
+                                                    value={x.data_prevista} onChange={e => setSaldos(v => v.map((y, k) => (k === i ? { ...y, data_prevista: e.target.value } : y)))} /></span>
+                                                {saldos.length > 1 && (
+                                                    <button type="button" onClick={() => setSaldos(v => v.filter((_, k) => k !== i))} aria-label={`Remover a parcela ${i + 1} do saldo`} className="text-muted-foreground hover:text-crit"><X size={14} aria-hidden /></button>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between text-[11px]">
+                                        <button type="button" onClick={dividirSaldo} className="font-semibold text-primary hover:underline">+ Dividir o saldo em mais uma parcela</button>
+                                        {Math.abs(somaSaldos - saldoPct) > 0.01 && <span className="font-semibold text-crit">As parcelas somam {somaSaldos}% — faltam {Math.round((saldoPct - somaSaldos) * 100) / 100}%</span>}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                         <Field label="Forma de pagamento">
                             <select className={inputClass} value={form.forma_pagamento} onChange={e => setForm(f => ({
                                 ...f, forma_pagamento: e.target.value,
