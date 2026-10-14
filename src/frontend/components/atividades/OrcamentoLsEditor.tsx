@@ -63,8 +63,10 @@ let seq = 0;
 const novaChave = () => `l${++seq}`;
 const totalLinha = totalItem;
 
-export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade, titulo = 'Orçamento LS — preço ao cliente' }: {
+export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade, titulo = 'Orçamento LS — preço ao cliente', grupo = 'ORCAMENTO_LS' }: {
     budgetId: string;
+    /** Grupo de itens que este editor mostra e grava: Orçamento LS ou a PV da sharing (13/10/2026). */
+    grupo?: 'ORCAMENTO_LS' | 'PV_CLIENTE';
     /** "PV Sites — preço ao cliente" nas atividades fora da Highline (13/10/2026). */
     titulo?: string;
     /** Dados do site e do cliente que vão no PDF. */
@@ -93,7 +95,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             authFetch(`/api/budgets/${budgetId}/importados`).then(r => (r.ok ? r.json() : [])),
         ]);
         const itens: Linha[] = (b.items || [])
-            .filter((i: any) => i.origem_item === 'ORCAMENTO_LS')
+            .filter((i: any) => i.origem_item === grupo)
             .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
         setLinhas(itens);
         setLinhasSalvas(itens);
@@ -101,7 +103,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         setVersao({ versao_atual: b.versao_atual, updated_at: b.updated_at });
         setMeta({ assunto: b.assunto || '', vigencia_dias: b.vigencia_dias || 30, numero: b.numero || '' });
         setImportados(a);
-    }, [budgetId]);
+    }, [budgetId, grupo]);
     useEffect(() => { carregar().catch(e => setErro(e.message)).finally(() => setCarregando(false)); }, [carregar]);
 
     const total = useMemo(() => linhas.reduce((s, l) => s + totalLinha(l), 0), [linhas]);
@@ -118,7 +120,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             const r = await authFetch(`/api/budgets/${budgetId}/items`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    versaoAtual: versao.versao_atual, expectedUpdatedAt: versao.updated_at, scope: 'orcamento_ls',
+                    versaoAtual: versao.versao_atual, expectedUpdatedAt: versao.updated_at, scope: grupo === 'PV_CLIENTE' ? 'pv_cliente' : 'orcamento_ls',
                     items: lista.map((l, i) => ({
                         codigo_item: codigos[i], titulo: l.titulo.trim(), unidade: l.unidade || 'un',
                         quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
@@ -144,7 +146,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     }
 
     async function excluirTodos() {
-        if (!confirm(`Excluir os ${linhasSalvas.length || linhas.length} item(ns) do Orçamento LS? O total do orçamento volta a zero. Os arquivos importados continuam guardados.`)) return;
+        if (!confirm(`Excluir os ${linhasSalvas.length || linhas.length} item(ns) deste orçamento? O total do orçamento volta a zero. Os arquivos importados continuam guardados.`)) return;
         await salvar([]);
     }
 
@@ -209,7 +211,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             </p>
 
             {linhas.length === 0 ? (
-                <EmptyState text="Nenhum item no Orçamento LS. Importe um orçamento pronto (Excel ou PDF) ou adicione os itens à mão."
+                <EmptyState text="Nenhum item ainda. Importe um orçamento pronto (Excel ou PDF) ou adicione os itens à mão."
                     action={editavel ? <button type="button" onClick={() => setLinhas([{ chave: novaChave(), codigo_item: '', grupo: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
                         className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button> : undefined} />
             ) : (
@@ -240,7 +242,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                         </tbody>
                         <tfoot>
                             <tr className="border-t border-border bg-secondary/20">
-                                <td colSpan={6} className="px-3 py-2.5 text-right text-sm font-semibold">Total do Orçamento LS</td>
+                                <td colSpan={6} className="px-3 py-2.5 text-right text-sm font-semibold">Total</td>
                                 <td className="px-3 py-2.5 text-right text-base font-bold tabular-nums">{fmtMoeda(total)}</td><td />
                             </tr>
                         </tfoot>
@@ -272,7 +274,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                         </button>
                     )}
                     <button type="button" onClick={() => salvar()} disabled={!alterado || salvando}
-                        title={alterado ? 'Gravar as alterações do Orçamento LS' : 'Nada mudou desde o último salvamento'}
+                        title={alterado ? 'Gravar as alterações' : 'Nada mudou desde o último salvamento'}
                         className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40">
                         <Save size={14} aria-hidden /> {salvando ? 'Salvando…' : 'Salvar alterações'}
                     </button>

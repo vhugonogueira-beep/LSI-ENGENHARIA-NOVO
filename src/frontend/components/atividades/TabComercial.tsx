@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Check, Plus, X } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
-import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento } from './constants';
+import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento, nomePvSharing } from './constants';
 import HighlineBudgetEditor from './HighlineBudgetEditor';
 import OrcamentoLsEditor from './OrcamentoLsEditor';
 
@@ -56,6 +56,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     // do Orçamento LS — importar Excel/PDF ou montar item a item.
     const ehHighline = atividade.sharing.trim().toUpperCase() === 'HIGHLINE';
     const ehPvSites = !ehHighline;
+    const nomePv = nomePvSharing(atividade.sharing);
     const precisaEscolherTipo = exigeEscolhaTipoOrcamento(atividade);
     const faltaContratante = !atividade.contratante_id;
 
@@ -136,7 +137,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     contratante_id: atividade.contratante_id,
                     atividade_id: atividade.id,
                     assunto: atividade.titulo,
-                    tipo_orcamento: precisaEscolherTipo ? tipoOrcamentoNovo : ehPvSites ? 'ORCAMENTO_LS' : 'COTACAO_INTERNA',
+                    tipo_orcamento: precisaEscolherTipo ? tipoOrcamentoNovo : ehPvSites ? 'PV_CLIENTE' : 'COTACAO_INTERNA',
                 }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao criar orçamento');
@@ -250,7 +251,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     <>
                         <Row label="Número" value={orcamentoAtivo.numero || 'Gerado pelo sistema no primeiro PDF ou ao abrir a negociação'} />
                         <Row label="Assunto" value={orcamentoAtivo.assunto || '—'} />
-                        <Row label="Tipo" value={ehPvSites ? 'PV Sites' : TIPO_ORCAMENTO_LABEL[orcamentoAtivo.tipo_orcamento || 'COTACAO_INTERNA']} />
+                        <Row label="Tipo" value={ehPvSites && orcamentoAtivo.tipo_orcamento !== 'ORCAMENTO_LS' ? nomePv : TIPO_ORCAMENTO_LABEL[orcamentoAtivo.tipo_orcamento || 'COTACAO_INTERNA']} />
                         <Row label="Status" value={STATUS_ORCAMENTO_LABEL[orcamentoAtivo.status] || orcamentoAtivo.status} />
                         <Row label="Versão atual" value={orcamentoAtivo.versao_atual} />
                         <Row label="Criado em" value={fmtData(orcamentoAtivo.created_at)} />
@@ -347,10 +348,48 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                 );
             })()}
 
-            {orcamentoAtivo && ehPvSites && (
-                <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={orcamentoAtivo.status === 'RASCUNHO'} onMudou={onRefresh}
-                    atividade={atividade} titulo="PV Sites — preço ao cliente" />
-            )}
+            {orcamentoAtivo && ehPvSites && (() => {
+                // Mesmo desenho da Highline (13/10/2026): seguir com a PV da sharing
+                // ("PV Sites") ou com o Orçamento LS. Os dois importam Excel/PDF ou
+                // montam item a item; cada um guarda os seus itens. Trocável em rascunho.
+                const modoLs = orcamentoAtivo.tipo_orcamento === 'ORCAMENTO_LS';
+                const editavel = orcamentoAtivo.status === 'RASCUNHO';
+                async function trocar(modelo: 'PV_CLIENTE' | 'ORCAMENTO_LS') {
+                    if (!orcamentoAtivo || (modelo === 'ORCAMENTO_LS') === modoLs) return;
+                    setErro('');
+                    const r = await authFetch(`/api/budgets/${orcamentoAtivo.id}/modelo`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ modelo }),
+                    });
+                    if (!r.ok) { setErro((await r.json()).error || 'Erro ao trocar o modelo'); return; }
+                    onRefresh();
+                }
+                const opcao = (modelo: 'PV_CLIENTE' | 'ORCAMENTO_LS', tituloOpcao: string, texto: string) => {
+                    const ativo = modelo === 'ORCAMENTO_LS' ? modoLs : !modoLs;
+                    return (
+                        <button type="button" aria-pressed={ativo} disabled={!editavel && !ativo} onClick={() => trocar(modelo)}
+                            className={`flex-1 rounded-lg border-2 p-3 text-left transition-colors ${ativo ? 'border-primary bg-primary/10' : 'border-border bg-secondary/30 hover:border-primary/50'} disabled:cursor-not-allowed disabled:opacity-50`}>
+                            <div className={`text-sm font-bold ${ativo ? 'text-primary' : ''}`}>{tituloOpcao}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">{texto}</div>
+                        </button>
+                    );
+                };
+                return (
+                    <>
+                        <div className="mb-4 rounded-xl border border-border bg-card p-4">
+                            <p className="mb-2 text-xs font-semibold text-muted-foreground">Seguir com</p>
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                {opcao('PV_CLIENTE', nomePv, 'Planilha do cliente: importe a PV (Excel ou PDF) ou monte os itens')}
+                                {opcao('ORCAMENTO_LS', 'Orçamento LS', 'Modelo da LS: importe um orçamento pronto (Excel ou PDF) ou monte os itens')}
+                            </div>
+                            {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho; o modelo não pode mais ser trocado.</p>}
+                        </div>
+                        {modoLs
+                            ? <OrcamentoLsEditor key="ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} />
+                            : <OrcamentoLsEditor key="pv" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade}
+                                grupo="PV_CLIENTE" titulo={`${nomePv} — preço ao cliente`} />}
+                    </>
+                );
+            })()}
 
             {orcamentoAtivo && (
                 <Card title="Negociação">

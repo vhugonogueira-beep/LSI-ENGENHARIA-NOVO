@@ -174,7 +174,19 @@ export const TIPO_ORCAMENTO_LABEL: Record<string, string> = {
     COTACAO_INTERNA: 'Cotação Interna LS',
     PV_HIGHLINE: 'PV Highline',
     ORCAMENTO_LS: 'Orçamento LS',
+    PV_CLIENTE: 'PV do cliente',
 };
+
+/**
+ * Nome da PV da sharing fora da Highline (13/10/2026): "PV Sites", "PV American
+ * Tower", "PV IHS". Sigla curta fica em maiúsculas.
+ */
+export function nomePvSharing(sharing?: string | null): string {
+    const s = String(sharing || '').trim();
+    if (!s || s.toUpperCase() === 'OUTROS') return 'PV do cliente';
+    const nome = s.split(/\s+/).map(p => (p.length <= 4 && p === p.toUpperCase() && !/^(SITES?|DO|DA|DE)$/.test(p)) ? p : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+    return `PV ${nome}`;
+}
 export function exigeEscolhaTipoOrcamento(atividade: { sharing: string; tipo_demanda: string }): boolean {
     return atividade.sharing.trim().toUpperCase() === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO';
 }

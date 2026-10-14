@@ -143,9 +143,17 @@ async function main() {
         const cot = await json('/budgets', { method: 'POST', headers: cab, body: JSON.stringify({
             tenant_id: at.corpo.tenant_id, contratante_id: at.corpo.contratante_id, atividade_id: atividadeId, assunto: TESTE, tipo_orcamento: 'COTACAO_INTERNA' }) });
         budgetPvSites = cot.corpo.id;
-        const salvaPv = await salvarItens(budgetPvSites, 'orcamento_ls', [{ codigo_item: '01', titulo: 'Vistoria', unidade: 'vb', quantidade: 1, valor_unitario: 900, bdi_percent: 0, bloco: 'ORCAMENTO_LS' }]);
-        const virou = await prisma.budget.findUnique({ where: { id: budgetPvSites } });
-        conferir('cotação interna vira PV Sites (Orçamento LS) ao salvar itens', salvaPv.ok && virou?.tipo_orcamento === 'ORCAMENTO_LS', `${salvaPv.corpo.error || ''} ${virou?.tipo_orcamento}`);
+        const salvaPv = await salvarItens(budgetPvSites, 'pv_cliente', [{ codigo_item: '01', titulo: 'Vistoria', unidade: 'vb', quantidade: 1, valor_unitario: 900, bdi_percent: 0, bloco: 'ORCAMENTO_LS' }]);
+        let virou = await prisma.budget.findUnique({ where: { id: budgetPvSites }, include: { items: true } });
+        conferir('cotação interna vira PV do cliente ao salvar itens da PV', salvaPv.ok && virou?.tipo_orcamento === 'PV_CLIENTE', `${salvaPv.corpo.error || ''} ${virou?.tipo_orcamento}`);
+        conferir('item gravado no grupo PV_CLIENTE', virou?.items.every(i => i.origem_item === 'PV_CLIENTE') === true);
+        const salvaLs2 = await salvarItens(budgetPvSites, 'orcamento_ls', [{ codigo_item: '01', titulo: 'Orçamento LS', unidade: 'vb', quantidade: 1, valor_unitario: 700, bdi_percent: 0, bloco: 'ORCAMENTO_LS' }]);
+        virou = await prisma.budget.findUnique({ where: { id: budgetPvSites }, include: { items: true } });
+        conferir('salvar o Orçamento LS não apaga a PV do cliente', salvaLs2.ok && virou!.items.filter(i => i.origem_item === 'PV_CLIENTE').length === 1 && virou!.items.filter(i => i.origem_item === 'ORCAMENTO_LS').length === 1);
+        const totalCliente = async () => ((await json('/budgets')).corpo as any[]).find(b => b.id === budgetPvSites)?.total_cliente;
+        conferir('preço ao cliente = PV do cliente (900)', await totalCliente() === 900, String(await totalCliente()));
+        const trocaPv = await json(`/budgets/${budgetPvSites}/modelo`, { method: 'PUT', headers: cab, body: JSON.stringify({ modelo: 'ORCAMENTO_LS' }) });
+        conferir('troca para Orçamento LS: preço passa a ser 700', trocaPv.ok && await totalCliente() === 700, String(await totalCliente()));
     } finally {
         if (budgetPvSites) {
             await prisma.budgetItem.deleteMany({ where: { budget_id: budgetPvSites } });
