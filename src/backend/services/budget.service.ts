@@ -374,11 +374,16 @@ export class BudgetService {
             // com itens de PV guardados não pode desfazer a escolha de "Orçamento LS".
             const virouPv = (effectiveScope === 'catalog' || effectiveScope === 'all') && nextItems.some(i => i.highline_template_row != null);
             const precisaCorrigirTipo = virouPv && budget.tipo_orcamento !== 'PV_HIGHLINE';
-            if (precisaCorrigirTipo || !expectedDate) {
+            // PV Sites (13/10/2026): fora da Highline, salvar itens no editor do
+            // Orçamento LS faz deles o preço ao cliente — a cotação interna antiga
+            // somava o custo como se fosse preço.
+            const virouLs = escopoOrcamentoLs && budget.tipo_orcamento === 'COTACAO_INTERNA';
+            if (precisaCorrigirTipo || virouLs || !expectedDate) {
                 await tx.budget.update({
                     where: { id: budgetId },
                     data: {
                         ...(precisaCorrigirTipo ? { tipo_orcamento: 'PV_HIGHLINE' } : {}),
+                        ...(virouLs ? { tipo_orcamento: 'ORCAMENTO_LS' } : {}),
                         updated_at: new Date(),
                     },
                 });

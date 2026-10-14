@@ -125,12 +125,14 @@ export interface AtividadeDetalhe {
 //   são três abas irmãs — viram etapas dentro de uma única aba "Planejamento"
 //   (ver TabPlanejamento.tsx), que é quem decide como somar novas etapas no futuro.
 function buildTabs(modelo: string, sharing: string) {
+    // Fora da Highline o orçamento ao cliente se chama "PV Sites" (13/10/2026).
+    const pvSites = sharing?.trim().toUpperCase() !== 'HIGHLINE';
     if (modelo === 'EXECUCAO_DIRETA') {
         return [
             { id: 'identificacao', label: 'Identificação', secondary: false },
             // Operação também precisa saber o que cobra e o que gasta. Mesmo par
             // da Implantação, com os nomes que a LS usa em operação.
-            { id: 'comercial', label: 'Orçamento LS', secondary: false },
+            { id: 'comercial', label: pvSites ? 'PV Sites' : 'Orçamento LS', secondary: false },
             { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
             { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
             { id: 'resultado', label: 'Resultado', secondary: false },
@@ -141,7 +143,7 @@ function buildTabs(modelo: string, sharing: string) {
     if (modelo === 'EXECUCAO_COM_APROVACAO') {
         return [
             { id: 'identificacao', label: 'Identificação', secondary: false },
-            { id: 'comercial', label: 'Orçamento LS', secondary: false },
+            { id: 'comercial', label: pvSites ? 'PV Sites' : 'Orçamento LS', secondary: false },
             { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
             { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
             { id: 'fornecedores', label: 'Pagamentos', secondary: false },
@@ -153,7 +155,7 @@ function buildTabs(modelo: string, sharing: string) {
     const ehHighline = sharing?.trim().toUpperCase() === 'HIGHLINE';
     return [
         { id: 'identificacao', label: 'Identificação', secondary: false },
-        { id: 'comercial', label: ehHighline ? 'PV Highline' : 'Comercial', secondary: false },
+        { id: 'comercial', label: ehHighline ? 'PV Highline' : 'PV Sites', secondary: false },
         { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
         { id: 'planejamento', label: 'Planejamento', secondary: false },
         { id: 'documentacao', label: 'Documentação', secondary: false },

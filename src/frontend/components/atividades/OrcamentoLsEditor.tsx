@@ -63,8 +63,10 @@ let seq = 0;
 const novaChave = () => `l${++seq}`;
 const totalLinha = totalItem;
 
-export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade }: {
+export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade, titulo = 'Orçamento LS — preço ao cliente' }: {
     budgetId: string;
+    /** "PV Sites — preço ao cliente" nas atividades fora da Highline (13/10/2026). */
+    titulo?: string;
     /** Dados do site e do cliente que vão no PDF. */
     atividade?: AtividadeDetalhe;
     /** Só em rascunho; enviado ao cliente, fica de leitura. */
@@ -175,10 +177,10 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     const mudar = (chave: string, campo: keyof Linha, valor: string) => setLinhas(ls => ls.map(l => l.chave !== chave ? l
         : { ...l, [campo]: campo === 'quantidade' || campo === 'valor_unitario' ? Math.max(0, Number(valor.replace(',', '.')) || 0) : valor }));
 
-    if (carregando) return <Card title="Orçamento LS"><p className="text-sm text-muted-foreground">Carregando…</p></Card>;
+    if (carregando) return <Card title={titulo}><p className="text-sm text-muted-foreground">Carregando…</p></Card>;
 
     return (
-        <Card title="Orçamento LS — preço ao cliente" action={
+        <Card title={titulo} action={
             <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => downloadAuthenticatedFile(`/api/budgets/${budgetId}/export/excel?grupo=preco_cliente`, 'orcamento-ls.xlsx')}
                     disabled={!linhas.length} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">

@@ -54,7 +54,7 @@ const contar = async (budgetId: string) => {
 };
 
 async function main() {
-    let atividadeId = '', budgetId = '', siteId = '';
+    let atividadeId = '', budgetId = '', siteId = '', budgetPvSites = '';
     try {
         const at = await json('/atividades', { method: 'POST', headers: cab, body: JSON.stringify({
             titulo: `Teste orçamento LS ${SUFIXO}`, tipo_demanda: 'IMPLANTACAO', modelo_operacao: 'MEDIANTE_APROVACAO',
@@ -138,7 +138,20 @@ async function main() {
         await prisma.budget.update({ where: { id: budgetId }, data: { status: 'ENVIADO' } });
         const travado = await json(`/budgets/${budgetId}/modelo`, { method: 'PUT', headers: cab, body: JSON.stringify({ modelo: 'PV_HIGHLINE' }) });
         conferir('modelo não troca depois de enviado', travado.status === 400 && /rascunho/.test(travado.corpo.error || ''), travado.corpo.error);
+
+        console.log('\n── PV Sites (fora da Highline)');
+        const cot = await json('/budgets', { method: 'POST', headers: cab, body: JSON.stringify({
+            tenant_id: at.corpo.tenant_id, contratante_id: at.corpo.contratante_id, atividade_id: atividadeId, assunto: TESTE, tipo_orcamento: 'COTACAO_INTERNA' }) });
+        budgetPvSites = cot.corpo.id;
+        const salvaPv = await salvarItens(budgetPvSites, 'orcamento_ls', [{ codigo_item: '01', titulo: 'Vistoria', unidade: 'vb', quantidade: 1, valor_unitario: 900, bdi_percent: 0, bloco: 'ORCAMENTO_LS' }]);
+        const virou = await prisma.budget.findUnique({ where: { id: budgetPvSites } });
+        conferir('cotação interna vira PV Sites (Orçamento LS) ao salvar itens', salvaPv.ok && virou?.tipo_orcamento === 'ORCAMENTO_LS', `${salvaPv.corpo.error || ''} ${virou?.tipo_orcamento}`);
     } finally {
+        if (budgetPvSites) {
+            await prisma.budgetItem.deleteMany({ where: { budget_id: budgetPvSites } });
+            await prisma.auditLog.deleteMany({ where: { entidade_id: budgetPvSites } });
+            await prisma.budget.delete({ where: { id: budgetPvSites } }).catch(() => undefined);
+        }
         if (budgetId) {
             const negs = await prisma.negociacao.findMany({ where: { budget_id: budgetId } });
             await prisma.contraproposta.deleteMany({ where: { negociacao_id: { in: negs.map(x => x.id) } } });

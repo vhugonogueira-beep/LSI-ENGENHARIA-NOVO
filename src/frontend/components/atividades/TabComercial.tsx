@@ -52,6 +52,10 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     const [lpuCliente, setLpuCliente] = useState<{ id: string; nome: string; motivo: string } | null>(null);
 
     const orcamentoAtivo = atividade.orcamentos && atividade.orcamentos.length > 0 ? atividade.orcamentos[0] : null;
+    // Fora da Highline o orçamento ao cliente é a "PV Sites" (13/10/2026): mesmo editor
+    // do Orçamento LS — importar Excel/PDF ou montar item a item.
+    const ehHighline = atividade.sharing.trim().toUpperCase() === 'HIGHLINE';
+    const ehPvSites = !ehHighline;
     const precisaEscolherTipo = exigeEscolhaTipoOrcamento(atividade);
     const faltaContratante = !atividade.contratante_id;
 
@@ -132,7 +136,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     contratante_id: atividade.contratante_id,
                     atividade_id: atividade.id,
                     assunto: atividade.titulo,
-                    tipo_orcamento: precisaEscolherTipo ? tipoOrcamentoNovo : 'COTACAO_INTERNA',
+                    tipo_orcamento: precisaEscolherTipo ? tipoOrcamentoNovo : ehPvSites ? 'ORCAMENTO_LS' : 'COTACAO_INTERNA',
                 }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao criar orçamento');
@@ -246,7 +250,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     <>
                         <Row label="Número" value={orcamentoAtivo.numero || 'Gerado pelo sistema no primeiro PDF ou ao abrir a negociação'} />
                         <Row label="Assunto" value={orcamentoAtivo.assunto || '—'} />
-                        <Row label="Tipo" value={TIPO_ORCAMENTO_LABEL[orcamentoAtivo.tipo_orcamento || 'COTACAO_INTERNA']} />
+                        <Row label="Tipo" value={ehPvSites ? 'PV Sites' : TIPO_ORCAMENTO_LABEL[orcamentoAtivo.tipo_orcamento || 'COTACAO_INTERNA']} />
                         <Row label="Status" value={STATUS_ORCAMENTO_LABEL[orcamentoAtivo.status] || orcamentoAtivo.status} />
                         <Row label="Versão atual" value={orcamentoAtivo.versao_atual} />
                         <Row label="Criado em" value={fmtData(orcamentoAtivo.created_at)} />
@@ -342,6 +346,11 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                     </>
                 );
             })()}
+
+            {orcamentoAtivo && ehPvSites && (
+                <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={orcamentoAtivo.status === 'RASCUNHO'} onMudou={onRefresh}
+                    atividade={atividade} titulo="PV Sites — preço ao cliente" />
+            )}
 
             {orcamentoAtivo && (
                 <Card title="Negociação">
