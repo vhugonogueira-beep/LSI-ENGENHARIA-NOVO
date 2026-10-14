@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { carregarListasClientes } from '../lib/clientesCadastro';
 import { Building2, Handshake, ImageUp, Plus, Save, Search, X } from 'lucide-react';
 import { authFetch } from '../lib/authFetch';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
@@ -85,6 +86,8 @@ export default function Clientes() {
     if (!r.ok) return setErro(body.error || 'Erro ao salvar');
     setForm(FORM_INIT);
     setEditando(null);
+    // As listas de sharing/operadora das atividades e sites vêm daqui.
+    carregarListasClientes(true);
     await carregar();
   }
 
@@ -150,8 +153,8 @@ export default function Clientes() {
           <Campo rotulo="Razão social">
             <input className={inputClass} value={form.razao_social || ''} onChange={e => setForm({ ...form, razao_social: e.target.value })} />
           </Campo>
-          <Campo rotulo="Sigla">
-            <input className={inputClass} value={form.sigla || ''} onChange={e => setForm({ ...form, sigla: e.target.value })} />
+          <Campo rotulo="Sigla (código nas atividades e sites)">
+            <input className={inputClass} value={form.sigla || ''} placeholder="Ex.: HIGHLINE" onChange={e => setForm({ ...form, sigla: e.target.value.toUpperCase() })} />
           </Campo>
           <Campo rotulo="Tipo">
             <select className={inputClass} value={form.tipo} onChange={e => setForm({ ...form, tipo: e.target.value })}>

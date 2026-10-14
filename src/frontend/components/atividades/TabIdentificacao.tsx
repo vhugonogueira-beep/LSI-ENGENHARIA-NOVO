@@ -1,15 +1,17 @@
 import TipoObraCampo, { rotuloTipoSite } from './TipoObraCampo';
+import { comAtual, useListasClientes } from '../../lib/clientesCadastro';
 import { useState, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Row, AreaChip, OperadoraChip, SharingNome } from './ui';
 import {
     TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
+    UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
 } from './constants';
 import MunicipioInput from '../cadastros/MunicipioInput';
 
 export default function TabIdentificacao({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh: () => void }) {
+    const { sharings, operadoras } = useListasClientes();
     const [editing, setEditing] = useState(false);
     const [form, setForm] = useState({
         titulo: atividade.titulo,
@@ -146,13 +148,13 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                 </Field>
                 <Field label="Sharing">
                     <select className={inputClass} value={form.sharing} onChange={e => setForm(f => ({ ...f, sharing: e.target.value }))}>
-                        {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
+                        {comAtual(sharings, form.sharing).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </Field>
                 <Field label="Operadora">
                     <select className={inputClass} value={form.operadora} onChange={e => setForm(f => ({ ...f, operadora: e.target.value }))}>
                         <option value="">—</option>
-                        {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                        {comAtual(operadoras, form.operadora).map(o => <option key={o} value={o}>{o}</option>)}
                     </select>
                 </Field>
                 {form.tipo_demanda === 'OPERACAO' && (

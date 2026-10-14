@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { comAtual, useListasClientes } from '../lib/clientesCadastro';
 import { ExternalLink, History, MapPin, Plus, Save, Search, Trash2, X } from 'lucide-react';
 import { authFetch } from '../lib/authFetch';
 import { useEhAdmin, usePermissao } from '../lib/permissoes';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import PageHeader from '../components/PageHeader';
 import { FiltroPainel, FiltroLinha, GradeSeletores, CAMPO } from '../components/FiltroPainel';
-import { UFS, normalizarUf, SHARINGS, OPERADORAS, TIPOS_SITE, TECNOLOGIAS, STATUS_OPERACIONAL, TIPOS_DEMANDA_LABEL } from '../components/atividades/constants';
+import { UFS, normalizarUf, TIPOS_SITE, TECNOLOGIAS, STATUS_OPERACIONAL, TIPOS_DEMANDA_LABEL } from '../components/atividades/constants';
 import { CHIP, FAIXA, TOM_MODULO, TOM_OPERADORA, TOM_SHARING, TOM_STATUS, tomDe } from '../lib/cores';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ const campo = 'h-9 w-full rounded-lg border border-border bg-background/50 px-3 
 const sem = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 export default function Sites() {
+    const { sharings, operadoras } = useListasClientes();
     const [sites, setSites] = useState<Site[]>([]);
     const [carregando, setCarregando] = useState(true);
     const [erro, setErro] = useState('');
@@ -127,11 +129,11 @@ export default function Sites() {
                     <GradeSeletores>
                         <select className={`${CAMPO} w-full`} aria-label="Detentora" value={filtros.detentora} onChange={e => setFiltros(f => ({ ...f, detentora: e.target.value }))}>
                             <option value="">Toda detentora</option>
-                            {SHARINGS.map(d => <option key={d} value={d}>{d}</option>)}
+                            {sharings.map(d => <option key={d} value={d}>{d}</option>)}
                         </select>
                         <select className={`${CAMPO} w-full`} aria-label="Operadora" value={filtros.operadora} onChange={e => setFiltros(f => ({ ...f, operadora: e.target.value }))}>
                             <option value="">Toda operadora</option>
-                            {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                            {operadoras.map(o => <option key={o} value={o}>{o}</option>)}
                         </select>
                         <select className={`${CAMPO} w-full`} aria-label="UF" value={filtros.uf} onChange={e => setFiltros(f => ({ ...f, uf: e.target.value }))}>
                             <option value="">Toda UF</option>
@@ -242,6 +244,7 @@ function FichaSite({ siteId, podeEditar, onFechar, onSalvo, onExcluido }: {
     onSalvo: (id: string) => void | Promise<void>;
     onExcluido: () => void | Promise<void>;
 }) {
+    const { sharings, operadoras } = useListasClientes();
     const [site, setSite] = useState<Site | null>(null);
     const [form, setForm] = useState<Form>(FORM_VAZIO);
     const [erro, setErro] = useState('');
@@ -350,7 +353,7 @@ function FichaSite({ siteId, podeEditar, onFechar, onSalvo, onExcluido }: {
                                 <Rotulo texto="Detentora *">
                                     <select className={campo} value={form.detentora} onChange={set('detentora')} disabled={!podeEditar} required>
                                         <option value="">Selecione</option>
-                                        {SHARINGS.map(d => <option key={d} value={d}>{d}</option>)}
+                                        {comAtual(sharings, form.detentora).map(d => <option key={d} value={d}>{d}</option>)}
                                     </select>
                                 </Rotulo>
                                 <Rotulo texto="ID na detentora *">
@@ -433,7 +436,7 @@ function FichaSite({ siteId, podeEditar, onFechar, onSalvo, onExcluido }: {
                             {podeEditar && (
                                 <div className="grid gap-2 sm:grid-cols-[140px_minmax(0,1fr)_120px_auto]">
                                     <select className={campo} aria-label="Operadora" value={novoId.operadora} onChange={e => setNovoId(n => ({ ...n, operadora: e.target.value }))}>
-                                        {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                                        {operadoras.map(o => <option key={o} value={o}>{o}</option>)}
                                     </select>
                                     <input className={`${campo} font-id uppercase`} aria-label="ID na operadora" placeholder="ID na operadora" value={novoId.id_site}
                                         onChange={e => setNovoId(n => ({ ...n, id_site: e.target.value }))}

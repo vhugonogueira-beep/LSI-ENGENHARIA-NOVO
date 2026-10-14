@@ -1,10 +1,11 @@
 import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../components/atividades/TipoObraCampo';
+import { comAtual, useListasClientes } from '../lib/clientesCadastro';
 import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
 import { Fragment, useState, useEffect, useCallback } from 'react';
 import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    UFS, normalizarUf, SHARINGS, OPERADORAS, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
+    UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
     REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
@@ -91,6 +92,7 @@ const PO_STATUS_TOM: Record<string, string> = { AGUARDANDO: 'text-muted-foregrou
 // em kanban — antes ele apontava para uma tela separada sobre o modelo Demanda,
 // que é o cadastro antigo e mostrava outros números.
 export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 'lista' | 'kanban' } = {}) {
+    const { sharings, operadoras } = useListasClientes();
     const [atividades, setAtividades] = useState<Atividade[]>([]);
     const [loading, setLoading] = useState(true);
     // Vindo de outra tela (ex.: Orçamentos → Abrir): abre direto a atividade pedida.
@@ -532,11 +534,11 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             </select>
                             <select value={filtros.sharing} onChange={e => setFiltro('sharing', e.target.value)} aria-label="Sharing" className={`${CAMPO} w-full`}>
                                 <option value="">Toda detentora</option>
-                                {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
+                                {sharings.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                             <select value={filtros.operadora} onChange={e => setFiltro('operadora', e.target.value)} aria-label="Operadora" className={`${CAMPO} w-full`}>
                                 <option value="">Toda operadora</option>
-                                {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                                {operadoras.map(o => <option key={o} value={o}>{o}</option>)}
                             </select>
                             <select value={filtros.gestor} onChange={e => setFiltro('gestor', e.target.value)} aria-label="Gestor" className={`${CAMPO} w-full`} disabled={gestoresNaCarteira.length === 0}>
                                 <option value="">Todo gestor</option>
@@ -1054,7 +1056,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <div className="grid grid-cols-2 gap-3">
                                     <Field label="Detentora *">
                                         <select value={form.sharing} onChange={e => setForm(f => ({ ...f, sharing: e.target.value }))} className="input">
-                                            {SHARINGS.map(s => <option key={s} value={s}>{s}</option>)}
+                                            {comAtual(sharings, form.sharing).map(s => <option key={s} value={s}>{s}</option>)}
                                         </select>
                                     </Field>
                                     <Field label="ID do site na detentora *">
@@ -1099,7 +1101,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <div className="grid grid-cols-2 gap-3">
                                     <Field label="Operadora">
                                         <select value={form.operadora} onChange={e => setForm(f => ({ ...f, operadora: e.target.value, id_site_operadora: '' }))} className="input">
-                                            {OPERADORAS.map(o => <option key={o} value={o}>{o}</option>)}
+                                            {comAtual(operadoras, form.operadora).map(o => <option key={o} value={o}>{o}</option>)}
                                         </select>
                                     </Field>
                                     <Field label="ID do site na operadora *">
