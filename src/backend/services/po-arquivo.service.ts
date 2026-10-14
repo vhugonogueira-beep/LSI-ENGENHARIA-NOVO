@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { createHash, randomUUID } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -24,14 +25,14 @@ function absoluteFromStorageKey(storageKey: string): string {
 // po-leitura.service). O que foi lido preenche apenas os campos ainda vazios, para
 // nunca sobrescrever uma correção manual, e volta para conferência na tela.
 export async function storePOArquivo(poId: string, file: Express.Multer.File, uploadedBy?: string): Promise<{ attachment: any; leitura: LeituraPO | null }> {
-    const extension = path.extname(file.originalname).toLowerCase();
+    const extension = path.extname(nomeArquivoUtf8(file.originalname)).toLowerCase();
     if (!ALLOWED_EXTENSIONS.has(extension)) throw new Error(`Formato não permitido: ${extension || 'sem extensão'}`);
     if (!file.buffer?.length) throw new Error('O arquivo enviado está vazio');
 
     const po = await prisma.purchaseOrder.findUnique({ where: { id: poId } });
     if (!po) throw new Error('PO não encontrada');
 
-    const originalName = safeOriginalName(file.originalname);
+    const originalName = safeOriginalName(nomeArquivoUtf8(file.originalname));
     const storageKey = `${poId}/${randomUUID()}${extension}`;
     const absolutePath = absoluteFromStorageKey(storageKey);
     const sha256 = createHash('sha256').update(file.buffer).digest('hex');

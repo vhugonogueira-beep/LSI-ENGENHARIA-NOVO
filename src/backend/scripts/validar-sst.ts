@@ -93,6 +93,11 @@ async function main() {
         ruim.append('arquivo', new Blob([new Uint8Array(Buffer.from('MZ'))], { type: 'application/octet-stream' }), 'virus.exe');
         const recusado = await json(`/sst/documentos/${rg.corpo.id}/arquivos`, { method: 'POST', body: ruim });
         conferir('formato não permitido recusado', recusado.status === 400, `HTTP ${recusado.status}`);
+        // Nome com acento chega certo (correção 4 do Kayky, 14/10/2026).
+        const comAcento = new FormData();
+        comAcento.append('arquivo', new Blob([new Uint8Array(Buffer.from('%PDF-1.4 teste'))], { type: 'application/pdf' }), 'Ação João CONCEIÇÃO.pdf');
+        const anexoAcento = await json(`/sst/documentos/${rg.corpo.id}/arquivos`, { method: 'POST', body: comAcento });
+        conferir('nome do anexo com acento é gravado sem corromper', anexoAcento.corpo.nome_original === 'Ação João CONCEIÇÃO.pdf', anexoAcento.corpo.nome_original);
         const caminho = path.resolve('storage', 'sst', anexo.corpo.storage_key);
         const apagado = await json(`/qualificacoes/${rg.corpo.id}`, { method: 'DELETE' });
         conferir('apagar o documento remove o anexo do disco', apagado.ok && !fs.existsSync(caminho), caminho);

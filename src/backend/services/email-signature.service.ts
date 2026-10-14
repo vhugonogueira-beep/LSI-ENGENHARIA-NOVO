@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
@@ -88,14 +89,14 @@ export async function saveEmailSignature(user: EmailUserContext, file: Express.M
                 tenant_id: user.tenantId,
                 user_id: user.userId,
                 storage_key: storageKey,
-                original_name: file.originalname,
+                original_name: nomeArquivoUtf8(file.originalname),
                 mime_type: detected.mimeType,
                 size_bytes: file.size,
                 active: true,
             },
             update: {
                 storage_key: storageKey,
-                original_name: file.originalname,
+                original_name: nomeArquivoUtf8(file.originalname),
                 mime_type: detected.mimeType,
                 size_bytes: file.size,
                 active: true,

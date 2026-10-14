@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { Request, Response } from 'express';
 import { BudgetService } from '../services/budget.service';
 import { ExportService } from '../services/export.service';
@@ -145,8 +146,8 @@ export class BudgetController {
             if (!arquivo) return res.status(400).json({ error: 'Envie o arquivo do orçamento (Excel ou PDF)' });
             const budget = await prisma.budget.findUnique({ where: { id: req.params.id } });
             if (!budget) return res.status(404).json({ error: 'Orçamento não encontrado' });
-            const leitura = await lerOrcamentoArquivo(arquivo.buffer, arquivo.originalname, arquivo.mimetype);
-            const nome = await guardarArquivoImportado(budget.id, arquivo.originalname, arquivo.buffer);
+            const leitura = await lerOrcamentoArquivo(arquivo.buffer, nomeArquivoUtf8(arquivo.originalname), arquivo.mimetype);
+            const nome = await guardarArquivoImportado(budget.id, nomeArquivoUtf8(arquivo.originalname), arquivo.buffer);
             await prisma.auditLog.create({
                 data: {
                     tenant_id: budget.tenant_id, entidade: 'Budget', entidade_id: budget.id, acao: 'ORCAMENTO_ARQUIVO_LIDO',

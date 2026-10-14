@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import fs from 'fs/promises';
 import path from 'path';
 import { createHash, randomUUID } from 'crypto';
@@ -42,8 +43,8 @@ export async function storePaymentAttachments(tenantId: string, userEmail: strin
     const relation = await owner(tenantId, ownerType, ownerId);
     const saved = [];
     for (const file of files) {
-        if (!file.buffer?.length) throw new Error(`Arquivo vazio: ${file.originalname}`);
-        const extension = path.extname(file.originalname).slice(0, 12).replace(/[^.a-zA-Z0-9]/g, '') || '.bin';
+        if (!file.buffer?.length) throw new Error(`Arquivo vazio: ${nomeArquivoUtf8(file.originalname)}`);
+        const extension = path.extname(nomeArquivoUtf8(file.originalname)).slice(0, 12).replace(/[^.a-zA-Z0-9]/g, '') || '.bin';
         const storageKey = `${tenantId}/${ownerType.toLowerCase()}/${ownerId}/${randomUUID()}${extension}`;
         const target = absolute(storageKey);
         await fs.mkdir(path.dirname(target), { recursive: true });
@@ -52,7 +53,7 @@ export async function storePaymentAttachments(tenantId: string, userEmail: strin
             saved.push(await prisma.paymentAttachment.create({
                 data: {
                     tenant_id: tenantId, ...relation, tipo,
-                    nome_original: Buffer.from(file.originalname, 'latin1').toString('utf8'),
+                    nome_original: nomeArquivoUtf8(file.originalname),
                     mime_type: file.mimetype || 'application/octet-stream',
                     tamanho_bytes: file.size,
                     storage_key: storageKey,

@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { Request, Response } from 'express';
 import { ImportService } from '../services/import.service';
 import { prisma } from '../server';
@@ -23,7 +24,7 @@ export class ImportController {
             }
 
             // Detect file type
-            const ext = file.originalname.split('.').pop()?.toLowerCase() || '';
+            const ext = nomeArquivoUtf8(file.originalname).split('.').pop()?.toLowerCase() || '';
             let fileType = 'XLSX';
             if (ext === 'csv') fileType = 'CSV';
             else if (ext === 'xls') fileType = 'XLS';
@@ -34,7 +35,7 @@ export class ImportController {
                 tenantId,
                 supplierId,
                 pricebookId,
-                file.originalname,
+                nomeArquivoUtf8(file.originalname),
                 fileType,
                 file.buffer,
                 customMapping

@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { createHash, randomUUID } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -172,14 +173,14 @@ export async function renderContratoParaImpressao(contratoId: string): Promise<s
 // Anexar o contrato assinado (scan/PDF recebido do fornecedor) marca o contrato como
 // ASSINADO — é literalmente o evento que confirma a assinatura colhida fora do sistema.
 export async function storeContratoArquivo(contratoId: string, file: Express.Multer.File, uploadedBy?: string) {
-    const extension = path.extname(file.originalname).toLowerCase();
+    const extension = path.extname(nomeArquivoUtf8(file.originalname)).toLowerCase();
     if (!ALLOWED_EXTENSIONS.has(extension)) throw new Error(`Formato não permitido: ${extension || 'sem extensão'}`);
     if (!file.buffer?.length) throw new Error('O arquivo enviado está vazio');
 
     const contrato = await prisma.contrato.findUnique({ where: { id: contratoId } });
     if (!contrato) throw new Error('Contrato não encontrado');
 
-    const originalName = safeOriginalName(file.originalname);
+    const originalName = safeOriginalName(nomeArquivoUtf8(file.originalname));
     const storageKey = `${contratoId}/${randomUUID()}${extension}`;
     const absolutePath = absoluteFromStorageKey(storageKey);
     const sha256 = createHash('sha256').update(file.buffer).digest('hex');

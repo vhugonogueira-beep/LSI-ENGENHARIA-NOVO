@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { randomUUID } from 'crypto';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
@@ -19,7 +20,7 @@ function absoluto(storageKey: string) {
 const nomeSeguro = (v: string) => path.basename(v || 'documento').replace(/[\x00-\x1f<>:"/\\|?*]+/g, '_').slice(0, 180) || 'documento';
 
 export async function guardarArquivoSst(qualificacaoId: string, file: Express.Multer.File, usuario?: string) {
-    const ext = path.extname(file.originalname).toLowerCase();
+    const ext = path.extname(nomeArquivoUtf8(file.originalname)).toLowerCase();
     if (!EXTENSOES.has(ext)) throw new Error(`Formato não permitido: ${ext || 'sem extensão'}. Envie PDF ou foto (JPG, PNG).`);
     if (!file.buffer?.length) throw new Error('O arquivo enviado está vazio');
     const doc = await prisma.qualificacao.findUnique({ where: { id: qualificacaoId } });
@@ -32,7 +33,7 @@ export async function guardarArquivoSst(qualificacaoId: string, file: Express.Mu
     try {
         return await prisma.qualificacaoArquivo.create({
             data: {
-                qualificacao_id: qualificacaoId, nome_original: nomeSeguro(file.originalname),
+                qualificacao_id: qualificacaoId, nome_original: nomeSeguro(nomeArquivoUtf8(file.originalname)),
                 mime_type: file.mimetype || 'application/octet-stream', tamanho_bytes: file.size,
                 storage_key, uploaded_by: usuario || null,
             },

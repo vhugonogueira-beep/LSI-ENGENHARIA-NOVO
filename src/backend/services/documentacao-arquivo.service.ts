@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { createHash, randomUUID } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -22,7 +23,7 @@ function absoluteFromStorageKey(storageKey: string): string {
 }
 
 export function validateDocumentFile(file: Express.Multer.File) {
-    const extension = path.extname(file.originalname).toLowerCase();
+    const extension = path.extname(nomeArquivoUtf8(file.originalname)).toLowerCase();
     if (!ALLOWED_EXTENSIONS.has(extension)) {
         throw new Error(`Formato não permitido: ${extension || 'sem extensão'}`);
     }
@@ -43,7 +44,7 @@ export async function storeDocumentFile(
     if (!document) throw new Error('Documento não encontrado');
     if (!document.aplicavel) throw new Error('Este requisito não se aplica mais à Atividade');
 
-    const originalName = safeOriginalName(file.originalname);
+    const originalName = safeOriginalName(nomeArquivoUtf8(file.originalname));
     const extension = path.extname(originalName).toLowerCase();
     const storageKey = `${document.atividade.id}/${documentId}/${randomUUID()}${extension}`;
     const absolutePath = absoluteFromStorageKey(storageKey);

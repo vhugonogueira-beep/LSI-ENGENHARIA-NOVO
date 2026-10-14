@@ -1,3 +1,4 @@
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { randomUUID } from 'crypto';
 import fs from 'fs/promises';
 import path from 'path';
@@ -26,7 +27,7 @@ function absoluto(storageKey: string): string {
 export async function salvarArquivoReembolso(reembolsoId: string, file: Express.Multer.File, uploadedBy?: string) {
     const reembolso = await prisma.reembolso.findUnique({ where: { id: reembolsoId } });
     if (!reembolso) throw new Error('Reembolso ou adiantamento não encontrado');
-    const original = nomeSeguro(file.originalname || 'arquivo-sem-nome');
+    const original = nomeSeguro(nomeArquivoUtf8(file.originalname) || 'arquivo-sem-nome');
     const extensao = path.extname(original).toLowerCase();
     if (!file.buffer?.length) throw new Error('O arquivo enviado está vazio');
 
