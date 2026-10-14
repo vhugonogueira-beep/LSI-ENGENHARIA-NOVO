@@ -35,7 +35,7 @@ async function main() {
     const bases: string[] = [];
     const orcamentos: string[] = [];
     try {
-        const highline = await prisma.contratante.findFirst({ where: { nome: 'HIGHLINE' } });
+        const highline = await prisma.contratante.findFirst({ where: { OR: [{ sigla: 'HIGHLINE' }, { nome: 'HIGHLINE' }] } });
         const implantacao = await prisma.atividade.findFirst({ where: { id_site_sharing: 'PAMRB008' } });
         const operacao = await prisma.atividade.findFirst({ where: { sharing: 'HIGHLINE', tipo_demanda: 'OPERACAO' } });
         if (!highline || !implantacao || !operacao) throw new Error('Dados de referência não encontrados (HIGHLINE / PAMRB008 / atividade de operação)');
@@ -43,8 +43,13 @@ async function main() {
         console.log('\n── Bases reais');
         const a = await lpus(implantacao.id);
         conferir('PAMRB008 (Highline Implantação) → PV Padrão Highline', a.corpo.precoCliente?.nome === 'PV Padrão Highline', JSON.stringify(a.corpo.precoCliente));
-        conferir('achada pelo Sharing, já que o contratante é "Highline do Brasil"', /Sharing/.test(a.corpo.precoCliente?.motivo || ''), a.corpo.precoCliente?.motivo);
-        conferir('custo → LPU LS Office Geral', a.corpo.custo?.nome === 'LPU LS Office Geral', JSON.stringify(a.corpo.custo));
+        // Achada pelo cliente da atividade ou pelo Sharing (13/10/2026: os dois cadastros
+        // da Highline viraram um só, e aí ela é achada direto pelo cliente).
+        conferir('achada pelo cliente ou pelo Sharing da atividade', /cliente da atividade|Sharing/.test(a.corpo.precoCliente?.motivo || ''), a.corpo.precoCliente?.motivo);
+        // A base de custo depende do cadastro real: só se confere quando ela é geral.
+        const baseCusto = await prisma.priceBook.findFirst({ where: { nome_lpu: 'LPU LS Office Geral' } });
+        if (baseCusto && !baseCusto.contratante_id) conferir('custo → LPU LS Office Geral', a.corpo.custo?.nome === 'LPU LS Office Geral', JSON.stringify(a.corpo.custo));
+        else console.log('   (pulado) custo: a "LPU LS Office Geral" está ligada a um cliente no cadastro atual');
         const o = await lpus(operacao.id);
         conferir('Highline Operação sem base própria → genérica de Operação', o.corpo.precoCliente?.nome === 'LPU Genérico — Manutenção', JSON.stringify(o.corpo.precoCliente));
 
