@@ -2,7 +2,7 @@ import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../c
 import { comAtual, useListasClientes } from '../lib/clientesCadastro';
 import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
 import { Fragment, useState, useEffect, useCallback } from 'react';
-import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check } from 'lucide-react';
+import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check, CornerDownRight } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
@@ -57,8 +57,23 @@ const FORM_INIT = {
     titulo: '', tipo_demanda: 'IMPLANTACAO', subtipo_demanda: '', tipo_obra: '', tipo_atividade: '',
     modelo_operacao: modeloOperacaoPadrao('IMPLANTACAO'), sharing: 'HIGHLINE', operadora: 'VIVO', contrato: '',
     estado: '', municipio: '', id_site_sharing: '', id_site_operadora: '', valor_contrato: '', valor_orcado: '',
-    responsavel: '', descricao: '',
+    responsavel: '', descricao: '', acionamento_id: '',
 };
+
+/** Últimos valores distintos já cadastrados (mais recentes primeiro). */
+function ultimosValores(lista: any[], campo: string, qtd = 5): string[] {
+    const ordenadas = [...lista].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+    const vistos = new Set<string>();
+    const saida: string[] = [];
+    for (const a of ordenadas) {
+        const v = String(a[campo] || '').trim();
+        if (!v || vistos.has(v.toLowerCase())) continue;
+        vistos.add(v.toLowerCase());
+        saida.push(v);
+        if (saida.length === qtd) break;
+    }
+    return saida;
+}
 
 const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_LIBERACAO', 'EM_EXECUCAO', 'CONCLUIDA', 'ON_HOLD'];
 
@@ -109,6 +124,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [novoProjeto, setNovoProjeto] = useState('');
     const [projetoAlvo, setProjetoAlvo] = useState('');
     const [projetoAberto, setProjetoAberto] = useState<any | null>(null);
+    // Confirmação do agrupamento (14/10/2026): sem ela, a atividade entrava no
+    // projeto mas parecia continuar solta na lista.
+    const [avisoProjeto, setAvisoProjeto] = useState('');
     // Gestão do projeto na visão Projetos (12/10/2026): renomear, excluir vazio,
     // tirar atividade; projetos vazios ficam recolhidos num link no fim.
     const [renomeando, setRenomeando] = useState<{ id: string; titulo: string } | null>(null);
@@ -269,6 +287,11 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 body: JSON.stringify({ atividade_ids: finais }),
             });
             if (!r2.ok) throw new Error((await r2.json()).error || 'Erro ao agrupar');
+            const destino = await r2.json().catch(() => null);
+            const novas = selecionadas.filter(id => !jaNoProjeto.includes(id)).length;
+            setAvisoProjeto(`${novas} atividade(s) agrupada(s) em ${destino?.codigo || 'projeto'}${destino?.titulo ? ` — ${destino.titulo}` : ''}. O projeto agora tem ${destino?.atividades?.length ?? finais.length} atividade(s).`);
+            setAgrupar(true);
+            setAbertos(v => [...new Set([...v, alvo])]);
             setSelecionadas([]);
             setNovoProjeto('');
             setProjetoAlvo('');
@@ -312,6 +335,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 subtipo_demanda: form.tipo_demanda === 'OPERACAO' ? (form.subtipo_demanda || null) : null,
                 tipo_obra: form.tipo_obra || null,
                 tipo_atividade: form.tipo_atividade || null,
+                acionamento_id: form.acionamento_id || null,
                 operadora: form.operadora || null,
                 contrato: form.contrato || null,
                 estado: normalizarUf(form.estado) || null,
@@ -330,6 +354,13 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao criar atividade');
             const nova = await r.json();
+            if (form.acionamento_id) {
+                const p = projetos.find(x => x.id === form.acionamento_id);
+                setAvisoProjeto(`${nova.codigo || 'Atividade'} criada no projeto ${p?.codigo || ''}${p?.titulo ? ` — ${p.titulo}` : ''}.`);
+                setAgrupar(true);
+                setAbertos(v => [...new Set([...v, form.acionamento_id])]);
+                carregarProjetos();
+            }
             setShowForm(false);
             setForm(FORM_INIT);
             await load();
@@ -398,6 +429,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     });
     const filtradas = semSituacao.filter(situacaoAtual.teste);
 
+    const historicoTitulos = ultimosValores(atividades, 'titulo');
+    const historicoTipos = ultimosValores(atividades, 'tipo_atividade');
     const projetosPorId = new Map<string, any>(projetos.map(p => [p.id, p]));
     const buscaAtiva = search.trim().length > 0;
     // Projetos no topo (os mais recentes primeiro), depois as atividades avulsas.
@@ -549,6 +582,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 </>)}
             </FiltroPainel>
 
+            {avisoProjeto && (
+                <div role="status" className="mb-4 flex items-center justify-between gap-3 p-3 rounded-lg border border-ok/40 bg-ok/10 text-sm">
+                    <span className="flex items-center gap-2"><FolderOpen size={16} aria-hidden className="shrink-0 text-ok" />{avisoProjeto}</span>
+                    <button type="button" onClick={() => setAvisoProjeto('')} aria-label="Fechar aviso" className="text-muted-foreground hover:text-foreground"><X size={14} aria-hidden /></button>
+                </div>
+            )}
             {erro && !showForm && !poModalId && (
                 <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>
             )}
@@ -635,7 +674,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 const gestor = a.gestor || a.responsavel;
                                 const tom = tomStatus(a.status_operacional);
                                 return (
-                                    <tr key={a.id} className={`border-b border-border/60 last:border-b-0 border-l-4 ${FAIXA[tom]} ${aninhada ? 'bg-secondary/[0.12]' : ''} hover:bg-secondary/20 transition-colors`}>
+                                    <tr key={a.id} className={`border-b border-border/60 last:border-b-0 border-l-4 ${aninhada ? 'border-l-primary bg-primary/[0.035]' : FAIXA[tom]} hover:bg-secondary/20 transition-colors`}>
                                         {/* Toda célula abre com uma linha de 28px (h-7): Site ID, cliente,
                                             status, avanço, saldo e ações ficam na mesma altura. */}
                                         <td className="px-3 py-3 align-top">
@@ -647,9 +686,10 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         </td>
                                         {/* O Site ID é a âncora da linha: é por ele que a obra é chamada. */}
                                         <td className={`px-3 py-3 align-top ${aninhada ? 'pl-9' : ''}`}>
+                                            {/* Dentro do projeto: seta de "pertence a" antes do Site ID. */}
                                             {a.id_site_sharing
-                                                ? <div className="flex h-7 items-center font-id text-base font-semibold text-foreground" title={a.titulo}>{a.id_site_sharing}</div>
-                                                : <div className="flex h-7 items-center text-sm text-muted-foreground" title={a.titulo}>Sem Site ID</div>}
+                                                ? <div className="flex h-7 items-center gap-1.5 font-id text-base font-semibold text-foreground" title={a.titulo}>{aninhada && <CornerDownRight size={14} aria-label="No projeto" className="-ml-5 shrink-0 text-primary" />}{a.id_site_sharing}</div>
+                                                : <div className="flex h-7 items-center gap-1.5 text-sm text-muted-foreground" title={a.titulo}>{aninhada && <CornerDownRight size={14} aria-label="No projeto" className="-ml-5 shrink-0 text-primary" />}Sem Site ID</div>}
                                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                                                 {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}
                                                 <span className="font-id">{a.codigo}</span>
@@ -775,6 +815,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             </td>
                                         </tr>
                                         {aberto && filhos.map(a => linha(a, true))}
+                                        {aberto && filhos.length > 0 && (
+                                            <tr className="border-b border-border border-l-4 border-l-primary bg-primary/[0.06]">
+                                                <td colSpan={7} className="px-3 py-1.5 pl-12 text-[11px] text-muted-foreground">
+                                                    Fim do projeto <span className="font-id text-primary">{p.codigo}</span> · {filhos.length} atividade(s)
+                                                    <button type="button" onClick={alternar} className="ml-3 font-semibold text-primary hover:underline">Recolher</button>
+                                                </td>
+                                            </tr>
+                                        )}
                                     </Fragment>
                                 );
                             };
@@ -1023,7 +1071,16 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         <form onSubmit={handleSave} className="flex flex-col gap-4">
                             <Field label="Título *">
                                 <input required value={form.titulo} onChange={e => setForm(f => ({ ...f, titulo: e.target.value }))}
+                                    list="historico-titulos" autoComplete="off"
                                     placeholder="Ex: Implantação BTS — PAPUP2064" className="input" />
+                                {/* Últimos 5 títulos cadastrados: clique no campo para escolher. */}
+                                <datalist id="historico-titulos">{historicoTitulos.map(v => <option key={v} value={v} />)}</datalist>
+                            </Field>
+                            <Field label="Projeto (grupo)">
+                                <select value={form.acionamento_id} onChange={e => setForm(f => ({ ...f, acionamento_id: e.target.value }))} className="input">
+                                    <option value="">Sem projeto — atividade avulsa</option>
+                                    {projetos.map(p => <option key={p.id} value={p.id}>{p.codigo} — {p.titulo}</option>)}
+                                </select>
                             </Field>
                             <div className="grid grid-cols-2 gap-3">
                                 <Field label="Tipo de demanda *">
@@ -1150,7 +1207,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             </p>
                             <Field label="Tipo de atividade">
                                 <input value={form.tipo_atividade} onChange={e => setForm(f => ({ ...f, tipo_atividade: e.target.value }))}
+                                    list="historico-tipos" autoComplete="off"
                                     placeholder="Ex: Instalação de antena, SPDA, obra civil..." className="input" />
+                                <datalist id="historico-tipos">{historicoTipos.map(v => <option key={v} value={v} />)}</datalist>
                             </Field>
                             <Field label="Contrato">
                                 <input value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} className="input" />

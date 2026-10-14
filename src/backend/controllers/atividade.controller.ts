@@ -201,6 +201,11 @@ export async function createAtividade(req: Request, res: Response) {
             return res.status(400).json({ error: 'titulo, tipo_demanda, sharing, id_site_sharing e id_site_operadora são obrigatórios' });
         }
 
+        // Projeto escolhido já no cadastro (14/10/2026): precisa existir e ser do tenant.
+        if (acionamento_id && !(await prisma.acionamento.findFirst({ where: { id: acionamento_id, tenant_id }, select: { id: true } }))) {
+            return res.status(400).json({ error: 'Projeto não encontrado' });
+        }
+
         // Cadastro único (03/10/2026). Aqui só PROCURA o site: ele só é cadastrado
         // depois de todas as validações, senão uma atividade recusada deixava um
         // site novo sem atividade nenhuma (corrigido em 08/10/2026).
