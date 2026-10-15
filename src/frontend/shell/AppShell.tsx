@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import Atividades from '../pages/Atividades';
 import Configuracoes from '../pages/Configuracoes';
@@ -64,11 +64,16 @@ export default function AppShell(props: AppShellProps) {
         historico, exportarBackup, importarBackup, user, onLogout,
         obra, orcamentoSiteId, orcArea, abasLegadas, modais,
     } = props;
+    // Clicar no menu na tela em que já se está volta ao início dela (14/10/2026):
+    // de dentro de uma atividade, "Atividades" retorna à lista. A contagem de
+    // cliques vira a chave da tela, que é montada de novo.
+    const [visita, setVisita] = useState(0);
+    const navegar = (destino: string) => { if (destino === tab) setVisita(v => v + 1); setTab(destino); };
 
     return (
         <div className="scroll-min" style={{ minHeight: "100vh", background: T.bg0, color: T.txPri, display: "flex", position: "relative", WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" } as React.CSSProperties}>
             <Sidebar
-                tab={tab} setTab={setTab}
+                tab={tab} setTab={navegar}
                 sidePinned={sidePinned} setSidePinned={setSidePinned}
                 sideHovered={sideHovered} setSideHovered={setSideHovered}
                 historico={historico}
@@ -92,8 +97,8 @@ export default function AppShell(props: AppShellProps) {
                 {tab === "overview" && <Dashboard onNavigateTo={setTab} />}
                 {/* Pipeline = a mesma tela de Atividades em kanban. TabDemandas ficou sobre
                     o modelo Demanda (cadastro antigo) e mostrava outro conjunto de dados. */}
-                {tab === "demandas" && <Atividades vistaInicial="kanban" />}
-                {tab === "atividades" && <Atividades />}
+                {tab === "demandas" && <Atividades key={`k${visita}`} vistaInicial="kanban" />}
+                {tab === "atividades" && <Atividades key={`a${visita}`} />}
                 {tab === "configuracoes" && <Configuracoes />}
                 {tab === "perfil" && <MeuPerfil />}
                 {tab === "pagamentos" && <ControlePagamentos />}
