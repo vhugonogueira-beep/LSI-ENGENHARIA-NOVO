@@ -38,6 +38,7 @@ const FORM_INIT = {
     gatilho_saldo: 'CONCLUSAO', observacoes: '', destino: '', data_inicio_viagem: '', data_fim_viagem: '',
     data_despesa: '', data_solicitacao: '', data_prevista: '', forma_pagamento: '', cartao_id: '',
     processo_tipo: 'PAYMENT_REQUEST', formalizacao_posterior: false, data_pagamento_realizado: '', fatura_referencia: '',
+    diretorio_url: '',
 };
 const FORMA_LABEL: Record<string, string> = {
     PIX: 'PIX', TED: 'Transferência bancária', CARTAO_CREDITO: 'Cartão de crédito corporativo',
@@ -80,7 +81,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [editandoParcela, setEditandoParcela] = useState<string | null>(null);
     // Edição da contratação: guarda o id e os campos em edição, para o painel
     // abrir dentro do próprio cartão do favorecido.
-    const [editandoContratacao, setEditandoContratacao] = useState<{ id: string; valor: string; observacoes: string; motivo: string } | null>(null);
+    const [editandoContratacao, setEditandoContratacao] = useState<{ id: string; valor: string; observacoes: string; motivo: string; diretorio_url: string } | null>(null);
     // Motivo da alteração de valor da parcela e histórico aberto por contratação.
     const [motivoParcela, setMotivoParcela] = useState('');
     const [historico, setHistorico] = useState<{ id: string; itens: any[] } | null>(null);
@@ -208,6 +209,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         data_fim_viagem: form.data_fim_viagem || null,
                         data_solicitacao: form.data_solicitacao || hojeLocal(),
                         data_prevista: form.data_prevista || null,
+                        diretorio_url: form.diretorio_url.trim() || null,
                         forma_pagamento: form.forma_pagamento,
                         motivo: form.observacoes || (form.finalidade === 'ADIANTAMENTO_VIAGEM' ? `Adiantamento de viagem · ${form.destino || atividade.codigo}` : 'Reembolso de despesa'),
                         data_despesa: form.data_despesa || null,
@@ -250,6 +252,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     gatilho_saldo: form.gatilho_saldo,
                     saldos: !formalizando && saldoPct > 0 ? saldos.map(x => ({ percentual: parseFloat(x.percentual), data_prevista: x.data_prevista })) : undefined,
                     observacoes: form.observacoes || null,
+                    diretorio_url: form.diretorio_url.trim() || null,
                     forma_pagamento: form.forma_pagamento,
                     cartao_id: form.forma_pagamento === 'CARTAO_CREDITO' ? form.cartao_id : null,
                     processo_tipo: form.processo_tipo,
@@ -351,7 +354,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     }
 
     /** Edita valor contratado e detalhamento sem recriar a contratação. */
-    async function salvarContratacao(id: string, dados: { valor_contratado?: number; observacoes?: string | null; motivo?: string | null }) {
+    async function salvarContratacao(id: string, dados: { valor_contratado?: number; observacoes?: string | null; motivo?: string | null; diretorio_url?: string | null }) {
         setErro('');
         try {
             const r = await fetch(`/api/contratacoes/${id}`, {
@@ -417,6 +420,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         } catch (e: any) { setErro(e.message); }
     }
 
+    /** Diretório que vai no e-mail: o do pagamento (14/10/2026); sem ele, o da atividade. */
+    const diretorioDaParcela = (parcelaId: string) =>
+        contratacoes.find((c: any) => (c.parcelas || []).some((p: any) => p.id === parcelaId))?.diretorio_url || linkDiretorio || '';
+
     async function gerarEmailPagamento(parcelaId: string) {
         setGerandoEmail(parcelaId);
         setParcelaDoEmail(parcelaId);
@@ -425,7 +432,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             const r = await authFetch(`/api/contratacoes/parcelas/${parcelaId}/email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ link_diretorio: linkDiretorio || null }),
+                body: JSON.stringify({ link_diretorio: diretorioDaParcela(parcelaId) || null }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao gerar o e-mail');
             setEmailPagamento(await r.json());
@@ -439,7 +446,8 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     async function abrirEmailNoOutlook() {
         if (!parcelaDoEmail) return;
         try {
-            const query = linkDiretorio ? `?link_diretorio=${encodeURIComponent(linkDiretorio)}` : '';
+            const dir = diretorioDaParcela(parcelaDoEmail);
+            const query = dir ? `?link_diretorio=${encodeURIComponent(dir)}` : '';
             await downloadAuthenticatedFile(`/api/contratacoes/parcelas/${parcelaDoEmail}/email.eml${query}`, 'PROGRAMACAO_PAGAMENTO.eml');
         } catch (e: any) { setErro(e.message); }
     }
@@ -603,7 +611,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
         <Card title="Pagamentos" action={
             <div className="flex gap-2">
                 <GhostButton onClick={abrirModeloContrato}><Settings size={14} className="inline mr-1" aria-hidden />Modelo de contrato</GhostButton>
-                <PrimaryButton onClick={() => setShowForm(v => !v)}><Plus size={14} className="inline mr-1" aria-hidden />Novo pagamento</PrimaryButton>
+                <PrimaryButton onClick={() => { setForm(f => (f.diretorio_url ? f : { ...f, diretorio_url: atividade.diretorio_url || '' })); setShowForm(v => !v); }}><Plus size={14} className="inline mr-1" aria-hidden />Novo pagamento</PrimaryButton>
             </div>
         }>
             <ErrorBanner message={erro} />
@@ -818,10 +826,20 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             <Field label="Data da solicitação"><input type="date" className={inputClass} value={form.data_solicitacao} onChange={e => setForm(f => ({ ...f, data_solicitacao: e.target.value }))}/></Field>
                             <Field label="Data prevista para pagamento"><input type="date" className={inputClass} value={form.data_prevista} onChange={e => setForm(f => ({ ...f, data_prevista: e.target.value }))}/></Field>
                         </>}
+                        {/* Diretório do pagamento (14/10/2026): vai em todo e-mail de despesa.
+                            Já vem com a pasta da atividade; ajuste se este pagamento tiver a sua. */}
+                        <div className="col-span-2">
+                            <Field label="Diretório no servidor * (onde os arquivos deste pagamento serão salvos)">
+                                <input className={`${inputClass} font-mono text-xs`} value={form.diretorio_url}
+                                    onChange={e => setForm(f => ({ ...f, diretorio_url: e.target.value }))}
+                                    placeholder="Ex.: P:\Obras\PAMRB008\Pagamentos" />
+                            </Field>
+                            <p className="mt-1 text-[11px] text-muted-foreground">Sai em todo e-mail de despesa deste pagamento.{atividade.diretorio_url ? ' Preenchido com o diretório da atividade.' : ''}</p>
+                        </div>
                     </div>
                     <div className="flex justify-end gap-2 mt-3">
                         <GhostButton onClick={() => setShowForm(false)}>Cancelar</GhostButton>
-                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (form.processo_tipo === 'PAYMENT_FORMALIZATION' && !form.data_pagamento_realizado) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista))}>{form.processo_tipo === 'PAYMENT_FORMALIZATION' ? 'Registrar formalização' : 'Registrar'}</PrimaryButton>
+                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (form.processo_tipo === 'PAYMENT_FORMALIZATION' && !form.data_pagamento_realizado) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista)) || !form.diretorio_url.trim()}>{form.processo_tipo === 'PAYMENT_FORMALIZATION' ? 'Registrar formalização' : 'Registrar'}</PrimaryButton>
                     </div>
                 </div>
             )}
@@ -881,7 +899,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     { label: anexandoContrato === c.contrato.id ? 'Enviando assinado...' : 'Anexar contrato assinado', onClick: () => clicarAnexarContrato(c.contrato.id), disabled: anexandoContrato === c.contrato.id },
                                 ]),
                             { label: historico?.id === c.id ? 'Ocultar histórico' : 'Histórico de alterações', onClick: () => verHistorico(c.id) },
-                            { label: 'Editar contratação', onClick: () => setEditandoContratacao({ id: c.id, valor: String(c.valor_contratado), observacoes: c.observacoes || '', motivo: '' }) },
+                            { label: 'Editar contratação', onClick: () => setEditandoContratacao({ id: c.id, valor: String(c.valor_contratado), observacoes: c.observacoes || '', motivo: '', diretorio_url: c.diretorio_url || atividade.diretorio_url || '' }) },
                             // Com pagamento efetuado a exclusão esconderia dinheiro que
                             // saiu do caixa; o backend recusa, e aqui nem se oferece.
                             ...(!temPagamento ? [{ label: 'Excluir contratação', onClick: () => excluirContratacao(c), tone: 'danger' as const }] : []),
@@ -911,6 +929,13 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     </label>
                                 </div>
                                 <label className="mt-3 block text-xs">
+                                    <span className="mb-1 block text-muted-foreground">Diretório no servidor (onde os arquivos deste pagamento são salvos)</span>
+                                    <input className={`${inputClass} h-9 font-mono text-xs`}
+                                        value={edicao.diretorio_url}
+                                        onChange={e => setEditandoContratacao(v => v && ({ ...v, diretorio_url: e.target.value }))}
+                                        placeholder="Ex.: P:\Obras\PAMRB008\Pagamentos"/>
+                                </label>
+                                <label className="mt-3 block text-xs">
                                     <span className="mb-1 block text-muted-foreground">Motivo da alteração</span>
                                     <input className={`${inputClass} h-9 text-sm`}
                                         value={edicao.motivo}
@@ -923,10 +948,15 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                         valor_contratado: Number(String(edicao.valor).replace(',', '.')),
                                         observacoes: edicao.observacoes.trim() || null,
                                         motivo: edicao.motivo.trim() || null,
+                                        diretorio_url: edicao.diretorio_url.trim() || null,
                                     })} className="rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground">Salvar</button>
                                 </div>
                             </div>}
                             {c.observacoes && !edicao && <div className="px-1 pb-2 text-[11px] text-muted-foreground">{c.observacoes}</div>}
+                            {!edicao && <div className="px-1 pb-2 text-[11px] text-muted-foreground">Diretório: {c.diretorio_url
+                                ? <span className="font-mono text-foreground">{c.diretorio_url}</span>
+                                : atividade.diretorio_url ? <span className="font-mono">{atividade.diretorio_url} <span className="font-sans">(da atividade)</span></span>
+                                : <span className="font-semibold text-warn">não informado — use Mais ações › Editar contratação</span>}</div>}
                             {registros && <div className="mb-3 rounded-lg border border-border bg-secondary/20 p-3">
                                 <div className="mb-2 text-xs font-semibold text-muted-foreground">Histórico de alterações</div>
                                 {registros.length === 0

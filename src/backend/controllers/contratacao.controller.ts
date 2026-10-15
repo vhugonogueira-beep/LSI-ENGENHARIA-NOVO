@@ -91,7 +91,7 @@ export async function createContratacao(req: Request, res: Response) {
             condicao_id, percentual_entrada, percentual_saldo, gatilho_saldo,
             observacoes, forma_pagamento: formaInformada, cartao_id,
             processo_tipo, formalizacao_posterior, data_compra_cartao, data_pagamento, fatura_referencia,
-            saldos,
+            saldos, diretorio_url,
         } = req.body;
 
         if (!atividade_id || (!supplier_id && !funcionario_id) || (supplier_id && funcionario_id) || !finalidade || valor_contratado == null) {
@@ -217,6 +217,7 @@ export async function createContratacao(req: Request, res: Response) {
                 percentual_saldo_override: condicao_id ? null : saldo,
                 gatilho_saldo_override: condicao_id ? null : gatilho,
                 observacoes: observacoes || null,
+                diretorio_url: diretorio_url ? String(diretorio_url).trim() || null : null,
                 created_by: (req as any).user?.email || null,
                 parcelas: { create: parcelasCreate },
             },
@@ -866,7 +867,8 @@ export async function gerarEmailPagamento(req: Request, res: Response) {
             tipo_pix: supplier.pix_tipo,
 
             // Link da pasta da obra. Vem da atividade e pode ser ajustado no envio.
-            link_diretorio: req.body?.link_diretorio ?? atividade.diretorio_url ?? null,
+            // Diretório do pagamento (14/10/2026); sem ele, o da atividade.
+            link_diretorio: req.body?.link_diretorio || (parcela.contratacao as any).diretorio_url || atividade.diretorio_url || null,
             observacoes: [
                 formalizacao
                     ? `Pagamento realizado em ${parcela.data_pagamento?.toLocaleDateString('pt-BR') || parcela.data_compra_cartao?.toLocaleDateString('pt-BR') || 'data nao informada'}. Esta formalização não representa uma nova transferência ao fornecedor.`
@@ -919,7 +921,7 @@ export async function gerarEmailPagamento(req: Request, res: Response) {
                 documentos_completos: !formalizacao || documentos.complete,
                 documentos_pendentes: formalizacao ? documentos.missing : [],
                 fatura_referencia: parcela.fatura_referencia,
-                link_diretorio: req.body?.link_diretorio ?? atividade.diretorio_url ?? null,
+                link_diretorio: req.body?.link_diretorio || (parcela.contratacao as any).diretorio_url || atividade.diretorio_url || null,
             },
         });
     } catch (e: any) {
@@ -1018,6 +1020,7 @@ export async function editarContratacao(req: Request, res: Response) {
 
         if (req.body.finalidade !== undefined) data.finalidade = String(req.body.finalidade);
         if (req.body.observacoes !== undefined) data.observacoes = req.body.observacoes || null;
+        if (req.body.diretorio_url !== undefined) data.diretorio_url = String(req.body.diretorio_url || '').trim() || null;
 
         if (Object.keys(data).length === 0) return res.status(400).json({ error: 'Nada a alterar' });
 

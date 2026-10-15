@@ -129,7 +129,7 @@ export async function createReembolso(req: Request, res: Response) {
             atividade_id, supplier_id, funcionario_id, favorecido_nome, cpf_cnpj,
             motivo, data_despesa, despesas, natureza: naturezaInformada,
             valor_adiantado, destino, data_inicio_viagem, data_fim_viagem,
-            data_solicitacao, data_prevista, forma_pagamento: formaInformada,
+            data_solicitacao, data_prevista, forma_pagamento: formaInformada, diretorio_url,
         } = req.body;
         // O processo nasce numa atividade OU num projeto (acionamento), nunca nos
         // dois. O adiantamento de projeto existe para o dinheiro que cobre várias
@@ -217,6 +217,7 @@ export async function createReembolso(req: Request, res: Response) {
                 favorecido_nome: nome,
                 cpf_cnpj: doc,
                 motivo: motivo || null,
+                diretorio_url: diretorio_url ? String(diretorio_url).trim() || null : null,
                 data_despesa: data_despesa ? new Date(data_despesa) : null,
                 valor_total: somar(linhas),
                 valor_adiantado: natureza === 'ADIANTAMENTO' ? valorAdiantado : null,
@@ -284,7 +285,7 @@ export async function updateReembolso(req: Request, res: Response) {
 
         const b = req.body;
         const dados: any = {};
-        for (const campo of ['favorecido_nome', 'cpf_cnpj', 'motivo', 'banco', 'agencia', 'conta', 'tipo_conta', 'pix_tipo', 'pix_chave', 'comprovante_url']) {
+        for (const campo of ['favorecido_nome', 'cpf_cnpj', 'motivo', 'diretorio_url', 'banco', 'agencia', 'conta', 'tipo_conta', 'pix_tipo', 'pix_chave', 'comprovante_url']) {
             if (b[campo] !== undefined) dados[campo] = b[campo];
         }
         if (b.data_despesa !== undefined) dados.data_despesa = b.data_despesa ? new Date(b.data_despesa) : null;
@@ -868,7 +869,8 @@ export async function gerarEmailReembolso(req: Request, res: Response) {
             // comprovantes, memória de cálculo e demais arquivos serão salvos.
             // O override mantém a prévia/EML utilizável enquanto o cadastro da
             // atividade ainda estiver sendo completado.
-            link_diretorio: req.body?.link_diretorio ?? a.diretorio_url ?? null,
+            // Diretório do processo (14/10/2026); sem ele, o da atividade.
+            link_diretorio: req.body?.link_diretorio || (r as any).diretorio_url || a.diretorio_url || null,
             observacoes: req.body?.observacoes || null,
             anexos: [
                 (pagamento?.comprovante_url || r.comprovante_url) ? 'Comprovante do pagamento anexado ao sistema' : null,

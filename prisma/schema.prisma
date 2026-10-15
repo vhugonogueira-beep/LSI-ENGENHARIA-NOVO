@@ -552,6 +552,9 @@ model ContratacaoFornecedor {
 
   status      String  @default("ATIVA") // ATIVA | CONCLUIDA | CANCELADA
   observacoes String?
+  // Pasta no servidor onde os arquivos deste pagamento são salvos (14/10/2026).
+  // Sai em todo e-mail de despesa; sem ela, vale a pasta da atividade.
+  diretorio_url String?
 
   created_by String?
   created_at DateTime @default(now())
@@ -1693,6 +1696,8 @@ model Reembolso {
   // efetivamente pago antes da viagem, enquanto valor_total continua sendo a
   // soma das despesas comprovadas.
   valor_adiantado          Float?
+  // Pasta no servidor onde os arquivos deste processo são salvos (14/10/2026).
+  diretorio_url            String?
   destino                  String?
   data_inicio_viagem       DateTime?
   data_fim_viagem          DateTime?
