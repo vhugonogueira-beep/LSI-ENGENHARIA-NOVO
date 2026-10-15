@@ -261,6 +261,13 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     return (
         <Card title={titulo} action={
             <div className="flex flex-wrap gap-2">
+                {/* Salvar também no topo (14/10/2026): com a LPU em tabela, o rodapé fica longe. */}
+                {editavel && alterado && (
+                    <button type="button" onClick={() => salvar()} disabled={salvando}
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-warn px-3 text-xs font-semibold text-black hover:bg-warn/90 disabled:opacity-60">
+                        <Save size={14} aria-hidden /> {salvando ? 'Salvando…' : 'Salvar alterações'}
+                    </button>
+                )}
                 <button type="button" onClick={() => downloadAuthenticatedFile(`/api/budgets/${budgetId}/export/excel?grupo=preco_cliente`, 'orcamento-ls.xlsx')}
                     disabled={!linhas.length} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">
                     <Download size={14} aria-hidden /> Baixar Excel
@@ -304,6 +311,17 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             {catalogoLpu && atividade && (
                 <div className="mb-5">
                     <CatalogoLpuOrcamento atividadeId={atividade.id} linhas={linhas} editavel={editavel} onAlternar={alternarDaLpu} onMudar={mudarNumero} />
+                    {editavel && (
+                        <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                            <span className={`inline-flex items-center gap-1.5 text-xs ${alterado ? 'font-semibold text-warn' : 'text-muted-foreground'}`}>
+                                {alterado ? <><AlertTriangle size={14} aria-hidden /> Alterações não salvas</> : <><CheckCircle2 size={14} aria-hidden className="text-ok" /> Tudo salvo</>}
+                            </span>
+                            <button type="button" onClick={() => salvar()} disabled={!alterado || salvando}
+                                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40">
+                                <Save size={14} aria-hidden /> {salvando ? 'Salvando…' : 'Salvar itens'}
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
             {catalogoLpu && (
