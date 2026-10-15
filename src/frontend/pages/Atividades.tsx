@@ -1215,9 +1215,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     placeholder="Ex: Instalação de antena, SPDA, obra civil..." className="input" />
                                 <datalist id="historico-tipos">{historicoTipos.map(v => <option key={v} value={v} />)}</datalist>
                             </Field>
-                            <Field label="Contrato">
-                                <input value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} className="input" />
-                            </Field>
                             {/* Valor de contrato e custo orçado não entram na abertura: nascem
                                 do orçamento/negociação e são editados depois, no cockpit. */}
                             <Field label="Responsável / Gestor">
