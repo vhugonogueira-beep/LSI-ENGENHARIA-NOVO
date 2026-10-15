@@ -511,22 +511,20 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 </FiltroLinha>
 
                 {view !== 'projetos' && (<>
-                    {/* Situação: recortes rápidos, com quantas atividades cada um mostraria.
-                        Com contagem, cada recorte leva a cor do que significa. */}
+                    {/* Situação em cartões com o número grande (proposta 2, 15/10/2026):
+                        o número é o que se lê primeiro; clicar filtra, clicar de novo volta a Todas. */}
                     <FiltroLinha rotulo="Situação">
-                        <div className="flex flex-wrap items-center gap-1.5">
+                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
                             {SITUACOES.map(s => {
                                 const total = semSituacao.filter(s.teste).length;
                                 const ativo = filtros.situacao === s.id;
-                                const tom = total > 0 ? s.tom : undefined;
-                                const estilo = tom
-                                    ? (ativo ? `border border-transparent ${SOLIDO[tom]} text-background` : `${CHIP[tom]} hover:brightness-110`)
-                                    : ativo ? 'border border-primary bg-primary text-primary-foreground'
-                                        : 'border border-border text-muted-foreground hover:text-foreground';
+                                const cor = total > 0 && s.tom ? TEXTO[s.tom] : 'text-foreground';
                                 return (
-                                    <button key={s.id} type="button" aria-pressed={ativo} onClick={() => setFiltro('situacao', s.id)}
-                                        className={`inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-xs font-semibold leading-none transition-colors ${estilo}`}>
-                                        {s.label} <span className={`tabular-nums ${ativo ? 'opacity-90' : 'opacity-70'}`}>{total || '—'}</span>
+                                    <button key={s.id} type="button" aria-pressed={ativo}
+                                        onClick={() => setFiltro('situacao', ativo && s.id !== 'TODAS' ? 'TODAS' : s.id)}
+                                        className={`rounded-lg border px-3 py-2 text-left transition-colors ${ativo ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-background/40 hover:border-primary/50'}`}>
+                                        <div className="truncate text-[11px] text-muted-foreground">{s.label}</div>
+                                        <div className={`text-xl font-bold tabular-nums leading-tight ${total ? cor : 'text-muted-foreground'}`}>{total}</div>
                                     </button>
                                 );
                             })}
@@ -657,8 +655,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 </th>
                                 <th className="px-3 py-2.5 align-middle font-medium">Site</th>
                                 <th className="px-3 py-2.5 align-middle font-medium">Cliente e operadora</th>
-                                <th className="px-3 py-2.5 align-middle font-medium">Status e pendências</th>
-                                <th className="px-3 py-2.5 align-middle font-medium">Avanço</th>
+                                <th className="px-3 py-2.5 align-middle font-medium" title="Orçamento → PO → Execução → Documentação → Faturamento">Etapa e pendências</th>
+                                <th className="px-3 py-2.5 align-middle font-medium">Tipo</th>
                                 <th className="px-3 py-2.5 align-middle font-medium text-right">Saldo</th>
                                 <th className="px-3 py-2.5 align-middle"><span className="sr-only">Ações</span></th>
                             </tr>
@@ -680,7 +678,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         className={`group cursor-pointer border-b border-border/60 last:border-b-0 border-l-4 ${aninhada ? 'border-l-primary bg-primary/[0.035]' : FAIXA[tom]} hover:bg-secondary/30 transition-colors`}>
                                         {/* Toda célula abre com uma linha de 28px (h-7): Site ID, cliente,
                                             status, avanço, saldo e ações ficam na mesma altura. */}
-                                        <td className="px-3 py-3 align-top">
+                                        <td className="px-3 py-2.5 align-top">
                                             <div className="flex h-7 items-center">
                                                 <input type="checkbox" checked={selecionadas.includes(a.id)}
                                                     aria-label={`Selecionar ${a.id_site_sharing || a.codigo}`}
@@ -688,22 +686,19 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             </div>
                                         </td>
                                         {/* O Site ID é a âncora da linha: é por ele que a obra é chamada. */}
-                                        <td className={`px-3 py-3 align-top ${aninhada ? 'pl-9' : ''}`}>
+                                        <td className={`px-3 py-2.5 align-top ${aninhada ? 'pl-9' : ''}`}>
                                             {/* Dentro do projeto: seta de "pertence a" antes do Site ID. */}
                                             {a.id_site_sharing
                                                 ? <div className="flex h-7 items-center gap-1.5 font-id text-base font-semibold text-foreground" title={a.titulo}>{aninhada && <CornerDownRight size={14} aria-label="No projeto" className="-ml-5 shrink-0 text-primary" />}<span className="group-hover:text-primary group-hover:underline underline-offset-4">{a.id_site_sharing}</span>
                                                     <span className="ml-1 hidden items-center gap-0.5 font-sans text-[11px] font-semibold text-primary group-hover:inline-flex">Abrir atividade <ArrowUpRight size={12} aria-hidden /></span></div>
                                                 : <div className="flex h-7 items-center gap-1.5 text-sm text-muted-foreground" title={a.titulo}>{aninhada && <CornerDownRight size={14} aria-label="No projeto" className="-ml-5 shrink-0 text-primary" />}Sem Site ID</div>}
-                                            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                                                {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}
+                                            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                                                {a.id_site_operadora && a.id_site_operadora !== a.id_site_sharing && <span className="font-id">{a.id_site_operadora}</span>}
                                                 <span className="font-id">{a.codigo}</span>
-                                            </div>
-                                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                                                <AreaChip tipo={a.tipo_demanda} />
-                                                {local && <span>{local}</span>}
+                                                {local && <span>· {local}</span>}
                                             </div>
                                         </td>
-                                        <td className="px-3 py-3 align-top">
+                                        <td className="px-3 py-2.5 align-top">
                                             {/* Sharing e operadora na mesma linha, como o Site ID ao lado:
                                                 a primeira linha de cada coluna é a que se lê de relance. */}
                                             <div className="flex h-7 items-center gap-2">
@@ -713,27 +708,17 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             {a.fornecedor_principal && <div className="mt-1.5 truncate text-xs text-muted-foreground" title={a.fornecedor_principal}>{a.fornecedor_principal}</div>}
                                             {gestor && <div className="mt-0.5 truncate text-xs text-muted-foreground" title={`Gestor ${gestor}`}>Gestor {gestor}</div>}
                                         </td>
-                                        <td className="px-3 py-3 align-top">
-                                            <div className="flex h-7 items-center"><StatusPill status={a.status_operacional} map={STATUS_OPERACIONAL} /></div>
+                                        <td className="px-3 py-2.5 align-top">
+                                            <EtapaDaLinha a={a} avanco={avanco} />
                                             <PendenciasDaLinha a={a} onAnexarPO={() => { setPoModalId(a.id); setPoForm({ numero: '', pdf_url: '' }); }} />
                                         </td>
-                                        <td className="px-3 py-3 align-top">
-                                            {/* Verde ao chegar em 100%: a conclusão é a leitura mais
-                                                importante da coluna. O número ao lado garante que a
-                                                informação não dependa só da cor. */}
-                                            {avanco > 0 ? (
-                                                <div className="flex h-7 items-center gap-2">
-                                                    <div className="h-1.5 flex-1 min-w-[52px] rounded-full bg-[hsl(var(--progress-track))] overflow-hidden">
-                                                        <div className={`h-full rounded-full ${SOLIDO[avanco >= 100 ? 'green' : tom]}`} style={{ width: `${avanco}%` }} />
-                                                    </div>
-                                                    <span className="text-xs font-medium w-9 text-right tabular-nums">{Math.round(avanco)}%</span>
-                                                </div>
-                                            ) : <div className="flex h-7 items-center text-muted-foreground">—</div>}
+                                        <td className="px-3 py-2.5 align-top">
+                                            <div className="flex h-7 items-center"><AreaChip tipo={a.tipo_demanda} /></div>
                                         </td>
-                                        <td className="px-3 py-3 align-top text-right whitespace-nowrap">
+                                        <td className="px-3 py-2.5 align-top text-right whitespace-nowrap">
                                             <div className="flex h-7 items-center justify-end"><SaldoDaLinha a={a} /></div>
                                         </td>
-                                        <td className="px-3 py-3 align-top">
+                                        <td className="px-3 py-2.5 align-top">
                                             <div className="flex h-7 items-center justify-end gap-1">
                                                 <button type="button" onClick={() => setSelecionadaId(a.id)}
                                                     className="inline-flex h-7 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary/60 whitespace-nowrap">
@@ -1251,36 +1236,48 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
  * O que a atividade está devendo, em uma linha cada. Pendente primeiro: é a
  * primeira coisa que se lê depois do status. Sem pendência, não mostra nada.
  */
+/** As cinco etapas da obra, cada uma concluída ou não (proposta 2, 15/10/2026). */
+const ETAPAS: { nome: string; feita: (a: Atividade) => boolean }[] = [
+    { nome: 'Orçamento aprovado', feita: a => a.status_comercial === 'APROVADO' },
+    { nome: 'PO recebida', feita: a => !!a.po },
+    { nome: 'Execução concluída', feita: a => a.status_operacional === 'CONCLUIDA' || (a.avanco_percentual ?? 0) >= 100 },
+    { nome: 'Documentação completa', feita: a => a.status_documental === 'COMPLETO' },
+    { nome: 'Faturada', feita: a => ['NF_EMITIDA', 'FATURADO', 'RECEBIDO'].includes(String((a as any).status_faturamento || '')) },
+];
+
+function EtapaDaLinha({ a, avanco }: { a: Atividade; avanco: number }) {
+    const feitas = ETAPAS.map(e => e.feita(a));
+    const status = STATUS_OPERACIONAL[a.status_operacional]?.label || a.status_operacional;
+    return (
+        <div className="flex h-7 items-center gap-2" title={ETAPAS.map((e, i) => `${feitas[i] ? '✓' : '·'} ${e.nome}`).join('\n')}>
+            <div className="flex gap-0.5" aria-label={`${feitas.filter(Boolean).length} de 5 etapas concluídas`}>
+                {feitas.map((f, i) => <span key={i} className={`h-1.5 w-6 rounded-full ${f ? 'bg-primary' : 'bg-[hsl(var(--progress-track))]'}`} />)}
+            </div>
+            <span className="truncate text-xs text-foreground/85">{status}{avanco > 0 && avanco < 100 ? ` ${Math.round(avanco)}%` : ''}</span>
+        </div>
+    );
+}
+
+/** Pendências em etiquetas curtas: cabem numa linha e se leem de relance. */
 function PendenciasDaLinha({ a, onAnexarPO }: { a: Atividade; onAnexarPO?: () => void }) {
-    const itens: { texto: string; tom: 'warn' | 'crit'; titulo?: string }[] = [];
+    const itens: { texto: string; tom: 'warn' | 'crit'; titulo: string }[] = [];
     if (atrasada(a)) itens.push({ texto: 'Prazo vencido', tom: 'crit', titulo: `Término planejado em ${String(a.data_fim_planejada).slice(0, 10).split('-').reverse().join('/')}` });
     const correcao = a.documentos_correcao || 0;
-    if (correcao > 0) itens.push({ texto: `${correcao} ${correcao === 1 ? 'documento' : 'documentos'} em correção`, tom: 'crit' });
+    if (correcao > 0) itens.push({ texto: `${correcao} correção`, tom: 'crit', titulo: `${correcao} documento(s) em correção` });
     const docsPend = a.documentos_pendentes || 0;
-    if (docsPend > 0) itens.push({ texto: `${docsPend} ${docsPend === 1 ? 'documento pendente' : 'documentos pendentes'}`, tom: 'warn' });
+    if (docsPend > 0) itens.push({ texto: `${docsPend} doc.`, tom: 'warn', titulo: `${docsPend} documento(s) pendente(s)` });
     const comp = a.comprovantes_pendentes || 0;
-    if (comp > 0) itens.push({ texto: `${comp} ${comp === 1 ? 'comprovante pendente' : 'comprovantes pendentes'}`, tom: 'warn', titulo: 'Pagamento solicitado ou pago sem comprovante anexado' });
+    if (comp > 0) itens.push({ texto: `${comp} comprov.`, tom: 'crit', titulo: 'Pagamento solicitado ou pago sem comprovante anexado' });
     const semPO = !a.po && a.status_operacional !== 'CONCLUIDA';
     if (!itens.length && !semPO && !a.po) return null;
+    const etiqueta = (tom: 'warn' | 'crit') => `inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[11px] font-semibold ${tom === 'crit' ? 'bg-crit/15 text-crit' : 'bg-warn/15 text-warn'}`;
     return (
-        <div className="mt-1.5 flex flex-col gap-0.5 text-xs">
-            {itens.map(i => (
-                <span key={i.texto} title={i.titulo} className={`flex items-center gap-1 font-medium ${i.tom === 'crit' ? 'text-crit' : 'text-warn'}`}>
-                    <AlertTriangle size={12} aria-hidden className="shrink-0" />{i.texto}
-                </span>
-            ))}
-            {a.po ? (
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                    PO <span className={`font-id ${PO_STATUS_TOM[a.po.status] || ''}`} title={`PO ${a.po.status.toLowerCase()}`}>{a.po.numero || a.po.status.toLowerCase()}</span>
-                </span>
-            ) : semPO && (
-                onAnexarPO ? (
-                    <button type="button" onClick={onAnexarPO}
-                        className="flex w-fit items-center gap-1 font-medium text-warn hover:underline">
-                        <Paperclip size={12} aria-hidden /> Sem PO. Anexar PO
-                    </button>
-                ) : <span className="flex items-center gap-1 font-medium text-warn"><Paperclip size={12} aria-hidden />Sem PO</span>
-            )}
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+            {semPO && (onAnexarPO
+                ? <button type="button" onClick={onAnexarPO} title="Anexar a PO" className={`${etiqueta('warn')} hover:underline`}><Paperclip size={11} aria-hidden />Sem PO</button>
+                : <span className={etiqueta('warn')}>Sem PO</span>)}
+            {itens.map(i => <span key={i.texto} title={i.titulo} className={etiqueta(i.tom)}>{i.texto}</span>)}
+            {a.po && <span className="text-[11px] text-muted-foreground">PO <span className={`font-id ${PO_STATUS_TOM[a.po.status] || ''}`} title={`PO ${a.po.status.toLowerCase()}`}>{a.po.numero || a.po.status.toLowerCase()}</span></span>}
         </div>
     );
 }
