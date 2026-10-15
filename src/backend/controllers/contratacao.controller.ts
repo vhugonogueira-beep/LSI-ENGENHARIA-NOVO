@@ -244,7 +244,7 @@ export async function listContratacoes(req: Request, res: Response) {
             include: {
                 supplier: { select: { nome: true, nome_fantasia: true, categoria: true, forma_pagamento: true, pix: true } },
                 funcionario: { select: { nome: true, cargo: true, pix_chave: true, forma_pagamento: true } },
-                parcelas: true,
+                parcelas: { include: { anexos: { select: { tipo: true } } } },
                 contrato: { include: { arquivos: { orderBy: { created_at: 'desc' } } } },
             },
             orderBy: { created_at: 'desc' },

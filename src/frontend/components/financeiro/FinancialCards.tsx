@@ -9,8 +9,14 @@ export type FinancialAction = {
   disabled?: boolean;
 };
 
+// Lista de pagamentos em tabela, por favorecido (proposta 1, 15/10/2026): o
+// favorecido é o cabeçalho do grupo (com a barra do quanto já foi pago) e cada
+// parcela é uma linha com colunas fixas — forma, datas, status, valor e ações
+// caem na mesma vertical de uma linha para a outra.
+export const COLUNAS_PARCELA = 'lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1.3fr)_192px_120px_150px_44px]';
+
 export function FinancialBeneficiaryCard({
-  name, category, total, totalLabel = 'Contratado', status, headerActions, children,
+  name, category, total, totalLabel = 'Contratado', status, headerActions, children, progress, meta,
 }: {
   name: string;
   category?: string | null;
@@ -19,21 +25,37 @@ export function FinancialBeneficiaryCard({
   status?: ReactNode;
   headerActions?: ReactNode;
   children: ReactNode;
+  /** Quanto já foi pago do total: desenha a barra no cabeçalho. */
+  progress?: { pago: number; total: number; rotulo?: ReactNode };
+  /** Linha extra do cabeçalho (ex.: diretório no servidor). */
+  meta?: ReactNode;
 }) {
+  const pct = progress && progress.total > 0 ? Math.min(100, Math.max(0, (progress.pago / progress.total) * 100)) : 0;
   return <article className="overflow-visible rounded-xl border border-border bg-card">
-    {/* Faixa de cabecalho tingida e titulo em azul: e o que separa visualmente
-        um favorecido do proximo quando varios blocos de pagamento se empilham. */}
-    <header className="flex flex-col gap-3 border-b border-border bg-accent px-4 py-3 sm:flex-row sm:items-start sm:justify-between">
+    <header className="grid gap-3 border-b border-border bg-accent px-4 py-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] lg:items-center">
       <div className="min-w-0">
         <h3 className="truncate text-sm font-bold text-[hsl(var(--link))]">{name}</h3>
-        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
           {category && <span className="font-medium">{category}</span>}
-          {total !== undefined && <span>{totalLabel} <strong className="text-foreground">{total}</strong></span>}
+          {meta}
         </div>
       </div>
-      <div className="flex shrink-0 flex-wrap items-center gap-2">{status}{headerActions}</div>
+      {progress ? (
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-background/70" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Pago do contratado">
+            <div className={`h-full rounded-full ${pct >= 100 ? 'bg-ok' : 'bg-primary'}`} style={{ width: `${pct}%` }} />
+          </div>
+          <span className="whitespace-nowrap text-[11px] text-muted-foreground">{progress.rotulo}</span>
+        </div>
+      ) : <div className="hidden lg:block" />}
+      <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+        {total !== undefined && <span className="text-right text-[11px] text-muted-foreground">{totalLabel}<strong className="ml-1.5 text-sm text-foreground tabular-nums">{total}</strong></span>}
+        {status}{headerActions}
+      </div>
     </header>
-    <div className="space-y-2.5 p-3 sm:p-4">{children}</div>
+    {/* Blocos que não são linha de parcela (avisos, arquivos do contrato,
+        edição) ganham o recuo da tabela; as linhas se separam por fio. */}
+    <div className="[&>*:not(section)]:mx-4 [&>*:not(section)]:my-2.5">{children}</div>
   </article>;
 }
 
@@ -57,39 +79,35 @@ export function FinancialPaymentCard({
   /** Faixa à esquerda na cor da origem — classe `FAIXA[tom]` de lib/cores.ts. */
   stripe?: string;
 }) {
-  return <section className={`rounded-xl border border-border/80 bg-background/45 px-3.5 py-3 transition-colors hover:border-border sm:px-4 ${stripe ? `border-l-4 ${stripe}` : ''}`}>
-    {/* Valor e dados à esquerda; status e ações numa coluna de largura fixa à
-        direita, com sub-colunas fixas (status | ação principal | menu), para
-        que o seletor e os botões caiam na mesma vertical de linha para linha. */}
-    <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+  return <section className={`border-t border-border/60 px-4 py-2.5 transition-colors first:border-t-0 hover:bg-secondary/20 ${stripe ? `border-l-4 ${stripe}` : ''}`}>
+    <div className={`grid items-center gap-x-4 gap-y-2 ${COLUNAS_PARCELA}`}>
       <div className="min-w-0">
-        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <div className="flex flex-wrap items-baseline gap-x-2">
           <span className="text-sm font-semibold text-foreground">{title}</span>
           {percentage !== undefined && <span className="text-[11px] text-muted-foreground">{percentage}</span>}
-          <strong className="ml-auto text-base text-foreground sm:ml-2">{amount}</strong>
         </div>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-          {method && <span className="font-semibold text-foreground">{method}</span>}
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-[11px] text-muted-foreground">
+          {method && <span className="font-semibold text-foreground/90">{method}</span>}
           {context && <span className="min-w-0 truncate">{context}</span>}
         </div>
-        {(requestedAt || expectedAt || paidAt || receipt) && <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-          {requestedAt && <span>Solicitado: <b className="font-medium text-foreground/80">{requestedAt}</b></span>}
-          {expectedAt && <span>Previsto: <b className="font-medium text-foreground/80">{expectedAt}</b></span>}
-          {paidAt && <span>Pago: <b className="font-medium text-ok">{paidAt}</b></span>}
-          {receipt && <span className={receipt.attached ? 'font-semibold text-ok' : 'text-warn'}>{receipt.label || (receipt.attached ? 'Comprovante anexado' : 'Sem comprovante')}</span>}
-        </div>}
-        {children}
       </div>
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2.5 lg:grid lg:grid-cols-[192px_152px_112px] lg:items-start lg:justify-normal lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
-        <div className="min-w-0">{status}</div>
-        <div className="flex items-center lg:[&>*]:w-full lg:[&>*]:justify-center">{primaryAction}</div>
-        <div className="flex items-center lg:justify-end">{actions.length > 0 && <FinancialActionMenu actions={actions}/>}</div>
+      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+        {requestedAt && <span>Solicitado <b className="font-medium text-foreground/80">{requestedAt}</b></span>}
+        {expectedAt && <span>Previsto <b className="font-medium text-foreground/80">{expectedAt}</b></span>}
+        {paidAt && <span>Pago <b className="font-medium text-ok">{paidAt}</b></span>}
+        {receipt && <span className={receipt.attached ? 'font-semibold text-ok' : 'text-warn'}>{receipt.label || (receipt.attached ? 'Comprovante anexado' : 'Sem comprovante')}</span>}
+        {!requestedAt && !expectedAt && !paidAt && !receipt && <span>—</span>}
       </div>
+      <div className="min-w-0">{status}</div>
+      <strong className="text-sm text-foreground tabular-nums lg:text-right">{amount}</strong>
+      <div className="flex items-center lg:[&>*]:w-full lg:[&>*]:justify-center">{primaryAction}</div>
+      <div className="flex items-center lg:justify-end">{actions.length > 0 && <FinancialActionMenu actions={actions} compacto/>}</div>
     </div>
+    {children && <div className="mt-2">{children}</div>}
   </section>;
 }
 
-export function FinancialActionMenu({ actions }: { actions: FinancialAction[] }) {
+export function FinancialActionMenu({ actions, compacto = false }: { actions: FinancialAction[]; compacto?: boolean }) {
   // Menu controlado (14/10/2026): fecha ao clicar de novo no botão, fora dele, em
   // uma ação ou com Esc. Aberto, fica acima dos outros cartões (o <details> antigo
   // ficava aberto e os botões "Mais ações" de baixo passavam por cima dele).
@@ -106,9 +124,9 @@ export function FinancialActionMenu({ actions }: { actions: FinancialAction[] })
   const visible = actions.filter(action => !action.disabled);
   if (!visible.length) return null;
   return <div ref={caixa} className={`relative ${aberto ? 'z-50' : 'z-0'}`}>
-    <button type="button" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto(v => !v)}
+    <button type="button" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto(v => !v)} title={compacto ? 'Mais ações' : undefined}
       className={`flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-semibold hover:bg-secondary hover:text-foreground ${aberto ? 'bg-secondary text-foreground' : 'bg-secondary/40 text-muted-foreground'}`}>
-      <MoreVertical size={15} aria-hidden/><span className="hidden sm:inline">Mais ações</span><span className="sr-only sm:hidden">Mais ações</span>
+      <MoreVertical size={15} aria-hidden/>{compacto ? <span className="sr-only">Mais ações</span> : <><span className="hidden sm:inline">Mais ações</span><span className="sr-only sm:hidden">Mais ações</span></>}
     </button>
     {aberto && <div role="menu" className="absolute right-0 top-10 min-w-[190px] overflow-hidden rounded-lg border border-border bg-popover p-1.5 shadow-2xl">
       {visible.map((action, index) => action.href

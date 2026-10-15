@@ -40,6 +40,23 @@ const FORM_INIT = {
     processo_tipo: 'PAYMENT_REQUEST', formalizacao_posterior: false, data_pagamento_realizado: '', fatura_referencia: '',
     diretorio_url: '',
 };
+const PAGO_STATUS = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
+const SOLICITADO_STATUS = ['SOLICITADO', 'ENVIADO_FINANCEIRO', 'AGUARDANDO_PAGAMENTO'];
+type SituacaoParcela = 'A_SOLICITAR' | 'SOLICITADO' | 'PAGO_SEM_COMPROVANTE' | 'CONCLUIDO';
+/** Comprovante anexado: pela faixa Documentos ou pelo campo legado. */
+const temComprovante = (p: any) => !!p.comprovante_url || (p.anexos || []).some((a: any) => a.tipo === 'COMPROVANTE_PAGAMENTO');
+function situacaoDaParcela(p: any): SituacaoParcela {
+    if (PAGO_STATUS.includes(p.status)) return temComprovante(p) ? 'CONCLUIDO' : 'PAGO_SEM_COMPROVANTE';
+    if (SOLICITADO_STATUS.includes(p.status)) return 'SOLICITADO';
+    return 'A_SOLICITAR';
+}
+const SITUACOES: { id: SituacaoParcela; rotulo: string; tom: string }[] = [
+    { id: 'A_SOLICITAR', rotulo: 'A solicitar', tom: 'border-border text-muted-foreground' },
+    { id: 'SOLICITADO', rotulo: 'Solicitados', tom: 'border-warn/40 text-warn' },
+    { id: 'PAGO_SEM_COMPROVANTE', rotulo: 'Pagos sem comprovante', tom: 'border-crit/40 text-crit' },
+    { id: 'CONCLUIDO', rotulo: 'Concluídos', tom: 'border-ok/40 text-ok' },
+];
+
 const FORMA_LABEL: Record<string, string> = {
     PIX: 'PIX', TED: 'Transferência bancária', CARTAO_CREDITO: 'Cartão de crédito corporativo',
     BOLETO: 'Boleto', DINHEIRO: 'Dinheiro',
@@ -81,6 +98,8 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [editandoParcela, setEditandoParcela] = useState<string | null>(null);
     // Edição da contratação: guarda o id e os campos em edição, para o painel
     // abrir dentro do próprio cartão do favorecido.
+    // Filtro da lista por situação da parcela (proposta 1, 15/10/2026).
+    const [filtroSituacao, setFiltroSituacao] = useState<SituacaoParcela | 'TODOS'>('TODOS');
     const [editandoContratacao, setEditandoContratacao] = useState<{ id: string; valor: string; observacoes: string; motivo: string; diretorio_url: string } | null>(null);
     // Motivo da alteração de valor da parcela e histórico aberto por contratação.
     const [motivoParcela, setMotivoParcela] = useState('');
@@ -868,14 +887,49 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     : passouOrcado || semReferencia
                         ? 'border-warn/30 bg-warn/5 text-warn'
                         : 'border-border bg-secondary/30 text-muted-foreground';
+                const parcelas = contratacoes.filter((c: any) => c.status !== 'CANCELADA').flatMap((c: any) => c.parcelas || []);
+                const soma = (lista: any[]) => lista.reduce((t: number, p: any) => t + Number(p.valor || 0), 0);
+                const pagas = parcelas.filter((p: any) => PAGO_STATUS.includes(p.status));
+                const solicitadas = parcelas.filter((p: any) => SOLICITADO_STATUS.includes(p.status));
+                const saldos = parcelas.filter((p: any) => p.tipo === 'SALDO' && p.status === 'PENDENTE');
+                const proximoSaldo = saldos.map((p: any) => p.data_prevista).filter(Boolean).sort()[0];
+                const semComprovante = pagas.filter((p: any) => !temComprovante(p));
+                const kpis = [
+                    { rotulo: 'Contratado', valor: comprometido ? fmtMoeda(comprometido) : '—', nota: [orcado > 0 ? `Orçado ${fmtMoeda(orcado)}` : '', receita > 0 ? `Receita ${fmtMoeda(receita)}` : ''].filter(Boolean).join(' · ') || `${contratacoes.length} favorecido(s)`, cor: 'text-foreground' },
+                    { rotulo: 'Pago', valor: fmtMoeda(soma(pagas)), nota: comprometido ? `${Math.round((soma(pagas) / comprometido) * 100)}% do contratado` : '', cor: 'text-ok' },
+                    { rotulo: 'A pagar', valor: fmtMoeda(soma(solicitadas)), nota: `${solicitadas.length} parcela(s) solicitada(s)`, cor: 'text-warn' },
+                    { rotulo: 'Saldo programado', valor: fmtMoeda(soma(saldos)), nota: proximoSaldo ? `próximo: ${fmtData(proximoSaldo)}` : 'nenhum', cor: 'text-primary' },
+                    { rotulo: 'Sem comprovante', valor: String(semComprovante.length), nota: 'pagos sem anexo', cor: semComprovante.length ? 'text-crit' : 'text-muted-foreground' },
+                ];
                 return (
-                    <div className={`mb-3 rounded-lg border px-3.5 py-2.5 text-[11px] ${tom}`}>
-                        <span className="font-semibold">Custo contratado {comprometido ? fmtMoeda(comprometido) : '—'}</span>
-                        {orcado > 0 && <span className="ml-4">Orçado {fmtMoeda(orcado)}</span>}
-                        {receita > 0 && <span className="ml-4">Receita {fmtMoeda(receita)}</span>}
+                    <div className="mb-3 space-y-2">
+                    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-5">
+                        {kpis.map(k => (
+                            <div key={k.rotulo} className="rounded-lg border border-border bg-secondary/20 px-3.5 py-2.5">
+                                <div className="text-[11px] text-muted-foreground">{k.rotulo}</div>
+                                <div className={`mt-0.5 text-lg font-bold tabular-nums ${k.cor}`}>{k.valor}</div>
+                                {k.nota && <div className="truncate text-[11px] text-muted-foreground">{k.nota}</div>}
+                            </div>
+                        ))}
+                    </div>
+                    {(passouReceita || passouOrcado || semReferencia) && <div className={`rounded-lg border px-3.5 py-2 text-[11px] ${tom}`}>
                         {passouReceita && <div className="mt-1 font-semibold">O custo contratado passou a receita da atividade em {fmtMoeda(comprometido - receita)}. Esta atividade está dando prejuízo.</div>}
                         {!passouReceita && passouOrcado && <div className="mt-1 font-semibold">O custo contratado passou o orçado em {fmtMoeda(comprometido - orcado)}.</div>}
                         {semReferencia && <div className="mt-1 font-semibold">A atividade não tem receita nem custo orçado preenchidos, então não há com o que comparar este custo.</div>}
+                    </div>}
+                    {/* Filtro por situação: mostra só as parcelas daquela situação. */}
+                    <div className="flex flex-wrap items-center gap-2">
+                        {[{ id: 'TODOS' as const, rotulo: 'Todos', tom: '' }, ...SITUACOES].map(f => {
+                            const n = f.id === 'TODOS' ? parcelas.length : parcelas.filter((p: any) => situacaoDaParcela(p) === f.id).length;
+                            const ativo = filtroSituacao === f.id;
+                            return (
+                                <button key={f.id} type="button" aria-pressed={ativo} onClick={() => setFiltroSituacao(f.id)}
+                                    className={`h-8 rounded-full border px-3.5 text-xs font-semibold ${ativo ? 'border-primary bg-primary text-primary-foreground' : `bg-transparent hover:bg-secondary/50 ${f.tom || 'border-border text-foreground'}`}`}>
+                                    {f.rotulo} <span className="ml-1 opacity-75 tabular-nums">{n}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
                     </div>
                 );
             })()}
@@ -885,6 +939,9 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             ) : (
                 <div className="flex flex-col gap-3">
                     {contratacoes.map(c => {
+                        const parcelasVisiveis = (c.parcelas || []).filter((p: any) => filtroSituacao === 'TODOS' || situacaoDaParcela(p) === filtroSituacao);
+                        if (filtroSituacao !== 'TODOS' && !parcelasVisiveis.length) return null;
+                        const pagoGrupo = (c.parcelas || []).filter((p: any) => PAGO_STATUS.includes(p.status)).reduce((t: number, p: any) => t + Number(p.valor || 0), 0);
                         const arquivos = c.contrato?.arquivos || [];
                         const alocado = (c.parcelas || []).reduce((s: number, p: any) => s + p.valor, 0);
                         const diferenca = Math.round((c.valor_contratado - alocado) * 100) / 100;
@@ -909,6 +966,11 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             name={(c.supplier && (c.supplier.nome_fantasia || c.supplier.nome)) || c.funcionario?.nome || 'Favorecido'}
                             category={FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ').toLowerCase()}
                             total={fmtMoeda(c.valor_contratado)}
+                            progress={{ pago: pagoGrupo, total: c.valor_contratado, rotulo: `${fmtMoeda(pagoGrupo)} pago de ${fmtMoeda(c.valor_contratado)}` }}
+                            meta={<span>Dir.: {c.diretorio_url
+                                ? <span className="font-mono text-foreground/80">{c.diretorio_url}</span>
+                                : atividade.diretorio_url ? <span className="font-mono">{atividade.diretorio_url} <span className="font-sans">(da atividade)</span></span>
+                                : <span className="font-semibold text-warn">não informado — Mais ações › Editar contratação</span>}</span>}
                             status={c.contrato && <select aria-label="Status do contrato" value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className={`rounded-md border-0 px-2 py-1 text-[11px] font-semibold ${CONTRATO_STATUS_TOM[c.contrato.status] || CONTRATO_STATUS_TOM.GERADO}`}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>}
                             headerActions={<FinancialActionMenu actions={contratoActions}/>}
                         >
@@ -953,10 +1015,6 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 </div>
                             </div>}
                             {c.observacoes && !edicao && <div className="px-1 pb-2 text-[11px] text-muted-foreground">{c.observacoes}</div>}
-                            {!edicao && <div className="px-1 pb-2 text-[11px] text-muted-foreground">Diretório: {c.diretorio_url
-                                ? <span className="font-mono text-foreground">{c.diretorio_url}</span>
-                                : atividade.diretorio_url ? <span className="font-mono">{atividade.diretorio_url} <span className="font-sans">(da atividade)</span></span>
-                                : <span className="font-semibold text-warn">não informado — use Mais ações › Editar contratação</span>}</div>}
                             {registros && <div className="mb-3 rounded-lg border border-border bg-secondary/20 p-3">
                                 <div className="mb-2 text-xs font-semibold text-muted-foreground">Histórico de alterações</div>
                                 {registros.length === 0
@@ -978,7 +1036,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             {c.contrato && <FinancialAttachments count={arquivos.length} label="Arquivos do contrato" addAction={<button type="button" onClick={() => clicarAnexarContrato(c.contrato.id)} className="text-[11px] font-semibold text-primary hover:underline">Adicionar</button>}>
                                 {arquivos.map((a: any) => <div key={a.id} className="flex items-center justify-between gap-2 rounded-md bg-secondary/30 px-2.5 py-2 text-xs"><a href={`/api/contratos/arquivos/${a.id}/download`} className="flex min-w-0 items-center gap-1.5 text-primary hover:underline"><Paperclip size={14} aria-hidden/><span className="truncate">{a.nome_original}</span></a><button type="button" onClick={() => removerArquivoContrato(a.id)} aria-label="Excluir arquivo do contrato" title="Excluir arquivo do contrato" className="text-muted-foreground hover:text-destructive"><Trash2 size={14} aria-hidden/></button></div>)}
                             </FinancialAttachments>}
-                            {(c.parcelas || []).map((p: any) => {
+                            {parcelasVisiveis.map((p: any) => {
                                 const pago = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status);
                                 const formalizacao = p.processo_tipo === 'PAYMENT_FORMALIZATION' || p.formalizacao_posterior;
                                 const forma = p.forma_pagamento || c.supplier?.forma_pagamento || (c.funcionario?.pix_chave ? 'PIX' : 'TED');
