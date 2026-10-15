@@ -431,7 +431,10 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     aviso={vinculando === 'pdf' ? `Antes do PDF: ${semVinculo} item(ns) ainda sem código O&M. Na operação Highline vão os dois orçamentos — o Orçamento LS e a PV O&M.` : undefined}
                     textoConcluir={vinculando === 'pdf' ? 'Salvar e gerar o PDF' : 'Salvar vínculos'}
                     onFechar={() => setVinculando(null)}
-                    onConcluir={async () => { const depois = vinculando === 'pdf'; setVinculando(null); await carregar(); onMudou?.(); if (depois) setGerandoPdf(true); }} />
+                    // Sem onMudou aqui: ele recarrega a atividade inteira, este editor é
+                    // montado de novo e a janela do PDF que vinha em seguida se perdia.
+                    // Vínculo não muda o total do orçamento; recarregar só o editor basta.
+                    onConcluir={async () => { const depois = vinculando === 'pdf'; setVinculando(null); await carregar(); if (depois) setGerandoPdf(true); }} />
             )}
             {gerandoPdf && (
                 <ModalPdf budgetId={budgetId} atividade={atividade} meta={meta} revisao={versao.versao_atual}
