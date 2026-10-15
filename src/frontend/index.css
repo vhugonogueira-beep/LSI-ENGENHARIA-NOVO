@@ -136,6 +136,24 @@
   * {
     @apply border-border;
   }
+  /* Lista aberta das caixas de seleção (14/10/2026): sem isto, as opções herdavam
+     o fundo translúcido do campo colorido (status) e saíam claras e ilegíveis.
+     Fundo e texto do tema; a opção marcada em destaque. */
+  :root { color-scheme: dark; }
+  [data-theme="light"] { color-scheme: light; }
+  select option,
+  select optgroup {
+    background-color: hsl(var(--popover));
+    color: hsl(var(--foreground));
+    font-weight: 500;
+  }
+  select option:checked {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+  select option:disabled {
+    color: hsl(var(--muted-foreground));
+  }
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

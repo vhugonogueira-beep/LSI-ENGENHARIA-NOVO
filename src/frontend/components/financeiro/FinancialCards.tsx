@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown, MoreVertical, Paperclip } from 'lucide-react';
 
 export type FinancialAction = {
@@ -90,19 +90,33 @@ export function FinancialPaymentCard({
 }
 
 export function FinancialActionMenu({ actions }: { actions: FinancialAction[] }) {
+  // Menu controlado (14/10/2026): fecha ao clicar de novo no botão, fora dele, em
+  // uma ação ou com Esc. Aberto, fica acima dos outros cartões (o <details> antigo
+  // ficava aberto e os botões "Mais ações" de baixo passavam por cima dele).
+  const [aberto, setAberto] = useState(false);
+  const caixa = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!aberto) return;
+    const fora = (e: MouseEvent) => { if (caixa.current && !caixa.current.contains(e.target as Node)) setAberto(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setAberto(false); };
+    document.addEventListener('mousedown', fora);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', fora); document.removeEventListener('keydown', esc); };
+  }, [aberto]);
   const visible = actions.filter(action => !action.disabled);
   if (!visible.length) return null;
-  return <details className="group relative z-20">
-    <summary className="flex h-8 cursor-pointer list-none items-center gap-1 rounded-lg border border-border bg-secondary/40 px-2 text-[11px] font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground [&::-webkit-details-marker]:hidden">
+  return <div ref={caixa} className={`relative ${aberto ? 'z-50' : 'z-0'}`}>
+    <button type="button" aria-haspopup="menu" aria-expanded={aberto} onClick={() => setAberto(v => !v)}
+      className={`flex h-8 items-center gap-1 rounded-lg border border-border px-2 text-[11px] font-semibold hover:bg-secondary hover:text-foreground ${aberto ? 'bg-secondary text-foreground' : 'bg-secondary/40 text-muted-foreground'}`}>
       <MoreVertical size={15} aria-hidden/><span className="hidden sm:inline">Mais ações</span><span className="sr-only sm:hidden">Mais ações</span>
-    </summary>
-    <div className="absolute right-0 top-10 z-50 min-w-[190px] overflow-hidden rounded-lg border border-border bg-card p-1.5 shadow-2xl">
+    </button>
+    {aberto && <div role="menu" className="absolute right-0 top-10 min-w-[190px] overflow-hidden rounded-lg border border-border bg-popover p-1.5 shadow-2xl">
       {visible.map((action, index) => action.href
-        ? <a key={`${action.label}-${index}`} href={action.href} target="_blank" rel="noreferrer" className={`block rounded-md px-3 py-2 text-left text-xs hover:bg-secondary ${action.tone === 'danger' ? 'text-crit' : 'text-foreground'}`}>{action.label}</a>
-        : <button key={`${action.label}-${index}`} type="button" onClick={action.onClick} className={`block w-full rounded-md px-3 py-2 text-left text-xs hover:bg-secondary ${action.tone === 'danger' ? 'text-crit' : 'text-foreground'}`}>{action.label}</button>
+        ? <a key={`${action.label}-${index}`} role="menuitem" href={action.href} target="_blank" rel="noreferrer" onClick={() => setAberto(false)} className={`block rounded-md px-3 py-2 text-left text-xs hover:bg-secondary ${action.tone === 'danger' ? 'text-crit' : 'text-foreground'}`}>{action.label}</a>
+        : <button key={`${action.label}-${index}`} role="menuitem" type="button" onClick={() => { setAberto(false); action.onClick?.(); }} className={`block w-full rounded-md px-3 py-2 text-left text-xs hover:bg-secondary ${action.tone === 'danger' ? 'text-crit' : 'text-foreground'}`}>{action.label}</button>
       )}
-    </div>
-  </details>;
+    </div>}
+  </div>;
 }
 
 export function FinancialAttachments({ count, label = 'Arquivos e comprovantes', addAction, children }: {
