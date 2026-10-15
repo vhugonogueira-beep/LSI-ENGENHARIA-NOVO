@@ -109,7 +109,21 @@ async function main() {
         const pv2 = await put(`/budgets/${outro.budget.id}/pv-om/vinculos`, { vinculos: [{ item_id: s2.itens[0].id, codigo }] });
         conferir('orçamento novo sugere o último valor usado', pv2.corpo.linhas?.[0]?.valor_unitario === 80 && /Último valor/.test(pv2.corpo.linhas[0].origem_preco), JSON.stringify(pv2.corpo.linhas?.[0]));
 
-        console.log('\n── 5. Implantação');
+        console.log('\n── 5. Excel no layout da Highline');
+        const rx = await fetch(`${API}/budgets/${budget.id}/pv-om/excel`);
+        conferir('Excel baixado', rx.ok && /PV_OM_TOM1/.test(rx.headers.get('content-disposition') || ''), `HTTP ${rx.status} ${rx.headers.get('content-disposition')}`);
+        if (rx.ok) {
+            const ExcelJS = (await import('exceljs')).default;
+            const wb = new ExcelJS.Workbook();
+            await wb.xlsx.load(Buffer.from(await rx.arrayBuffer()) as any);
+            const ws = wb.worksheets[0];
+            const linha = (n: number) => (ws.getRow(n).values as any[]).slice(1).map(v => (v === null || v === undefined ? '' : String(v)));
+            conferir('cabeçalho igual ao modelo', linha(1).join('|') === 'Cliente|PASSIVO|Tipo Requisição|Estoque|Código Site|Produto|Descrição Comp|Quantidade|Fornecedor|Loja|Filial|LPU|Valor', linha(1).join('|'));
+            const l2 = linha(2);
+            conferir('linha: fixos, site, código, unitário, qtd e total', l2[0] === '31' && l2[1] === 'PASSIVO' && l2[2] === '51' && l2[4] === `TOM1${SUFIXO}` && l2[5] === codigo && l2[6] === '80' && l2[7] === '6' && l2[8] === 'UNINC9' && l2[9] === '1' && l2[10] === '12' && l2[11] === 'NÃO' && l2[12] === '480', l2.join('|'));
+        }
+
+        console.log('\n── 6. Implantação');
         const impl = await novaAtividade(3, 'IMPLANTACAO');
         const r = await json(`/budgets/${impl.budget.id}/pv-om`);
         conferir('implantação não tem PV O&M', r.status === 400, JSON.stringify(r.corpo));

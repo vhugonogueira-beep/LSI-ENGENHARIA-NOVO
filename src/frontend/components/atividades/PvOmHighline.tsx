@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Link2, Plus, Save, Search, X } from 'lucide-react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, CheckCircle2, Download, Link2, Plus, Save, Search, X } from 'lucide-react';
 import { Card, EmptyState, ErrorBanner, inputClass } from './ui';
 import { fmtMoeda } from './constants';
-import { authFetch } from '../../lib/authFetch';
+import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Operação Highline (14/10/2026): o Orçamento LS é composto pela LPU Operações e
@@ -98,14 +98,17 @@ interface Sugestao { codigo: string; descricao: string; motivo: string; score: n
 interface ItemVinculo { id: string; codigo_item: string; titulo: string; unidade: string; quantidade: number; total: number; codigo_vinculo: string | null; sugestoes: Sugestao[] }
 
 /** Liga cada item do Orçamento LS a um código O&M da Highline (com sugestões). */
+// Desenho de 14/10/2026: uma linha por item e um único campo de escolha; as
+// sugestões e a busca no cadastro só aparecem ao abrir o campo.
 export function VinculacaoPvOmModal({ budgetId, aviso, onConcluir, onFechar, textoConcluir = 'Salvar vínculos' }: {
     budgetId: string; aviso?: string; textoConcluir?: string; onConcluir: () => void; onFechar: () => void;
 }) {
     const [itens, setItens] = useState<ItemVinculo[]>([]);
     const [catalogo, setCatalogo] = useState<{ codigo: string; descricao: string }[]>([]);
     const [escolha, setEscolha] = useState<Record<string, string>>({});
-    const [buscando, setBuscando] = useState<string | null>(null);
+    const [aberto, setAberto] = useState<string | null>(null);
     const [busca, setBusca] = useState('');
+    const [soPendentes, setSoPendentes] = useState(false);
     const [erro, setErro] = useState('');
     const [salvando, setSalvando] = useState(false);
     useEffect(() => {
@@ -119,8 +122,10 @@ export function VinculacaoPvOmModal({ budgetId, aviso, onConcluir, onFechar, tex
     }, [budgetId]);
     const descricaoDe = useMemo(() => new Map(catalogo.map(c => [c.codigo, c.descricao])), [catalogo]);
     const termos = busca.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/\s+/).filter(Boolean);
-    const achados = buscando ? catalogo.filter(c => termos.every(t => `${c.codigo} ${c.descricao}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(t))).slice(0, 40) : [];
-    const faltam = itens.filter(i => !escolha[i.id]).length;
+    const achados = termos.length ? catalogo.filter(c => termos.every(t => `${c.codigo} ${c.descricao}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(t))).slice(0, 30) : [];
+    const vinculados = itens.filter(i => escolha[i.id]).length;
+    const visiveis = soPendentes ? itens.filter(i => !escolha[i.id]) : itens;
+    const escolher = (id: string, codigo: string) => { setEscolha(e => ({ ...e, [id]: codigo })); setAberto(null); setBusca(''); };
 
     async function salvar() {
         setErro(''); setSalvando(true);
@@ -135,55 +140,83 @@ export function VinculacaoPvOmModal({ budgetId, aviso, onConcluir, onFechar, tex
         } catch (e: any) { setErro(e.message); } finally { setSalvando(false); }
     }
 
+    const opcao = (id: string, codigo: string, descricao: string, nota?: string) => (
+        <button key={codigo} type="button" onClick={() => escolher(id, codigo)}
+            className={`flex w-full items-baseline gap-2 rounded-md px-2.5 py-1.5 text-left text-xs hover:bg-secondary/70 ${escolha[id] === codigo ? 'bg-primary/10' : ''}`}>
+            <span className="w-16 shrink-0 font-id font-semibold text-primary">{codigo}</span>
+            <span className="min-w-0 flex-1">{descricao}</span>
+            {nota && <span className="shrink-0 text-[10px] text-muted-foreground">{nota}</span>}
+        </button>
+    );
+
     return (
         <Modal titulo="Vincular à PV O&M Highline" onFechar={onFechar} largura="max-w-5xl">
-            <div className="border-b border-border px-5 py-3 text-xs text-muted-foreground">
-                {aviso && <p className="mb-1 font-semibold text-foreground">{aviso}</p>}
-                Cada item do Orçamento LS corresponde a um código do cadastro O&M da Highline. Vários itens podem ir para o mesmo código (somam na PV O&M). As sugestões vêm do código da LPU, do que já foi vinculado antes e de descrições parecidas.
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-border px-5 py-3 text-xs">
+                <span className="font-semibold">{vinculados} de {itens.length} itens vinculados</span>
+                <span className="h-1.5 w-32 overflow-hidden rounded-full bg-secondary"><span className="block h-full bg-ok" style={{ width: `${itens.length ? (vinculados / itens.length) * 100 : 0}%` }} /></span>
+                <label className="ml-auto inline-flex cursor-pointer items-center gap-1.5 text-muted-foreground">
+                    <input type="checkbox" checked={soPendentes} onChange={e => setSoPendentes(e.target.checked)} /> Só os sem código
+                </label>
+                {aviso && <p className="w-full text-warn">{aviso}</p>}
             </div>
             <ErrorBanner message={erro} />
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-2">
-                {itens.map(i => {
-                    const atual = escolha[i.id];
-                    return (
-                        <div key={i.id} className="border-b border-border/60 py-3 last:border-b-0">
-                            <div className="flex flex-wrap items-baseline justify-between gap-2">
-                                <span className="text-sm"><span className="mr-2 font-id text-xs text-muted-foreground">{i.codigo_item}</span><strong>{i.titulo}</strong></span>
-                                <span className="text-xs text-muted-foreground">{i.quantidade} {i.unidade} · {fmtMoeda(i.total)}</span>
-                            </div>
-                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                                {atual
-                                    ? <span className="inline-flex items-center gap-1.5 rounded-lg border border-ok/40 bg-ok/10 px-2.5 py-1 text-xs"><Link2 size={12} aria-hidden className="text-ok" /><span className="font-id font-semibold">{atual}</span> {descricaoDe.get(atual)}
-                                        <button type="button" onClick={() => setEscolha(e => ({ ...e, [i.id]: '' }))} aria-label="Tirar o vínculo" className="ml-1 text-muted-foreground hover:text-crit"><X size={12} aria-hidden /></button></span>
-                                    : <span className="text-xs font-semibold text-warn">Sem vínculo</span>}
-                                {i.sugestoes.filter(s => s.codigo !== atual).map(s => (
-                                    <button key={s.codigo} type="button" onClick={() => setEscolha(e => ({ ...e, [i.id]: s.codigo }))} title={s.motivo}
-                                        className="rounded-lg border border-border px-2.5 py-1 text-left text-xs hover:border-primary/60 hover:bg-primary/10">
-                                        <span className="font-id font-semibold text-primary">{s.codigo}</span> {s.descricao} <span className="text-muted-foreground">· {s.motivo}</span>
-                                    </button>
-                                ))}
-                                <button type="button" onClick={() => { setBuscando(buscando === i.id ? null : i.id); setBusca(''); }}
-                                    className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-primary hover:underline"><Search size={12} aria-hidden /> Buscar no cadastro</button>
-                            </div>
-                            {buscando === i.id && (
-                                <div className="mt-2 rounded-lg border border-border p-2">
-                                    <input autoFocus aria-label="Buscar código O&M" placeholder="Código ou descrição (ex.: O&M120, aterramento)" className={inputClass} value={busca} onChange={e => setBusca(e.target.value)} />
-                                    <div className="mt-1 max-h-48 overflow-y-auto">
-                                        {achados.map(c => (
-                                            <button key={c.codigo} type="button" onClick={() => { setEscolha(e => ({ ...e, [i.id]: c.codigo })); setBuscando(null); }}
-                                                className="block w-full rounded px-2 py-1 text-left text-xs hover:bg-secondary/60"><span className="font-id font-semibold text-primary">{c.codigo}</span> {c.descricao}</button>
-                                        ))}
-                                        {busca && !achados.length && <p className="px-2 py-1 text-xs text-muted-foreground">Nada encontrado.</p>}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-                {!itens.length && !erro && <p className="py-6 text-sm text-muted-foreground">Carregando…</p>}
+            <div className="min-h-0 flex-1 overflow-y-auto">
+                <table className="w-full table-fixed text-sm">
+                    <colgroup><col className="w-8" /><col /><col className="w-[44%]" /></colgroup>
+                    <thead className="sticky top-0 z-10 bg-card text-left text-[11px] font-semibold text-muted-foreground">
+                        <tr className="border-b border-border"><th /><th className="px-2 py-2">Item do Orçamento LS</th><th className="px-2 py-2">Código O&M da Highline</th></tr>
+                    </thead>
+                    <tbody>
+                        {visiveis.map(i => {
+                            const atual = escolha[i.id];
+                            const sugestoes = i.sugestoes.filter(s => s.codigo !== atual).slice(0, 4);
+                            return (
+                                <Fragment key={i.id}>
+                                <tr className={`align-top ${aberto === i.id ? 'bg-secondary/30' : 'border-b border-border/60'}`}>
+                                    <td className="py-3 pl-4"><span className={`mt-1.5 block h-2 w-2 rounded-full ${atual ? 'bg-ok' : 'bg-warn'}`} title={atual ? 'Vinculado' : 'Sem código'} /></td>
+                                    <td className="px-2 py-2.5">
+                                        <div className="truncate text-sm font-medium" title={i.titulo}><span className="mr-1.5 font-id text-xs text-muted-foreground">{i.codigo_item}</span>{i.titulo}</div>
+                                        <div className="text-[11px] text-muted-foreground">{i.quantidade} {i.unidade} · {fmtMoeda(i.total)}</div>
+                                    </td>
+                                    <td className="px-2 py-2 pr-4">
+                                        <button type="button" onClick={() => { setAberto(aberto === i.id ? null : i.id); setBusca(''); }} aria-expanded={aberto === i.id}
+                                            className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-1.5 text-left text-xs ${atual ? 'border-border hover:border-primary/60' : 'border-warn/50 bg-warn/5 hover:border-warn'}`}>
+                                            {atual
+                                                ? <><span className="font-id font-semibold text-primary">{atual}</span><span className="min-w-0 flex-1 truncate">{descricaoDe.get(atual)}</span></>
+                                                : <span className="flex-1 font-semibold text-warn">Escolher código…{i.sugestoes.length ? ` (${i.sugestoes.length} sugestões)` : ''}</span>}
+                                            <span aria-hidden className="text-muted-foreground">▾</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {aberto === i.id && (
+                                    <tr className="border-b border-border/60 bg-secondary/30">
+                                        <td />
+                                        <td colSpan={2} className="px-2 pb-3 pr-4">
+                                            <label className="relative block">
+                                                <Search size={12} aria-hidden className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                                                <input autoFocus aria-label="Buscar código O&M" placeholder="Buscar no cadastro O&M da Highline (código ou descrição)" className={`${inputClass} h-8 pl-7 text-xs`} value={busca} onChange={e => setBusca(e.target.value)} />
+                                            </label>
+                                            <div className="mt-1.5 max-h-60 overflow-y-auto rounded-md border border-border bg-card p-1">
+                                                {!termos.length && sugestoes.length > 0 && <p className="px-2.5 pb-0.5 pt-1 text-[10px] font-semibold text-muted-foreground">Sugestões</p>}
+                                                {!termos.length && sugestoes.map(s => opcao(i.id, s.codigo, s.descricao, s.motivo))}
+                                                {termos.length > 0 && achados.map(c => opcao(i.id, c.codigo, c.descricao))}
+                                                {termos.length > 0 && !achados.length && <p className="px-2.5 py-1.5 text-xs text-muted-foreground">Nada encontrado.</p>}
+                                                {!termos.length && !sugestoes.length && <p className="px-2.5 py-1.5 text-xs text-muted-foreground">Sem sugestões. Busque no cadastro.</p>}
+                                            </div>
+                                            {atual && <button type="button" onClick={() => escolher(i.id, '')} className="mt-1 rounded-md px-2.5 py-1 text-xs font-semibold text-crit hover:bg-crit/10">Tirar o vínculo</button>}
+                                        </td>
+                                    </tr>
+                                )}
+                                </Fragment>
+                            );
+                        })}
+                        {!itens.length && !erro && <tr><td colSpan={3} className="py-6 text-center text-sm text-muted-foreground">Carregando…</td></tr>}
+                        {itens.length > 0 && !visiveis.length && <tr><td colSpan={3} className="py-6 text-center text-sm text-muted-foreground">Todos os itens têm código.</td></tr>}
+                    </tbody>
+                </table>
             </div>
             <div className="flex items-center justify-between gap-2 border-t border-border px-5 py-3">
-                <span className={`text-xs ${faltam ? 'font-semibold text-warn' : 'text-muted-foreground'}`}>{faltam ? `${faltam} item(ns) sem vínculo — ficam fora da PV O&M` : 'Todos os itens vinculados'}</span>
+                <span className="text-[11px] text-muted-foreground">Vários itens podem ir para o mesmo código (somam na PV O&M). Item sem código fica fora da PV.</span>
                 <div className="flex gap-2">
                     <button type="button" onClick={onFechar} className="h-9 rounded-lg border border-border px-4 text-sm font-semibold">Cancelar</button>
                     <button type="button" onClick={salvar} disabled={salvando || !itens.length}
@@ -209,6 +242,7 @@ export function PvOmHighlineEditor({ budgetId }: { budgetId: string }) {
     const [salvando, setSalvando] = useState(false);
     const [vinculando, setVinculando] = useState(false);
     const [aberta, setAberta] = useState<string | null>(null);
+    const [baixando, setBaixando] = useState(false);
     async function carregar() {
         const r = await authFetch(`/api/budgets/${budgetId}/pv-om`);
         const d = await r.json();
@@ -239,8 +273,12 @@ export function PvOmHighlineEditor({ budgetId }: { budgetId: string }) {
         <Card title="PV O&M Highline — codificação do cliente" action={
             <div className="flex flex-wrap gap-2">
                 {pv.editavel && <button type="button" onClick={() => setVinculando(true)} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60"><Link2 size={14} aria-hidden /> Vincular itens do Orçamento LS</button>}
-                <button type="button" disabled title="Aguardando a planilha modelo da Highline para gerar a PV O&M no formato do cliente"
-                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold opacity-40">Exportar no modelo Highline</button>
+                {/* Excel no layout de importação da Highline (14/10/2026). Sai o que está salvo. */}
+                <button type="button" disabled={!pv.linhas.length || alteradas.length > 0 || baixando}
+                    title={alteradas.length ? 'Salve a PV O&M antes de baixar' : 'PV O&M no layout de importação da Highline'}
+                    onClick={async () => { setErro(''); setBaixando(true); try { await downloadAuthenticatedFile(`/api/budgets/${budgetId}/pv-om/excel`, 'PV_OM.xlsx'); } catch (e: any) { setErro(e.message); } finally { setBaixando(false); } }}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40">
+                    <Download size={14} aria-hidden /> {baixando ? 'Gerando…' : 'Baixar PV O&M (Excel)'}</button>
             </div>
         }>
             <ErrorBanner message={erro} />

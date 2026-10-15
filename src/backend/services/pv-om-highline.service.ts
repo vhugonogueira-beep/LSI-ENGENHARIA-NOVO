@@ -210,3 +210,43 @@ export async function editarPvOm(budgetId: string, itens: { id: string; quantida
     }
     return listarPvOm(budgetId);
 }
+
+/**
+ * Campos fixos do modelo de importação da PV O&M na Highline (planilha enviada
+ * em 14/10/2026). Iguais em toda linha; se a Highline mudar algum, é aqui.
+ */
+export const CAMPOS_FIXOS_PV_OM = {
+    cliente: 31, passivo: 'PASSIVO', tipo_requisicao: 51, estoque: '',
+    fornecedor: 'UNINC9', loja: 1, filial: 12, lpu: 'NÃO',
+};
+
+/**
+ * PV O&M em Excel, no layout da Highline: Cliente | PASSIVO | Tipo Requisição |
+ * Estoque | Código Site | Produto | Descrição Comp (valor unitário) | Quantidade |
+ * Fornecedor | Loja | Filial | LPU | Valor (total da linha).
+ */
+export async function excelPvOm(budgetId: string) {
+    const ExcelJS = (await import('exceljs')).default;
+    const budget = await orcamentoDeOperacaoHighline(budgetId);
+    const pv = budget.items.filter(i => i.origem_item === ORIGEM_PV_OM).sort((a, b) => a.ordem - b.ordem);
+    if (!pv.length) throw new Error('A PV O&M está vazia: vincule os itens do Orçamento LS antes de baixar');
+    const site = (budget.atividade?.id_site_sharing || '').toUpperCase();
+    const f = CAMPOS_FIXOS_PV_OM;
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Planilha1');
+    ws.columns = [
+        { header: 'Cliente', width: 10 }, { header: 'PASSIVO', width: 12 }, { header: 'Tipo Requisição', width: 16 },
+        { header: 'Estoque', width: 10 }, { header: 'Código Site', width: 14 }, { header: 'Produto', width: 12 },
+        { header: 'Descrição Comp', width: 16 }, { header: 'Quantidade', width: 12 }, { header: 'Fornecedor', width: 12 },
+        { header: 'Loja', width: 8 }, { header: 'Filial', width: 8 }, { header: 'LPU', width: 8 }, { header: 'Valor', width: 16 },
+    ];
+    for (const p of pv) {
+        const r = ws.addRow([f.cliente, f.passivo, f.tipo_requisicao, f.estoque, site, p.codigo_item, p.valor_unitario,
+            p.quantidade, f.fornecedor, f.loja, f.filial, f.lpu, r2(p.quantidade * p.valor_unitario)]);
+        r.getCell(7).numFmt = '"R$" #,##0.00';
+        r.getCell(13).numFmt = '"R$" #,##0.00';
+    }
+    const nome = `PV_OM_${site || 'SITE'}${budget.numero ? `_${budget.numero}` : ''}.xlsx`.replace(/[^\w.\-]/g, '_');
+    return { buffer: Buffer.from(await wb.xlsx.writeBuffer()), nome };
+}

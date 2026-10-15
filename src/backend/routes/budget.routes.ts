@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import { BudgetController } from '../controllers/budget.controller';
-import { editarPvOm, listarPvOm, salvarVinculos, sugestoesVinculo } from '../services/pv-om-highline.service';
+import { editarPvOm, excelPvOm, listarPvOm, salvarVinculos, sugestoesVinculo } from '../services/pv-om-highline.service';
 
 const router = Router();
 // Orçamento pronto (Excel ou PDF) para virar o Orçamento LS — lido em memória.
@@ -40,6 +40,14 @@ const rota = (f: (req: Request) => Promise<unknown>) => async (req: Request, res
 router.get('/:id/pv-om', rota(req => listarPvOm(req.params.id)));
 router.get('/:id/pv-om/vinculos', rota(req => sugestoesVinculo(req.params.id)));
 router.put('/:id/pv-om/vinculos', rota(req => salvarVinculos(req.params.id, Array.isArray(req.body?.vinculos) ? req.body.vinculos : [])));
+router.get('/:id/pv-om/excel', async (req: Request, res: Response) => {
+    try {
+        const { buffer, nome } = await excelPvOm(req.params.id);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${nome}"`);
+        res.send(buffer);
+    } catch (e: any) { res.status(400).json({ error: e.message }); }
+});
 router.put('/:id/pv-om/itens', rota(req => editarPvOm(req.params.id, Array.isArray(req.body?.itens) ? req.body.itens : [])));
 
 export default router;
