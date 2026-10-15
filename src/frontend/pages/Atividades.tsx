@@ -2,7 +2,7 @@ import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../c
 import { comAtual, useListasClientes } from '../lib/clientesCadastro';
 import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
 import { Fragment, useState, useEffect, useCallback } from 'react';
-import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check, CornerDownRight } from 'lucide-react';
+import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check, CornerDownRight, ArrowUpRight } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
@@ -674,7 +674,10 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 const gestor = a.gestor || a.responsavel;
                                 const tom = tomStatus(a.status_operacional);
                                 return (
-                                    <tr key={a.id} className={`border-b border-border/60 last:border-b-0 border-l-4 ${aninhada ? 'border-l-primary bg-primary/[0.035]' : FAIXA[tom]} hover:bg-secondary/20 transition-colors`}>
+                                    // A linha inteira abre a atividade (14/10/2026); caixas, botões e links da linha seguem com a sua ação.
+                                    <tr key={a.id} onClick={e => { if (!(e.target as HTMLElement).closest('input,button,a,select,label')) setSelecionadaId(a.id); }}
+                                        title="Clique para abrir a atividade"
+                                        className={`group cursor-pointer border-b border-border/60 last:border-b-0 border-l-4 ${aninhada ? 'border-l-primary bg-primary/[0.035]' : FAIXA[tom]} hover:bg-secondary/30 transition-colors`}>
                                         {/* Toda célula abre com uma linha de 28px (h-7): Site ID, cliente,
                                             status, avanço, saldo e ações ficam na mesma altura. */}
                                         <td className="px-3 py-3 align-top">
@@ -688,7 +691,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         <td className={`px-3 py-3 align-top ${aninhada ? 'pl-9' : ''}`}>
                                             {/* Dentro do projeto: seta de "pertence a" antes do Site ID. */}
                                             {a.id_site_sharing
-                                                ? <div className="flex h-7 items-center gap-1.5 font-id text-base font-semibold text-foreground" title={a.titulo}>{aninhada && <CornerDownRight size={14} aria-label="No projeto" className="-ml-5 shrink-0 text-primary" />}{a.id_site_sharing}</div>
+                                                ? <div className="flex h-7 items-center gap-1.5 font-id text-base font-semibold text-foreground" title={a.titulo}>{aninhada && <CornerDownRight size={14} aria-label="No projeto" className="-ml-5 shrink-0 text-primary" />}<span className="group-hover:text-primary group-hover:underline underline-offset-4">{a.id_site_sharing}</span>
+                                                    <span className="ml-1 hidden items-center gap-0.5 font-sans text-[11px] font-semibold text-primary group-hover:inline-flex">Abrir atividade <ArrowUpRight size={12} aria-hidden /></span></div>
                                                 : <div className="flex h-7 items-center gap-1.5 text-sm text-muted-foreground" title={a.titulo}>{aninhada && <CornerDownRight size={14} aria-label="No projeto" className="-ml-5 shrink-0 text-primary" />}Sem Site ID</div>}
                                             <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
                                                 {a.id_site_operadora && <span className="font-id">{a.id_site_operadora}</span>}

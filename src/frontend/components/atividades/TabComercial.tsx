@@ -368,12 +368,12 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                         <div className="mb-4 rounded-xl border border-border bg-card p-4">
                             <p className="mb-2 text-xs font-semibold text-muted-foreground">Os dois orçamentos vão para a Highline</p>
                             <div className="flex flex-col gap-2 sm:flex-row">
-                                {aba('LS', 'Orçamento LS', 'Composto pela LPU Operações; importe (Excel ou PDF), adicione da LPU ou monte os itens')}
+                                {aba('LS', 'Orçamento LS', 'Itens da LPU Operações em tabela; também importa (Excel ou PDF) ou digita itens fora da LPU')}
                                 {aba('PV_OM', 'PV O&M Highline', 'Na codificação O&M da Highline, montada pelos vínculos dos itens do Orçamento LS')}
                             </div>
                         </div>
                         {visaoOm === 'LS'
-                            ? <OrcamentoLsEditor key="om-ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} vinculoHighline />
+                            ? <OrcamentoLsEditor key="om-ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} vinculoHighline catalogoLpu />
                             : <PvOmHighlineEditor key="om-pv" budgetId={orcamentoAtivo.id} />}
                     </>
                 );
@@ -415,7 +415,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                             {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho; o modelo não pode mais ser trocado.</p>}
                         </div>
                         {modoLs
-                            ? <OrcamentoLsEditor key="ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} />
+                            ? <OrcamentoLsEditor key="ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} catalogoLpu={atividade.tipo_demanda === 'OPERACAO'} />
                             : <OrcamentoLsEditor key="pv" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade}
                                 grupo="PV_CLIENTE" titulo={`${nomePv} — preço ao cliente`} />}
                     </>

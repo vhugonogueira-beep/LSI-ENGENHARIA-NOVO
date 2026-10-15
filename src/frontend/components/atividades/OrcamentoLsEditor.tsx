@@ -5,6 +5,7 @@ import { fmtMoeda } from './constants';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { LpuPickerModal, VinculacaoPvOmModal, type ItemDaLpu } from './PvOmHighline';
+import CatalogoLpuOrcamento, { valorUnitarioFinal } from './CatalogoLpuOrcamento';
 import { escopoPadrao, gerarPdfOrcamentoLs, gruposDoOrcamento, separarServico, totalItem, type DadosPdfOrcamentoLs } from './gerarPdfOrcamentoLs';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,6 +31,9 @@ interface Linha {
     source_pricebook_item_id?: string | null;
     /** Operação Highline: código O&M da Highline a que o item corresponde na PV O&M. */
     codigo_vinculo?: string | null;
+    /** Ajustes internos (catálogo da LPU na operação): não aparecem para o cliente. */
+    desconto_interno_percent?: number;
+    bdi_percent?: number;
 }
 /** bloco gravado antes do campo Grupo existir. */
 const BLOCO_SEM_GRUPO = ['ORCAMENTO_LS', 'OUTROS'];
@@ -66,10 +70,14 @@ interface Importado { nome: string; nome_original: string; tamanho: number; envi
 
 let seq = 0;
 const novaChave = () => `l${++seq}`;
-const totalLinha = totalItem;
+// Total com desconto interno e BDI (mesma conta do servidor); sem eles, quantidade × valor.
+const totalLinha = (l: { quantidade: number; valor_unitario: number; desconto_interno_percent?: number; bdi_percent?: number }) =>
+    totalItem({ quantidade: l.quantidade, valor_unitario: valorUnitarioFinal(l) });
 
-export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade, titulo = 'Orçamento LS — preço ao cliente', grupo = 'ORCAMENTO_LS', vinculoHighline = false }: {
+export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, atividade, titulo = 'Orçamento LS — preço ao cliente', grupo = 'ORCAMENTO_LS', vinculoHighline = false, catalogoLpu = false }: {
     budgetId: string;
+    /** Operação (14/10/2026): a LPU inteira em tabela, como o catálogo da PV Highline. */
+    catalogoLpu?: boolean;
     /** Operação Highline (14/10/2026): cada item vincula a um código O&M; o PDF pede o vínculo antes. */
     vinculoHighline?: boolean;
     /** Grupo de itens que este editor mostra e grava: Orçamento LS ou a PV da sharing (13/10/2026). */
@@ -139,7 +147,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         ]);
         const itens: Linha[] = (b.items || [])
             .filter((i: any) => i.origem_item === grupo)
-            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario, source_pricebook_item_id: i.source_pricebook_item_id || null, codigo_vinculo: i.codigo_vinculo || null }));
+            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario, source_pricebook_item_id: i.source_pricebook_item_id || null, codigo_vinculo: i.codigo_vinculo || null, desconto_interno_percent: i.desconto_interno_percent || 0, bdi_percent: i.bdi_percent || 0 }));
         setLinhas(itens);
         setLinhasSalvas(itens);
         setSalvas(JSON.stringify(itens.map(({ chave, ...r }) => r)));
@@ -166,7 +174,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     versaoAtual: versao.versao_atual, expectedUpdatedAt: versao.updated_at, scope: grupo === 'PV_CLIENTE' ? 'pv_cliente' : 'orcamento_ls',
                     items: lista.map((l, i) => ({
                         codigo_item: codigos[i], titulo: l.titulo.trim(), unidade: l.unidade || 'un',
-                        quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
+                        quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: l.bdi_percent || 0, desconto_interno_percent: l.desconto_interno_percent || 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
                         source_pricebook_item_id: l.source_pricebook_item_id || null, codigo_vinculo: l.codigo_vinculo || null,
                     })),
                 }),
@@ -230,6 +238,15 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         setEscolhendoLpu(false);
     }
     const semVinculo = linhasSalvas.filter(l => !l.codigo_vinculo).length;
+    /** Catálogo da LPU: marcar cria a linha a partir do item; desmarcar remove. */
+    function alternarDaLpu(item: ItemDaLpu, marcar: boolean) {
+        if (marcar) adicionarDaLpu([item]);
+        else setLinhas(ls => ls.filter(l => l.source_pricebook_item_id !== item.id));
+    }
+    const mudarNumero = (chave: string, campo: 'quantidade' | 'valor_unitario' | 'desconto_interno_percent' | 'bdi_percent', valor: number) =>
+        setLinhas(ls => ls.map(l => (l.chave === chave ? { ...l, [campo]: campo === 'desconto_interno_percent' ? Math.min(100, valor) : valor } : l)));
+    // No modo catálogo, a lista de baixo mostra só o que não veio da LPU (importado ou digitado).
+    const visiveisLista = catalogoLpu ? linhas.filter(l => !l.source_pricebook_item_id) : linhas;
     /** Operação Highline: antes do PDF, os itens sem código O&M passam pela vinculação. */
     function pedirPdf() {
         if (vinculoHighline && editavel && semVinculo > 0) { setVinculando('pdf'); return; }
@@ -284,7 +301,15 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     : 'gerado pelo sistema no primeiro PDF ou ao abrir a negociação'} · Rev. {String(versao.versao_atual).padStart(2, '0')}
             </p>
 
-            {linhas.length === 0 ? (
+            {catalogoLpu && atividade && (
+                <div className="mb-5">
+                    <CatalogoLpuOrcamento atividadeId={atividade.id} linhas={linhas} editavel={editavel} onAlternar={alternarDaLpu} onMudar={mudarNumero} />
+                </div>
+            )}
+            {catalogoLpu && (
+                <p className="mb-2 text-sm font-semibold">Itens fora da LPU <span className="font-normal text-muted-foreground">— importados (Excel ou PDF) ou digitados</span></p>
+            )}
+            {visiveisLista.length === 0 ? (catalogoLpu ? <p className="mb-2 text-xs text-muted-foreground">Nenhum. Use "Importar orçamento" ou "Adicionar item".</p> :
                 <EmptyState text="Nenhum item ainda. Importe um orçamento pronto (Excel ou PDF) ou adicione os itens à mão."
                     action={editavel ? <div className="flex flex-wrap justify-center gap-2">
                         {atividade && <button type="button" onClick={() => setEscolhendoLpu(true)}
@@ -302,7 +327,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                             </tr>
                         </thead>
                         <tbody>
-                            {linhas.map((l, idx) => (
+                            {linhas.map((l, idx) => !visiveisLista.includes(l) ? null : (
                                 <tr key={l.chave} className="border-b border-border/60 last:border-b-0">
                                     <td className="px-3 py-1.5 font-id text-xs text-muted-foreground" title="Gerado pela ordem dos itens">{codigosTela[idx]}</td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Grupo" list={`grupos-${budgetId}`} placeholder="Sem grupo" className={inputClass} value={l.grupo} onChange={e => mudar(l.chave, 'grupo', e.target.value)} /></td>
@@ -334,11 +359,11 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                 </div>
             )}
 
-            {editavel && (linhas.length > 0 || linhasSalvas.length > 0) && (
+            {editavel && (catalogoLpu || linhas.length > 0 || linhasSalvas.length > 0) && (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                     <button type="button" onClick={() => setLinhas(ls => [...ls, { chave: novaChave(), codigo_item: '', grupo: '', titulo: '', unidade: 'un', quantidade: 1, valor_unitario: 0 }])}
                         className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60"><Plus size={14} aria-hidden /> Adicionar item</button>
-                    {atividade && (
+                    {atividade && !catalogoLpu && (
                         <button type="button" onClick={() => setEscolhendoLpu(true)}
                             className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-sm font-semibold hover:bg-secondary/60"><Library size={14} aria-hidden /> Adicionar da LPU</button>
                     )}
@@ -410,7 +435,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             )}
             {gerandoPdf && (
                 <ModalPdf budgetId={budgetId} atividade={atividade} meta={meta} revisao={versao.versao_atual}
-                    itens={linhasSalvas} onFechar={() => setGerandoPdf(false)} onNumero={n => setMeta(m => ({ ...m, numero: n }))} />
+                    itens={linhasSalvas.map(l => ({ ...l, valor_unitario: valorUnitarioFinal(l) }))} onFechar={() => setGerandoPdf(false)} onNumero={n => setMeta(m => ({ ...m, numero: n }))} />
             )}
 
             {leitura && (
