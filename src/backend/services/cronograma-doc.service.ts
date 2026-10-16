@@ -263,7 +263,13 @@ export async function gerarCronogramaHtml(atividadeId: string): Promise<{ html: 
      não estica até a borda, o que deixava fonte e barras desproporcionais. */
   .folha { width: ${larguraTabela + 56}px; max-width: 100%; margin: 0 auto; background: #fff; padding: 26px 28px 22px; box-shadow: 0 2px 14px rgba(15,23,42,.10); border-radius: 4px; }
   @media print { body { background: #fff; padding: 0; } .folha { width: auto; box-shadow: none; padding: 0; } }
-  .topo { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 3px solid #0f172a; padding-bottom: 14px; gap: 24px; }
+  /* Executante | nome da LS ao centro | operadora e sharing (16/10/2026). */
+  .topo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; border-bottom: 3px solid #0f172a; padding-bottom: 14px; gap: 24px; }
+  .topo .marcas-cliente { justify-self: end; }
+  .empresa-topo { display: flex; flex-direction: column; gap: 6px; text-align: center; }
+  .empresa-topo .marca-caixa { justify-content: center; }
+  .empresa-topo b { display: block; font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -.01em; }
+  .empresa-topo span:not(.marca-rotulo) { display: block; margin-top: 2px; font-size: 9px; color: #64748b; letter-spacing: .04em; }
   .marca { display: flex; flex-direction: column; gap: 6px; }
   .marca-caixa { height: 52px; display: flex; align-items: center; }
   .marca-rotulo { font-size: 7.5px; letter-spacing: .12em; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
@@ -322,6 +328,13 @@ export async function gerarCronogramaHtml(atividadeId: string): Promise<{ html: 
 <div class="folha">
   <div class="topo">
     <div class="marca marca-executante"><span class="marca-rotulo">EXECUTANTE</span>${logoLs}</div>
+    <div class="empresa-topo">
+      <span class="marca-rotulo">&nbsp;</span>
+      <div class="marca-caixa"><div>
+        <b>${escapeHtml(empresa?.razao_social || 'LS Office Serviços de Telecom e Construções')}</b>
+        ${empresa?.cnpj ? `<span>CNPJ ${escapeHtml(fmtCnpj(empresa.cnpj))}</span>` : ''}
+      </div></div>
+    </div>
     <div class="marcas-cliente">${logoOperadora}${logoSharing}</div>
   </div>
 
