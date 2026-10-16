@@ -38,6 +38,13 @@ export function GradeSeletores({ children }: { children: ReactNode }) {
     return <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">{children}</div>;
 }
 
+/**
+ * Grade única de 8 colunas (16/10/2026): toda linha do painel usa as mesmas
+ * colunas, então campos, cartões e seletores de linhas diferentes começam e
+ * terminam na mesma vertical. Abaixo de 2xl (1536px) cai para 4 e 2 colunas — com menos largura o texto dos seletores cortava.
+ */
+export const GRADE_8 = 'grid grid-cols-2 gap-2 md:grid-cols-4 2xl:grid-cols-8';
+
 /** Campo ou seletor do painel — 36px. A largura vem de quem usa (w-full na grade,
  * w-56 ao lado da busca): com w-full aqui, ele vencia o w-56 e a linha quebrava. */
 export const CAMPO = 'h-9 rounded-lg border border-border bg-background/50 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30';

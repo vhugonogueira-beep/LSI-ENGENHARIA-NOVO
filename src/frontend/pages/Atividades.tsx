@@ -10,9 +10,9 @@ import {
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
 import PageHeader from '../components/PageHeader';
-import { FiltroPainel, FiltroLinha, GradeSeletores, CAMPO, ALTERNADOR, SEGMENTO } from '../components/FiltroPainel';
+import { FiltroPainel, FiltroLinha, GRADE_8, CAMPO, ALTERNADOR, SEGMENTO } from '../components/FiltroPainel';
 import { AreaChip, OperadoraChip, SharingNome } from '../components/atividades/ui';
-import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_AREA, TOM_MODULO, tomDe, type Tom } from '../lib/cores';
+import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_MODULO, tomDe, type Tom } from '../lib/cores';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { useEhAdmin } from '../lib/permissoes';
 
@@ -90,7 +90,7 @@ const SITUACOES: { id: string; label: string; teste: (a: Atividade) => boolean; 
     { id: 'ON_HOLD', label: 'On hold', tom: 'violet', teste: a => a.status_operacional === 'ON_HOLD' },
     { id: 'SEM_PO', label: 'Sem PO', tom: 'amber', teste: a => !a.po && a.status_operacional !== 'CONCLUIDA' },
     // Pagamento solicitado/pago sem comprovante anexado — independe do status da obra.
-    { id: 'COMPROVANTE_PENDENTE', label: 'Comprovante pendente', tom: 'amber', teste: a => (a.comprovantes_pendentes || 0) > 0 },
+    { id: 'COMPROVANTE_PENDENTE', label: 'Sem comprovante', tom: 'amber', teste: a => (a.comprovantes_pendentes || 0) > 0 },
     { id: 'CONCLUIDAS', label: 'Concluídas', tom: 'green', teste: a => a.status_operacional === 'CONCLUIDA' },
 ];
 const FILTROS_INIT = { situacao: 'TODAS', tipo: '', subtipo: '', uf: '', regiao: '', sharing: '', operadora: '', gestor: '' };
@@ -479,10 +479,11 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 } />
 
             <FiltroPainel>
-                {/* Busca, documentação e modo de ver: a linha de comando da lista. */}
+                {/* Três linhas na mesma grade de 8 colunas (16/10/2026): busca, situação
+                    e filtros alinham coluna com coluna. */}
                 <FiltroLinha rotulo="Buscar">
-                    <div className="flex flex-wrap items-center gap-2">
-                        <div className="relative min-w-[240px] flex-1">
+                    <div className={GRADE_8}>
+                        <div className="relative col-span-2 md:col-span-3 2xl:col-span-6">
                             <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} aria-hidden />
                             <input
                                 type="text" placeholder="Código, título ou site" aria-label="Buscar atividades"
@@ -490,13 +491,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 className={`${CAMPO} w-full pl-9`}
                             />
                         </div>
-                        <select value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} aria-label="Filtrar por documentação" className={`${CAMPO} w-56`}>
-                            <option value="TODAS">Toda documentação</option>
-                            <option value="PENDENTES">Com pendências</option>
-                            <option value="COMPLETAS">Documentação completa</option>
-                            <option value="CORRECAO">Necessita correção</option>
-                        </select>
-                        <div className={ALTERNADOR} role="group" aria-label="Modo de visualização">
+                        <div className={`${ALTERNADOR} col-span-2 md:col-span-1 2xl:col-span-2 grid grid-cols-3`} role="group" aria-label="Modo de visualização">
                             <button onClick={() => setView('lista')} className={`${SEGMENTO} ${view === 'lista' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`} title="Ver em lista" aria-label="Ver em lista" aria-pressed={view === 'lista'}>
                                 <ListIcon size={15} aria-hidden /> Lista
                             </button>
@@ -511,10 +506,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 </FiltroLinha>
 
                 {view !== 'projetos' && (<>
-                    {/* Situação em cartões com o número grande (proposta 2, 15/10/2026):
-                        o número é o que se lê primeiro; clicar filtra, clicar de novo volta a Todas. */}
+                    {/* Situação em cartões com o número grande: clicar filtra, clicar de novo volta a Todas. */}
                     <FiltroLinha rotulo="Situação">
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-8">
+                        <div className={GRADE_8}>
                             {SITUACOES.map(s => {
                                 const total = semSituacao.filter(s.teste).length;
                                 const ativo = filtros.situacao === s.id;
@@ -523,7 +517,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     <button key={s.id} type="button" aria-pressed={ativo}
                                         onClick={() => setFiltro('situacao', ativo && s.id !== 'TODAS' ? 'TODAS' : s.id)}
                                         className={`rounded-lg border px-3 py-2 text-left transition-colors ${ativo ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-background/40 hover:border-primary/50'}`}>
-                                        <div className="truncate text-[11px] text-muted-foreground">{s.label}</div>
+                                        <div className="truncate text-[11px] text-muted-foreground" title={s.label}>{s.label}</div>
                                         <div className={`text-xl font-bold tabular-nums leading-tight ${total ? cor : 'text-muted-foreground'}`}>{total}</div>
                                     </button>
                                 );
@@ -531,30 +525,24 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         </div>
                     </FiltroLinha>
 
-                    <FiltroLinha rotulo="Tipo">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <div className={ALTERNADOR} role="group" aria-label="Tipo de demanda">
-                                {[['', 'Todos'], ...TIPOS_DEMANDA.map(t => [t, TIPOS_DEMANDA_LABEL[t] || t])].map(([id, label]) => (
-                                    <button key={id} onClick={() => setFiltros(f => ({ ...f, tipo: id, subtipo: id === 'OPERACAO' ? f.subtipo : '' }))}
-                                        aria-pressed={filtros.tipo === id}
-                                        className={`${SEGMENTO} ${filtros.tipo === id
-                                            ? (id ? `${SOLIDO[tomDe(TOM_AREA, id)]} text-background` : 'bg-primary text-primary-foreground')
-                                            : id ? `${TEXTO[tomDe(TOM_AREA, id)]} hover:bg-secondary/60` : 'text-muted-foreground hover:text-foreground'}`}>
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
-                            {filtros.tipo === 'OPERACAO' && (
-                                <select value={filtros.subtipo} onChange={e => setFiltro('subtipo', e.target.value)} aria-label="Subtipo da operação" className={`${CAMPO} w-56`}>
-                                    <option value="">Todo subtipo</option>
-                                    {SUBTIPOS_OPERACAO.map(s => <option key={s} value={s}>{SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
-                                </select>
-                            )}
-                        </div>
-                    </FiltroLinha>
-
-                    <FiltroLinha rotulo="Local e equipe">
-                        <GradeSeletores>
+                    {/* Tipo, documentação, local e equipe: oito seletores, um por coluna. */}
+                    <FiltroLinha rotulo="Filtros">
+                        <div className={GRADE_8}>
+                            <select value={filtros.tipo} onChange={e => setFiltros(f => ({ ...f, tipo: e.target.value, subtipo: e.target.value === 'OPERACAO' ? f.subtipo : '' }))} aria-label="Tipo de demanda" className={`${CAMPO} w-full`}>
+                                <option value="">Todo tipo</option>
+                                {TIPOS_DEMANDA.map(t => <option key={t} value={t}>{TIPOS_DEMANDA_LABEL[t] || t}</option>)}
+                            </select>
+                            <select value={filtros.subtipo} onChange={e => setFiltro('subtipo', e.target.value)} aria-label="Subtipo da operação" className={`${CAMPO} w-full disabled:opacity-50`} disabled={filtros.tipo !== 'OPERACAO'}
+                                title={filtros.tipo !== 'OPERACAO' ? 'Escolha o tipo Operação para filtrar o subtipo' : undefined}>
+                                <option value="">Todo subtipo</option>
+                                {SUBTIPOS_OPERACAO.map(s => <option key={s} value={s}>{SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
+                            </select>
+                            <select value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} aria-label="Filtrar por documentação" className={`${CAMPO} w-full`}>
+                                <option value="TODAS">Documentação</option>
+                                <option value="PENDENTES">Com pendências</option>
+                                <option value="COMPLETAS">Documentação completa</option>
+                                <option value="CORRECAO">Necessita correção</option>
+                            </select>
                             <select value={filtros.regiao} onChange={e => setFiltros(f => ({ ...f, regiao: e.target.value, uf: e.target.value && regiaoPorUf(f.uf) !== e.target.value ? '' : f.uf }))} aria-label="Região" className={`${CAMPO} w-full`}>
                                 <option value="">Toda região</option>
                                 {REGIOES.map(r => <option key={r} value={r}>{REGIAO_LABEL[r]}</option>)}
@@ -575,7 +563,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <option value="">Todo gestor</option>
                                 {gestoresNaCarteira.map(([g, n]) => <option key={g} value={g}>{g} ({n})</option>)}
                             </select>
-                        </GradeSeletores>
+                        </div>
                     </FiltroLinha>
                 </>)}
             </FiltroPainel>
