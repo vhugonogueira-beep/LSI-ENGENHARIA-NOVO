@@ -184,9 +184,12 @@ export async function gerarCronogramaHtml(atividadeId: string): Promise<{ html: 
         ? await acharLogoOperadora(atividade.tenant_id, atividade.operadora)
         : null;
 
-    const marca = (url: string | null | undefined, nome: string, sub?: string) => url
+    // Cada marca numa caixa de altura fixa, com a imagem centrada nela: rótulos e
+    // logos das três marcas ficam na mesma linha, qualquer que seja o formato da
+    // imagem (16/10/2026).
+    const marca = (url: string | null | undefined, nome: string, sub?: string) => `<div class="marca-caixa">${url
         ? `<img src="${escapeHtml(url)}" alt="${escapeHtml(nome)}" class="marca-img">`
-        : `<span class="marca-texto">${escapeHtml(nome)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</span>`;
+        : `<span class="marca-texto">${escapeHtml(nome)}${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</span>`}</div>`;
 
     const logoLs = marca(
         empresa?.logo_url,
@@ -261,13 +264,15 @@ export async function gerarCronogramaHtml(atividadeId: string): Promise<{ html: 
   .folha { width: ${larguraTabela + 56}px; max-width: 100%; margin: 0 auto; background: #fff; padding: 26px 28px 22px; box-shadow: 0 2px 14px rgba(15,23,42,.10); border-radius: 4px; }
   @media print { body { background: #fff; padding: 0; } .folha { width: auto; box-shadow: none; padding: 0; } }
   .topo { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 3px solid #0f172a; padding-bottom: 14px; gap: 24px; }
-  .marca { display: flex; flex-direction: column; gap: 3px; }
+  .marca { display: flex; flex-direction: column; gap: 6px; }
+  .marca-caixa { height: 52px; display: flex; align-items: center; }
   .marca-rotulo { font-size: 7.5px; letter-spacing: .12em; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
   .marca-img { max-height: 52px; max-width: 190px; object-fit: contain; display: block; }
   .marca-texto { font-size: 15px; font-weight: 800; color: #0f172a; line-height: 1.1; }
   .marca-texto small { display: block; font-size: 6.5px; font-weight: 400; letter-spacing: .08em; color: #64748b; }
   .marca-executante .marca-texto { font-size: 18px; font-weight: 900; }
-  .marcas-cliente { display: flex; align-items: flex-end; gap: 32px; }
+  .marcas-cliente { display: flex; align-items: flex-start; gap: 40px; }
+  .marcas-cliente .marca { min-width: 140px; }
   .cabecalho { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 16px; }
   .eyebrow { font-size: 9.5px; letter-spacing: .16em; color: #64748b; font-weight: 700; }
   h1 { font-size: 24px; margin: 4px 0 0; letter-spacing: -.02em; }
