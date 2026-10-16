@@ -12,22 +12,36 @@
 // a PV é remontada.
 
 import { prisma } from '../server';
+import { HIGHLINE_OM_CATALOG } from '../data/highline-om-catalog';
 
 export const NOME_PV_OM_HIGHLINE = 'PV O&M Highline';
 export const ORIGEM_PV_OM = 'PV_OM_HIGHLINE';
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 const PALAVRAS_VAZIAS = new Set(['DE', 'DA', 'DO', 'DAS', 'DOS', 'E', 'EM', 'PARA', 'COM', 'POR', 'NO', 'NA', 'NOS', 'NAS', 'AO', 'A', 'O', 'OS', 'AS', 'UM', 'UMA', 'ATE', 'SEM']);
+// Siglas de duas letras contam (RF, FO, EV, AC): são as que mais identificam o serviço.
 export function palavras(t: string): string[] {
     return t.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').split(/\s+/)
-        .filter(p => p.length >= 3 && !PALAVRAS_VAZIAS.has(p));
+        .filter(p => p.length >= 2 && !PALAVRAS_VAZIAS.has(p));
 }
-/** Semelhança entre dois textos (0 a 1): palavras em comum sobre as do texto menor. */
-export function semelhanca(a: string[], b: string[]): number {
+/** Mesma palavra, plural/singular ou mesmo radical (CABO/CABOS, MOBILIZACAO/MOBILIZAR). */
+function casa(x: string, y: string): boolean {
+    if (x === y) return true;
+    if (Math.min(x.length, y.length) >= 4 && (x.startsWith(y) || y.startsWith(x))) return true;
+    return x.length >= 6 && y.length >= 6 && x.slice(0, 6) === y.slice(0, 6);
+}
+/** Semelhança entre dois textos (0 a 1): palavras que casam sobre as do texto menor. */
+export function semelhanca(a: string[], b: string[], peso?: (p: string) => number): number {
     if (!a.length || !b.length) return 0;
-    const sb = new Set(b);
-    const comuns = new Set(a.filter(p => sb.has(p))).size;
-    return comuns / Math.min(new Set(a).size, sb.size);
+    const ua = [...new Set(a)], ub = [...new Set(b)];
+    if (peso) {
+        // Palavra rara pesa mais (RF, VSWR) que palavra comum (CABO, SITE).
+        const total = ua.reduce((t, p) => t + peso(p), 0);
+        const comum = ua.filter(p => ub.some(q => casa(p, q))).reduce((t, p) => t + peso(p), 0);
+        return total ? comum / total : 0;
+    }
+    const comuns = ua.filter(p => ub.some(q => casa(p, q))).length;
+    return comuns / Math.min(ua.length, ub.length);
 }
 
 async function orcamentoDeOperacaoHighline(budgetId: string) {
@@ -42,8 +56,10 @@ async function orcamentoDeOperacaoHighline(budgetId: string) {
 
 export async function catalogoOm(tenantId: string) {
     const base = await prisma.priceBook.findFirst({ where: { tenant_id: tenantId, nome_lpu: NOME_PV_OM_HIGHLINE, status: 'ATIVA' } });
-    if (!base) return [];
+    // Sem a base importada no banco, vale o cadastro que vem com o sistema (16/10/2026).
+    if (!base) return HIGHLINE_OM_CATALOG.map(([codigo, descricao]) => ({ codigo, descricao }));
     const itens = await prisma.priceBookItem.findMany({ where: { pricebook_id: base.id, ativo: true }, select: { codigo_item: true, descricao: true } });
+    if (!itens.length) return HIGHLINE_OM_CATALOG.map(([codigo, descricao]) => ({ codigo, descricao }));
     const num = (c: string) => Number(c.replace(/\D/g, '')) || 0;
     return itens.filter(i => i.codigo_item).map(i => ({ codigo: i.codigo_item!, descricao: i.descricao }))
         .sort((a, b) => num(a.codigo) - num(b.codigo));
@@ -68,6 +84,10 @@ export async function sugestoesVinculo(budgetId: string) {
     const catalogo = await catalogoOm(budget.tenant_id);
     const porCodigo = new Map(catalogo.map(c => [c.codigo, c]));
     const palavrasCat = catalogo.map(c => ({ ...c, p: palavras(c.descricao) }));
+    // Raridade de cada palavra no cadastro (quantos códigos a usam).
+    const freq = (p: string) => palavrasCat.filter(c => c.p.some(q => casa(p, q))).length;
+    const cachePeso = new Map<string, number>();
+    const peso = (p: string) => { if (!cachePeso.has(p)) cachePeso.set(p, Math.log(1 + palavrasCat.length / (1 + freq(p)))); return cachePeso.get(p)!; };
     const itensLs = budget.items.filter(i => i.origem_item === 'ORCAMENTO_LS').sort((a, b) => a.ordem - b.ordem);
 
     // 1. Vínculo que a LPU já traz (código original O&M da planilha).
@@ -98,8 +118,8 @@ export async function sugestoesVinculo(budgetId: string) {
         }
         add(porTitulo.get(chave(i.titulo)), 'usado antes para esta descrição', 0.95);
         const p = palavras(i.titulo);
-        palavrasCat.map(c => ({ c, s: semelhanca(p, c.p) }))
-            .filter(x => x.s >= 0.34).sort((a, b) => b.s - a.s).slice(0, 4)
+        palavrasCat.map(c => ({ c, s: semelhanca(p, c.p, peso) }))
+            .filter(x => x.s >= 0.3).sort((a, b) => b.s - a.s).slice(0, 4)
             .forEach(x => add(x.c.codigo, 'descrição parecida', r2(x.s * 0.9)));
         return {
             id: i.id, codigo_item: i.codigo_item, titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, total: i.total_linha,

@@ -122,7 +122,18 @@ export function VinculacaoPvOmModal({ budgetId, aviso, onConcluir, onFechar, tex
     }, [budgetId]);
     const descricaoDe = useMemo(() => new Map(catalogo.map(c => [c.codigo, c.descricao])), [catalogo]);
     const termos = busca.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/\s+/).filter(Boolean);
-    const achados = termos.length ? catalogo.filter(c => termos.every(t => `${c.codigo} ${c.descricao}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(t))).slice(0, 30) : [];
+    // Busca esperta (16/10/2026): sem acento; primeiro o que tem todos os termos,
+    // depois o que tem a maior parte — "cabos rf" ainda acha "CABO ... RF".
+    const achados = useMemo(() => {
+        if (!termos.length) return [];
+        const raiz = (t: string) => (t.length > 4 ? t.slice(0, Math.max(4, t.length - 2)) : t);
+        return catalogo.map(c => {
+            const texto = `${c.codigo} ${c.descricao}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+            const n = termos.filter(t => texto.includes(t) || texto.includes(raiz(t))).length;
+            return { c, n };
+        }).filter(x => x.n > 0 && x.n >= Math.ceil(termos.length / 2))
+            .sort((a, b) => b.n - a.n).slice(0, 30).map(x => x.c);
+    }, [busca, catalogo]); // eslint-disable-line react-hooks/exhaustive-deps
     const vinculados = itens.filter(i => escolha[i.id]).length;
     const visiveis = soPendentes ? itens.filter(i => !escolha[i.id]) : itens;
     const escolher = (id: string, codigo: string) => { setEscolha(e => ({ ...e, [id]: codigo })); setAberto(null); setBusca(''); };

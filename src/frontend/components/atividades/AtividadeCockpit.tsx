@@ -1,5 +1,5 @@
 import { rotuloTipoSite } from './TipoObraCampo';
-import { Fragment, useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback, useRef } from 'react';
 import { AlertTriangle, ArrowLeft, Info } from 'lucide-react';
 import {
     STATUS_COMERCIAL, STATUS_DOCUMENTAL, STATUS_FINANCEIRO, STATUS_FATURAMENTO,
@@ -186,11 +186,14 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
         } catch { /* sem painel, a aba continua funcionando */ }
     }, [atividadeId]);
 
+    // Só a primeira carga mostra "Carregando atividade..."; depois de salvar, os
+    // dados se atualizam por baixo, sem a tela piscar nem perder a posição (16/10/2026).
+    const jaCarregou = useRef(false);
     const load = useCallback(async () => {
-        setLoading(true);
+        if (!jaCarregou.current) setLoading(true);
         try {
             const r = await fetch(`/api/atividades/${atividadeId}`);
-            if (r.ok) setAtividade(await r.json());
+            if (r.ok) { setAtividade(await r.json()); jaCarregou.current = true; }
         } finally {
             setLoading(false);
         }
