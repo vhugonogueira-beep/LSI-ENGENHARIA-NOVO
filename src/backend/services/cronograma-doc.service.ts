@@ -50,12 +50,14 @@ async function acharLogoOperadora(tenantId: string, nomeBruto: string) {
 
     const candidatos = await prisma.contratante.findMany({
         where: { tenant_id: tenantId, logo_url: { not: null } },
-        select: { nome: true, logo_url: true },
+        select: { nome: true, sigla: true, logo_url: true },
     });
-    const doCliente = candidatos.find(c => {
-        const n = chaveNome(c.nome);
-        return n === alvo || n.startsWith(alvo) || alvo.startsWith(n);
-    });
+    // Casa pelo nome ou pela sigla do cadastro de Clientes ("HIGHLINE" acha
+    // "Highline do Brasil", sigla HIGHLINE).
+    const doCliente = candidatos.find(c => [c.nome, c.sigla].filter(Boolean).some(v => {
+        const n = chaveNome(v as string);
+        return !!n && (n === alvo || n.startsWith(alvo) || alvo.startsWith(n));
+    }));
     if (doCliente) return doCliente;
 
     return null;
@@ -199,7 +201,10 @@ export async function gerarCronogramaHtml(atividadeId: string): Promise<{ html: 
     const logoOperadora = atividade.operadora
         ? `<div class="marca"><span class="marca-rotulo">OPERADORA</span>${marca(operadora?.logo_url, operadora?.nome || atividade.operadora)}</div>`
         : '';
-    const logoSharing = `<div class="marca"><span class="marca-rotulo">SHARING</span>${marca(atividade.contratante?.logo_url, atividade.contratante?.nome || atividade.sharing)}</div>`;
+    // A logo da sharing vem do campo Sharing da atividade, não do Contratante
+    // (16/10/2026): o contratante pode ser outro cadastro, sem logo.
+    const sharingCad = atividade.sharing ? await acharLogoOperadora(atividade.tenant_id, atividade.sharing) : null;
+    const logoSharing = `<div class="marca"><span class="marca-rotulo">SHARING</span>${marca(sharingCad?.logo_url || atividade.contratante?.logo_url, atividade.sharing || atividade.contratante?.nome || '')}</div>`;
 
     // Linhas do Gantt, agrupadas pelo campo `grupo` quando houver.
     const linhas: string[] = [];
@@ -271,12 +276,14 @@ export async function gerarCronogramaHtml(atividadeId: string): Promise<{ html: 
   .empresa-topo b { display: block; font-size: 16px; font-weight: 800; color: #0f172a; letter-spacing: -.01em; }
   .empresa-topo span:not(.marca-rotulo) { display: block; margin-top: 2px; font-size: 9px; color: #64748b; letter-spacing: .04em; }
   .marca { display: flex; flex-direction: column; gap: 6px; }
-  .marca-caixa { height: 52px; display: flex; align-items: center; }
+  .marca-caixa { height: 84px; display: flex; align-items: center; }
   .marca-rotulo { font-size: 7.5px; letter-spacing: .12em; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
   .marca-img { max-height: 52px; max-width: 190px; object-fit: contain; display: block; }
   .marca-texto { font-size: 15px; font-weight: 800; color: #0f172a; line-height: 1.1; }
   .marca-texto small { display: block; font-size: 6.5px; font-weight: 400; letter-spacing: .08em; color: #64748b; }
   .marca-executante .marca-texto { font-size: 18px; font-weight: 900; }
+  /* Logo da LS maior que as dos clientes: é quem emite o documento. */
+  .marca-executante .marca-img { max-height: 84px; max-width: 260px; }
   .marcas-cliente { display: flex; align-items: flex-start; gap: 40px; }
   .marcas-cliente .marca { min-width: 140px; }
   .cabecalho { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 16px; }
