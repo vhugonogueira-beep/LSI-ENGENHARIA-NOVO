@@ -123,7 +123,7 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         }),
         prisma.registroExecucao.findFirst({ where: { atividade_id: a.id } }),
         prisma.rFI.count({ where: { atividade_id: a.id } }),
-        prisma.purchaseOrder.findMany({ where: { atividade_id: a.id }, select: { numero: true, pdf_url: true, status: true } }),
+        prisma.purchaseOrder.findMany({ where: { atividade_id: a.id }, select: { numero: true, pdf_url: true, status: true, _count: { select: { arquivos: true } } } }),
         prisma.cronogramaItem.count({ where: { atividade_id: a.id } }),
         prisma.aPC.findMany({ where: { atividade_id: a.id }, select: { status: true } }),
         prisma.documentoAtividade.findMany({
@@ -224,7 +224,9 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         p.faturamento.push(implantacao || concluida ? alerta('Nenhuma PO anexada') : aviso('Nenhuma PO anexada'));
     } else {
         if (pos.some(po => !po.numero)) p.faturamento.push(alerta('PO sem número'));
-        if (pos.some(po => !po.pdf_url)) p.faturamento.push(aviso('PO sem arquivo PDF'));
+        // O PDF anexado pela tela fica em PurchaseOrderArquivo; pdf_url é o campo
+        // antigo. Sem olhar os dois, a PO com PDF lido acusava "sem PDF" (18/10/2026).
+        if (pos.some(po => !po.pdf_url && !po._count.arquivos)) p.faturamento.push(aviso('PO sem arquivo PDF'));
     }
     if (concluida && a.status_faturamento === 'NAO_INICIADO') p.faturamento.push(alerta('Atividade concluída e faturamento não iniciado'));
 
