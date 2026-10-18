@@ -2,6 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
 import { fmtData } from './constants';
+import { FileSpreadsheet, FileText, Paperclip } from 'lucide-react';
+import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
+
+const ACEITA_RELATORIO = '.pdf,.xlsx,.xls,.xlsm,.csv';
+const nomeDoArquivo = (url?: string | null) => (url ? decodeURIComponent(url.split('/').pop() || '') : '');
 
 export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotografico }: { atividade: AtividadeDetalhe; onRefresh: () => void; usaRelatorioFotografico?: boolean }) {
     const [, setRegistro] = useState<any>(null);
@@ -16,6 +21,20 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
     });
     const [rfiForm, setRfiForm] = useState({ destinatario: '', protocolo: '', energizado: '', observacoes: '' });
     const [showRfiForm, setShowRfiForm] = useState(false);
+    // Arquivo do relatório que foi ao cliente (Excel ou PDF) — 18/10/2026.
+    const [arquivoRfi, setArquivoRfi] = useState<File | null>(null);
+    const [anexando, setAnexando] = useState<string | null>(null);
+
+    async function subirArquivo(rfiId: string, arquivo: File) {
+        const dados = new FormData();
+        dados.append('arquivo', arquivo);
+        const r = await authFetch(`/api/execucao/rfis/${rfiId}/arquivo`, { method: 'POST', body: dados });
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao anexar o arquivo');
+    }
+    async function anexarEmExistente(rfiId: string, arquivo: File) {
+        setErro(''); setAnexando(rfiId);
+        try { await subirArquivo(rfiId, arquivo); await load(); } catch (e: any) { setErro(e.message); } finally { setAnexando(null); }
+    }
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -85,6 +104,9 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                 }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao enviar RFI');
+            const criado = await r.json();
+            if (arquivoRfi) await subirArquivo(criado.id, arquivoRfi);
+            setArquivoRfi(null);
             setRfiForm({ destinatario: '', protocolo: '', energizado: '', observacoes: '' });
             setShowRfiForm(false);
             await load();
@@ -157,6 +179,12 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                         <div className="col-span-2">
                             <Field label="Observações"><input className={inputClass} value={rfiForm.observacoes} onChange={e => setRfiForm(f => ({ ...f, observacoes: e.target.value }))} /></Field>
                         </div>
+                        <div className="col-span-2">
+                            <Field label={`Arquivo do ${usaRelatorioFotografico ? 'relatório enviado ao cliente' : 'RFI'} (Excel ou PDF)`}>
+                                <input type="file" accept={ACEITA_RELATORIO} className={`${inputClass} py-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-foreground`}
+                                    onChange={e => setArquivoRfi(e.target.files?.[0] || null)} />
+                            </Field>
+                        </div>
                         <div className="col-span-2 flex justify-end">
                             <PrimaryButton onClick={enviarRfi} disabled={salvando}>Confirmar envio</PrimaryButton>
                         </div>
@@ -170,6 +198,22 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                             {!usaRelatorioFotografico && <Row label="Protocolo" value={r.protocolo && <span className="font-id">{r.protocolo}</span>} />}
                             <Row label="Data de envio" value={fmtData(r.data_envio)} />
                             <Row label="Destinatário" value={r.destinatario} />
+                            <Row label="Arquivo" value={
+                                <span className="inline-flex flex-wrap items-center justify-end gap-2">
+                                    {r.relatorio_url && r.relatorio_url.startsWith('relatorios/') ? (
+                                        <button type="button" onClick={() => downloadAuthenticatedFile(`/api/execucao/rfis/${r.id}/arquivo`, nomeDoArquivo(r.relatorio_url)).catch((e: any) => setErro(e.message))}
+                                            className="inline-flex items-center gap-1.5 font-semibold text-primary hover:underline">
+                                            {/\.pdf$/i.test(r.relatorio_url) ? <FileText size={14} aria-hidden /> : <FileSpreadsheet size={14} aria-hidden />}
+                                            {nomeDoArquivo(r.relatorio_url)}
+                                        </button>
+                                    ) : <span className="text-warn">Nenhum arquivo anexado</span>}
+                                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[11px] font-semibold hover:bg-secondary/60">
+                                        <Paperclip size={12} aria-hidden /> {anexando === r.id ? 'Enviando…' : r.relatorio_url ? 'Trocar' : 'Anexar'}
+                                        <input type="file" hidden accept={ACEITA_RELATORIO} disabled={anexando === r.id}
+                                            onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) anexarEmExistente(r.id, f); }} />
+                                    </label>
+                                </span>
+                            } />
                             {!usaRelatorioFotografico && <Row label="Energia" value={r.energizado === true ? 'Energizado' : r.energizado === false ? 'Sem energia' : 'Não informado'} />}
                         </div>
                     ))

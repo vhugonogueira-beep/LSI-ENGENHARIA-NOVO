@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
+import path from 'path';
+import fs from 'fs';
 import { prisma } from '../server';
+import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { proximoStatusAutomatico } from '../services/status-atividade.service';
 import { avaliarProntoParaFaturar } from '../services/gates.service';
 
@@ -139,5 +142,43 @@ export async function listRFIs(req: Request, res: Response) {
         res.json(await prisma.rFI.findMany({ where, orderBy: { created_at: 'desc' } }));
     } catch (e: any) {
         res.status(500).json({ error: e.message });
+    }
+}
+
+// Arquivo do relatório enviado ao cliente (18/10/2026): o relatório fotográfico
+// da operação (ou o RFI) guarda o Excel/PDF que de fato foi para o cliente.
+const PASTA_RELATORIOS = path.resolve(process.cwd(), 'storage', 'relatorios');
+const EXTENSOES_RELATORIO = ['.pdf', '.xlsx', '.xls', '.xlsm', '.csv'];
+
+export async function anexarArquivoRFI(req: Request, res: Response) {
+    try {
+        const arquivo = (req as any).file as Express.Multer.File | undefined;
+        if (!arquivo) return res.status(400).json({ error: 'Envie o arquivo do relatório' });
+        const nome = path.basename(nomeArquivoUtf8(arquivo.originalname)).replace(/[<>:"/\|?*\x00-\x1f]/g, '_');
+        const ext = path.extname(nome).toLowerCase();
+        if (!EXTENSOES_RELATORIO.includes(ext)) return res.status(400).json({ error: 'O relatório deve ser PDF ou Excel (.pdf, .xlsx, .xls, .xlsm, .csv)' });
+        const rfi = await prisma.rFI.findUnique({ where: { id: req.params.id } });
+        if (!rfi) return res.status(404).json({ error: 'Relatório não encontrado' });
+        const pasta = path.join(PASTA_RELATORIOS, rfi.id);
+        fs.rmSync(pasta, { recursive: true, force: true });
+        fs.mkdirSync(pasta, { recursive: true });
+        fs.writeFileSync(path.join(pasta, nome), arquivo.buffer);
+        res.json(await prisma.rFI.update({ where: { id: rfi.id }, data: { relatorio_url: `relatorios/${rfi.id}/${nome}` } }));
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
+    }
+}
+
+export async function baixarArquivoRFI(req: Request, res: Response) {
+    try {
+        const rfi = await prisma.rFI.findUnique({ where: { id: req.params.id } });
+        const rel = rfi?.relatorio_url || '';
+        if (!rfi || !rel.startsWith(`relatorios/${rfi.id}/`)) return res.status(404).json({ error: 'Este relatório não tem arquivo anexado' });
+        const arquivo = path.join(PASTA_RELATORIOS, rfi.id, path.basename(rel));
+        if (!fs.existsSync(arquivo)) return res.status(404).json({ error: 'Arquivo não encontrado no servidor' });
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(rel))}`);
+        res.sendFile(arquivo);
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
     }
 }
