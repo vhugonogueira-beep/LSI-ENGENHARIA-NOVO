@@ -9,6 +9,7 @@ import {
     UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
 } from './constants';
 import MunicipioInput from '../cadastros/MunicipioInput';
+import MetaFaturamentoCard from './MetaFaturamentoCard';
 
 export default function TabIdentificacao({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh: () => void }) {
     const { sharings, operadoras } = useListasClientes();
@@ -88,6 +89,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
 
     if (!editing) {
         return (
+            <>
             <Card title="Identificação" action={<GhostButton onClick={() => setEditing(true)}><Pencil size={14} className="inline mr-1" aria-hidden />Editar</GhostButton>}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                     <div>
@@ -122,6 +124,8 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     </div>
                 )}
             </Card>
+            <MetaFaturamentoCard atividadeId={atividade.id} />
+            </>
         );
     }
 

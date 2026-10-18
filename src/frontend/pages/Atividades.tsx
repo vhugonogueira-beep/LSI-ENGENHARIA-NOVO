@@ -11,6 +11,7 @@ import {
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
 import PageHeader from '../components/PageHeader';
 import { FiltroPainel, FiltroLinha, GRADE_8, CAMPO, ALTERNADOR, SEGMENTO } from '../components/FiltroPainel';
+import { SITUACAO_META, rotuloMes } from '../components/atividades/MetaFaturamentoCard';
 import { AreaChip, OperadoraChip, SharingNome } from '../components/atividades/ui';
 import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_MODULO, tomDe, type Tom } from '../lib/cores';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
@@ -51,6 +52,12 @@ interface Atividade {
     documentos_correcao?: number;
     documentos_percentual?: number;
     comprovantes_pendentes?: number;
+    // Meta de faturamento (18/10/2026)
+    meta_faturamento_mes?: string | null;
+    meta_faturamento_valor?: number | null;
+    meta_situacao?: string;
+    meta_faturado?: number;
+    meta_adiamentos?: number;
 }
 
 const FORM_INIT = {
@@ -93,7 +100,7 @@ const SITUACOES: { id: string; label: string; teste: (a: Atividade) => boolean; 
     { id: 'COMPROVANTE_PENDENTE', label: 'Sem comprovante', tom: 'amber', teste: a => (a.comprovantes_pendentes || 0) > 0 },
     { id: 'CONCLUIDAS', label: 'Concluídas', tom: 'green', teste: a => a.status_operacional === 'CONCLUIDA' },
 ];
-const FILTROS_INIT = { situacao: 'TODAS', tipo: '', subtipo: '', uf: '', regiao: '', sharing: '', operadora: '', gestor: '' };
+const FILTROS_INIT = { situacao: 'TODAS', meta: '', tipo: '', subtipo: '', uf: '', regiao: '', sharing: '', operadora: '', gestor: '' };
 const FILTROS_KEY = 'ls_atividades_filtros';
 
 function lerFiltros(): typeof FILTROS_INIT {
@@ -421,6 +428,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
         return matchesSearch && matchesDocuments
             && (!filtros.tipo || a.tipo_demanda === filtros.tipo)
             && (!filtros.subtipo || a.subtipo_demanda === filtros.subtipo)
+            && (!filtros.meta || (filtros.meta === 'REINCIDENTE' ? (a.meta_adiamentos || 0) >= 2
+                : filtros.meta.startsWith('MES:') ? a.meta_faturamento_mes === filtros.meta.slice(4)
+                : (a.meta_situacao || 'SEM_META') === filtros.meta))
             && (!filtros.uf || uf === filtros.uf)
             && (!filtros.regiao || regiaoPorUf(uf) === filtros.regiao)
             && (!filtros.sharing || a.sharing === filtros.sharing)
@@ -428,6 +438,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
             && (!filtros.gestor || (a.gestor || a.responsavel || '') === filtros.gestor);
     });
     const filtradas = semSituacao.filter(situacaoAtual.teste);
+    const mesesDeMeta = [...new Set(atividades.map(a => a.meta_faturamento_mes).filter(Boolean) as string[])].sort();
 
     const historicoTitulos = ultimosValores(atividades, 'titulo');
     const historicoTipos = ultimosValores(atividades, 'tipo_atividade');
@@ -528,14 +539,25 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     {/* Tipo, documentação, local e equipe: oito seletores, um por coluna. */}
                     <FiltroLinha rotulo="Filtros">
                         <div className={GRADE_8}>
-                            <select value={filtros.tipo} onChange={e => setFiltros(f => ({ ...f, tipo: e.target.value, subtipo: e.target.value === 'OPERACAO' ? f.subtipo : '' }))} aria-label="Tipo de demanda" className={`${CAMPO} w-full`}>
+                            {/* Tipo e subtipo num seletor só (18/10/2026): o lugar do subtipo virou o filtro de meta. */}
+                            <select value={filtros.subtipo ? `${filtros.tipo}:${filtros.subtipo}` : filtros.tipo}
+                                onChange={e => { const [tipo, subtipo = ''] = e.target.value.split(':'); setFiltros(f => ({ ...f, tipo, subtipo })); }}
+                                aria-label="Tipo de demanda" className={`${CAMPO} w-full`}>
                                 <option value="">Todo tipo</option>
                                 {TIPOS_DEMANDA.map(t => <option key={t} value={t}>{TIPOS_DEMANDA_LABEL[t] || t}</option>)}
+                                <optgroup label="Operação por subtipo">
+                                    {SUBTIPOS_OPERACAO.map(s => <option key={s} value={`OPERACAO:${s}`}>Operação · {SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
+                                </optgroup>
                             </select>
-                            <select value={filtros.subtipo} onChange={e => setFiltro('subtipo', e.target.value)} aria-label="Subtipo da operação" className={`${CAMPO} w-full disabled:opacity-50`} disabled={filtros.tipo !== 'OPERACAO'}
-                                title={filtros.tipo !== 'OPERACAO' ? 'Escolha o tipo Operação para filtrar o subtipo' : undefined}>
-                                <option value="">Todo subtipo</option>
-                                {SUBTIPOS_OPERACAO.map(s => <option key={s} value={s}>{SUBTIPOS_OPERACAO_LABEL[s]}</option>)}
+                            <select value={filtros.meta} onChange={e => setFiltro('meta', e.target.value)} aria-label="Meta de faturamento" className={`${CAMPO} w-full`}>
+                                <option value="">Toda meta</option>
+                                <option value="VENCE_ESTE_MES">Vence este mês</option>
+                                <option value="VENCIDA">Meta vencida</option>
+                                <option value="NO_PRAZO">No prazo</option>
+                                <option value="CUMPRIDA">Cumprida</option>
+                                <option value="REINCIDENTE">Reincidente (2+ adiamentos)</option>
+                                <option value="SEM_META">Sem meta</option>
+                                {mesesDeMeta.length > 0 && <optgroup label="Por mês">{mesesDeMeta.map(m => <option key={m} value={`MES:${m}`}>Meta {rotuloMes(m)}</option>)}</optgroup>}
                             </select>
                             <select value={documentFilter} onChange={e => setDocumentFilter(e.target.value)} aria-label="Filtrar por documentação" className={`${CAMPO} w-full`}>
                                 <option value="TODAS">Documentação</option>
@@ -699,6 +721,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         <td className="px-3 py-2.5 align-top">
                                             <EtapaDaLinha a={a} avanco={avanco} />
                                             <PendenciasDaLinha a={a} onAnexarPO={() => { setPoModalId(a.id); setPoForm({ numero: '', pdf_url: '' }); }} />
+                                            {a.meta_faturamento_mes && (
+                                                <span title={`Meta de faturamento: ${rotuloMes(a.meta_faturamento_mes)}${a.meta_faturamento_valor ? ` · ${fmtMoeda(a.meta_faturamento_valor)}` : ''} — ${(SITUACAO_META[a.meta_situacao || ''] || SITUACAO_META.SEM_META).rotulo}${(a.meta_adiamentos || 0) >= 2 ? ` · adiada ${a.meta_adiamentos}x` : ''}`}
+                                                    className={`mt-1 inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[11px] font-semibold ${(SITUACAO_META[a.meta_situacao || ''] || SITUACAO_META.SEM_META).classe}`}>
+                                                    Meta {rotuloMes(a.meta_faturamento_mes)}{(a.meta_adiamentos || 0) >= 2 ? ' · reincidente' : ''}
+                                                </span>
+                                            )}
                                         </td>
                                         <td className="px-3 py-2.5 align-top">
                                             <div className="flex h-7 items-center"><AreaChip tipo={a.tipo_demanda} /></div>

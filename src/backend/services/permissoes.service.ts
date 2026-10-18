@@ -15,6 +15,7 @@ export const PERMISSOES = [
     { chave: 'pagamentos.solicitar', rotulo: 'Solicitar pagamentos', descricao: 'Contratações, parcelas, reembolsos, adiantamentos, prestação de contas, e-mails de solicitação e anexos (comprovantes e notas)' },
     { chave: 'pagamentos.baixar', rotulo: 'Registrar pagamentos', descricao: 'Marcar como pago, conferir e analisar prestação de contas' },
     { chave: 'pagamentos.aprovar', rotulo: 'Aprovar pagamentos', descricao: 'Aprovar ou recusar solicitações de quem precisa de aprovação' },
+    { chave: 'metas.alterar', rotulo: 'Alterar meta de faturamento', descricao: 'Mudar o mês da meta de faturamento de uma atividade depois de definido (gestor)' },
     { chave: 'faturamento.gerenciar', rotulo: 'PO e faturamento', descricao: 'POs, linhas de faturamento, lotes e recebimentos' },
     { chave: 'cadastros.gerenciar', rotulo: 'Cadastros', descricao: 'Fornecedores, funcionários, qualificações e clientes' },
     { chave: 'configuracoes.gerenciar', rotulo: 'Configurações', descricao: 'Dados da empresa, contas, cartões, comunicação e modelos de contrato' },

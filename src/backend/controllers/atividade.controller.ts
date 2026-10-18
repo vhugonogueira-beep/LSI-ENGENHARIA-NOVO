@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
+import { adiamentosPorAtividade, faturadoPorAtividade, situacaoMeta } from '../services/meta-faturamento.service';
 import { proximoCodigo } from '../services/codigo-sequencial.service';
 import { STATUS_ATIVIDADE } from '../services/status-atividade.service';
 import { gerarMatrizDocumental, recalcularStatusDocumental } from '../services/documentacao.service';
@@ -131,6 +132,9 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
             ]);
         }
 
+        // Meta de faturamento: situação calculada com o que já faturou (18/10/2026).
+        const faturadoMeta = await faturadoPorAtividade(ids);
+        const adiamentosMeta = await adiamentosPorAtividade(ids);
         const carteira = atividades.map(a => {
             const custoPago = custoPagoPorAtividade.get(a.id) || 0;
             const budget = a.valor_contrato ?? 0;
@@ -153,6 +157,9 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
                 documentos_correcao: docsCorrecao,
                 documentos_percentual: docs.length ? Math.round((docsOk / docs.length) * 100) : 0,
                 comprovantes_pendentes: comprovantesPendentes.get(a.id) || 0,
+                meta_situacao: situacaoMeta(a, faturadoMeta.get(a.id)),
+                meta_faturado: faturadoMeta.get(a.id)?.valor || 0,
+                meta_adiamentos: adiamentosMeta.get(a.id) || 0,
             };
         });
 

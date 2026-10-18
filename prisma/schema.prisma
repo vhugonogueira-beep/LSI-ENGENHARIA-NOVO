@@ -977,6 +977,10 @@ model Atividade {
   responsavel    String?
   // Gestor da atividade — vai na coluna GESTOR da planilha de faturamento enviada ao cliente.
   gestor         String?
+  // Meta de faturamento (18/10/2026): mês ("AAAA-MM") em que a atividade deve
+  // faturar e quanto. Mudar o mês depois de definido fica no histórico.
+  meta_faturamento_mes   String?
+  meta_faturamento_valor Float?
   descricao      String?
 
   data_abertura         DateTime  @default(now())
@@ -999,6 +1003,7 @@ model Atividade {
   purchaseOrders         PurchaseOrder[]
   aceites                Aceite[]
   faturamentos           FaturamentoAtividade[]
+  metasFaturamento       MetaFaturamentoHistorico[]
   orcamentos             Budget[]
 
   @@index([tenant_id, status_operacional, tipo_demanda])
@@ -2066,4 +2071,22 @@ model AprovacaoPagamento {
 
   @@index([tenant_id, status])
   @@index([registro_id, status])
+}
+
+// Cada definição ou mudança da meta de faturamento da atividade (18/10/2026).
+// Adiar o mês exige motivo e a permissão "metas.alterar" (gestor/administrador).
+model MetaFaturamentoHistorico {
+  id             String    @id @default(uuid())
+  tenant_id      String
+  atividade_id   String
+  atividade      Atividade @relation(fields: [atividade_id], references: [id], onDelete: Cascade)
+  mes_anterior   String?
+  mes_novo       String?
+  valor_anterior Float?
+  valor_novo     Float?
+  motivo         String?
+  alterado_por   String?
+  created_at     DateTime  @default(now())
+
+  @@index([atividade_id])
 }

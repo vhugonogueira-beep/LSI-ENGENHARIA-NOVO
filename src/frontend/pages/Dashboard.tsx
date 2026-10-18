@@ -25,6 +25,7 @@ interface Atividade {
     status_operacional: string; valor_contrato?: number | null; custo_pago?: number; data_fim_planejada?: string | null;
     data_abertura?: string | null; created_at?: string; acionamento_id?: string | null; po?: unknown;
     documentos_pendentes?: number; documentos_correcao?: number; comprovantes_pendentes?: number;
+    meta_faturamento_mes?: string | null; meta_faturamento_valor?: number | null; meta_situacao?: string; meta_faturado?: number; meta_adiamentos?: number;
 }
 
 const STATUS_ORCAMENTO: Record<string, string> = { RASCUNHO: 'Rascunho', ENVIADO: 'Enviado', APROVADO: 'Aprovado', REPROVADO: 'Reprovado', REVISAO: 'Em revisão' };
@@ -90,6 +91,23 @@ export function Dashboard({ onNavigateTo }: { onNavigateTo?: (tab: string) => vo
         };
     }, [lista]);
 
+    // Meta de faturamento do mês corrente × realizado (18/10/2026).
+    const meta = useMemo(() => {
+        const hoje = new Date();
+        const mes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+        const doMes = lista.filter(a => a.meta_faturamento_mes === mes);
+        const previsto = doMes.reduce((s, a) => s + (a.meta_faturamento_valor || 0), 0);
+        const cumpridas = doMes.filter(a => (a.meta_situacao || '').startsWith('CUMPRIDA'));
+        const realizado = cumpridas.reduce((s, a) => s + (a.meta_faturado || a.meta_faturamento_valor || 0), 0);
+        return {
+            rotulo: `${MESES[hoje.getMonth()]}/${String(hoje.getFullYear()).slice(2)}`,
+            n: doMes.length, previsto, realizado, cumpridas: cumpridas.length,
+            pendentes: doMes.filter(a => a.meta_situacao === 'VENCE_ESTE_MES').length,
+            vencidas: lista.filter(a => a.meta_situacao === 'VENCIDA').length,
+            reincidentes: lista.filter(a => (a.meta_adiamentos || 0) >= 2).length,
+            semMeta: lista.filter(a => a.status_operacional !== 'CONCLUIDA' && !a.meta_faturamento_mes).length,
+        };
+    }, [lista]);
     const valor = (a: Atividade) => a.valor_contrato || 0;
     const porArea = useMemo(() => ['IMPLANTACAO', 'OPERACAO'].map(t => {
         const doTipo = lista.filter(a => a.tipo_demanda === t);
@@ -161,6 +179,23 @@ export function Dashboard({ onNavigateTo }: { onNavigateTo?: (tab: string) => vo
                 <Kpi icone={Wallet} rotulo="Custo pago" valor={moeda(n.custo)} pequeno
                     detalhe={n.margem == null ? 'Sem valor contratado' : `Margem ${pct(n.margem)}`} />
             </div>
+
+            {/* ── Meta de faturamento do mês × realizado */}
+            <Painel titulo={`Meta de faturamento — ${meta.rotulo}`} subtitulo="Atividades com meta neste mês e quanto já faturou" className="mt-5" acao={<Link onClick={irAtividades}>Abrir atividades</Link>}>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 2xl:grid-cols-6">
+                    <div><p className="text-xs text-muted-foreground">Meta do mês</p><p className="mt-1 text-2xl font-semibold tabular-nums">{moeda(meta.previsto)}</p><p className="text-xs text-muted-foreground">{meta.n ? `${meta.n} atividade(s)` : 'Nenhuma meta neste mês'}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Faturado</p><p className="mt-1 text-2xl font-semibold tabular-nums text-ok">{moeda(meta.realizado)}</p><p className="text-xs text-muted-foreground">{meta.previsto ? `${pct((meta.realizado / meta.previsto) * 100)} da meta` : '—'}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Cumpridas</p><p className="mt-1 text-2xl font-semibold tabular-nums">{meta.cumpridas || '—'}</p><p className="text-xs text-muted-foreground">{meta.n ? `de ${meta.n}` : '—'}</p></div>
+                    <div><p className="text-xs text-muted-foreground">A faturar no mês</p><p className={`mt-1 text-2xl font-semibold tabular-nums ${meta.pendentes ? 'text-warn' : ''}`}>{meta.pendentes || '—'}</p><p className="text-xs text-muted-foreground">vencem este mês</p></div>
+                    <div><p className="text-xs text-muted-foreground">Metas vencidas</p><p className={`mt-1 text-2xl font-semibold tabular-nums ${meta.vencidas ? 'text-crit' : ''}`}>{meta.vencidas || '—'}</p><p className="text-xs text-muted-foreground">{meta.reincidentes ? `${meta.reincidentes} reincidente(s)` : 'meses anteriores'}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Sem meta</p><p className="mt-1 text-2xl font-semibold tabular-nums text-muted-foreground">{meta.semMeta || '—'}</p><p className="text-xs text-muted-foreground">atividades em aberto</p></div>
+                </div>
+                {meta.previsto > 0 && (
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-[hsl(var(--progress-track))]" role="progressbar" aria-label="Faturado da meta do mês" aria-valuenow={Math.round((meta.realizado / meta.previsto) * 100)} aria-valuemin={0} aria-valuemax={100}>
+                        <div className="h-full rounded-full bg-ok" style={{ width: `${Math.min(100, (meta.realizado / meta.previsto) * 100)}%` }} />
+                    </div>
+                )}
+            </Painel>
 
             {/* ── Implantação × operação e situação */}
             <div className="mt-5 grid gap-4 lg:grid-cols-3">
