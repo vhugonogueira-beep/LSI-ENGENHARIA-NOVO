@@ -14,6 +14,20 @@ import MetaFaturamentoCard from './MetaFaturamentoCard';
 export default function TabIdentificacao({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh: () => void }) {
     const { sharings, operadoras } = useListasClientes();
     const [editing, setEditing] = useState(false);
+    // Últimos nomes usados como responsável/gestor nas atividades (18/10/2026).
+    const [nomesRecentes, setNomesRecentes] = useState<string[]>([]);
+    useEffect(() => {
+        if (!editing || nomesRecentes.length) return;
+        fetch('/api/atividades').then(r => (r.ok ? r.json() : [])).then((lista: any[]) => {
+            const ordenadas = [...lista].sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')));
+            const vistos = new Set<string>(); const nomes: string[] = [];
+            for (const a of ordenadas) for (const v of [a.responsavel, a.gestor]) {
+                const n = String(v || '').trim();
+                if (n && !vistos.has(n.toLowerCase())) { vistos.add(n.toLowerCase()); nomes.push(n); }
+            }
+            setNomesRecentes(nomes.slice(0, 10));
+        }).catch(() => undefined);
+    }, [editing, nomesRecentes.length]);
     const [form, setForm] = useState({
         titulo: atividade.titulo,
         tipo_demanda: atividade.tipo_demanda,
@@ -210,9 +224,10 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     <MunicipioInput uf={form.estado} value={form.municipio} className={inputClass}
                         onChange={nome => setForm(f => ({ ...f, municipio: nome }))} />
                 </Field>
-                <Field label="Responsável"><input className={inputClass} value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} /></Field>
+                <Field label="Responsável"><input className={inputClass} value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} list="nomes-recentes" autoComplete="off" /></Field>
+                <datalist id="nomes-recentes">{nomesRecentes.map(n => <option key={n} value={n} />)}</datalist>
                 <Field label="Gestor">
-                    <input className={inputClass} value={form.gestor} onChange={e => setForm(f => ({ ...f, gestor: e.target.value }))} placeholder="Vai na coluna GESTOR da planilha de faturamento" />
+                    <input className={inputClass} value={form.gestor} onChange={e => setForm(f => ({ ...f, gestor: e.target.value }))} list="nomes-recentes" autoComplete="off" placeholder="Vai na coluna GESTOR da planilha de faturamento" />
                 </Field>
                 <div className="md:col-span-2">
                     <Field label="Diretório da atividade no servidor">

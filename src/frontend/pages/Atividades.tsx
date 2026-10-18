@@ -442,6 +442,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
 
     const historicoTitulos = ultimosValores(atividades, 'titulo');
     const historicoTipos = ultimosValores(atividades, 'tipo_atividade');
+    // Responsável: últimos nomes usados como responsável ou gestor (18/10/2026).
+    const historicoResponsaveis = [...new Set([...ultimosValores(atividades, 'responsavel', 8), ...ultimosValores(atividades, 'gestor', 8)])].slice(0, 8);
     const projetosPorId = new Map<string, any>(projetos.map(p => [p.id, p]));
     const buscaAtiva = search.trim().length > 0;
     // Projetos no topo (os mais recentes primeiro), depois as atividades avulsas.
@@ -1219,7 +1221,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             {/* Valor de contrato e custo orçado não entram na abertura: nascem
                                 do orçamento/negociação e são editados depois, no cockpit. */}
                             <Field label="Responsável / Gestor">
-                                <input value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} className="input" />
+                                <input value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} className="input"
+                                    list="historico-responsaveis" autoComplete="off" placeholder="Clique para ver os últimos nomes usados" />
+                                <datalist id="historico-responsaveis">{historicoResponsaveis.map(v => <option key={v} value={v} />)}</datalist>
                             </Field>
                             <Field label="Descrição e escopo">
                                 <textarea rows={3} value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} className="input resize-y" />
