@@ -752,10 +752,10 @@ function RevisaoLeitura({ leitura, temItens, salvando, onFechar, onConfirmar }: 
                         <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Nenhum item reconhecido no arquivo.</p>
                     ) : (
                         <table className="mt-2 w-full table-fixed text-sm">
-                            <colgroup><col className="w-10" /><col /><col className="w-20" /><col className="w-24" /><col className="w-32" /><col className="w-32" /></colgroup>
+                            <colgroup><col className="w-10" /><col className="w-36" /><col /><col className="w-20" /><col className="w-24" /><col className="w-32" /><col className="w-32" /></colgroup>
                             <thead>
                                 <tr className="border-b border-border text-left text-xs font-semibold text-muted-foreground">
-                                    <th className="px-2 py-2" aria-label="Incluir" /><th className="px-2 py-2">Descrição</th><th className="px-2 py-2">Unid.</th>
+                                    <th className="px-2 py-2" aria-label="Incluir" /><th className="px-2 py-2" title="Bloco do orçamento onde o item estava">Grupo</th><th className="px-2 py-2">Serviço — descrição</th><th className="px-2 py-2">Unid.</th>
                                     <th className="px-2 py-2 text-right">Qtd</th><th className="px-2 py-2 text-right">Valor unitário</th><th className="px-2 py-2 text-right">Total</th>
                                 </tr>
                             </thead>
@@ -763,8 +763,9 @@ function RevisaoLeitura({ leitura, temItens, salvando, onFechar, onConfirmar }: 
                                 {itens.map((i, idx) => (
                                     <tr key={idx} className={`border-b border-border/60 ${i.incluir ? '' : 'opacity-40'} ${i.divergente ? 'bg-warn/10' : ''}`}>
                                         <td className="px-2 py-1.5 text-center"><input type="checkbox" aria-label="Incluir item" className="accent-primary" checked={i.incluir} onChange={e => mudar(idx, 'incluir', e.target.checked)} /></td>
+                                        <td className="px-2 py-1.5 align-top"><input aria-label="Grupo" className={inputClass} value={i.grupo || ''} placeholder="Sem grupo" onChange={e => mudar(idx, 'grupo', e.target.value)} /></td>
                                         <td className="px-2 py-1.5">
-                                            <input aria-label="Descrição" className={inputClass} value={i.titulo} onChange={e => mudar(idx, 'titulo', e.target.value)} />
+                                            <input aria-label="Descrição" title={i.titulo} className={inputClass} value={i.titulo} onChange={e => mudar(idx, 'titulo', e.target.value)} />
                                             <span className="mt-0.5 block text-[11px] text-muted-foreground">{i.codigo_item ? `${i.codigo_item} · ` : ''}{i.origem}{i.divergente ? ' · total do arquivo diferente de qtd × unitário' : ''}</span>
                                         </td>
                                         <td className="px-2 py-1.5"><input aria-label="Unidade" className={inputClass} value={i.unidade} onChange={e => mudar(idx, 'unidade', e.target.value)} /></td>

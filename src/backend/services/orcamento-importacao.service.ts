@@ -142,7 +142,14 @@ export function lerOrcamentoExcel(buffer: Buffer): ResultadoLeitura {
             }
             // Cabeçalho de bloco ("1 - MOBILIZAÇÃO"): sem quantidade nem preço — vira o grupo
             // dos itens seguintes (10/10/2026; a pessoa confere e ajusta no editor).
-            if (qtd == null && unit == null) { const g = nomeDoGrupo(titulo || texto); if (g && tot == null) grupoAtual = g; continue; }
+            // O cabeçalho pode trazer o SUBTOTAL do bloco ("02 SERVIÇOS ... R$ 3.350"):
+            // com código de grupo (01, 02…) ele continua sendo grupo (18/10/2026).
+            if (qtd == null && unit == null) {
+                const codigoLinha = cols.codigo !== undefined ? String(l[cols.codigo] ?? '').trim() : '';
+                const g = nomeDoGrupo(titulo || texto);
+                if (g && (tot == null || /^\d{1,2}\.?$/.test(codigoLinha))) grupoAtual = g;
+                continue;
+            }
             const detalhe = cols.descricao !== undefined ? String(l[cols.descricao] ?? '').trim() : '';
             const item = montarItem({
                 codigo: cols.codigo !== undefined ? String(l[cols.codigo] ?? '') : '',

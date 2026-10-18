@@ -19,6 +19,8 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import fs from 'fs';
 import path from 'path';
+import XLSX from 'xlsx';
+import { lerOrcamentoExcel } from '../services/orcamento-importacao.service';
 
 const API = process.env.API_URL || 'http://localhost:3001/api';
 const prisma = new PrismaClient();
@@ -56,6 +58,22 @@ const contar = async (budgetId: string) => {
 async function main() {
     let atividadeId = '', budgetId = '', siteId = '', budgetPvSites = '';
     try {
+        // Modelo LS: a linha do grupo traz o subtotal ("02 SERVIÇOS ... 3.350") e
+        // ainda assim é grupo, não item (18/10/2026).
+        {
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([
+                ['ITEM', 'SERVIÇO', 'DESCRIÇÃO', 'QTD', 'UNIDADE', 'VALOR UNITÁRIO', 'VALOR TOTAL'],
+                ['01', 'MOBILIZAÇÃO', '', '', '', '', 1280],
+                ['01.1', 'Mobilização e desmobilização', 'Deslocamento de equipe', 1, 'VB', 1280, 1280],
+                ['02', 'SERVIÇOS', '', '', '', '', 3350],
+                ['02.1', 'Vistoria Técnica', 'Diagnóstico', 1, 'vb', 950, 950],
+                ['02.2', 'Mão de obra especializada', 'Substituição de fibras', 1, 'vb', 2400, 2400],
+            ]), 'ORÇAMENTO DETALHADO');
+            const lido = lerOrcamentoExcel(Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })));
+            conferir('grupo com subtotal reconhecido (Mobilização / Serviços)', lido.itens.map(i => `${i.grupo}:${i.codigo_item}`).join(',') === 'Mobilização:01.1,Serviços:02.1,Serviços:02.2', lido.itens.map(i => `${i.grupo}:${i.codigo_item}`).join(','));
+            conferir('linha de grupo não vira item', lido.itens.length === 3 && lido.soma_itens === 4630, `${lido.itens.length} itens, soma ${lido.soma_itens}`);
+        }
         const at = await json('/atividades', { method: 'POST', headers: cab, body: JSON.stringify({
             titulo: `Teste orçamento LS ${SUFIXO}`, tipo_demanda: 'IMPLANTACAO', modelo_operacao: 'MEDIANTE_APROVACAO',
             sharing: 'HIGHLINE', id_site_sharing: `TSTO${SUFIXO}`, operadora: 'TIM', id_site_operadora: `TSTO${SUFIXO}T`,
