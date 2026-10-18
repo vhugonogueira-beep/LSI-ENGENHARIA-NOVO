@@ -35,7 +35,7 @@ export class PriceBookService {
             include: {
                 supplier: { select: { id: true, nome: true, logo_url: true } },
                 contratante: { select: { id: true, nome: true, logo_url: true } },
-                _count: { select: { items: true } }
+                _count: { select: { items: { where: { ativo: true } } } }
             },
             orderBy: [{ origem: 'asc' }, { nome_lpu: 'asc' }]
         });
@@ -82,7 +82,7 @@ export class PriceBookService {
             where: { id },
             include: {
                 supplier: true,
-                _count: { select: { items: true } }
+                _count: { select: { items: { where: { ativo: true } } } }
             }
         });
     }

@@ -7,7 +7,8 @@ import { useEhAdmin } from '../lib/permissoes';
 import { TOM_AREA, TOM_MODULO, hexTom } from '../lib/cores';
 import type { Tom } from '../lib/cores';
 import PageHeader from '../components/PageHeader';
-import { AlertTriangle, Check, Library, Pencil, Plus, Star, Trash2, X } from "lucide-react";
+import NovaLpuModal, { ACEITA_PLANILHA, importarPlanilha } from './NovaLpuModal';
+import { AlertTriangle, Check, Library, Pencil, Plus, RotateCcw, Star, Trash2, Upload, X } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bases (LPUs) — tela única, ligada ao banco.
@@ -168,6 +169,35 @@ export default function TabLpus() {
   const [verDuplicados, setVerDuplicados] = useState(false);
 
   const notify = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 3500); };
+  // Cadastro pela tela (18/10/2026): nova base, planilha e PV Padrão Highline de volta.
+  const [criandoBase, setCriandoBase] = useState(false);
+  const [importando, setImportando] = useState(false);
+  const [restaurando, setRestaurando] = useState(false);
+  const [recarga, setRecarga] = useState(0);
+  const SERVICOS_PV_HIGHLINE = 266;
+
+  async function restaurarPvHighline() {
+    if (!window.confirm("Restaurar a PV Padrão Highline com os 266 serviços do template oficial?\n\nPreços já digitados são mantidos; itens sem preço recebem a média histórica das PVs. Itens fora do template deixam de contar como serviço da PV.")) return;
+    setRestaurando(true); setErro("");
+    try {
+      const r = await fetch("/api/pricebooks/restaurar-pv-highline", { method: "POST" });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d.error || "Erro ao restaurar a PV Padrão Highline");
+      await carregarBases();
+      setBaseId(d.id); setRecarga(v => v + 1);
+      notify(`PV Padrão Highline ${d.criada ? "recriada" : "conferida"}: ${d.total} serviços (${d.com_preco} com preço).`);
+    } catch (e: any) { setErro(e.message); } finally { setRestaurando(false); }
+  }
+
+  async function importarNaBase(arquivo: File) {
+    if (!baseId) return;
+    setImportando(true); setErro("");
+    try {
+      const res = await importarPlanilha(baseId, arquivo);
+      await carregarBases(); setRecarga(v => v + 1);
+      notify(`Planilha importada: ${res.criados} novo(s), ${res.atualizados} atualizado(s).`);
+    } catch (e: any) { setErro(e.message); } finally { setImportando(false); }
+  }
 
   const carregarBases = useCallback(async () => {
     setCarregandoBases(true);
@@ -260,7 +290,7 @@ export default function TabLpus() {
       }
     })();
     return () => { cancelado = true; };
-  }, [baseId, bases]);
+  }, [baseId, bases, recarga]);
 
   async function salvarCampo(item: Item, campo: keyof Item, valor: any) {
     if (item[campo] === valor) return;
@@ -452,6 +482,8 @@ export default function TabLpus() {
         <PageHeader icone={Library} tom={TOM_MODULO.lpus} titulo="Bases de preço (LPUs)"
           descricao="Preço ao cliente, custo LS e bases de fornecedor, classificadas por área e cliente." />
       </div>
+      {criandoBase && <NovaLpuModal clientes={clientes} onFechar={() => setCriandoBase(false)}
+        onCriada={async (id, aviso) => { setCriandoBase(false); await carregarBases(); setBaseId(id); setRecarga(v => v + 1); notify(aviso); }} />}
       {toast && <div style={{ position: "fixed", bottom: 20, right: 20, background: T.green, color: "#052e1b", padding: "10px 18px", borderRadius: 8, zIndex: 9999, fontWeight: 700, fontSize: 12, boxShadow: "0 4px 14px rgba(0,0,0,0.4)" }}>{toast}</div>}
 
       {pendentes.length > 0 && (
@@ -478,9 +510,23 @@ export default function TabLpus() {
       <div style={{ display: "flex", gap: 14, flex: 1, overflow: "hidden" }}>
         {/* ── Lista de bases, agrupada por natureza ── */}
         <div style={{ ...S.card, width: 264, display: "flex", flexDirection: "column", gap: 10, padding: 14, overflow: "hidden", flexShrink: 0 }}>
-          <h3 style={{ margin: 0, fontSize: 13, color: T.txPri, display: "flex", alignItems: "center", gap: 8 }}>
-            <Library size={15} aria-hidden style={{ color: COR_MODULO() }} /> Bases e LPUs
-          </h3>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <h3 style={{ margin: 0, fontSize: 13, color: T.txPri, display: "flex", alignItems: "center", gap: 8 }}>
+              <Library size={15} aria-hidden style={{ color: COR_MODULO() }} /> Bases e LPUs
+            </h3>
+            <button onClick={() => setCriandoBase(true)} style={{ ...S.btn, ...S.btnBlue, padding: "5px 10px", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <Plus size={13} aria-hidden /> Nova LPU
+            </button>
+          </div>
+          {!carregandoBases && !bases.some(b => b.nome_lpu === "PV Padrão Highline") && (
+            <div style={{ border: `1px solid ${T.amber}66`, background: T.amber + "12", borderRadius: 8, padding: "8px 10px", fontSize: 11, color: T.txSec }}>
+              <div style={{ fontWeight: 700, color: T.amber, marginBottom: 4 }}>PV Padrão Highline não está no sistema</div>
+              Sem ela, a PV Highline das atividades fica sem catálogo.
+              <button onClick={restaurarPvHighline} disabled={restaurando} style={{ ...S.btn, marginTop: 6, padding: "5px 10px", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <RotateCcw size={12} aria-hidden /> {restaurando ? "Restaurando..." : "Restaurar do template oficial"}
+              </button>
+            </div>
+          )}
           <div className="scroll-min" style={{ overflowY: "auto", display: "flex", flexDirection: "column", gap: 13 }}>
             {carregandoBases && <div style={{ color: T.txMut, fontSize: 12 }}>Carregando...</div>}
             {grupos.map(g => (
@@ -597,6 +643,19 @@ export default function TabLpus() {
                   {ehLsoc && <Indicador rotulo="Com venda" valor={itens.filter(i => (i.valor_venda || 0) > 0).length} />}
                   <Indicador rotulo={ehLsoc ? "Com custo" : "Com preço"} valor={comValor} />
                   <Indicador rotulo={ehLsoc ? "Sem custo" : "A preencher"} valor={itens.length - comValor} alerta />
+                  <label title="Itens de uma planilha Excel/CSV (colunas pelo nome do cabeçalho)"
+                    style={{ ...S.btn, alignSelf: "center", padding: "6px 11px", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 6, opacity: importando ? 0.6 : 1 }}>
+                    <Upload size={14} aria-hidden /> {importando ? "Importando..." : "Importar planilha"}
+                    <input type="file" hidden accept={ACEITA_PLANILHA} disabled={importando}
+                      onChange={e => { const f = e.target.files?.[0]; e.target.value = ""; if (f) importarNaBase(f); }} />
+                  </label>
+                  {base.nome_lpu === "PV Padrão Highline" && (
+                    <button onClick={restaurarPvHighline} disabled={restaurando}
+                      title={`O template oficial tem ${SERVICOS_PV_HIGHLINE} serviços; recria os que faltam sem mexer nos preços já digitados`}
+                      style={{ ...S.btn, alignSelf: "center", padding: "6px 11px", fontSize: 11, display: "inline-flex", alignItems: "center", gap: 6, ...(itens.length !== SERVICOS_PV_HIGHLINE ? { color: T.amber, borderColor: T.amber + "88" } : {}) }}>
+                      <RotateCcw size={14} aria-hidden /> {restaurando ? "Conferindo..." : itens.length !== SERVICOS_PV_HIGHLINE ? `Conferir com o template (${itens.length} de ${SERVICOS_PV_HIGHLINE})` : "Conferir com o template"}
+                    </button>
+                  )}
                   {ehAdmin && (
                     <button onClick={excluirBase} title="Excluir esta base (só administrador)"
                       style={{ ...S.btn, alignSelf: "center", padding: "6px 11px", fontSize: 11, color: T.red, borderColor: T.red + "66", background: "transparent", display: "inline-flex", alignItems: "center", gap: 6 }}>
