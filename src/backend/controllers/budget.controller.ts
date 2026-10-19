@@ -1,6 +1,7 @@
+import fs from 'fs';
 import { nomeArquivoUtf8 } from '../utils/nome-arquivo';
 import { Request, Response } from 'express';
-import { BudgetService } from '../services/budget.service';
+import { BudgetService, calcularTotalLinha } from '../services/budget.service';
 import { ExportService } from '../services/export.service';
 import { prisma } from '../server';
 import { generateHighlinePv, listHighlinePvCatalog } from '../services/highline-pv.service';
@@ -162,7 +163,39 @@ export class BudgetController {
     }
 
     static async listarImportados(req: Request, res: Response) {
-        try { res.json(await listarArquivosImportados(req.params.id)); }
+        try {
+            // Cada arquivo é um orçamento (18/10/2026): quantos itens dele estão no
+            // orçamento, quanto somam e se vale (algum item ativo) ou não.
+            const arquivos = await listarArquivosImportados(req.params.id);
+            // Itens importados antes de existir o vínculo (18/10/2026): religados ao
+            // arquivo que os contém, comparando descrição e valor com o que o arquivo traz.
+            const soltos = await prisma.budgetItem.findMany({ where: { budget_id: req.params.id, arquivo_origem: null, origem_item: { in: ['ORCAMENTO_LS', 'PV_CLIENTE'] } } });
+            if (soltos.length) {
+                const norm = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+                for (const a of [...arquivos].reverse()) {
+                    const caminho = caminhoArquivoImportado(req.params.id, a.nome);
+                    if (!caminho) continue;
+                    const lidos = await lerOrcamentoArquivo(fs.readFileSync(caminho), a.nome_original).then(l => l.itens).catch(() => []);
+                    for (const l of lidos) {
+                        const alvo = soltos.find(i => !(i as any).ligado && norm(i.titulo) === norm(l.titulo) && Math.abs(i.valor_unitario - l.valor_unitario) < 0.01);
+                        if (!alvo) continue;
+                        (alvo as any).ligado = true;
+                        await prisma.budgetItem.update({ where: { id: alvo.id }, data: { arquivo_origem: a.nome } });
+                    }
+                }
+            }
+            const itens = await prisma.budgetItem.findMany({ where: { budget_id: req.params.id, arquivo_origem: { not: null } } });
+            res.json(arquivos.map(a => {
+                const doArquivo = itens.filter(i => i.arquivo_origem === a.nome);
+                const ativos = doArquivo.filter(i => i.ativo);
+                return {
+                    ...a, itens: doArquivo.length,
+                    // Valor do orçamento do arquivo, mesmo quando ele está não válido (item inativo tem total 0).
+                    total: Math.round(doArquivo.reduce((s, i) => s + calcularTotalLinha({ ...i, ativo: true }), 0) * 100) / 100,
+                    situacao: !doArquivo.length ? 'SEM_ITENS' : ativos.length ? 'VALIDO' : 'NAO_VALIDO',
+                };
+            }));
+        }
         catch (error: any) { res.status(400).json({ error: error.message }); }
     }
 
@@ -180,6 +213,31 @@ export class BudgetController {
     static async numero(req: Request, res: Response) {
         try {
             res.json({ numero: await emitirNumeroOrcamento(req.params.id, (req as any).user?.userId) });
+        } catch (error: any) {
+            res.status(400).json({ error: error.message });
+        }
+    }
+
+    /** Marca o orçamento importado como válido ou não: os itens dele entram ou saem do total. */
+    static async validadeImportado(req: Request, res: Response) {
+        try {
+            const budget = await prisma.budget.findUnique({ where: { id: req.params.id } });
+            if (!budget) return res.status(404).json({ error: 'Orçamento não encontrado' });
+            if (budget.status !== 'RASCUNHO') return res.status(400).json({ error: 'O orçamento já saiu do rascunho; não dá para mudar quais arquivos valem' });
+            const valido = req.body?.valido === true;
+            const doArquivo = await prisma.budgetItem.findMany({ where: { budget_id: budget.id, arquivo_origem: req.params.nome } });
+            // O total da linha acompanha: inativo vale 0, e volta ao reativar.
+            for (const i of doArquivo) await prisma.budgetItem.update({ where: { id: i.id }, data: { ativo: valido, total_linha: calcularTotalLinha({ ...i, ativo: valido }) } });
+            const r = { count: doArquivo.length };
+            if (!r.count) return res.status(400).json({ error: 'Nenhum item deste arquivo está no orçamento. Importe o arquivo de novo e use "Adicionar".' });
+            await prisma.budget.update({ where: { id: budget.id }, data: { updated_at: new Date() } });
+            await prisma.auditLog.create({
+                data: {
+                    tenant_id: budget.tenant_id, entidade: 'Budget', entidade_id: budget.id, acao: valido ? 'ORCAMENTO_ARQUIVO_VALIDO' : 'ORCAMENTO_ARQUIVO_NAO_VALIDO',
+                    depois_json: JSON.stringify({ arquivo: req.params.nome, itens: r.count }), user_id: (req as any).user?.userId || null,
+                },
+            });
+            res.json({ itens: r.count, valido });
         } catch (error: any) {
             res.status(400).json({ error: error.message });
         }

@@ -383,6 +383,9 @@ model BudgetItem {
   desconto_interno_percent Float   @default(0)
   total_linha              Float // Armazenado pra cache
   source_pricebook_item_id String?
+  // Orçamento importado (arquivo) de onde o item veio (18/10/2026): cada arquivo
+  // é um orçamento que vale ou não; o não válido deixa os itens inativos.
+  arquivo_origem           String?
   highline_template_row    Int? // linha oficial da aba Quantitativos; identidade estável mesmo com códigos repetidos
   origem_item              String  @default("INTERNO") // INTERNO | CATALOGO_HIGHLINE | LPU_FORNECEDOR | ORCAMENTO_LS | PV_CLIENTE | PV_OM_HIGHLINE
   // Item do Orçamento LS em operação Highline: código O&M da Highline a que ele

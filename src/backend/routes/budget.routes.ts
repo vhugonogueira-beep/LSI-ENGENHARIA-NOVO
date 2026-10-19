@@ -29,6 +29,7 @@ router.post('/:id/importar', uploadOrcamento, BudgetController.importarArquivo);
 router.get('/:id/importados', BudgetController.listarImportados);
 router.get('/:id/importados/:nome', BudgetController.baixarImportado);
 router.delete('/:id/importados/:nome', BudgetController.excluirImportado);
+router.put('/:id/importados/:nome/validade', BudgetController.validadeImportado);
 router.post('/:id/versions', BudgetController.createVersion);
 router.get('/:id/export/html', BudgetController.exportHtml);
 router.get('/:id/export/excel', BudgetController.exportExcel);

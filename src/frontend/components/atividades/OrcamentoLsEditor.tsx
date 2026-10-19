@@ -31,6 +31,8 @@ interface Linha {
     source_pricebook_item_id?: string | null;
     /** Operação Highline: código O&M da Highline a que o item corresponde na PV O&M. */
     codigo_vinculo?: string | null;
+    /** Arquivo importado de onde o item veio (18/10/2026): cada arquivo é um orçamento que vale ou não. */
+    arquivo_origem?: string | null;
     /** Ajustes internos (catálogo da LPU na operação): não aparecem para o cliente. */
     desconto_interno_percent?: number;
     bdi_percent?: number;
@@ -66,7 +68,7 @@ interface Leitura {
     avisos: string[];
     arquivo: string;
 }
-interface Importado { nome: string; nome_original: string; tamanho: number; enviado_em: string }
+interface Importado { nome: string; nome_original: string; tamanho: number; enviado_em: string; itens?: number; total?: number; situacao?: 'VALIDO' | 'NAO_VALIDO' | 'SEM_ITENS' }
 
 let seq = 0;
 const novaChave = () => `l${++seq}`;
@@ -138,6 +140,8 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     const [lendo, setLendo] = useState(false);
     const [leitura, setLeitura] = useState<Leitura | null>(null);
     const [importados, setImportados] = useState<Importado[]>([]);
+    const [inativas, setInativas] = useState<Linha[]>([]);
+    const [mudandoValidade, setMudandoValidade] = useState<string | null>(null);
     const arquivoRef = useRef<HTMLInputElement>(null);
 
     const carregar = useCallback(async () => {
@@ -145,9 +149,13 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             authFetch(`/api/budgets/${budgetId}`).then(r => r.json()),
             authFetch(`/api/budgets/${budgetId}/importados`).then(r => (r.ok ? r.json() : [])),
         ]);
-        const itens: Linha[] = (b.items || [])
+        const todos: (Linha & { ativo: boolean })[] = (b.items || [])
             .filter((i: any) => i.origem_item === grupo)
-            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario, source_pricebook_item_id: i.source_pricebook_item_id || null, codigo_vinculo: i.codigo_vinculo || null, desconto_interno_percent: i.desconto_interno_percent || 0, bdi_percent: i.bdi_percent || 0 }));
+            .map((i: any) => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: BLOCO_SEM_GRUPO.includes(i.bloco) ? '' : (i.bloco || ''), titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario, source_pricebook_item_id: i.source_pricebook_item_id || null, codigo_vinculo: i.codigo_vinculo || null, desconto_interno_percent: i.desconto_interno_percent || 0, bdi_percent: i.bdi_percent || 0, arquivo_origem: i.arquivo_origem || null, ativo: i.ativo !== false }));
+        // Itens de orçamento importado marcado como não válido ficam guardados,
+        // fora da edição e do total; voltam quando o arquivo é marcado válido.
+        const itens: Linha[] = todos.filter(l => l.ativo).map(({ ativo, ...l }) => l);
+        setInativas(todos.filter(l => !l.ativo).map(({ ativo, ...l }) => l));
         setLinhas(itens);
         setLinhasSalvas(itens);
         setSalvas(JSON.stringify(itens.map(({ chave, ...r }) => r)));
@@ -176,6 +184,13 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                         codigo_item: codigos[i], titulo: l.titulo.trim(), unidade: l.unidade || 'un',
                         quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: l.bdi_percent || 0, desconto_interno_percent: l.desconto_interno_percent || 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
                         source_pricebook_item_id: l.source_pricebook_item_id || null, codigo_vinculo: l.codigo_vinculo || null,
+                        arquivo_origem: l.arquivo_origem || null,
+                    })),
+                    // Itens de orçamentos não válidos seguem gravados, inativos.
+                    ...inativas.map((l, k) => ({
+                        codigo_item: l.codigo_item, titulo: l.titulo.trim(), unidade: l.unidade || 'un', quantidade: l.quantidade, valor_unitario: l.valor_unitario,
+                        bdi_percent: l.bdi_percent || 0, desconto_interno_percent: l.desconto_interno_percent || 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS',
+                        ordem: lista.length + k, arquivo_origem: l.arquivo_origem || null, codigo_vinculo: l.codigo_vinculo || null, ativo: false,
                     })),
                 }),
             });
@@ -350,7 +365,8 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                                     <td className="px-3 py-1.5 font-id text-xs text-muted-foreground" title="Gerado pela ordem dos itens">{codigosTela[idx]}</td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Grupo" list={`grupos-${budgetId}`} placeholder="Sem grupo" className={inputClass} value={l.grupo} onChange={e => mudar(l.chave, 'grupo', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Descrição" className={inputClass} value={l.titulo} onChange={e => mudar(l.chave, 'titulo', e.target.value)} />
-                                        {vinculoHighline && <div className={`mt-0.5 flex items-center gap-1 text-[10px] ${l.codigo_vinculo ? 'text-muted-foreground' : 'text-warn'}`}><Link2 size={10} aria-hidden />{l.codigo_vinculo ? `PV O&M: ${l.codigo_vinculo}` : 'sem código O&M'}</div>}</td>
+                                        {vinculoHighline && <div className={`mt-0.5 flex items-center gap-1 text-[10px] ${l.codigo_vinculo ? 'text-muted-foreground' : 'text-warn'}`}><Link2 size={10} aria-hidden />{l.codigo_vinculo ? `PV O&M: ${l.codigo_vinculo}` : 'sem código O&M'}</div>}
+                                        {l.arquivo_origem && <div className="mt-0.5 truncate text-[10px] text-muted-foreground" title={l.arquivo_origem.replace(/^\d+-/, '')}>de {l.arquivo_origem.replace(/^\d+-/, '')}</div>}</td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Unidade" className={inputClass} value={l.unidade} onChange={e => mudar(l.chave, 'unidade', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Quantidade" type="number" min={0} step="any" className={`${inputClass} text-right`} value={l.quantidade} onChange={e => mudar(l.chave, 'quantidade', e.target.value)} /></td>
                                     <td className="px-2 py-1.5"><input disabled={!editavel} aria-label="Valor unitário" type="number" min={0} step="0.01" className={`${inputClass} text-right`} value={l.valor_unitario} onChange={e => mudar(l.chave, 'valor_unitario', e.target.value)} /></td>
@@ -409,26 +425,71 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                 </div>
             )}
 
-            {importados.length > 0 && (
-                <div className="mt-4 border-t border-border pt-3">
-                    <p className="mb-2 text-xs font-semibold text-muted-foreground">Arquivos importados</p>
-                    <ul className="flex flex-col gap-1">
-                        {importados.map(a => (
-                            <li key={a.nome}>
-                                <button type="button" onClick={() => downloadAuthenticatedFile(`/api/budgets/${budgetId}/importados/${encodeURIComponent(a.nome)}`, a.nome_original)}
-                                    className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline">
-                                    <Paperclip size={12} aria-hidden /> {a.nome_original}
-                                    <span className="text-muted-foreground">· {new Date(a.enviado_em).toLocaleString('pt-BR')}</span>
-                                </button>
-                                {editavel && (
-                                    <button type="button" onClick={() => excluirArquivo(a)} aria-label={`Excluir o arquivo ${a.nome_original}`} title="Excluir arquivo"
-                                        className="ml-2 inline-flex rounded p-1 align-middle text-muted-foreground hover:bg-crit/10 hover:text-crit"><Trash2 size={12} aria-hidden /></button>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+            {importados.length > 0 && (() => {
+                // Cada arquivo importado é um orçamento (18/10/2026): válido entra no
+                // total; não válido fica guardado, fora do orçamento.
+                async function mudarValidade(a: Importado, valido: boolean) {
+                    if (alterado) { setErro('Salve as alterações antes de mudar quais orçamentos valem'); return; }
+                    setErro(''); setMudandoValidade(a.nome);
+                    try {
+                        const r = await authFetch(`/api/budgets/${budgetId}/importados/${encodeURIComponent(a.nome)}/validade`, {
+                            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ valido }),
+                        });
+                        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao mudar a validade');
+                        await carregar(); onMudou?.();
+                    } catch (e: any) { setErro(e.message); } finally { setMudandoValidade(null); }
+                }
+                const validos = importados.filter(a => a.situacao === 'VALIDO');
+                const SIT: Record<string, { rotulo: string; classe: string }> = {
+                    VALIDO: { rotulo: 'Válido', classe: 'bg-ok/15 text-ok' },
+                    NAO_VALIDO: { rotulo: 'Não válido', classe: 'bg-crit/15 text-crit' },
+                    SEM_ITENS: { rotulo: 'Sem itens no orçamento', classe: 'bg-muted text-muted-foreground' },
+                };
+                return (
+                    <div className="mt-4 border-t border-border pt-3">
+                        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                            <p className="text-sm font-semibold">Orçamentos importados <span className="font-normal text-muted-foreground">— cada arquivo é um orçamento; os válidos somam no total</span></p>
+                            <p className="text-xs text-muted-foreground">{validos.length} de {importados.length} válido(s) · <strong className="text-foreground tabular-nums">{fmtMoeda(validos.reduce((t, a) => t + (a.total || 0), 0))}</strong></p>
+                        </div>
+                        <div className="overflow-x-auto rounded-lg border border-border">
+                            <table className="w-full min-w-[720px] text-sm">
+                                <thead><tr className="border-b border-border bg-secondary/30 text-left text-xs font-semibold text-muted-foreground">
+                                    <th className="px-3 py-2">Arquivo</th><th className="px-3 py-2">Importado em</th><th className="px-3 py-2 text-right">Itens</th>
+                                    <th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2">Situação</th><th className="px-3 py-2" />
+                                </tr></thead>
+                                <tbody>
+                                    {importados.map(a => {
+                                        const sit = SIT[a.situacao || 'SEM_ITENS'];
+                                        return (
+                                            <tr key={a.nome} className={`border-b border-border/60 last:border-b-0 ${a.situacao === 'NAO_VALIDO' ? 'opacity-60' : ''}`}>
+                                                <td className="px-3 py-2">
+                                                    <button type="button" onClick={() => downloadAuthenticatedFile(`/api/budgets/${budgetId}/importados/${encodeURIComponent(a.nome)}`, a.nome_original)}
+                                                        className="inline-flex items-center gap-1.5 text-left text-xs font-semibold text-primary hover:underline">
+                                                        <Paperclip size={12} aria-hidden className="shrink-0" /> {a.nome_original}
+                                                    </button>
+                                                </td>
+                                                <td className="px-3 py-2 text-xs text-muted-foreground">{new Date(a.enviado_em).toLocaleString('pt-BR')}</td>
+                                                <td className="px-3 py-2 text-right tabular-nums">{a.itens || '—'}</td>
+                                                <td className="px-3 py-2 text-right font-semibold tabular-nums">{a.itens ? fmtMoeda(a.total || 0) : '—'}</td>
+                                                <td className="px-3 py-2"><span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${sit.classe}`}>{sit.rotulo}</span></td>
+                                                <td className="px-3 py-2 text-right whitespace-nowrap">
+                                                    {editavel && a.situacao === 'VALIDO' && <button type="button" disabled={mudandoValidade === a.nome} onClick={() => mudarValidade(a, false)} className="h-7 rounded-md border border-border px-2.5 text-xs font-semibold hover:bg-secondary/60 disabled:opacity-40">Marcar não válido</button>}
+                                                    {editavel && a.situacao === 'NAO_VALIDO' && <button type="button" disabled={mudandoValidade === a.nome} onClick={() => mudarValidade(a, true)} className="h-7 rounded-md border border-ok/50 px-2.5 text-xs font-semibold text-ok hover:bg-ok/10 disabled:opacity-40">Marcar válido</button>}
+                                                    {editavel && (
+                                                        <button type="button" onClick={() => excluirArquivo(a)} aria-label={`Excluir o arquivo ${a.nome_original}`} title="Excluir arquivo"
+                                                            className="ml-1 inline-flex rounded p-1 align-middle text-muted-foreground hover:bg-crit/10 hover:text-crit"><Trash2 size={13} aria-hidden /></button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                        {importados.some(a => a.situacao === 'SEM_ITENS') && <p className="mt-1.5 text-[11px] text-muted-foreground">"Sem itens no orçamento": o arquivo foi lido, mas os itens dele não estão aqui (foi substituído ou importado antes desta mudança). Para somá-lo, importe de novo e use "Somar como outro orçamento".</p>}
+                    </div>
+                );
+            })()}
 
             {revisao && (
                 <RevisaoIaModal revisao={revisao} linhas={linhas} onAplicar={aplicarSugestao} onFechar={() => setRevisao(null)} modelo={ia?.modelo} />
@@ -463,7 +524,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                 <RevisaoLeitura leitura={leitura} temItens={linhas.length > 0} salvando={salvando}
                     onFechar={() => setLeitura(null)}
                     onConfirmar={async (itens, modo) => {
-                        const novos: Linha[] = itens.map(i => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: i.grupo || '', titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario }));
+                        const novos: Linha[] = itens.map(i => ({ chave: novaChave(), codigo_item: i.codigo_item, grupo: i.grupo || '', titulo: i.titulo, unidade: i.unidade, quantidade: i.quantidade, valor_unitario: i.valor_unitario, arquivo_origem: leitura.arquivo }));
                         const lista = modo === 'SUBSTITUIR' ? novos : [...linhas, ...novos];
                         if (await salvar(lista)) setLeitura(null);
                     }} />
@@ -787,7 +848,8 @@ function RevisaoLeitura({ leitura, temItens, salvando, onFechar, onConfirmar }: 
                     <button type="button" onClick={onFechar} className="ml-auto h-9 rounded-lg border border-border px-4 text-sm font-medium hover:bg-secondary/60">Cancelar</button>
                     {temItens && (
                         <button type="button" disabled={!escolhidos.length || salvando} onClick={() => onConfirmar(escolhidos, 'ADICIONAR')}
-                            className="h-9 rounded-lg border border-primary/60 px-4 text-sm font-semibold text-primary hover:bg-primary/10 disabled:opacity-40">Adicionar aos itens atuais</button>
+                            className="h-9 rounded-lg border border-primary/60 px-4 text-sm font-semibold text-primary hover:bg-primary/10 disabled:opacity-40"
+                            title="Outro orçamento para o mesmo site: os itens somam aos atuais">Somar como outro orçamento</button>
                     )}
                     <button type="button" disabled={!escolhidos.length || salvando} onClick={() => onConfirmar(escolhidos, 'SUBSTITUIR')}
                         className="h-9 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40">

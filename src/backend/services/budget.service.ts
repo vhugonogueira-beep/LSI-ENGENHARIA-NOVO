@@ -289,6 +289,7 @@ export class BudgetService {
                 source_pricebook_item_id: daBase?.itemId || item.source_pricebook_item_id || null,
                 highline_template_row: templateRow,
                 codigo_vinculo: item.codigo_vinculo ? String(item.codigo_vinculo).trim().toUpperCase() : null,
+                arquivo_origem: item.arquivo_origem ? String(item.arquivo_origem).slice(0, 200) : null,
                 origem_item: catalogItem ? 'CATALOGO_HIGHLINE'
                     : grupoDoEscopo ? grupoDoEscopo
                     : (item.origem_item && !GRUPOS_PROPRIOS.includes(item.origem_item) ? item.origem_item : 'INTERNO'),
@@ -335,6 +336,7 @@ export class BudgetService {
             source_pricebook_item_id: item.source_pricebook_item_id,
             highline_template_row: highlineTemplateRow,
             codigo_vinculo: (item as any).codigo_vinculo ?? null,
+            arquivo_origem: (item as any).arquivo_origem ?? null,
             origem_item: item.origem_item,
             user_overridden: item.user_overridden,
             ativo: item.ativo,
