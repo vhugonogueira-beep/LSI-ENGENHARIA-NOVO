@@ -317,7 +317,8 @@ export async function solicitarPagamento(req: Request, res: Response) {
         const solicitacao = await prisma.solicitacaoPagamento.create({
             data: {
                 parcela_id: parcelaId,
-                motivo: motivo || `Pagamento de ${parcela.tipo.toLowerCase()} — ${parcela.contratacao.finalidade}`,
+                // Sem motivo digitado, vale o detalhamento do serviço informado no pagamento (19/10/2026).
+                motivo: motivo || parcela.contratacao.observacoes || `Pagamento de ${parcela.tipo.toLowerCase()} — ${parcela.contratacao.finalidade}`,
                 destinatario_financeiro: destinatario_financeiro || 'financeiro@lsoffice.com.br',
                 banco_snapshot: supplier.banco,
                 agencia_snapshot: supplier.agencia,

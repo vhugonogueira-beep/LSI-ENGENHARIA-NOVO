@@ -1094,9 +1094,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             <Field label="Data prevista para pagamento">
                                 <input type="date" className={inputClass} value={programacao.data_prevista} onChange={e => setProgramacao(p => p && ({ ...p, data_prevista: e.target.value }))}/>
                             </Field>
-                            {programacao.statusAtual === 'PENDENTE' && <div className="col-span-2"><Field label="Motivo ou observação para o financeiro">
-                                <textarea className={inputClass} rows={3} value={programacao.motivo} onChange={e => setProgramacao(p => p && ({ ...p, motivo: e.target.value }))} placeholder="Ex.: pagamento de mobilização, saldo após conclusão..." />
-                            </Field></div>}
+                            {/* O motivo é o detalhamento já informado no pagamento (19/10/2026): não se pede de novo. */}
                         </div>
                         <div className="flex justify-end gap-2 mt-5"><GhostButton onClick={() => setProgramacao(null)}>Cancelar</GhostButton><PrimaryButton onClick={salvarProgramacaoPagamento} disabled={!programacao.data_solicitacao || !programacao.data_prevista}>Confirmar programação</PrimaryButton></div>
                     </div>
