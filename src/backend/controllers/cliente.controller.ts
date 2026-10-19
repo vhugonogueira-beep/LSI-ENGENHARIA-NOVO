@@ -1,13 +1,29 @@
 import { Request, Response } from 'express';
 import { prisma } from '../server';
 
-const TIPOS = ['CLIENTE', 'SHARING', 'OPERADORA', 'SHARING_OPERADORA'];
+// O tipo "Cliente" saiu em 19/10/2026: todo cadastro é sharing, operadora ou os dois.
+const TIPOS = ['SHARING', 'OPERADORA', 'SHARING_OPERADORA'];
+const OPERADORAS_MOVEIS = /^(TIM|VIVO|CLARO|OI|TELEFONICA)\b/;
+
+/**
+ * Cadastros antigos do tipo CLIENTE viram SHARING; as operadoras móveis (TIM,
+ * Vivo, Claro, Oi) viram SHARING_OPERADORA — detentora em umas atividades,
+ * operadora em outras. Idempotente: roda a cada listagem e só mexe no que sobrou.
+ */
+async function converterTipoCliente(tenant: string) {
+    const antigos = await prisma.contratante.findMany({ where: { tenant_id: tenant, tipo: 'CLIENTE' }, select: { id: true, nome: true, sigla: true } });
+    for (const c of antigos) {
+        const chave = `${c.sigla || ''} ${c.nome}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+        const operadora = [c.sigla, c.nome].some(v => v && OPERADORAS_MOVEIS.test(v.normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim())) || OPERADORAS_MOVEIS.test(chave);
+        await prisma.contratante.update({ where: { id: c.id }, data: { tipo: operadora ? 'SHARING_OPERADORA' : 'SHARING' } });
+    }
+}
 
 function tenantId(req: Request) { return (req as any).user.tenantId as string; }
 
 function dataFrom(body: any) {
-    const tipo = String(body.tipo || 'CLIENTE').toUpperCase();
-    if (!TIPOS.includes(tipo)) throw new Error('Tipo de cliente inválido');
+    const tipo = String(body.tipo || 'SHARING').toUpperCase();
+    if (!TIPOS.includes(tipo)) throw new Error('Tipo inválido: use Sharing, Operadora ou Sharing e operadora');
     return {
         nome: String(body.nome || '').trim(),
         razao_social: String(body.razao_social || '').trim() || null,
@@ -25,7 +41,10 @@ function dataFrom(body: any) {
 }
 
 export async function listClientes(req: Request, res: Response) {
-    try { res.json(await prisma.contratante.findMany({ where: { tenant_id: tenantId(req) }, orderBy: [{ ativo: 'desc' }, { nome: 'asc' }] })); }
+    try {
+        await converterTipoCliente(tenantId(req));
+        res.json(await prisma.contratante.findMany({ where: { tenant_id: tenantId(req) }, orderBy: [{ ativo: 'desc' }, { nome: 'asc' }] }));
+    }
     catch (error: any) { res.status(400).json({ error: error.message }); }
 }
 

@@ -36,17 +36,16 @@ interface Cliente {
 }
 
 const FORM_INIT = {
-  nome: '', razao_social: '', sigla: '', tipo: 'CLIENTE', cnpj: '',
+  nome: '', razao_social: '', sigla: '', tipo: 'SHARING', cnpj: '',
   contato_nome: '', contato_email: '', contato_telefone: '',
   endereco: '', cidade: '', uf: '', ativo: true,
 };
 
 /**
  * Um mesmo cadastro pode ser sharing e operadora ao mesmo tempo (a Vivo é
- * operadora numa atividade e contratante em outra) — por isso o quarto tipo.
+ * operadora numa atividade e detentora em outra) — por isso o terceiro tipo.
  */
 const TIPOS: { valor: string; rotulo: string }[] = [
-  { valor: 'CLIENTE', rotulo: 'Cliente' },
   { valor: 'SHARING', rotulo: 'Sharing' },
   { valor: 'OPERADORA', rotulo: 'Operadora' },
   { valor: 'SHARING_OPERADORA', rotulo: 'Sharing e operadora' },
