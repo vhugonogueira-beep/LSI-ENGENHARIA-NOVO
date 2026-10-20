@@ -285,6 +285,39 @@ export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoe
         [COLUNAS.join(' | ')].concat(linhasTabela.map(l => l.join(' | '))).join('\n'),
     ].join('\n');
 
+    // Tabela pensada para o Outlook (19/10/2026): ele desenha com o motor do Word e
+    // ignora boa parte do CSS — larguras vão em atributo width, alinhamento em
+    // align, e cada célula repete a fonte. Texto à esquerda, valores à direita,
+    // códigos ao centro; nada de quebra nas colunas curtas.
+    const COLUNAS_EMAIL: { largura: number; alinhar: 'left' | 'right' | 'center'; quebra?: boolean }[] = [
+        { largura: 96, alinhar: 'left' },            // ID SITE
+        { largura: 62, alinhar: 'center' },          // PO
+        { largura: 46, alinhar: 'center' },          // LINHA
+        { largura: 260, alinhar: 'left', quebra: true }, // SERVIÇO
+        { largura: 92, alinhar: 'right' },           // VALOR
+        { largura: 78, alinhar: 'left' },            // EMPRESA
+        { largura: 32, alinhar: 'center' },          // UF
+        { largura: 110, alinhar: 'left', quebra: true }, // CIDADE
+        { largura: 92, alinhar: 'right' },           // VALOR PO
+        { largura: 70, alinhar: 'center' },          // % LIBERAÇÃO
+        { largura: 70, alinhar: 'center' },          // LIBERAÇÃO MICROSIGA
+    ];
+    const larguraTabela = COLUNAS_EMAIL.reduce((t, c) => t + c.largura, 0);
+    const fonte = "font-family:Calibri,Arial,sans-serif;font-size:9pt;mso-line-height-rule:exactly;line-height:12pt";
+    const celula = (conteudo: string, i: number, cabecalho = false) => {
+        const c = COLUNAS_EMAIL[i];
+        const estilo = `${fonte};border:1px solid #9BB0C9;padding:4px 6px;vertical-align:middle;text-align:${cabecalho ? 'center' : c.alinhar};${c.quebra || cabecalho ? '' : 'white-space:nowrap;'}${cabecalho ? 'background:#1F4E79;color:#FFFFFF;font-weight:bold;' : ''}`;
+        const tag = cabecalho ? 'th' : 'td';
+        return `<${tag} width="${c.largura}" align="${cabecalho ? 'center' : c.alinhar}" valign="middle" style="${estilo}">${conteudo}</${tag}>`;
+    };
+    const tabelaHtml = `<table width="${larguraTabela}" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:${larguraTabela}px;table-layout:fixed;${fonte}">
+  <thead><tr>${COLUNAS.map((c, i) => celula(escapeHtml(c), i, true)).join('')}</tr></thead>
+  <tbody>
+    ${linhasTabela.map((l, n) => `<tr style="background:${n % 2 ? '#F3F6FA' : '#FFFFFF'}">${l.map((c, i) => celula(escapeHtml(c), i)).join('')}</tr>`).join('\n    ')}
+    <tr style="background:#DCE6F1">${celula('<b>TOTAL</b>', 0)}${celula('', 1)}${celula('', 2)}${celula('', 3)}${celula(`<b>${fmtMoeda(total)}</b>`, 4)}${COLUNAS_EMAIL.slice(5).map((_, k) => celula('', k + 5)).join('')}</tr>
+  </tbody>
+</table>`;
+
     const corpoHtml = `
 <p>Boa tarde!</p>
 <p>Segue a atualização das liberações de faturamento da <strong>${escapeHtml(cliente.toUpperCase())}</strong>, referente às demandas já liberadas no Microsiga.<br>
@@ -292,16 +325,7 @@ Nesta atualização, temos <strong>${registros.length} linha(s) liberada(s)</str
 Peço, por gentileza, que considere a tabela abaixo para o devido prosseguimento do processo de faturamento.</p>
 ${autorizacoes.length ? `<p>${autorizacoes.map(a => escapeHtml(a)).join('<br>')}</p>` : ''}
 <p><strong>POs LIBERADAS PARA FATURAMENTO</strong></p>
-<table style="border-collapse:collapse;font-family:Calibri,Arial,sans-serif;font-size:11pt">
-  <thead>
-    <tr style="background:#1F4E79;color:#fff">
-      ${COLUNAS.map(c => `<th style="border:1px solid #8EA9DB;padding:6px 10px;text-align:left;white-space:nowrap">${escapeHtml(c)}</th>`).join('')}
-    </tr>
-  </thead>
-  <tbody>
-    ${linhasTabela.map(l => `<tr>${l.map((c, i) => `<td style="border:1px solid #8EA9DB;padding:6px 10px;${i === 4 || i === 8 ? 'text-align:right;white-space:nowrap' : ''}">${escapeHtml(c)}</td>`).join('')}</tr>`).join('')}
-  </tbody>
-</table>
+${tabelaHtml}
 <p style="margin-top:14px">Total: <strong>${fmtMoeda(total)}</strong> em ${registros.length} linha(s).</p>`;
 
     const composto = await composeEmailForUser(corpoHtml, usuario, 'preview');

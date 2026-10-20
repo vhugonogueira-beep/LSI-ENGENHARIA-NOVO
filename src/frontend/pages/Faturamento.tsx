@@ -360,6 +360,10 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
     const [erro, setErro] = useState('');
     const [enviando, setEnviando] = useState(false);
     const [email, setEmail] = useState<any | null>(null);
+    // Visão das linhas (19/10/2026): agrupadas por PO ou todas numa tabela só.
+    const [visao, setVisao] = useState<'PO' | 'LINHAS'>(() => { try { return localStorage.getItem('ls_fat_visao') === 'LINHAS' ? 'LINHAS' : 'PO'; } catch { return 'PO'; } });
+    const mudarVisao = (v: 'PO' | 'LINHAS') => { setVisao(v); try { localStorage.setItem('ls_fat_visao', v); } catch { /* só não lembra */ } };
+    const [abrindoEmail, setAbrindoEmail] = useState<string | null>(null);
     const [cancelando, setCancelando] = useState<any | null>(null);
     // Antes de solicitar, o sistema pergunta se o cliente autorizou (08/10/2026).
     const [perguntandoAutorizacao, setPerguntandoAutorizacao] = useState(false);
@@ -452,6 +456,24 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
         }
     }
 
+    /**
+     * Reabre o e-mail de uma solicitação já feita (19/10/2026): junta as remessas
+     * pedidas no mesmo envio (mesma hora, até 2 minutos de diferença).
+     */
+    async function verEmail(f: any) {
+        const quando = new Date(f.data_solicitacao).getTime();
+        const ids = Object.values(linhasPorPO).flat().flatMap((l: any) => l.faturamentos || [])
+            .filter((x: any) => x.status !== 'CANCELADO' && Math.abs(new Date(x.data_solicitacao).getTime() - quando) <= 120000)
+            .map((x: any) => x.id);
+        setErro(''); setAbrindoEmail(f.id);
+        try {
+            const r = await authFetch('/api/pos/faturamento-linhas/email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids }) });
+            const dados = await r.json();
+            if (!r.ok) throw new Error(dados.error || 'Erro ao gerar o e-mail');
+            setEmail({ ...dados, ids });
+        } catch (e: any) { setErro(e.message); } finally { setAbrindoEmail(null); }
+    }
+
     async function confirmarCancelamento(motivo: string) {
         if (!cancelando) return;
         setErro('');
@@ -482,6 +504,12 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mb-1">
                 <h3 className="text-sm font-bold">POs recebidas: faturamento por linha</h3>
                 <span className="flex gap-3 text-xs text-muted-foreground tabular-nums"><span>{pos.length} PO(s)</span><span>{comSaldo} linha(s) com saldo a faturar</span></span>
+                <div className="ml-auto inline-flex h-8 items-center gap-1 rounded-lg border border-border bg-background/50 p-1" role="group" aria-label="Visão das linhas">
+                    {([['PO', 'Agrupado por PO'], ['LINHAS', 'Todas as linhas']] as const).map(([v, rotulo]) => (
+                        <button key={v} type="button" onClick={() => mudarVisao(v)} aria-pressed={visao === v}
+                            className={`h-6 rounded-md px-3 text-[11px] font-semibold ${visao === v ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>{rotulo}</button>
+                    ))}
+                </div>
             </div>
             <p className="text-xs text-muted-foreground mb-4">
                 Cada linha da PO (material, serviço...) é faturada separadamente e em partes. Selecione as linhas,
@@ -490,7 +518,63 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
 
             {erro && <div role="alert" className="mb-3 p-2.5 rounded-lg border border-warn/40 bg-warn/10 text-warn text-xs">{erro}</div>}
 
-            {pos.length === 0 ? (
+            {pos.length > 0 && visao === 'LINHAS' ? (
+                <div className="overflow-x-auto rounded-lg border border-border">
+                    <table className="w-full table-fixed text-[11px] min-w-[1180px]">
+                        <colgroup>
+                            <col className="w-8" /><col className="w-28" /><col className="w-20" /><col className="w-14" /><col /><col className="w-28" />
+                            <col className="w-28" /><col className="w-32" /><col className="w-32" /><col className="w-40" /><col className="w-24" />
+                        </colgroup>
+                        <thead className="bg-secondary/30 text-muted-foreground">
+                            <tr className="text-left border-b border-border">
+                                <th className="py-2"><span className="sr-only">Selecionar</span></th>
+                                <th className="py-2 px-2">Site</th><th className="py-2 px-2">PO</th><th className="py-2 px-2">Linha</th><th className="py-2 px-2">Serviço</th>
+                                <th className="py-2 px-2 text-right">Valor da linha</th><th className="py-2 px-2 text-center">Autorizado</th>
+                                <th className="py-2 px-2 text-right">Já faturado</th><th className="py-2 px-2 text-right">Pendente</th>
+                                <th className="py-2 px-2 text-right">% a faturar agora</th><th className="py-2 px-2 text-right">Solicitação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {pos.flatMap(po => (linhasPorPO[po.id] || []).map((l: any) => ({ po, l })))
+                                .sort((a, b) => String(a.l.site || a.po.atividade?.id_site_sharing || '').localeCompare(String(b.l.site || b.po.atividade?.id_site_sharing || '')) || String(a.po.numero).localeCompare(String(b.po.numero)) || String(a.l.numero_linha).localeCompare(String(b.l.numero_linha)))
+                                .map(({ po, l }) => {
+                                    const sel = selecao[l.id] !== undefined;
+                                    const semSaldo = l.percentual_pendente <= 0;
+                                    const ultima = (l.faturamentos || []).filter((f: any) => f.status !== 'CANCELADO').sort((a: any, b: any) => String(b.data_solicitacao).localeCompare(String(a.data_solicitacao)))[0];
+                                    return (
+                                        <tr key={l.id} className={`border-b border-border/40 ${sel ? 'bg-primary/5' : ''} ${!l.autorizado ? 'opacity-70' : ''}`}>
+                                            <td className="py-1.5 px-2 align-top"><input type="checkbox" checked={sel} disabled={semSaldo || !l.autorizado} aria-label={`Selecionar linha ${l.numero_linha} da PO ${po.numero}`} onChange={() => alternarLinha(l)} className="accent-primary" /></td>
+                                            <td className="py-1.5 px-2 align-top truncate font-id font-semibold" title={l.site || po.atividade?.id_site_sharing}>{l.site || po.atividade?.id_site_sharing || '—'}</td>
+                                            <td className="py-1.5 px-2 align-top font-id">{po.numero || '—'}</td>
+                                            <td className="py-1.5 px-2 align-top font-id">{l.numero_linha}</td>
+                                            <td className="py-1.5 px-2 align-top truncate" title={l.descricao}>{l.descricao}</td>
+                                            <td className="py-1.5 px-2 align-top text-right tabular-nums">{fmtMoeda(l.valor_total)}</td>
+                                            <td className="py-1.5 px-2 align-top text-center">
+                                                <button onClick={() => alternarAutorizacao(l)} className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${l.autorizado ? 'border-ok/40 bg-ok/15 text-ok' : 'border-warn/40 bg-warn/10 text-warn'}`}>
+                                                    {l.autorizado ? <><CheckCircle2 size={12} aria-hidden /> Autorizado</> : 'Autorizar'}
+                                                </button>
+                                            </td>
+                                            <td className="py-1.5 px-2 align-top text-right tabular-nums">{l.percentual_faturado > 0 ? `${l.percentual_faturado}% · ${fmtMoeda(l.valor_faturado)}` : '—'}</td>
+                                            <td className={`py-1.5 px-2 align-top text-right tabular-nums ${semSaldo ? 'text-ok' : 'font-semibold'}`}>{semSaldo ? '100% faturado' : `${l.percentual_pendente}% · ${fmtMoeda(l.valor_pendente)}`}</td>
+                                            <td className="py-1.5 px-2 align-top text-right">
+                                                {sel ? (
+                                                    <span className="inline-flex items-center gap-1">
+                                                        <input type="number" min="1" max={l.percentual_pendente} value={selecao[l.id]} aria-label={`Percentual a faturar da linha ${l.numero_linha}`}
+                                                            onChange={e => setSelecao(a => ({ ...a, [l.id]: e.target.value }))} className="w-14 rounded border border-border bg-secondary/40 px-1.5 py-0.5 text-right text-foreground" />
+                                                        <span className="w-20 text-right text-muted-foreground">{fmtMoeda(l.valor_total * (parseFloat(selecao[l.id]) || 0) / 100)}</span>
+                                                    </span>
+                                                ) : <span className="text-muted-foreground">—</span>}
+                                            </td>
+                                            <td className="py-1.5 px-2 align-top text-right">
+                                                {ultima ? <button onClick={() => verEmail(ultima)} disabled={abrindoEmail === ultima.id} className="inline-flex items-center gap-1 font-semibold text-primary hover:underline disabled:opacity-50" title={`${emFrase(ultima.status)} em ${new Date(ultima.data_solicitacao).toLocaleDateString('pt-BR')}`}><Mail size={12} aria-hidden /> Ver e-mail</button> : <span className="text-muted-foreground">—</span>}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                        </tbody>
+                    </table>
+                </div>
+            ) : pos.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma PO anexada ainda — anexe o PDF na aba PO da atividade.</div>
             ) : (
                 <div className="flex flex-col gap-2">
@@ -616,6 +700,12 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                                     <span className={`font-semibold ${f.status === 'CANCELADO' ? 'text-crit' : 'text-ok'}`}>{emFrase(f.status)}</span>
                                                                 </td>
                                                                 <td className="py-1 px-2 text-right" colSpan={3}>
+                                                                    {f.status !== 'CANCELADO' && (
+                                                                        <button onClick={() => verEmail(f)} disabled={abrindoEmail === f.id} title="Abrir de novo o e-mail desta solicitação"
+                                                                            className="mr-4 inline-flex items-center gap-1 font-semibold text-primary hover:underline disabled:opacity-50">
+                                                                            <Mail size={12} aria-hidden /> {abrindoEmail === f.id ? 'Gerando…' : 'Ver e-mail'}
+                                                                        </button>
+                                                                    )}
                                                                     {f.status !== 'CANCELADO' && (
                                                                         ehAdmin ? (
                                                                             <button onClick={() => setCancelando({ fat: f, linha: l })}
