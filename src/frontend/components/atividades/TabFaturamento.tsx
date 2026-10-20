@@ -3,6 +3,7 @@ import { Paperclip, Trash2, Upload, CheckCircle2, ChevronRight, ChevronDown, Ref
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, PrimaryButton, GhostButton, ErrorBanner, EmptyState } from './ui';
 import { fmtMoeda } from './constants';
+import ConferenciaPoOrcamento from './ConferenciaPoOrcamento';
 
 // Blueprint LSI, seções 25-27 — dentro da Atividade esta aba só cuida da PO: recebe-se o
 // PDF do vendor e o sistema lê número, valor, data, fornecedor e descrições do próprio
@@ -19,6 +20,7 @@ export default function TabFaturamento({ atividade, onRefresh }: { atividade: At
     const [avisoLeitura, setAvisoLeitura] = useState(false);
     const [relendo, setRelendo] = useState<string | null>(null);
     const [linhas, setLinhas] = useState<Record<string, any[]>>({});
+    const [versao, setVersao] = useState(0); // recarrega a conferência PO × orçamento
     const fileInputRef = useRef<HTMLInputElement>(null);
     const poAlvoRef = useRef<string | null>(null);
 
@@ -35,6 +37,7 @@ export default function TabFaturamento({ atividade, onRefresh }: { atividade: At
                 mapa[po.id] = lr.ok ? await lr.json() : [];
             }));
             setLinhas(mapa);
+            setVersao(v => v + 1);
         } finally {
             setLoading(false);
         }
@@ -294,6 +297,8 @@ export default function TabFaturamento({ atividade, onRefresh }: { atividade: At
                     </div>
                 )}
             </Card>
+
+            <ConferenciaPoOrcamento atividadeId={atividade.id} versao={versao} />
         </div>
     );
 }

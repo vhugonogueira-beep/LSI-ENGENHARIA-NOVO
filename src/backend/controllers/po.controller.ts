@@ -6,6 +6,7 @@ import {
     linhasDaPOComSaldo, solicitarFaturamentoLinhas, cancelarFaturamentoLinha,
     atualizarStatusFaturamentoLinha, gerarEmailFaturamento, definirAutorizacaoLinha, gerarPlanilhaFaturamento,
 } from '../services/faturamento-linha.service';
+import { conferirPOComOrcamento } from '../services/po-conferencia.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -181,6 +182,19 @@ export async function listPOsGeral(req: Request, res: Response) {
             orderBy: { created_at: 'desc' },
         });
         res.json(pos);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+}
+
+// PO × orçamento da atividade: total, linhas e site (ver po-conferencia.service).
+export async function conferenciaOrcamento(req: Request, res: Response) {
+    try {
+        const atividadeId = req.query.atividade_id as string;
+        if (!atividadeId) return res.status(400).json({ error: 'Informe atividade_id' });
+        const r = await conferirPOComOrcamento(atividadeId);
+        if (!r) return res.status(404).json({ error: 'Atividade não encontrada' });
+        res.json(r);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

@@ -6,6 +6,7 @@ import { resumoSst } from './sst.service';
 import { prisma } from '../server';
 import { normalizarUf } from '../utils/uf';
 import { encontrarMunicipio } from './localidades.service';
+import { conferirPOComOrcamento } from './po-conferencia.service';
 
 export type NivelPendencia = 'ALERTA' | 'AVISO';
 export interface Pendencia {
@@ -227,6 +228,10 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         // O PDF anexado pela tela fica em PurchaseOrderArquivo; pdf_url é o campo
         // antigo. Sem olhar os dois, a PO com PDF lido acusava "sem PDF" (18/10/2026).
         if (pos.some(po => !po.pdf_url && !po._count.arquivos)) p.faturamento.push(aviso('PO sem arquivo PDF'));
+        // PO × orçamento (19/10/2026): valor ou site diferente faz o faturamento sair errado.
+        const conf = await conferirPOComOrcamento(a.id).catch(() => null);
+        if (conf?.situacao === 'DIVERGE') p.faturamento.push(alerta(`PO diverge do orçamento: ${conf.resumo}`));
+        else if (conf?.situacao === 'ATENCAO') p.faturamento.push(aviso(`Conferir PO × orçamento: ${conf.resumo}`));
     }
     if (concluida && a.status_faturamento === 'NAO_INICIADO') p.faturamento.push(alerta('Atividade concluída e faturamento não iniciado'));
 
