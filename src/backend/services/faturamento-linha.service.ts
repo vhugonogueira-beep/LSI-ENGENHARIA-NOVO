@@ -306,7 +306,7 @@ export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoe
     const fonte = "font-family:Calibri,Arial,sans-serif;font-size:9pt;mso-line-height-rule:exactly;line-height:12pt";
     const celula = (conteudo: string, i: number, cabecalho = false) => {
         const c = COLUNAS_EMAIL[i];
-        const estilo = `${fonte};border:1px solid #9BB0C9;padding:4px 6px;vertical-align:middle;text-align:${cabecalho ? 'center' : c.alinhar};${c.quebra || cabecalho ? '' : 'white-space:nowrap;'}${cabecalho ? 'background:#1F4E79;color:#FFFFFF;font-weight:bold;' : ''}`;
+        const estilo = `${fonte};border:1px solid #9BB0C9;padding:4px 6px;vertical-align:middle;text-align:${cabecalho ? 'center' : c.alinhar};${c.quebra || cabecalho ? '' : 'white-space:nowrap;'}${cabecalho ? `background:${i < 5 ? '#DCE6F1' : '#FFFF00'};color:#000000;font-weight:bold;` : ''}`;
         const tag = cabecalho ? 'th' : 'td';
         return `<${tag} width="${c.largura}" align="${cabecalho ? 'center' : c.alinhar}" valign="middle" style="${estilo}">${conteudo}</${tag}>`;
     };
@@ -350,25 +350,30 @@ ${tabelaHtml}
 // Mesmo cabeçalho da planilha que a LS Office já envia. Preenchemos só o que é nosso;
 // as colunas de responsabilidade de quem recebe (CNAE, validação do CR, data de
 // faturamento, NF, ROIT e data de recebimento) vão em branco de propósito.
-const COLUNAS_PLANILHA: { titulo: string; largura: number; preenchida: boolean }[] = [
-    { titulo: 'ID SITE', largura: 20, preenchida: true },
-    { titulo: 'PO', largura: 12, preenchida: true },
-    { titulo: 'LINHA', largura: 9, preenchida: true },
-    { titulo: 'SERVIÇO', largura: 48, preenchida: true },
-    { titulo: 'VALOR', largura: 15, preenchida: true },
-    { titulo: 'EMPRESA', largura: 14, preenchida: true },
-    { titulo: 'UF', largura: 6, preenchida: true },
-    { titulo: 'CIDADE', largura: 20, preenchida: true },
-    { titulo: 'VALOR PO', largura: 15, preenchida: true },
-    { titulo: '% LIBERAÇÃO FATURAMENTO', largura: 14, preenchida: true },
-    { titulo: 'CNAE', largura: 14, preenchida: false },
-    { titulo: 'VALIDAÇÃO PARCIAL PELO CR', largura: 16, preenchida: false },
-    { titulo: 'LIBERAÇÃO - MICROSIGA (CR)', largura: 16, preenchida: true },
-    { titulo: 'GESTOR', largura: 20, preenchida: true },
-    { titulo: 'DATA FATURAMENTO', largura: 14, preenchida: false },
-    { titulo: 'NF', largura: 10, preenchida: false },
-    { titulo: 'ROIT', largura: 14, preenchida: false },
-    { titulo: 'DATA RECEBIMENTO', largura: 14, preenchida: false },
+// Modelo da planilha que a LS Office envia (19/10/2026: "1. LS OFFICE_Faturamento
+// HIGHLINE_Setembro_25.09.2026.xlsx"): mesmas colunas, cores por grupo, larguras
+// e formatos. As colunas de quem recebe (CNAE, CR, data, NF, ROIT, recebimento)
+// vão em branco de propósito.
+const AZUL = 'FFDCE6F1', AMARELO = 'FFFFFF00', LARANJA = 'FFF79646', CINZA = 'FFD9D9D9', VERDE = 'FF92D050', BRANCO = 'FFFFFFFF';
+const COLUNAS_PLANILHA: { titulo: string; largura: number; cor: string; tamanho?: number }[] = [
+    { titulo: 'ID SITE |', largura: 14.4, cor: AZUL },
+    { titulo: 'PO |', largura: 13, cor: AZUL },
+    { titulo: 'LINHA |', largura: 9.3, cor: AZUL },
+    { titulo: 'SERVIÇO |', largura: 41, cor: AZUL },
+    { titulo: 'VALOR', largura: 16.7, cor: AZUL },
+    { titulo: 'EMPRESA', largura: 12.1, cor: AMARELO },
+    { titulo: 'UF', largura: 7.4, cor: AMARELO },
+    { titulo: 'CIDADE', largura: 12, cor: AMARELO },
+    { titulo: 'VALOR PO', largura: 17.6, cor: AMARELO },
+    { titulo: '% LIBERAÇÃO\nFATURAMENTO', largura: 14.3, cor: AMARELO, tamanho: 8 },
+    { titulo: 'CNAE\n422190500 - 07.05', largura: 21.6, cor: LARANJA },
+    { titulo: 'VALIDAÇÃO PARCIAL (CR)', largura: 20.3, cor: AMARELO },
+    { titulo: 'LIBERAÇÃO - MICROSIGA (CR)', largura: 22.3, cor: AMARELO },
+    { titulo: 'GESTOR', largura: 16, cor: CINZA },
+    { titulo: 'DATA FATURAMENTO', largura: 14.9, cor: VERDE },
+    { titulo: 'NF', largura: 9.7, cor: VERDE },
+    { titulo: 'ROIT', largura: 14.1, cor: VERDE },
+    { titulo: 'DATA RECEBIMENTO', largura: 17.7, cor: BRANCO, tamanho: 10 },
 ];
 
 export async function gerarPlanilhaFaturamento(faturamentoLinhaIds: string[], opcoes: { cliente?: string; competencia?: string } | undefined, tenantId: string) {
@@ -377,7 +382,7 @@ export async function gerarPlanilhaFaturamento(faturamentoLinhaIds: string[], op
         include: {
             linha: {
                 include: {
-                    po: { include: { atividade: { select: { sharing: true, estado: true, municipio: true, id_site_sharing: true, gestor: true, responsavel: true } } } },
+                    po: { include: { atividade: { select: { sharing: true, estado: true, municipio: true, id_site_sharing: true, gestor: true, responsavel: true, site: { select: { endereco: true, bairro: true, cidade: true, uf: true, cep: true } } } } } },
                 },
             },
         },
@@ -392,82 +397,125 @@ export async function gerarPlanilhaFaturamento(faturamentoLinhaIds: string[], op
     const wb = new ExcelJS.Workbook();
     wb.creator = 'LS Office Rumo';
     wb.created = new Date();
-    const ws = wb.addWorksheet('Faturamento');
+    const hoje = new Date();
+    const MESES = ['JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO', 'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'];
+    const mes = MESES[hoje.getMonth()];
+    const dataBr = hoje.toLocaleDateString('pt-BR');
+    const ws = wb.addWorksheet(`FATURAMENTO ${mes} ${String(hoje.getDate()).padStart(2, '0')}`);
+    const fino = { style: 'thin' as const };
+    const borda = { top: fino, bottom: fino, left: fino, right: fino };
+    const fonte = (tamanho = 10, extra: Partial<ExcelJS.Font> = {}): Partial<ExcelJS.Font> => ({ name: 'Arial', size: tamanho, ...extra });
+    const cheio = (argb: string): ExcelJS.Fill => ({ type: 'pattern', pattern: 'solid', fgColor: { argb } });
+    const MOEDA = '"R$" #,##0.00';
+    void competencia;
 
-    // Título
-    ws.mergeCells(1, 1, 1, COLUNAS_PLANILHA.length);
+    // Título, mesclado de A a N
+    ws.mergeCells(1, 1, 1, 14);
     const titulo = ws.getCell(1, 1);
-    titulo.value = `Solicitação de Faturamento ${cliente} - ${competencia}`;
-    titulo.font = { bold: true, size: 12 };
+    titulo.value = `Solicitação de Faturamento ${cliente} - LIBERADO ${dataBr}`;
+    titulo.font = fonte(18, { bold: true });
     titulo.alignment = { horizontal: 'center', vertical: 'middle' };
-    ws.getRow(1).height = 22;
+    ws.getRow(1).height = 30;
 
-    // Cabeçalho: colunas que quem recebe preenche ficam em amarelo, como na planilha atual
+    // Cabeçalho com as cores por grupo do modelo
     const cabecalho = ws.getRow(2);
     COLUNAS_PLANILHA.forEach((col, i) => {
         const celula = cabecalho.getCell(i + 1);
         celula.value = col.titulo;
-        celula.font = { bold: true, size: 9, color: { argb: col.preenchida ? 'FFFFFFFF' : 'FF000000' } };
-        celula.fill = {
-            type: 'pattern', pattern: 'solid',
-            fgColor: { argb: col.preenchida ? 'FF1F4E79' : 'FFFFFF00' },
-        };
+        celula.font = fonte(col.tamanho || 11, { bold: true });
+        celula.fill = cheio(col.cor);
         celula.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-        celula.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
+        celula.border = borda;
         ws.getColumn(i + 1).width = col.largura;
     });
-    cabecalho.height = 34;
+    cabecalho.height = 42;
 
     registros.forEach((r, idx) => {
         const l = r.linha;
         const atv = l.po.atividade;
-        const linha = ws.getRow(3 + idx);
-        const valores: (string | number | null)[] = [
+        const n = 3 + idx;
+        const linha = ws.getRow(n);
+        const valores: (string | number | ExcelJS.CellFormulaValue | null)[] = [
             l.site || atv?.id_site_sharing || '',
             l.po.numero || '',
             l.numero_linha,
             l.descricao,
-            r.valor,
+            { formula: `I${n}*J${n}/100`, result: r.valor },   // VALOR = valor da PO × % liberado, como no modelo
             cliente,
             atv?.estado || '',
             l.cidade || atv?.municipio || '',
             l.valor_total,
             r.percentual,
-            null,                    // CNAE — preenchido por quem recebe
-            null,                    // Validação parcial pelo CR — idem
+            null, null,                                            // CNAE e validação parcial (CR)
             l.autorizado ? 'OK' : 'NOK',
             atv?.gestor || atv?.responsavel || '',
-            null, null, null, null,  // Data faturamento, NF, ROIT, Data recebimento
+            null, null, null, null,                                // data faturamento, NF, ROIT, data recebimento
         ];
         valores.forEach((v, i) => {
             const celula = linha.getCell(i + 1);
-            if (v !== null) celula.value = v;
-            celula.font = { size: 9 };
-            celula.border = { top: { style: 'thin' }, bottom: { style: 'thin' }, left: { style: 'thin' }, right: { style: 'thin' } };
-            if (i === 4 || i === 8) celula.numFmt = 'R$ #,##0.00';
-            if (i === 9) celula.alignment = { horizontal: 'center' };
-            // as colunas de quem recebe ficam destacadas na linha também
-            if (!COLUNAS_PLANILHA[i].preenchida) {
-                celula.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFDE7' } };
-            }
+            if (v !== null) celula.value = v as any;
+            celula.font = fonte(10, i === 9 ? { color: { argb: 'FF0000FF' } } : {});
+            celula.border = borda;
+            celula.alignment = { horizontal: i === 3 ? 'left' : 'center', vertical: 'middle', wrapText: i === 3 || i === 7 };
+            if (i === 4 || i === 8) celula.numFmt = MOEDA;
+            if (i === 9) celula.numFmt = '0"%"';
         });
     });
 
-    // Total
-    const linhaTotal = ws.getRow(3 + registros.length);
-    linhaTotal.getCell(4).value = 'TOTAL';
-    linhaTotal.getCell(4).font = { bold: true, size: 9 };
-    linhaTotal.getCell(5).value = round2(registros.reduce((acc, r) => acc + r.valor, 0));
-    linhaTotal.getCell(5).numFmt = 'R$ #,##0.00';
-    linhaTotal.getCell(5).font = { bold: true, size: 9 };
+    // Total, como no modelo: rótulo em A e somas de VALOR e VALOR PO
+    const nTotal = 3 + registros.length;
+    const linhaTotal = ws.getRow(nTotal);
+    for (let i = 1; i <= 14; i++) {
+        const c = linhaTotal.getCell(i);
+        c.fill = cheio('FFF2F2F2');
+        c.border = borda;
+        c.font = fonte(11, { bold: true });
+    }
+    linhaTotal.getCell(1).value = 'TOTAL';
+    linhaTotal.getCell(1).alignment = { horizontal: 'left', vertical: 'middle' };
+    linhaTotal.getCell(5).value = { formula: `SUM(E3:E${nTotal - 1})`, result: round2(registros.reduce((a, r) => a + r.valor, 0)) };
+    linhaTotal.getCell(9).value = { formula: `SUM(I3:I${nTotal - 1})`, result: round2(registros.reduce((a, r) => a + r.linha.valor_total, 0)) };
+    for (const c of [5, 9]) { linhaTotal.getCell(c).numFmt = MOEDA; linhaTotal.getCell(c).alignment = { horizontal: 'center', vertical: 'middle' }; }
+    linhaTotal.height = 29.4;
+    ws.views = [{ state: 'frozen', xSplit: 0, ySplit: 2 }];
 
-    ws.autoFilter = { from: { row: 2, column: 1 }, to: { row: 2, column: COLUNAS_PLANILHA.length } };
-    ws.views = [{ state: 'frozen', ySplit: 2 }];
+    // Aba ENDEREÇOS: ID e PO puxados da primeira aba; endereço do cadastro do site
+    const we = wb.addWorksheet('ENDEREÇOS');
+    const colEnd = [['ID SITE', 10.9], ['PO', 9], ['ENDEREÇO', 34], ['BAIRRO', 18], ['CIDADE', 14], ['UF', 5], ['CEP', 11]] as const;
+    colEnd.forEach(([t, w], i) => {
+        const c = we.getRow(1).getCell(i + 1);
+        c.value = t; c.font = fonte(11, { bold: true }); c.fill = cheio(AZUL); c.border = borda;
+        c.alignment = { horizontal: 'center', vertical: 'middle' };
+        we.getColumn(i + 1).width = w;
+    });
+    const nomeAba = ws.name.replace(/'/g, "''");
+    const vistos = new Set<string>();
+    let e = 2;
+    registros.forEach((r, idx) => {
+        const site = r.linha.po.atividade?.site;
+        const chave = `${r.linha.site || r.linha.po.atividade?.id_site_sharing}|${r.linha.po.numero}`;
+        if (vistos.has(chave)) return;
+        vistos.add(chave);
+        const linha = we.getRow(e++);
+        const valores: any[] = [
+            { formula: `'${nomeAba}'!A${3 + idx}`, result: r.linha.site || r.linha.po.atividade?.id_site_sharing || '' },
+            { formula: `'${nomeAba}'!B${3 + idx}`, result: r.linha.po.numero || '' },
+            site?.endereco || '', site?.bairro || '', site?.cidade || r.linha.cidade || r.linha.po.atividade?.municipio || '',
+            site?.uf || r.linha.po.atividade?.estado || '', site?.cep || '',
+        ];
+        valores.forEach((v, i) => {
+            const c = linha.getCell(i + 1);
+            c.value = v; c.border = borda;
+            c.font = fonte(10, { color: { argb: i < 2 ? 'FF008000' : 'FF0000FF' } });
+            c.alignment = { horizontal: i < 2 || i >= 5 ? 'center' : 'left', vertical: 'middle' };
+        });
+    });
 
     const buffer = await wb.xlsx.writeBuffer();
-    const dataArquivo = new Date().toLocaleDateString('pt-BR').replace(/\//g, '');
+    const mesArquivo = mes.charAt(0) + mes.slice(1).toLowerCase();
+    const semAcento = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     return {
         buffer: Buffer.from(buffer),
-        filename: `LS OFFICE_Faturamento ${cliente}_${dataArquivo}.xlsx`,
+        filename: semAcento(`1. LS OFFICE_Faturamento ${cliente}_${mesArquivo}_${dataBr.replace(/\//g, '.')}.xlsx`),
     };
 }
