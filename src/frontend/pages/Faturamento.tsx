@@ -907,15 +907,15 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
             <div className="bg-card border border-border rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
                 <h3 className="text-base font-bold mb-1">E-mail de solicitação de faturamento</h3>
                 <p className="text-xs text-muted-foreground mb-4">
-                    {email.total_linhas} linha(s), total {fmtMoeda(email.total)}. Copie e cole no Outlook e anexe a planilha;
-                    a formatação da tabela é preservada.
+                    {email.total_linhas} linha(s), total {fmtMoeda(email.total)}. "Abrir no Outlook" baixa o e-mail pronto, já com a
+                    planilha anexada — é só conferir e enviar. A planilha também pode ser baixada separada.
                 </p>
 
                 <div className="mb-3 grid gap-1 rounded-lg border border-border bg-secondary/30 p-3 text-xs">
                     <div><span className="text-muted-foreground">Responsável:</span> <strong>{email.responsavel?.nome || '—'}</strong></div>
                     <div><span className="text-muted-foreground">Para:</span> <strong>{email.para || '—'}</strong></div>
                     <div><span className="text-muted-foreground">CC:</span> <strong>{email.cc || '—'}</strong></div>
-                    <div><span className="text-muted-foreground">Anexo:</span> planilha de faturamento (.xlsx)</div>
+                    <div><span className="text-muted-foreground">Anexo:</span> planilha de faturamento (.xlsx) — vai anexada no e-mail do Outlook</div>
                 </div>
                 {email.sem_assinatura && <AvisoSemAssinatura className="mb-3" />}
                 {email.routing_pendente && (
@@ -935,11 +935,19 @@ function ModalEmail({ email, onFechar }: { email: any; onFechar: () => void }) {
                 </div>
 
                 {email.ids?.length > 0 && (
-                    <button type="button"
-                        onClick={() => downloadAuthenticatedFile(`/api/pos/faturamento-linhas/planilha?ids=${email.ids.join(',')}`, 'FATURAMENTO.xlsx')}
-                        className="mb-4 inline-flex items-center gap-2 text-xs font-semibold border border-border rounded px-3 py-2 hover:bg-secondary">
-                        <Download size={14} aria-hidden /> Baixar planilha (.xlsx) para anexar ao e-mail
-                    </button>
+                    <div className="mb-4 flex flex-wrap gap-2">
+                        {/* E-mail pronto (.eml) com a planilha anexada (20/10/2026). */}
+                        <button type="button"
+                            onClick={() => downloadAuthenticatedFile(`/api/pos/faturamento-linhas/email.eml?ids=${email.ids.join(',')}`, 'FATURAMENTO.eml')}
+                            className="inline-flex items-center gap-2 text-xs font-semibold bg-primary text-primary-foreground rounded px-3 py-2 hover:bg-primary/90">
+                            <Mail size={14} aria-hidden /> Abrir no Outlook (com a planilha anexada)
+                        </button>
+                        <button type="button"
+                            onClick={() => downloadAuthenticatedFile(`/api/pos/faturamento-linhas/planilha?ids=${email.ids.join(',')}`, 'FATURAMENTO.xlsx')}
+                            className="inline-flex items-center gap-2 text-xs font-semibold border border-border rounded px-3 py-2 hover:bg-secondary">
+                            <Download size={14} aria-hidden /> Baixar planilha (.xlsx)
+                        </button>
+                    </div>
                 )}
 
                 <div className="border border-border rounded-lg bg-white text-black p-4 overflow-x-auto">

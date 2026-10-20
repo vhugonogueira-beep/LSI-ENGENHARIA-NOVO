@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { prisma } from '../server';
-import { composeEmailForUser, type EmailUserContext } from './email-signature.service';
+import { buildOutlookEml, composeEmailForUser, type EmailUserContext } from './email-signature.service';
 import { resolveEmailRouting } from './email-routing.service';
 
 // Faturamento parcial por linha da PO (Blueprint LSI, seções 26-30). A Highline libera
@@ -222,7 +222,7 @@ function escapeHtml(v: string): string {
     return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoes: { cliente?: string; competencia?: string } | undefined, usuario: EmailUserContext) {
+export async function gerarEmailFaturamento(faturamentoLinhaIds: string[], opcoes: { cliente?: string; competencia?: string } | undefined, usuario: EmailUserContext, modo: 'preview' | 'cid' = 'preview') {
     const registros = await prisma.faturamentoLinha.findMany({
         where: { id: { in: faturamentoLinhaIds }, linha: { po: { tenant_id: usuario.tenantId } } },
         include: {
@@ -328,7 +328,7 @@ ${autorizacoes.length ? `<p>${autorizacoes.map(a => escapeHtml(a)).join('<br>')}
 ${tabelaHtml}
 <p style="margin-top:14px">Total: <strong>${fmtMoeda(total)}</strong> em ${registros.length} linha(s).</p>`;
 
-    const composto = await composeEmailForUser(corpoHtml, usuario, 'preview');
+    const composto = await composeEmailForUser(corpoHtml, usuario, modo);
     const routing = await resolveEmailRouting(usuario.tenantId, 'BILLING', undefined, usuario.userId);
     return {
         assunto,
@@ -339,6 +339,7 @@ ${tabelaHtml}
         responsavel: { nome: usuario.nome || usuario.email, email: usuario.email },
         corpo_texto: corpoTexto,
         corpo_html: composto.html,
+        assinatura: composto.signature,
         total,
         total_linhas: registros.length,
         colunas: COLUNAS,
@@ -518,4 +519,19 @@ export async function gerarPlanilhaFaturamento(faturamentoLinhaIds: string[], op
         buffer: Buffer.from(buffer),
         filename: semAcento(`1. LS OFFICE_Faturamento ${cliente}_${mesArquivo}_${dataBr.replace(/\//g, '.')}.xlsx`),
     };
+}
+
+/**
+ * E-mail de faturamento pronto para o Outlook (20/10/2026): .eml com a planilha
+ * de faturamento já anexada. Abrir o arquivo cria uma mensagem nova, com Para,
+ * CC, assunto, corpo, assinatura e o anexo — é só conferir e enviar.
+ */
+export async function gerarEmlFaturamento(ids: string[], opcoes: { cliente?: string; competencia?: string } | undefined, usuario: EmailUserContext) {
+    const email = await gerarEmailFaturamento(ids, opcoes, usuario, 'cid');
+    const planilha = await gerarPlanilhaFaturamento(ids, opcoes, usuario.tenantId);
+    const eml = buildOutlookEml({
+        assunto: email.assunto, para: email.para, cc: email.cc, html: email.corpo_html, signature: email.assinatura,
+        attachments: [{ filename: planilha.filename, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', buffer: planilha.buffer }],
+    });
+    return { eml, filename: planilha.filename.replace(/\.xlsx$/i, '.eml') };
 }
