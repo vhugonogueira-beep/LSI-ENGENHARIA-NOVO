@@ -27,7 +27,10 @@ function tokenDaRequisicao(req: Request): string | null {
  * suspender ou tirar uma permissão vale na hora, sem esperar o token vencer.
  */
 export async function controleDeAcesso(req: Request, res: Response, next: NextFunction) {
-    const caminho = req.originalUrl.split('?')[0];
+    // Minúsculas: o Express casa rotas sem diferenciar caixa, então /API/atividades
+    // chegava às rotas de /api sem passar por aqui (startsWith('/api/') é sensível
+    // a caixa). Corrigido em 22/10/2026 — vale também para PUBLICAS e a POLITICA.
+    const caminho = req.originalUrl.split('?')[0].toLowerCase();
     if (!caminho.startsWith('/api/') || PUBLICAS.some(re => re.test(caminho))) return next();
 
     const token = tokenDaRequisicao(req);
