@@ -3,8 +3,7 @@ import { Fragment, useState, useEffect, useCallback, useRef } from 'react';
 import { AlertTriangle, ArrowLeft, Info } from 'lucide-react';
 import {
     STATUS_COMERCIAL, STATUS_DOCUMENTAL, STATUS_FINANCEIRO, STATUS_FATURAMENTO,
-    StatusPill, nomePvSharing,
-} from './constants';
+    StatusPill, nomePvSharing, ehHighline } from './constants';
 import { AreaChip, OperadoraChip, SharingNome } from './ui';
 import { FAIXA, SOLIDO, TEXTO, VEU, TOM_MODULO, TOM_STATUS, tomDe } from '../../lib/cores';
 import StatusOperacionalControl from './StatusOperacionalControl';
@@ -127,9 +126,9 @@ export interface AtividadeDetalhe {
 //   (ver TabPlanejamento.tsx), que é quem decide como somar novas etapas no futuro.
 function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
     // Operação Highline (14/10/2026): Orçamento LS + PV O&M Highline na mesma aba.
-    const omHighline = sharing?.trim().toUpperCase() === 'HIGHLINE' && tipoDemanda === 'OPERACAO';
+    const omHighline = ehHighline(sharing) && tipoDemanda === 'OPERACAO';
     // Fora da Highline o orçamento ao cliente é a PV da sharing — "PV Sites" (13/10/2026).
-    const pvSites = sharing?.trim().toUpperCase() !== 'HIGHLINE';
+    const pvSites = !ehHighline(sharing);
     const nomePv = nomePvSharing(sharing);
     if (modelo === 'EXECUCAO_DIRETA') {
         return [
@@ -156,10 +155,10 @@ function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
         ];
     }
     // MEDIANTE_APROVACAO
-    const ehHighline = sharing?.trim().toUpperCase() === 'HIGHLINE';
+    const daHighline = ehHighline(sharing);
     return [
         { id: 'identificacao', label: 'Identificação', secondary: false },
-        { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : ehHighline ? 'PV Highline' : nomePv, secondary: false },
+        { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : daHighline ? 'PV Highline' : nomePv, secondary: false },
         { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
         { id: 'planejamento', label: 'Planejamento', secondary: false },
         { id: 'documentacao', label: 'Documentação', secondary: false },

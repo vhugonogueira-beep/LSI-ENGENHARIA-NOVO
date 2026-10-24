@@ -107,5 +107,10 @@ export const TOM_MODULO: Record<string, Tom> = {
 };
 
 /** Tom de uma chave num mapa, tolerando caixa; sem correspondência, `padrao`. */
-export const tomDe = (mapa: Record<string, Tom>, chave?: string | null, padrao: Tom = 'slate'): Tom =>
-    (chave ? mapa[chave] || mapa[chave.trim().toUpperCase()] : undefined) || padrao;
+// Nomes do cadastro de Clientes ("Highline do Brasil", "Vivo / Telefônica")
+// casam pela chave exata ou pela primeira palavra (23/10/2026).
+export const tomDe = (mapa: Record<string, Tom>, chave?: string | null, padrao: Tom = 'slate'): Tom => {
+    if (!chave) return padrao;
+    const k = chave.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toUpperCase();
+    return mapa[chave] || mapa[k] || mapa[k.split(/[\s/]+/)[0]] || padrao;
+};

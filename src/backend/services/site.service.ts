@@ -8,6 +8,7 @@
 // Um acionamento novo no mesmo lugar NÃO cria outro site: acha o existente
 // pela detentora + ID e, se a operadora for nova, acrescenta o ID dela.
 
+import { chaveNome, ehHighline } from '../utils/sharing';
 import { Prisma } from '@prisma/client';
 import { prisma } from '../server';
 import { normalizarUf } from '../utils/uf';
@@ -129,15 +130,19 @@ export async function procurarSite(tenantId: string, id: unknown, detentora?: un
     const codigo = normalizarIdSite(id);
     if (!codigo) return null;
     const det = detentora ? normalizarDetentora(detentora) : '';
-    const atual = await prisma.site.findFirst({
-        where: { tenant_id: tenantId, id_site_detentora: codigo, ...(det ? { detentora: det } : {}) },
+    // A detentora vem do cadastro de Clientes ("Highline do Brasil") e o site pode
+    // ter sido gravado com o nome antigo ("HIGHLINE"): compara pelo nome
+    // equivalente, não pelo texto exato (23/10/2026).
+    const mesma = (a: string) => !det || chaveNome(a) === chaveNome(det) || (ehHighline(a) && ehHighline(det));
+    const atual = (await prisma.site.findMany({
+        where: { tenant_id: tenantId, id_site_detentora: codigo },
         include: INCLUIR_LISTA,
-    });
+    })).find(x => mesma(x.detentora || ''));
     if (atual) return { site: atual, encontradoPor: 'DETENTORA' as const };
-    const anterior = await prisma.siteIdAnterior.findFirst({
-        where: { id_site_detentora: codigo, ...(det ? { detentora: det } : {}), site: { tenant_id: tenantId } },
+    const anterior = (await prisma.siteIdAnterior.findMany({
+        where: { id_site_detentora: codigo, site: { tenant_id: tenantId } },
         include: { site: { include: INCLUIR_LISTA } },
-    });
+    })).find(x => mesma(x.detentora || ''));
     if (anterior) return { site: anterior.site, encontradoPor: 'ID_ANTERIOR' as const };
     if (det) return null;
     const daOperadora = await prisma.siteOperadora.findFirst({
@@ -367,11 +372,14 @@ export async function vincularSiteDaAtividade(
     const idDetentora = normalizarIdSite(d.id_site_detentora);
     if (!detentora || !idDetentora) return null;
 
-    let site = await db.site.findFirst({ where: { tenant_id: tenantId, detentora, id_site_detentora: idDetentora } });
+    // Detentora equivalente, não texto exato: o nome vem do cadastro de Clientes
+    // ("Highline do Brasil") e o site pode estar gravado com o antigo ("HIGHLINE").
+    const mesma = (x?: string | null) => chaveNome(x) === chaveNome(detentora) || (ehHighline(x) && ehHighline(detentora));
+    let site = (await db.site.findMany({ where: { tenant_id: tenantId, id_site_detentora: idDetentora } })).find(x => mesma(x.detentora)) || null;
     if (!site) {
-        const anterior = await db.siteIdAnterior.findFirst({
-            where: { detentora, id_site_detentora: idDetentora, site: { tenant_id: tenantId } }, include: { site: true },
-        });
+        const anterior = (await db.siteIdAnterior.findMany({
+            where: { id_site_detentora: idDetentora, site: { tenant_id: tenantId } }, include: { site: true },
+        })).find(x => mesma(x.detentora));
         site = anterior?.site || null;
     }
     if (!site) {

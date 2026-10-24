@@ -15,6 +15,7 @@
 // SERVIÇO), sem os itens do orçamento. Por isso o total é a conferência principal e
 // a comparação linha a linha só é feita quando as linhas da PO casam com as do orçamento.
 
+import { ehHighline } from '../utils/sharing';
 import { prisma } from '../server';
 import { BudgetService, calcularTotalLinha, calcularValorUnitarioFinal } from './budget.service';
 import { ORIGEM_PV_OM, palavras, semelhanca } from './pv-om-highline.service';
@@ -134,7 +135,7 @@ export async function conferirPOComOrcamento(atividadeId: string): Promise<Confe
         : sitesPo.every(sp => sitesAt.some(sa => normSite(sp) === normSite(sa)));
 
     // Linhas de referência do orçamento
-    const omHighline = at.sharing.trim().toUpperCase() === 'HIGHLINE' && at.tipo_demanda === 'OPERACAO';
+    const omHighline = ehHighline(at.sharing) && at.tipo_demanda === 'OPERACAO';
     let ref: LinhaReferencia[] = [];
     let total_ls: number | null = null;
     let nomeOrc = '';

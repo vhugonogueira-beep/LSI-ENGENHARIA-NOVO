@@ -1,4 +1,5 @@
 import { HIGHLINE_DOCUMENT_CHECKLIST } from '../data/highline-document-checklist';
+import { ehHighline } from '../utils/sharing';
 import { tipoObraDocumental } from '../utils/tipo-site';
 import { prisma } from '../server';
 
@@ -101,7 +102,9 @@ export async function gerarMatrizDocumental(atividadeId: string, tipoObra?: stri
     });
     if (!atividade) throw new Error('Atividade não encontrada');
 
-    const sharing = atividade.sharing.trim().toUpperCase();
+    // O catálogo documental da Highline é gravado como HIGHLINE; a atividade traz o
+    // nome do cadastro ("Highline do Brasil") — 23/10/2026.
+    const sharing = ehHighline(atividade.sharing) ? 'HIGHLINE' : atividade.sharing.trim().toUpperCase();
     if (sharing === 'HIGHLINE') {
         await sincronizarCatalogoDocumentalHighline(atividade.tenant_id);
     }

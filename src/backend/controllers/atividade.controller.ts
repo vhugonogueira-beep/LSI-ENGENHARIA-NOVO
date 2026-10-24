@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { normalizarSharing } from '../utils/sharing';
+import { chaveNome, ehHighline, resolverCliente, TIPOS_OPERADORA, TIPOS_SHARING } from '../utils/sharing';
 import { prisma } from '../server';
 import { adiamentosPorAtividade, faturadoPorAtividade, situacaoMeta } from '../services/meta-faturamento.service';
 import { proximoCodigo } from '../services/codigo-sequencial.service';
@@ -31,6 +31,29 @@ const DIMENSAO_LABEL: Record<Dimensao, string> = {
     status_financeiro: 'FINANCEIRO',
     status_faturamento: 'FATURAMENTO',
 };
+
+/**
+ * Sharing e operadora vêm do cadastro de Clientes (23/10/2026): grava-se o nome
+ * do cliente como está no cadastro e a atividade fica ligada ao cadastro do
+ * sharing (contratante_id). Escolhido o cadastro (contratante_id), o nome sai
+ * dele; recebido só o nome (dados antigos, outras telas), procura o cadastro.
+ * Sem cadastro correspondente (ex.: OUTROS), o texto fica como veio.
+ */
+async function clientesDoCadastro(tenantId: string, body: any) {
+    if (body.contratante_id) {
+        const c = await prisma.contratante.findFirst({ where: { id: body.contratante_id, tenant_id: tenantId }, select: { id: true, nome: true, tipo: true, ativo: true } });
+        if (!c) throw Object.assign(new Error('Cliente (sharing) não encontrado'), { status: 400 });
+        if (!c.ativo) throw Object.assign(new Error(`O cliente ${c.nome} está inativo no cadastro`), { status: 400 });
+        if (TIPOS_SHARING.includes(c.tipo)) body.sharing = c.nome;
+    } else if (body.sharing) {
+        const c = await resolverCliente(tenantId, body.sharing, TIPOS_SHARING);
+        if (c) { body.sharing = c.nome; body.contratante_id = c.id; }
+    }
+    if (body.operadora) {
+        const o = await resolverCliente(tenantId, body.operadora, TIPOS_OPERADORA);
+        if (o) body.operadora = o.nome;
+    }
+}
 
 /** Tipos de demanda aceitos (Projeto desde 23/10/2026). */
 const TIPOS_DEMANDA_VALIDOS = ['IMPLANTACAO', 'OPERACAO', 'PROJETO'];
@@ -197,8 +220,8 @@ export async function getAtividade(req: Request, res: Response) {
 
 export async function createAtividade(req: Request, res: Response) {
     try {
-        if (req.body?.sharing) req.body.sharing = normalizarSharing(req.body.sharing);
         const tenant_id = await getTenantId(req);
+        try { await clientesDoCadastro(tenant_id, req.body); } catch (e: any) { return res.status(e.status || 400).json({ error: e.message }); }
         const {
             titulo, acionamento_id, tipo_demanda, subtipo_demanda, tipo_obra, tipo_atividade, modelo_operacao,
             sharing, operadora, contratante_id, contrato, id_site_sharing, estado: estadoInformado, municipio: municipioInformado,
@@ -207,7 +230,7 @@ export async function createAtividade(req: Request, res: Response) {
         } = req.body;
         // Operadora dona da torre: o ID dela é o da detentora.
         const id_site_operadora = req.body.id_site_operadora
-            || (operadora && String(operadora).toUpperCase() === String(sharing || '').toUpperCase() ? id_site_sharing : null);
+            || (operadora && chaveNome(operadora) === chaveNome(sharing) ? id_site_sharing : null);
 
         if (!titulo || !tipo_demanda || !sharing || !id_site_sharing || !id_site_operadora) {
             return res.status(400).json({ error: 'titulo, tipo_demanda, sharing, id_site_sharing e id_site_operadora são obrigatórios' });
@@ -237,12 +260,12 @@ export async function createAtividade(req: Request, res: Response) {
         if (estadoFoiPreenchido && !estadoNormalizado) {
             return res.status(400).json({ error: 'UF inválida' });
         }
-        if (String(sharing).trim().toUpperCase() === 'HIGHLINE' && tipo_demanda === 'IMPLANTACAO'
+        if (ehHighline(sharing) && tipo_demanda === 'IMPLANTACAO'
             && !estadoNormalizado) {
             return res.status(400).json({ error: 'UF é obrigatória para implantação Highline' });
         }
         const highlineSiteTypes = ['BTS', 'Roof Top', 'Collo - BTS', 'Collo RT', 'Reforço'];
-        if (sharing.toUpperCase() === 'HIGHLINE' && tipo_demanda === 'IMPLANTACAO'
+        if (ehHighline(sharing) && tipo_demanda === 'IMPLANTACAO'
             && !highlineSiteTypes.includes(tipo_site_highline)) {
             return res.status(400).json({ error: 'Para implantação Highline, escolha um tipo de site aceito pela PV: BTS, Roof Top, Collo - BTS, Collo RT ou Reforço / fundação' });
         }
@@ -269,7 +292,7 @@ export async function createAtividade(req: Request, res: Response) {
         let contratanteResolvido = contratante_id || null;
         if (!contratanteResolvido && sharing) {
             const chave = (v: string) => v.trim().normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase();
-            const candidatos = await prisma.contratante.findMany({ where: { tenant_id } });
+            const candidatos = await prisma.contratante.findMany({ where: { tenant_id, ativo: true } });
             const achado = candidatos.find(c => chave(c.nome) === chave(sharing))
                 || candidatos.find(c => chave(c.nome).startsWith(chave(sharing)));
             if (achado) contratanteResolvido = achado.id;
@@ -346,9 +369,11 @@ export async function updateAtividade(req: Request, res: Response) {
 
         const existing = await prisma.atividade.findUnique({ where: { id } });
         if (!existing) return res.status(404).json({ error: 'Atividade não encontrada' });
-        if (body.sharing !== undefined && body.sharing !== null) body.sharing = normalizarSharing(body.sharing);
+        if (['sharing', 'contratante_id', 'operadora'].some(k => body[k] !== undefined && body[k] !== null && body[k] !== '')) {
+            try { await clientesDoCadastro(existing.tenant_id, body); } catch (e: any) { return res.status(e.status || 400).json({ error: e.message }); }
+        }
 
-        const nextSharing = String(body.sharing ?? existing.sharing).toUpperCase();
+        const nextSharing = String(body.sharing ?? existing.sharing);
         const nextDemandType = body.tipo_demanda ?? existing.tipo_demanda;
         // Tipo de site unificado: quem troca o tipo_obra troca também o tipo da PV
         // Highline, salvo quando este vem explícito.
@@ -368,7 +393,7 @@ export async function updateAtividade(req: Request, res: Response) {
         }
         const touchesHighlineLocation = ['sharing', 'tipo_demanda', 'estado']
             .some(field => Object.prototype.hasOwnProperty.call(body, field));
-        if (touchesHighlineLocation && nextSharing === 'HIGHLINE' && nextDemandType === 'IMPLANTACAO'
+        if (touchesHighlineLocation && ehHighline(nextSharing) && nextDemandType === 'IMPLANTACAO'
             && !estadoNormalizado) {
             return res.status(400).json({ error: 'UF é obrigatória para implantação Highline' });
         }
@@ -378,7 +403,7 @@ export async function updateAtividade(req: Request, res: Response) {
         if (nextHighlineSiteType && !highlineSiteTypes.includes(nextHighlineSiteType)) {
             return res.status(400).json({ error: 'tipo_site_highline inválido' });
         }
-        if (touchesHighlineIdentity && nextSharing === 'HIGHLINE' && nextDemandType === 'IMPLANTACAO'
+        if (touchesHighlineIdentity && ehHighline(nextSharing) && nextDemandType === 'IMPLANTACAO'
             && !nextHighlineSiteType) {
             return res.status(400).json({ error: 'Para implantação Highline, escolha um tipo de site aceito pela PV: BTS, Roof Top, Collo - BTS, Collo RT ou Reforço / fundação' });
         }

@@ -1,4 +1,5 @@
 import { PrismaClient, BudgetItem, Budget } from '@prisma/client';
+import { ehHighline } from '../utils/sharing';
 import { prisma } from '../server';
 import { carregarPvDoCliente } from './pv-cliente.service';
 import { lpusDaAtividade } from './lpu-atividade.service';
@@ -209,7 +210,7 @@ export class BudgetService {
 
         const hasHighlineCatalogItems = items.some(item => item?.highline_template_row != null);
         if (hasHighlineCatalogItems && (!budget.atividade
-            || budget.atividade.sharing.trim().toUpperCase() !== 'HIGHLINE'
+            || !ehHighline(budget.atividade.sharing)
             || !['IMPLANTACAO', 'PROJETO'].includes(budget.atividade.tipo_demanda))) {
             throw new Error('O catálogo Highline só pode ser usado em Atividades de implantação ou projeto da Highline');
         }
@@ -405,7 +406,7 @@ export class BudgetService {
         });
 
         // Operação Highline: a PV O&M acompanha as quantidades do Orçamento LS (14/10/2026).
-        if (escopoOrcamentoLs && budget.atividade?.sharing.trim().toUpperCase() === 'HIGHLINE' && budget.atividade.tipo_demanda === 'OPERACAO'
+        if (escopoOrcamentoLs && budget.atividade && ehHighline(budget.atividade.sharing) && budget.atividade.tipo_demanda === 'OPERACAO'
             && normalized.some(i => i.codigo_vinculo)) {
             const { montarPvOm } = await import('./pv-om-highline.service');
             await montarPvOm(budgetId);

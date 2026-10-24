@@ -45,7 +45,7 @@ interface Site {
 }
 
 const FORM_VAZIO = {
-    detentora: 'HIGHLINE', id_site_detentora: '', tipo_site: '', endereco: '', bairro: '', cep: '', uf: '', cidade: '',
+    detentora: '', id_site_detentora: '', tipo_site: '', endereco: '', bairro: '', cep: '', uf: '', cidade: '',
     coordenadas: '', proprietario_nome: '', proprietario_telefone: '', proprietario_email: '', proprietario_observacao: '', observacoes: '',
 };
 type Form = typeof FORM_VAZIO;
@@ -85,8 +85,8 @@ export default function Sites() {
     const visiveis = useMemo(() => {
         const termo = sem(busca.trim()).replace(/\s+/g, '');
         return sites.filter(s => {
-            if (filtros.detentora && s.detentora !== filtros.detentora) return false;
-            if (filtros.operadora && !s.operadoras.some(o => o.operadora === filtros.operadora)) return false;
+            if (filtros.detentora && (s.detentora || '').toUpperCase() !== filtros.detentora.toUpperCase()) return false;
+            if (filtros.operadora && !s.operadoras.some(o => o.operadora.toUpperCase() === filtros.operadora.toUpperCase())) return false;
             if (filtros.uf && s.uf !== filtros.uf) return false;
             if (filtros.tipo && s.tipo_site !== filtros.tipo) return false;
             if (!termo) return true;
@@ -351,7 +351,8 @@ function FichaSite({ siteId, podeEditar, onFechar, onSalvo, onExcluido }: {
                         <Bloco titulo="Identificação">
                             <div className="grid gap-3 sm:grid-cols-3">
                                 <Rotulo texto="Detentora *">
-                                    <select className={campo} value={form.detentora} onChange={set('detentora')} disabled={!podeEditar} required>
+                                    {/* O site grava a detentora em maiúsculas; a lista mostra o nome do cadastro de Clientes. */}
+                                    <select className={campo} value={sharings.find(d => d.toUpperCase() === form.detentora.toUpperCase()) || form.detentora} onChange={set('detentora')} disabled={!podeEditar} required>
                                         <option value="">Selecione</option>
                                         {comAtual(sharings, form.detentora).map(d => <option key={d} value={d}>{d}</option>)}
                                     </select>

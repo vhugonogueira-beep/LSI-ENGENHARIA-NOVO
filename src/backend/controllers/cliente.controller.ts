@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { chaveNome, ehHighline } from '../utils/sharing';
 import { prisma } from '../server';
 
 // O tipo "Cliente" saiu em 19/10/2026: todo cadastro é sharing, operadora ou os dois.
@@ -48,10 +49,23 @@ export async function listClientes(req: Request, res: Response) {
     catch (error: any) { res.status(400).json({ error: error.message }); }
 }
 
+/**
+ * Cliente repetido (23/10/2026): o nome é o que a atividade grava como sharing ou
+ * operadora — dois cadastros ativos com o mesmo nome (ou duas Highline)
+ * dividiriam atividades e LPUs entre eles.
+ */
+async function duplicado(tenant: string, nome: string, ativo: boolean, ignorarId?: string) {
+    if (!ativo) return null;
+    const outros = await prisma.contratante.findMany({ where: { tenant_id: tenant, ativo: true, ...(ignorarId ? { NOT: { id: ignorarId } } : {}) }, select: { nome: true } });
+    return outros.find(o => chaveNome(o.nome) === chaveNome(nome) || (ehHighline(o.nome) && ehHighline(nome))) || null;
+}
+
 export async function createCliente(req: Request, res: Response) {
     try {
         const data = dataFrom(req.body);
         if (!data.nome) return res.status(400).json({ error: 'Informe o nome do cliente' });
+        const igual = await duplicado(tenantId(req), data.nome, (data as any).ativo !== false);
+        if (igual) return res.status(409).json({ error: `Já existe o cliente ativo "${igual.nome}". Use o cadastro existente.` });
         res.status(201).json(await prisma.contratante.create({ data: { ...data, tenant_id: tenantId(req) } }));
     } catch (error: any) { res.status(400).json({ error: error.message }); }
 }
@@ -62,6 +76,8 @@ export async function updateCliente(req: Request, res: Response) {
         if (!existing) return res.status(404).json({ error: 'Cliente não encontrado' });
         const data = dataFrom({ ...existing, ...req.body });
         if (!data.nome) return res.status(400).json({ error: 'Informe o nome do cliente' });
+        const igual = await duplicado(existing.tenant_id, data.nome, (data as any).ativo !== false, existing.id);
+        if (igual) return res.status(409).json({ error: `Já existe o cliente ativo "${igual.nome}". Desative um dos dois ou use o cadastro existente.` });
         res.json(await prisma.contratante.update({ where: { id: existing.id }, data }));
     } catch (error: any) { res.status(400).json({ error: error.message }); }
 }

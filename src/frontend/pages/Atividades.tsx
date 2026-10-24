@@ -1,12 +1,12 @@
 import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../components/atividades/TipoObraCampo';
-import { comAtual, useListasClientes } from '../lib/clientesCadastro';
+import { comAtual, useListasClientes, cadastroDoNome } from '../lib/clientesCadastro';
 import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
 import { Fragment, useState, useEffect, useCallback } from 'react';
 import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check, CornerDownRight, ArrowUpRight } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
-    REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill,
+    REGIOES, REGIAO_LABEL, regiaoPorUf, fmtMoeda, StatusPill, ehHighline,
 } from '../components/atividades/constants';
 import AtividadeCockpit from '../components/atividades/AtividadeCockpit';
 import PageHeader from '../components/PageHeader';
@@ -63,7 +63,7 @@ interface Atividade {
 
 const FORM_INIT = {
     titulo: '', tipo_demanda: 'IMPLANTACAO', subtipo_demanda: '', tipo_obra: '', tipo_atividade: '',
-    modelo_operacao: modeloOperacaoPadrao('IMPLANTACAO'), sharing: 'HIGHLINE', operadora: 'VIVO', contrato: '',
+    modelo_operacao: modeloOperacaoPadrao('IMPLANTACAO'), sharing: '', operadora: '', contrato: '', contratante_id: '',
     estado: '', municipio: '', id_site_sharing: '', id_site_operadora: '', valor_contrato: '', valor_orcado: '',
     responsavel: '', descricao: '', acionamento_id: '',
 };
@@ -115,7 +115,7 @@ const PO_STATUS_TOM: Record<string, string> = { AGUARDANDO: 'text-muted-foregrou
 // em kanban — antes ele apontava para uma tela separada sobre o modelo Demanda,
 // que é o cadastro antigo e mostrava outros números.
 export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 'lista' | 'kanban' } = {}) {
-    const { sharings, operadoras } = useListasClientes();
+    const { sharings, operadoras, sharingsCadastro } = useListasClientes();
     const [atividades, setAtividades] = useState<Atividade[]>([]);
     const [loading, setLoading] = useState(true);
     // Vindo de outra tela (ex.: Orçamentos → Abrir): abre direto a atividade pedida.
@@ -577,7 +577,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 {ufsNaCarteira.map(([uf, n]) => <option key={uf} value={uf}>{uf} ({n})</option>)}
                             </select>
                             <select value={filtros.sharing} onChange={e => setFiltro('sharing', e.target.value)} aria-label="Sharing" className={`${CAMPO} w-full`}>
-                                <option value="">Toda detentora</option>
+                                <option value="">Todo sharing</option>
                                 {sharings.map(s => <option key={s} value={s}>{s}</option>)}
                             </select>
                             <select value={filtros.operadora} onChange={e => setFiltro('operadora', e.target.value)} aria-label="Operadora" className={`${CAMPO} w-full`}>
@@ -1119,8 +1119,10 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             <fieldset className="flex flex-col gap-3 rounded-xl border border-border p-4">
                                 <legend className="flex items-center gap-1.5 px-1 text-xs font-semibold text-foreground"><MapPin size={13} aria-hidden /> Site</legend>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <Field label="Detentora *">
-                                        <select value={form.sharing} onChange={e => setForm(f => ({ ...f, sharing: e.target.value }))} className="input">
+                                    <Field label="Sharing *">
+                                        {/* Do cadastro de Clientes: o Sharing é o cliente da atividade (23/10/2026). */}
+                                        <select required value={form.sharing} onChange={e => { const nome = e.target.value; setForm(f => ({ ...f, sharing: nome, contratante_id: cadastroDoNome(sharingsCadastro, nome)?.id || '' })); }} className="input">
+                                            <option value="">— Selecione —</option>
                                             {comAtual(sharings, form.sharing).map(s => <option key={s} value={s}>{s}</option>)}
                                         </select>
                                     </Field>
@@ -1166,6 +1168,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <div className="grid grid-cols-2 gap-3">
                                     <Field label="Operadora">
                                         <select value={form.operadora} onChange={e => setForm(f => ({ ...f, operadora: e.target.value, id_site_operadora: '' }))} className="input">
+                                            <option value="">— Selecione —</option>
                                             {comAtual(operadoras, form.operadora).map(o => <option key={o} value={o}>{o}</option>)}
                                         </select>
                                     </Field>
@@ -1197,7 +1200,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     </Field>
                                 </div>
                             </fieldset>
-                            {form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && form.tipo_obra && !TIPOS_SITE_PV_HIGHLINE.includes(form.tipo_obra) && (
+                            {ehHighline(form.sharing) && form.tipo_demanda === 'IMPLANTACAO' && form.tipo_obra && !TIPOS_SITE_PV_HIGHLINE.includes(form.tipo_obra) && (
                                 <p className="-mt-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs text-warn">
                                     Implantação Highline precisa de um tipo de site aceito pela PV: BTS, Roof Top, Collo - BTS, Collo RT ou Reforço / fundação.
                                 </p>

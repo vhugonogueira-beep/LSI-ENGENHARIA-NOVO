@@ -193,12 +193,20 @@ export function nomePvSharing(sharing?: string | null): string {
     const nome = s.split(/\s+/).map(p => (p.length <= 4 && p === p.toUpperCase() && !/^(SITES?|DO|DA|DE)$/.test(p)) ? p : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
     return `PV ${nome}`;
 }
+/**
+ * A atividade é da Highline? Pelo nome do sharing do cadastro ("Highline do
+ * Brasil") ou o antigo "HIGHLINE" (23/10/2026). Mesma regra de utils/sharing.ts.
+ */
+export function ehHighline(sharing?: string | null): boolean {
+    return /^HIGH ?LINE\b/.test(String(sharing || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase());
+}
+
 /** Implantação e Projeto da Highline podem seguir com a PV Highline (23/10/2026). */
 export function usaPvHighline(tipoDemanda?: string | null): boolean {
     return tipoDemanda === 'IMPLANTACAO' || tipoDemanda === 'PROJETO';
 }
 export function exigeEscolhaTipoOrcamento(atividade: { sharing: string; tipo_demanda: string }): boolean {
-    return atividade.sharing.trim().toUpperCase() === 'HIGHLINE' && usaPvHighline(atividade.tipo_demanda);
+    return ehHighline(atividade.sharing) && usaPvHighline(atividade.tipo_demanda);
 }
 
 /**

@@ -11,6 +11,7 @@
 // histórico, sai do Orçamento LS. Pode ser editado; a edição é preservada quando
 // a PV é remontada.
 
+import { ehHighline } from '../utils/sharing';
 import { prisma } from '../server';
 import { HIGHLINE_OM_CATALOG } from '../data/highline-om-catalog';
 
@@ -48,7 +49,7 @@ async function orcamentoDeOperacaoHighline(budgetId: string) {
     const budget = await prisma.budget.findUnique({ where: { id: budgetId }, include: { atividade: true, items: true } });
     if (!budget) throw new Error('Orçamento não encontrado');
     const at = budget.atividade;
-    if (!at || at.sharing.trim().toUpperCase() !== 'HIGHLINE' || at.tipo_demanda !== 'OPERACAO') {
+    if (!at || !ehHighline(at.sharing) || at.tipo_demanda !== 'OPERACAO') {
         throw new Error('A PV O&M Highline é só para atividades de operação da Highline');
     }
     return budget;

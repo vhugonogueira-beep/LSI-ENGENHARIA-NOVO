@@ -1,18 +1,18 @@
 import TipoObraCampo, { rotuloTipoSite } from './TipoObraCampo';
-import { comAtual, useListasClientes } from '../../lib/clientesCadastro';
+import { comAtual, useListasClientes, cadastroDoNome } from '../../lib/clientesCadastro';
 import { useState, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, Row, AreaChip, OperadoraChip, SharingNome } from './ui';
 import {
     TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
-    UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData,
+    UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData, ehHighline,
 } from './constants';
 import MunicipioInput from '../cadastros/MunicipioInput';
 import MetaFaturamentoCard from './MetaFaturamentoCard';
 
 export default function TabIdentificacao({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh: () => void }) {
-    const { sharings, operadoras } = useListasClientes();
+    const { sharings, operadoras, sharingsCadastro } = useListasClientes();
     const [editing, setEditing] = useState(false);
     // Últimos nomes usados como responsável/gestor nas atividades (18/10/2026).
     const [nomesRecentes, setNomesRecentes] = useState<string[]>([]);
@@ -53,16 +53,14 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
     });
     const [saving, setSaving] = useState(false);
     const [erro, setErro] = useState('');
-    const [contratantes, setContratantes] = useState<{ id: string; nome: string }[]>([]);
 
     useEffect(() => {
         if (!editing) return;
-        fetch('/api/contratantes').then(r => r.ok ? r.json() : []).then(setContratantes).catch(() => {});
     }, [editing]);
 
     async function salvar() {
         setErro('');
-        if (form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' && !form.estado) {
+        if (ehHighline(form.sharing) && form.tipo_demanda === 'IMPLANTACAO' && !form.estado) {
             setErro('Selecione a UF da atividade');
             return;
         }
@@ -105,9 +103,8 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
             <Card title="Identificação" action={<GhostButton onClick={() => setEditing(true)}><Pencil size={14} className="inline mr-1" aria-hidden />Editar</GhostButton>}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
                     <div>
-                        <Row label="Detentora" value={atividade.sharing && <SharingNome sharing={atividade.sharing} />} />
+                        <Row label="Sharing" value={atividade.sharing && <SharingNome sharing={atividade.sharing} />} />
                         <Row label="Operadora" value={atividade.operadora && <OperadoraChip operadora={atividade.operadora} />} />
-                        <Row label="Contratante" value={atividade.contratante?.nome} />
                         <Row label="Contrato" value={atividade.contrato} />
                         <Row label="ID do site na detentora" value={atividade.id_site_sharing && <span className="font-id">{atividade.id_site_sharing}</span>} />
                         <Row label="ID do site na operadora" value={atividade.id_site_operadora && <span className="font-id">{atividade.id_site_operadora}</span>} />
@@ -162,7 +159,8 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     </select>
                 </Field>
                 <Field label="Sharing">
-                    <select className={inputClass} value={form.sharing} onChange={e => setForm(f => ({ ...f, sharing: e.target.value }))}>
+                    {/* Do cadastro de Clientes: o Sharing é o cliente da atividade (23/10/2026). */}
+                    <select className={inputClass} value={form.sharing} onChange={e => { const nome = e.target.value; setForm(f => ({ ...f, sharing: nome, contratante_id: cadastroDoNome(sharingsCadastro, nome)?.id || '' })); }}>
                         {comAtual(sharings, form.sharing).map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </Field>
@@ -201,16 +199,10 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                         <p className="text-[11px] text-muted-foreground mt-1">Implantação sempre segue o fluxo completo (Mediante Aprovação) — Blueprint LSI, seção 02.</p>
                     )}
                 </Field>
-                <Field label="Contratante">
-                    <select className={inputClass} value={form.contratante_id} onChange={e => setForm(f => ({ ...f, contratante_id: e.target.value }))}>
-                        <option value="">—</option>
-                        {contratantes.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                    </select>
-                </Field>
                 <Field label="ID do site na detentora"><input className={inputClass} value={form.id_site_sharing} onChange={e => setForm(f => ({ ...f, id_site_sharing: e.target.value }))} /></Field>
                 <Field label="ID do site na operadora"><input className={inputClass} value={form.id_site_operadora} onChange={e => setForm(f => ({ ...f, id_site_operadora: e.target.value }))} /></Field>
                 <Field label="Contrato"><input className={inputClass} value={form.contrato} onChange={e => setForm(f => ({ ...f, contrato: e.target.value }))} /></Field>
-                <Field label={`UF${form.sharing === 'HIGHLINE' && form.tipo_demanda === 'IMPLANTACAO' ? ' *' : ''}`}>
+                <Field label={`UF${ehHighline(form.sharing) && form.tipo_demanda === 'IMPLANTACAO' ? ' *' : ''}`}>
                     <select className={inputClass} value={form.estado} onChange={e => setForm(f => ({ ...f, estado: e.target.value, municipio: e.target.value === f.estado ? f.municipio : '' }))}>
                         <option value="">— Selecione —</option>
                         {UFS.map(uf => <option key={uf.sigla} value={uf.sigla}>{uf.sigla} — {uf.nome}</option>)}

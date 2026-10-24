@@ -36,9 +36,11 @@ async function main() {
     const bases: string[] = [];
     const orcamentos: string[] = [];
     try {
-        const highline = await prisma.contratante.findFirst({ where: { OR: [{ sigla: 'HIGHLINE' }, { nome: 'HIGHLINE' }] } });
+        // Desde 23/10/2026 a atividade guarda o nome do cadastro ("Highline do Brasil")
+        // e fica ligada a ele: a referência é o cadastro ativo da Highline.
+        const highline = await prisma.contratante.findFirst({ where: { ativo: true, OR: [{ sigla: 'HIGHLINE' }, { nome: { startsWith: 'Highline' } }, { nome: { startsWith: 'HIGHLINE' } }] } });
         const implantacao = await prisma.atividade.findFirst({ where: { id_site_sharing: 'PAMRB008' } });
-        const operacao = await prisma.atividade.findFirst({ where: { sharing: 'HIGHLINE', tipo_demanda: 'OPERACAO' } });
+        const operacao = highline ? await prisma.atividade.findFirst({ where: { contratante_id: highline.id, tipo_demanda: 'OPERACAO' } }) : null;
         if (!highline || !implantacao || !operacao) throw new Error('Dados de referência não encontrados (HIGHLINE / PAMRB008 / atividade de operação)');
 
         console.log('\n── Bases reais');

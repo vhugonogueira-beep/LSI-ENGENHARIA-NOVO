@@ -1,14 +1,18 @@
+import { prisma } from '../server';
+import { acharCliente } from './cliente-nome';
+
 /**
- * Código da detentora (sharing) gravado na atividade (23/10/2026).
+ * Sharing e operadora da atividade vêm do cadastro de Clientes (23/10/2026).
  *
- * As regras da Highline (PV, PV O&M, documentação, conferência de PO) comparam
- * com "HIGHLINE". Onde o cadastro de clientes tem a Highline sem sigla, a lista
- * oferece "HIGHLINE DO BRASIL" — e a atividade deixava de ser reconhecida como
- * Highline (aba "PV Highline Do Brasil", LPU genérica). Qualquer variação do nome
- * vira HIGHLINE; os demais ficam em maiúsculas, sem espaços nas pontas.
+ * Grava-se o NOME do cliente, do jeito que está no cadastro (ex.: "Highline do
+ * Brasil"), e a atividade fica ligada ao cadastro do sharing (contratante_id).
+ * Nada de código/sigla. Sharing = clientes do tipo Sharing ou Sharing e
+ * operadora; Operadora = Operadora ou Sharing e operadora. Só cadastros ativos.
  */
-export function normalizarSharing(valor: unknown): string {
-    const s = String(valor ?? '').trim().replace(/\s+/g, ' ').toUpperCase();
-    if (/^HIGH\s?LINE\b/.test(s)) return 'HIGHLINE';
-    return s;
+export { TIPOS_SHARING, TIPOS_OPERADORA, chaveNome, ehHighline } from './cliente-nome';
+
+/** O cliente ativo do cadastro, dos tipos pedidos, que corresponde ao texto recebido. */
+export async function resolverCliente(tenantId: string, texto: unknown, tipos: string[]) {
+    const ativos = await prisma.contratante.findMany({ where: { tenant_id: tenantId, ativo: true, tipo: { in: tipos } }, select: { id: true, nome: true, sigla: true, tipo: true } });
+    return acharCliente(ativos, texto);
 }

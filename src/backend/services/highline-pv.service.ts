@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { ehHighline } from '../utils/sharing';
 import fs from 'fs/promises';
 import path from 'path';
 import JSZip from 'jszip';
@@ -106,7 +107,7 @@ export async function generateHighlinePv(budgetId: string): Promise<{ buffer: Bu
     if (!budget) throw new Error('Orçamento não encontrado');
     const atividade = budget.atividade;
     if (!atividade) throw new Error('O orçamento precisa estar vinculado a uma Atividade');
-    if (atividade.sharing.trim().toUpperCase() !== 'HIGHLINE' || !['IMPLANTACAO', 'PROJETO'].includes(atividade.tipo_demanda)) {
+    if (!ehHighline(atividade.sharing) || !['IMPLANTACAO', 'PROJETO'].includes(atividade.tipo_demanda)) {
         throw new Error('A PV está disponível apenas para Atividades de implantação ou projeto da Highline');
     }
 
