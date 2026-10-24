@@ -22,31 +22,77 @@ const Modal = ({ titulo, onFechar, children, largura = 'max-w-4xl' }: { titulo: 
     </div>
 );
 
+/**
+ * Base de LPU usada para compor o orçamento (23/10/2026): começa pela LPU de custo
+ * que o sistema escolhe para a atividade (área + cliente) e deixa trocar por
+ * qualquer outra LPU LS ativa. Antes, sem base escolhida, o "Adicionar da LPU"
+ * abria vazio — caso da Highline com a "LPU LS Office Geral" ligada a outro cliente.
+ */
+export function useBaseLpu(atividadeId: string) {
+    const [bases, setBases] = useState<{ id: string; nome: string }[]>([]);
+    const [baseId, setBaseId] = useState('');
+    const [motivo, setMotivo] = useState('');
+    const [itens, setItens] = useState<ItemDaLpu[]>([]);
+    const [carregando, setCarregando] = useState(true);
+    useEffect(() => {
+        (async () => {
+            const [l, lista] = await Promise.all([
+                authFetch(`/api/atividades/${atividadeId}/lpus`).then(r => (r.ok ? r.json() : null)).catch(() => null),
+                authFetch('/api/pricebooks').then(r => (r.ok ? r.json() : [])).catch(() => []),
+            ]);
+            const lpus = (Array.isArray(lista) ? lista : lista.items || [])
+                .filter((b: any) => b.origem === 'LPU_LS_OFFICE' && b.status !== 'ARQUIVADA')
+                .map((b: any) => ({ id: b.id, nome: b.nome_lpu }));
+            if (l?.custo && !lpus.some((b: any) => b.id === l.custo.id)) lpus.unshift({ id: l.custo.id, nome: l.custo.nome });
+            setBases(lpus);
+            setMotivo(l?.custo ? `Escolhida para esta atividade: ${l.custo.motivo || l.custo.nome}` : 'Nenhuma LPU definida para esta atividade (área + cliente): escolha uma base.');
+            const escolhida = l?.custo?.id || lpus[0]?.id || '';
+            setBaseId(escolhida);
+            // Com base, quem desliga o "carregando" é a busca dos itens, abaixo.
+            if (!escolhida) setCarregando(false);
+        })().catch(() => setCarregando(false));
+    }, [atividadeId]);
+    useEffect(() => {
+        if (!baseId) { setItens([]); return; }
+        setCarregando(true);
+        authFetch(`/api/pricebooks/${baseId}/items?limit=2000`).then(r => (r.ok ? r.json() : []))
+            .then(d => setItens(((Array.isArray(d) ? d : d.items || []) as ItemDaLpu[]).sort((a, b) => (a.codigo_item || '').localeCompare(b.codigo_item || ''))))
+            .catch(() => setItens([])).finally(() => setCarregando(false));
+    }, [baseId]);
+    const base = bases.find(b => b.id === baseId) || null;
+    return { bases, baseId, setBaseId, base, motivo, itens, carregando };
+}
+
+/** Seletor da base de LPU, com o motivo da escolha automática. */
+export function SeletorBaseLpu({ bases, baseId, setBaseId, motivo }: { bases: { id: string; nome: string }[]; baseId: string; setBaseId: (id: string) => void; motivo: string }) {
+    if (!bases.length) return null;
+    return (
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+            <label className="flex items-center gap-2 font-semibold">Base
+                <select aria-label="Base de LPU" className={`${inputClass} h-8 w-72 text-xs`} value={baseId} onChange={e => setBaseId(e.target.value)}>
+                    {bases.map(b => <option key={b.id} value={b.id}>{b.nome}</option>)}
+                </select>
+            </label>
+            <span className="text-muted-foreground">{motivo}</span>
+        </div>
+    );
+}
+
 export interface ItemDaLpu { id: string; codigo_item: string | null; subtipo: string | null; descricao: string; detalhamento: string | null; unidade: string; valor_venda: number | null }
 
 /** Escolhe itens da LPU da atividade (LPU Operações na operação) para o Orçamento LS. */
 export function LpuPickerModal({ atividadeId, onAdicionar, onFechar }: { atividadeId: string; onAdicionar: (itens: ItemDaLpu[]) => void; onFechar: () => void }) {
-    const [base, setBase] = useState<{ nome: string } | null>(null);
-    const [itens, setItens] = useState<ItemDaLpu[]>([]);
-    const [carregando, setCarregando] = useState(true);
+    const { bases, baseId, setBaseId, base, motivo, itens, carregando } = useBaseLpu(atividadeId);
     const [busca, setBusca] = useState('');
     const [categoria, setCategoria] = useState('');
     const [marcados, setMarcados] = useState<string[]>([]);
-    useEffect(() => {
-        (async () => {
-            const l = await authFetch(`/api/atividades/${atividadeId}/lpus`).then(r => (r.ok ? r.json() : null));
-            if (!l?.custo) return;
-            setBase({ nome: l.custo.nome });
-            const d = await authFetch(`/api/pricebooks/${l.custo.id}/items?limit=2000`).then(r => (r.ok ? r.json() : []));
-            setItens(((Array.isArray(d) ? d : d.items || []) as ItemDaLpu[]).sort((a, b) => (a.codigo_item || '').localeCompare(b.codigo_item || '')));
-        })().finally(() => setCarregando(false));
-    }, [atividadeId]);
     const categorias = useMemo(() => [...new Set(itens.map(i => i.subtipo || '').filter(Boolean))].sort(), [itens]);
     const termos = busca.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/\s+/).filter(Boolean);
     const visiveis = itens.filter(i => (!categoria || i.subtipo === categoria) && termos.every(t =>
         `${i.codigo_item} ${i.descricao} ${i.detalhamento || ''}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(t))).slice(0, 300);
     return (
         <Modal titulo={`Adicionar da LPU${base ? ` — ${base.nome}` : ''}`} onFechar={onFechar}>
+            <div className="border-b border-border px-5 pt-3"><SeletorBaseLpu bases={bases} baseId={baseId} setBaseId={id => { setBaseId(id); setMarcados([]); setCategoria(''); }} motivo={motivo} /></div>
             <div className="flex flex-wrap gap-2 border-b border-border px-5 py-3">
                 <label className="relative min-w-60 flex-1">
                     <Search size={14} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -59,7 +105,7 @@ export function LpuPickerModal({ atividadeId, onAdicionar, onFechar }: { ativida
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-2">
                 {carregando ? <p className="py-6 text-sm text-muted-foreground">Carregando a LPU…</p>
-                    : !base ? <p className="py-6 text-sm text-muted-foreground">Nenhuma LPU de custo encontrada para esta atividade.</p>
+                    : !base ? <p className="py-6 text-sm text-muted-foreground">Nenhuma LPU LS cadastrada. Cadastre em Comercial › LPUs.</p>
                     : visiveis.length === 0 ? <p className="py-6 text-sm text-muted-foreground">Nenhum item encontrado.</p>
                     : visiveis.map(i => {
                         const ok = marcados.includes(i.id);

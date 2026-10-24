@@ -20,7 +20,7 @@ function falsaApi(input: object, capturar: (corpo: any, cab: any) => void, statu
     return (async (_url: any, init: any) => {
         capturar(JSON.parse(init.body), init.headers);
         const corpo = status === 200
-            ? { content: [{ type: 'tool_use', name: JSON.parse(init.body).tool_choice.name, input }], usage: { input_tokens: 100, output_tokens: 50 } }
+            ? { content: [{ type: 'tool_use', name: JSON.parse(init.body).tools[0].name, input }], usage: { input_tokens: 100, output_tokens: 50 } }
             : { error: { message: 'invalid x-api-key' } };
         return new Response(JSON.stringify(corpo), { status });
     }) as any;
@@ -55,7 +55,7 @@ async function main() {
             observacoes: ['Não há item de aterramento para o portão metálico.'],
         }, (c, h) => { pedido = c; cabecalho = h; }));
         conferir('pede ao modelo claude-sonnet-5-5', pedido?.model === 'claude-sonnet-5-5', pedido?.model);
-        conferir('resposta estruturada obrigatória (tool_choice)', pedido?.tool_choice?.type === 'tool' && pedido?.tools?.[0]?.name === 'registrar_revisao');
+        conferir('resposta pela ferramenta (tool_choice auto: o Sonnet 5.5 recusa "tool"/"any")', pedido?.tool_choice?.type === 'auto' && pedido?.tools?.[0]?.name === 'registrar_revisao');
         conferir('chave vai no cabeçalho x-api-key, versão da API informada', cabecalho?.['x-api-key'] === 'chave-de-teste' && !!cabecalho?.['anthropic-version']);
         conferir('itens e contexto vão no texto do pedido', /cabemente/.test(pedido?.messages?.[0]?.content) && /BTS/.test(pedido?.messages?.[0]?.content));
         conferir('2 sugestões válidas (descarta item inexistente e sugestão igual ao atual)', r.sugestoes.length === 2, JSON.stringify(r.sugestoes));

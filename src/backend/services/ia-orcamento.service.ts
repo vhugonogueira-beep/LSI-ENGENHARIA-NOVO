@@ -41,18 +41,24 @@ async function chamar(ferramenta: { name: string; description: string; input_sch
         body: JSON.stringify({
             model: MODELO_IA,
             max_tokens: 4096,
-            system: PADRAO_LS,
+            system: `${PADRAO_LS}\n\nResponda SEMPRE chamando a ferramenta ${ferramenta.name}, uma única vez, sem texto fora dela.`,
             tools: [ferramenta],
-            // Resposta sempre estruturada: a ferramenta é obrigatória.
-            tool_choice: { type: 'tool', name: ferramenta.name },
+            // O Sonnet 5.5 recusa tool_choice "tool"/"any" (erro visto em 23/10/2026):
+            // a escolha fica automática e a instrução acima pede a ferramenta.
+            tool_choice: { type: 'auto' },
             messages: [{ role: 'user', content: conteudo }],
         }),
     });
     const corpo: any = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(corpo?.error?.message ? `IA: ${corpo.error.message}` : `IA indisponível (HTTP ${r.status})`);
+    const tokens = (corpo.usage?.input_tokens || 0) + (corpo.usage?.output_tokens || 0);
     const uso = corpo.content?.find((c: any) => c.type === 'tool_use' && c.name === ferramenta.name);
-    if (!uso) throw new Error('A IA não devolveu uma resposta estruturada');
-    return { dados: uso.input, tokens: (corpo.usage?.input_tokens || 0) + (corpo.usage?.output_tokens || 0) };
+    if (uso) return { dados: uso.input, tokens };
+    // Respondeu em texto: aproveita o JSON, se houver.
+    const texto = (corpo.content || []).filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n');
+    const json = texto.match(/\{[\s\S]*\}/);
+    if (json) { try { return { dados: JSON.parse(json[0]), tokens }; } catch { /* segue para o erro */ } }
+    throw new Error('A IA não devolveu uma resposta estruturada. Tente de novo.');
 }
 
 const contextoTexto = (c: ContextoObra) => [

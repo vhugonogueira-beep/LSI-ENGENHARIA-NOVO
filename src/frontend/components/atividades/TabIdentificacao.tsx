@@ -33,7 +33,6 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
         tipo_demanda: atividade.tipo_demanda,
         subtipo_demanda: atividade.subtipo_demanda || '',
         tipo_obra: atividade.tipo_obra || '',
-        tipo_atividade: atividade.tipo_atividade || '',
         modelo_operacao: modelosPermitidos(atividade.tipo_demanda).includes(atividade.modelo_operacao)
             ? atividade.modelo_operacao
             : modeloOperacaoPadrao(atividade.tipo_demanda),
@@ -76,7 +75,6 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     ...form,
                     subtipo_demanda: form.tipo_demanda === 'OPERACAO' ? (form.subtipo_demanda || null) : null,
                     tipo_obra: form.tipo_obra || null,
-                    tipo_atividade: form.tipo_atividade || null,
                     operadora: form.operadora || null,
                     contratante_id: form.contratante_id || null,
                     id_site_sharing: form.id_site_sharing || null,
@@ -123,7 +121,6 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     </div>
                     <div>
                         <Row label="Tipo de site" value={rotuloTipoSite(atividade.tipo_obra)} />
-                        <Row label="Tipo de atividade" value={atividade.tipo_atividade} />
                         <Row label="Modelo de operação" value={MODELO_OPERACAO_LABEL[atividade.modelo_operacao] || atividade.modelo_operacao} />
                         <Row label="Responsável" value={atividade.responsavel} />
                         <Row label="Gestor" value={atividade.gestor} />
@@ -204,7 +201,6 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                         <p className="text-[11px] text-muted-foreground mt-1">Implantação sempre segue o fluxo completo (Mediante Aprovação) — Blueprint LSI, seção 02.</p>
                     )}
                 </Field>
-                <Field label="Tipo de atividade"><input className={inputClass} value={form.tipo_atividade} onChange={e => setForm(f => ({ ...f, tipo_atividade: e.target.value }))} /></Field>
                 <Field label="Contratante">
                     <select className={inputClass} value={form.contratante_id} onChange={e => setForm(f => ({ ...f, contratante_id: e.target.value }))}>
                         <option value="">—</option>

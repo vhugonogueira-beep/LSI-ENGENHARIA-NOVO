@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { inputClass } from './ui';
 import { fmtMoeda } from './constants';
-import { authFetch } from '../../lib/authFetch';
-import type { ItemDaLpu } from './PvOmHighline';
+import { useBaseLpu, SeletorBaseLpu, type ItemDaLpu } from './PvOmHighline';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Itens da LPU no Orçamento LS da operação (14/10/2026): a LPU inteira em tabela,
@@ -44,21 +43,10 @@ export default function CatalogoLpuOrcamento<T extends LinhaCatalogo>({ atividad
     onAlternar: (item: ItemDaLpu, marcar: boolean) => void;
     onMudar: (chave: string, campo: 'quantidade' | 'valor_unitario' | 'desconto_interno_percent' | 'bdi_percent', valor: number) => void;
 }) {
-    const [base, setBase] = useState<{ nome: string; motivo?: string } | null>(null);
-    const [itens, setItens] = useState<ItemDaLpu[]>([]);
-    const [carregando, setCarregando] = useState(true);
+    const { bases, baseId, setBaseId, base, motivo, itens, carregando } = useBaseLpu(atividadeId);
     const [busca, setBusca] = useState('');
     const [categoria, setCategoria] = useState('');
     const [soSelecionados, setSoSelecionados] = useState(false);
-    useEffect(() => {
-        (async () => {
-            const l = await authFetch(`/api/atividades/${atividadeId}/lpus`).then(r => (r.ok ? r.json() : null));
-            if (!l?.custo) return;
-            setBase({ nome: l.custo.nome, motivo: l.custo.motivo });
-            const d = await authFetch(`/api/pricebooks/${l.custo.id}/items?limit=2000`).then(r => (r.ok ? r.json() : []));
-            setItens(((Array.isArray(d) ? d : d.items || []) as ItemDaLpu[]).sort((a, b) => (a.codigo_item || '').localeCompare(b.codigo_item || '')));
-        })().finally(() => setCarregando(false));
-    }, [atividadeId]);
 
     const porItem = useMemo(() => new Map(linhas.filter(l => l.source_pricebook_item_id).map(l => [l.source_pricebook_item_id!, l])), [linhas]);
     const categorias = useMemo(() => [...new Set(itens.map(i => i.subtipo || '').filter(Boolean))].sort(), [itens]);
@@ -78,6 +66,7 @@ export default function CatalogoLpuOrcamento<T extends LinhaCatalogo>({ atividad
     return (
         <div>
             <p className="mb-2 text-sm font-semibold">Itens do orçamento ({base.nome})</p>
+            <div className="mb-3"><SeletorBaseLpu bases={bases} baseId={baseId} setBaseId={id => { setBaseId(id); setCategoria(''); }} motivo={motivo} /></div>
             <div className="mb-3 flex flex-col gap-2 lg:flex-row lg:items-center">
                 <div className="relative min-w-0 flex-1">
                     <Search size={15} aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />

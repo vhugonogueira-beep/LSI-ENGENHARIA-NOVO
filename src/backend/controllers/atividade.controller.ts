@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { normalizarSharing } from '../utils/sharing';
 import { prisma } from '../server';
 import { adiamentosPorAtividade, faturadoPorAtividade, situacaoMeta } from '../services/meta-faturamento.service';
 import { proximoCodigo } from '../services/codigo-sequencial.service';
@@ -196,6 +197,7 @@ export async function getAtividade(req: Request, res: Response) {
 
 export async function createAtividade(req: Request, res: Response) {
     try {
+        if (req.body?.sharing) req.body.sharing = normalizarSharing(req.body.sharing);
         const tenant_id = await getTenantId(req);
         const {
             titulo, acionamento_id, tipo_demanda, subtipo_demanda, tipo_obra, tipo_atividade, modelo_operacao,
@@ -288,7 +290,9 @@ export async function createAtividade(req: Request, res: Response) {
                 subtipo_demanda: subtipo_demanda || null,
                 tipo_obra: tipo_obra || null,
                 tipo_site_highline: tipo_site_highline || null,
-                tipo_atividade: tipo_atividade || null,
+                // Tipo de atividade unificado com o Título (23/10/2026): quem não
+                // manda o tipo grava o próprio título nele.
+                tipo_atividade: tipo_atividade || String(titulo).trim() || null,
                 modelo_operacao: modelo_operacao || modeloDefault,
                 sharing,
                 operadora: operadora || null,
@@ -342,6 +346,7 @@ export async function updateAtividade(req: Request, res: Response) {
 
         const existing = await prisma.atividade.findUnique({ where: { id } });
         if (!existing) return res.status(404).json({ error: 'Atividade não encontrada' });
+        if (body.sharing !== undefined && body.sharing !== null) body.sharing = normalizarSharing(body.sharing);
 
         const nextSharing = String(body.sharing ?? existing.sharing).toUpperCase();
         const nextDemandType = body.tipo_demanda ?? existing.tipo_demanda;
@@ -426,7 +431,10 @@ export async function updateAtividade(req: Request, res: Response) {
             subtipo_demanda: body.subtipo_demanda !== undefined ? body.subtipo_demanda : existing.subtipo_demanda,
             tipo_obra: body.tipo_obra !== undefined ? body.tipo_obra : existing.tipo_obra,
             tipo_site_highline: body.tipo_site_highline !== undefined ? body.tipo_site_highline : existing.tipo_site_highline,
-            tipo_atividade: body.tipo_atividade !== undefined ? body.tipo_atividade : existing.tipo_atividade,
+            // Tipo de atividade acompanha o Título (unificados em 23/10/2026).
+            tipo_atividade: body.tipo_atividade !== undefined ? body.tipo_atividade
+                : body.titulo !== undefined ? String(body.titulo).trim() || existing.tipo_atividade
+                : existing.tipo_atividade,
             modelo_operacao: body.modelo_operacao ?? existing.modelo_operacao,
             sharing: body.sharing ?? existing.sharing,
             operadora: body.operadora !== undefined ? body.operadora : existing.operadora,

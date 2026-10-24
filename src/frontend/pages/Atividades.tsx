@@ -344,7 +344,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 ...form,
                 subtipo_demanda: form.tipo_demanda === 'OPERACAO' ? (form.subtipo_demanda || null) : null,
                 tipo_obra: form.tipo_obra || null,
-                tipo_atividade: form.tipo_atividade || null,
                 acionamento_id: form.acionamento_id || null,
                 operadora: form.operadora || null,
                 contrato: form.contrato || null,
@@ -444,7 +443,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const mesesDeMeta = [...new Set(atividades.map(a => a.meta_faturamento_mes).filter(Boolean) as string[])].sort();
 
     const historicoTitulos = ultimosValores(atividades, 'titulo');
-    const historicoTipos = ultimosValores(atividades, 'tipo_atividade');
     // Responsável: últimos nomes usados como responsável ou gestor (18/10/2026).
     const historicoResponsaveis = [...new Set([...ultimosValores(atividades, 'responsavel', 8), ...ultimosValores(atividades, 'gestor', 8)])].slice(0, 8);
     const projetosPorId = new Map<string, any>(projetos.map(p => [p.id, p]));
@@ -1215,12 +1213,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     ? 'Implantação sempre segue o fluxo completo (Mediante Aprovação).'
                                     : 'Preenchido automaticamente a partir do tipo de demanda — pode trocar manualmente para exceções.'}
                             </p>
-                            <Field label="Tipo de atividade">
-                                <input value={form.tipo_atividade} onChange={e => setForm(f => ({ ...f, tipo_atividade: e.target.value }))}
-                                    list="historico-tipos" autoComplete="off"
-                                    placeholder="Ex: Instalação de antena, SPDA, obra civil..." className="input" />
-                                <datalist id="historico-tipos">{historicoTipos.map(v => <option key={v} value={v} />)}</datalist>
-                            </Field>
                             {/* Valor de contrato e custo orçado não entram na abertura: nascem
                                 do orçamento/negociação e são editados depois, no cockpit. */}
                             <Field label="Responsável / Gestor">
