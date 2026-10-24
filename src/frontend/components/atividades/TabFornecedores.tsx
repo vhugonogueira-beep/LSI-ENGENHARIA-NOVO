@@ -12,6 +12,7 @@ import FuncionarioFormModal from '../cadastros/FuncionarioFormModal';
 import FornecedorFormModal from '../cadastros/FornecedorFormModal';
 import AvisoSemAssinatura from '../perfil/AvisoSemAssinatura';
 import { usePermissao } from '../../lib/permissoes';
+import { useEstadoDaSessao } from '../../lib/estadoSessao';
 
 const CONTRATO_STATUS = ['GERADO', 'ENVIADO', 'ASSINADO'];
 const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIADO: 'Enviado', ASSINADO: 'Assinado' };
@@ -81,12 +82,12 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [adiantamentoRefresh, setAdiantamentoRefresh] = useState(0);
     const [programacao, setProgramacao] = useState<{ parcelaId: string; statusAtual: string; data_solicitacao: string; data_prevista: string; motivo: string } | null>(null);
     const [loading, setLoading] = useState(true);
-    const [showForm, setShowForm] = useState(false);
+    const [showForm, setShowForm] = useEstadoDaSessao(`ls_novo_pagamento_aberto_${atividade.id}`, false);
     // Cadastro sem sair do pagamento, com as mesmas janelas da aba Pessoas e
     // Fornecedores: "Novo cadastro" (material / prestador / funcionário).
     const [cadastro, setCadastro] = useState<'PESSOA' | 'FUNCIONARIO' | null>(null);
     const podeCadastrar = usePermissao('cadastros.gerenciar');
-    const [form, setForm] = useState(FORM_INIT);
+    const [form, setForm] = useEstadoDaSessao(`ls_novo_pagamento_${atividade.id}`, FORM_INIT);
     const [erro, setErro] = useState('');
     const [salvando, setSalvando] = useState(false);
     // E-mail de programacao de pagamento no template corporativo, por parcela.

@@ -16,6 +16,7 @@ import { AreaChip, OperadoraChip, SharingNome } from '../components/atividades/u
 import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_MODULO, tomDe, type Tom } from '../lib/cores';
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { useEhAdmin } from '../lib/permissoes';
+import { useEstadoDaSessao, CHAVE_ATIVIDADE_ABERTA } from '../lib/estadoSessao';
 
 interface Atividade {
     id: string;
@@ -118,7 +119,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [atividades, setAtividades] = useState<Atividade[]>([]);
     const [loading, setLoading] = useState(true);
     // Vindo de outra tela (ex.: Orçamentos → Abrir): abre direto a atividade pedida.
-    const [selecionadaId, setSelecionadaId] = useState<string | null>(() => {
+    // A atividade aberta e o cadastro pela metade sobrevivem ao recarregamento da
+    // aba pelo navegador (23/10/2026).
+    const [selecionadaId, setSelecionadaId] = useEstadoDaSessao<string | null>(CHAVE_ATIVIDADE_ABERTA, () => {
         try { const id = sessionStorage.getItem('ls_abrir_atividade'); sessionStorage.removeItem('ls_abrir_atividade'); return id; } catch { return null; }
     });
     const [view, setView] = useState<'lista' | 'kanban' | 'projetos'>(vistaInicial);
@@ -165,8 +168,8 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [filtros, setFiltros] = useState(lerFiltros);
     useEffect(() => { try { localStorage.setItem(FILTROS_KEY, JSON.stringify(filtros)); } catch { /* sem storage, só não lembra */ } }, [filtros]);
     const setFiltro = (campo: keyof typeof FILTROS_INIT, valor: string) => setFiltros(f => ({ ...f, [campo]: valor }));
-    const [showForm, setShowForm] = useState(false);
-    const [form, setForm] = useState(FORM_INIT);
+    const [showForm, setShowForm] = useEstadoDaSessao('ls_nova_atividade_aberta', false);
+    const [form, setForm] = useEstadoDaSessao('ls_nova_atividade', FORM_INIT);
     const [saving, setSaving] = useState(false);
     const [erro, setErro] = useState('');
     // Cadastro único de sites: ao digitar detentora + ID, o formulário procura o

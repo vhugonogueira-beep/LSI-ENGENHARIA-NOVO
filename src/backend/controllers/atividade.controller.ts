@@ -31,6 +31,9 @@ const DIMENSAO_LABEL: Record<Dimensao, string> = {
     status_faturamento: 'FATURAMENTO',
 };
 
+/** Tipos de demanda aceitos (Projeto desde 23/10/2026). */
+const TIPOS_DEMANDA_VALIDOS = ['IMPLANTACAO', 'OPERACAO', 'PROJETO'];
+
 export async function listAtividades(req: Request, res: Response) {
     try {
         const tenant_id = await getTenantId(req);
@@ -207,6 +210,9 @@ export async function createAtividade(req: Request, res: Response) {
         if (!titulo || !tipo_demanda || !sharing || !id_site_sharing || !id_site_operadora) {
             return res.status(400).json({ error: 'titulo, tipo_demanda, sharing, id_site_sharing e id_site_operadora são obrigatórios' });
         }
+        if (!TIPOS_DEMANDA_VALIDOS.includes(tipo_demanda)) {
+            return res.status(400).json({ error: 'Tipo de demanda inválido. Use Implantação, Operação ou Projeto' });
+        }
 
         // Projeto escolhido já no cadastro (14/10/2026): precisa existir e ser do tenant.
         if (acionamento_id && !(await prisma.acionamento.findFirst({ where: { id: acionamento_id, tenant_id }, select: { id: true } }))) {
@@ -270,7 +276,7 @@ export async function createAtividade(req: Request, res: Response) {
         // Tipo de demanda decide o modelo de operação padrão (Blueprint LSI, seção 05):
         // Implantação → Mediante Aprovação (exige APC); qualquer outra → Execução Direta.
         // Sempre editável manualmente via modelo_operacao explícito.
-        const modeloDefault = tipo_demanda === 'IMPLANTACAO' ? 'MEDIANTE_APROVACAO' : 'EXECUCAO_DIRETA';
+        const modeloDefault = tipo_demanda === 'IMPLANTACAO' ? 'MEDIANTE_APROVACAO' : tipo_demanda === 'PROJETO' ? 'EXECUCAO_COM_APROVACAO' : 'EXECUCAO_DIRETA';
 
         const atividade = await prisma.atividade.create({
             data: {

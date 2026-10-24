@@ -15,6 +15,7 @@ import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import * as XLSX from "xlsx";
 // Paleta unica do sistema (src/frontend/theme.ts), com tema claro e escuro.
 import { T, estilosVivos } from '../theme';
+import { useEstadoDaSessao } from '../lib/estadoSessao';
 
 // Ícone lucide alinhado ao texto, no lugar dos emojis que as telas legadas usavam.
 const Ico = ({ as: Icone, size = 15 }: { as: LucideIcon; size?: number }) => (
@@ -405,7 +406,9 @@ function App({ user, onLogout }) {
   });
   const [sideHovered, setSideHovered] = useState(false);
   const [currentArea, setCurrentArea] = useState(null);
-  const [tab, setTab] = useState("orcv2");
+  // Lembrada na aba do navegador: se o Chrome recarregar a aba em segundo plano,
+  // volta para a mesma tela (23/10/2026).
+  const [tab, setTab] = useEstadoDaSessao<string>("ls_tela", "orcv2");
 
   // ── Budget V2 (multi-sharing) ──
   const [activeBudgetV2, setActiveBudgetV2] = useState<Budget | null>(null);

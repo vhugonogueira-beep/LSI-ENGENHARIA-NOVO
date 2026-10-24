@@ -58,8 +58,11 @@ export const STATUS_FATURAMENTO: Record<string, { label: string; color: string }
 // (Implantação → Mediante Aprovação; Operação → Execução Direta). A antiga
 // granularidade (Manutenção/Adequação/Emergencial/Vistoria/Engenharia/Outro)
 // virou um subtipo, só relevante quando tipo_demanda = OPERACAO.
-export const TIPOS_DEMANDA = ['IMPLANTACAO', 'OPERACAO'];
-export const TIPOS_DEMANDA_LABEL: Record<string, string> = { IMPLANTACAO: 'Implantação', OPERACAO: 'Operação' };
+// Projeto (23/10/2026): fornecimento de projeto executivo, ART, vistoria de
+// engenharia — sem obra. Segue os modelos de operação; na Highline, escolhe
+// entre a PV (que tem os serviços de engenharia) e o Orçamento LS.
+export const TIPOS_DEMANDA = ['IMPLANTACAO', 'OPERACAO', 'PROJETO'];
+export const TIPOS_DEMANDA_LABEL: Record<string, string> = { IMPLANTACAO: 'Implantação', OPERACAO: 'Operação', PROJETO: 'Projeto' };
 export const SUBTIPOS_OPERACAO = ['MANUTENCAO', 'ADEQUACAO', 'EMERGENCIAL', 'VISTORIA', 'ENGENHARIA', 'OUTRO'];
 export const SUBTIPOS_OPERACAO_LABEL: Record<string, string> = {
     MANUTENCAO: 'Manutenção', ADEQUACAO: 'Adequação', EMERGENCIAL: 'Emergencial',
@@ -151,7 +154,10 @@ export const MODELO_OPERACAO_LABEL: Record<string, string> = {
 // sempre editável manualmente depois, isso é só o valor inicial sugerido. Operação
 // nasce no caminho mais simples (sem aprovação); "com aprovação" é escolha manual.
 export function modeloOperacaoPadrao(tipoDemanda: string): string {
-    return tipoDemanda === 'IMPLANTACAO' ? 'MEDIANTE_APROVACAO' : 'EXECUCAO_DIRETA';
+    if (tipoDemanda === 'IMPLANTACAO') return 'MEDIANTE_APROVACAO';
+    // Projeto depende do orçamento aprovado pelo cliente antes de começar.
+    if (tipoDemanda === 'PROJETO') return 'EXECUCAO_COM_APROVACAO';
+    return 'EXECUCAO_DIRETA';
 }
 
 // Blueprint LSI, seção 02 — a correspondência não é "sugestão", é 1:1: MEDIANTE_APROVACAO
@@ -187,8 +193,12 @@ export function nomePvSharing(sharing?: string | null): string {
     const nome = s.split(/\s+/).map(p => (p.length <= 4 && p === p.toUpperCase() && !/^(SITES?|DO|DA|DE)$/.test(p)) ? p : p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
     return `PV ${nome}`;
 }
+/** Implantação e Projeto da Highline podem seguir com a PV Highline (23/10/2026). */
+export function usaPvHighline(tipoDemanda?: string | null): boolean {
+    return tipoDemanda === 'IMPLANTACAO' || tipoDemanda === 'PROJETO';
+}
 export function exigeEscolhaTipoOrcamento(atividade: { sharing: string; tipo_demanda: string }): boolean {
-    return atividade.sharing.trim().toUpperCase() === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO';
+    return atividade.sharing.trim().toUpperCase() === 'HIGHLINE' && usaPvHighline(atividade.tipo_demanda);
 }
 
 /**

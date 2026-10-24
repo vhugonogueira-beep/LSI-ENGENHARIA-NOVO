@@ -210,8 +210,8 @@ export class BudgetService {
         const hasHighlineCatalogItems = items.some(item => item?.highline_template_row != null);
         if (hasHighlineCatalogItems && (!budget.atividade
             || budget.atividade.sharing.trim().toUpperCase() !== 'HIGHLINE'
-            || budget.atividade.tipo_demanda !== 'IMPLANTACAO')) {
-            throw new Error('O catálogo Highline só pode ser usado em Atividades de implantação Highline');
+            || !['IMPLANTACAO', 'PROJETO'].includes(budget.atividade.tipo_demanda))) {
+            throw new Error('O catálogo Highline só pode ser usado em Atividades de implantação ou projeto da Highline');
         }
 
         const catalogByRow = new Map(HIGHLINE_PV_CATALOG.map(item => [item.templateRow, item]));

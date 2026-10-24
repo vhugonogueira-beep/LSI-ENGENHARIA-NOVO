@@ -80,7 +80,7 @@ export const TOM_STATUS: Record<string, Tom> = {
 };
 
 /** Área (tipo de demanda). */
-export const TOM_AREA: Record<string, Tom> = { IMPLANTACAO: 'blue', OPERACAO: 'teal' };
+export const TOM_AREA: Record<string, Tom> = { IMPLANTACAO: 'blue', OPERACAO: 'teal', PROJETO: 'violet' };
 
 /** Operadora móvel — próximo da cor de marca de cada uma. */
 export const TOM_OPERADORA: Record<string, Tom> = { VIVO: 'violet', CLARO: 'rose', TIM: 'blue', OI: 'amber', OUTROS: 'slate' };

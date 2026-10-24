@@ -16,6 +16,7 @@ import TabLpus from '../budget/TabLpus';
 import { T, TMenu } from '../theme';
 import TopBar from './TopBar';
 import { caixaIcone } from './caixaIcone';
+import { esquecerEstadoDaSessao, CHAVE_ATIVIDADE_ABERTA } from '../lib/estadoSessao';
 
 // Shell do LSI (Fase 4): moldura da aplicação — menu lateral, barra superior e o
 // roteamento por `tab`. Movido de SimuladorLPU.tsx sem mudar comportamento.
@@ -68,7 +69,13 @@ export default function AppShell(props: AppShellProps) {
     // de dentro de uma atividade, "Atividades" retorna à lista. A contagem de
     // cliques vira a chave da tela, que é montada de novo.
     const [visita, setVisita] = useState(0);
-    const navegar = (destino: string) => { if (destino === tab) setVisita(v => v + 1); setTab(destino); };
+    const navegar = (destino: string) => {
+        // Navegar pelo menu volta à lista: a atividade aberta guardada para o
+        // recarregamento da aba (estadoSessao) é esquecida aqui.
+        esquecerEstadoDaSessao(CHAVE_ATIVIDADE_ABERTA);
+        if (destino === tab) setVisita(v => v + 1);
+        setTab(destino);
+    };
 
     return (
         <div className="scroll-min" style={{ minHeight: "100vh", background: T.bg0, color: T.txPri, display: "flex", position: "relative", WebkitFontSmoothing: "antialiased", MozOsxFontSmoothing: "grayscale" } as React.CSSProperties}>

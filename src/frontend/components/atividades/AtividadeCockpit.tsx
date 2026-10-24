@@ -17,6 +17,7 @@ import TabDocumentacao from './TabDocumentacao';
 import TabFornecedores from './TabFornecedores';
 import TabFaturamento from './TabFaturamento';
 import TabResultado from './TabResultado';
+import { useEstadoDaSessao } from '../../lib/estadoSessao';
 
 interface Pendencia { nivel: 'ALERTA' | 'AVISO'; mensagem: string }
 type PendenciasPorAba = Record<string, Pendencia[]>;
@@ -174,7 +175,7 @@ const TOM_ABA = TOM_MODULO.atividades;
 export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId: string; onBack: () => void }) {
     const [atividade, setAtividade] = useState<AtividadeDetalhe | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('identificacao');
+    const [activeTab, setActiveTab] = useEstadoDaSessao(`ls_aba_atividade_${atividadeId}`, 'identificacao');
     const [pendencias, setPendencias] = useState<PendenciasPorAba>({});
 
     // Recalcula ao abrir, a cada recarga e a cada troca de aba: várias abas

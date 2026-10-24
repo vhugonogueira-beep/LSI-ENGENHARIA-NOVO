@@ -53,7 +53,7 @@ export function Dashboard({ onNavigateTo }: { onNavigateTo?: (tab: string) => vo
     const [budgets, setBudgets] = useState<any[]>([]);
     const [projetos, setProjetos] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [area, setArea] = useState<'TODAS' | 'IMPLANTACAO' | 'OPERACAO'>('TODAS');
+    const [area, setArea] = useState<'TODAS' | 'IMPLANTACAO' | 'OPERACAO' | 'PROJETO'>('TODAS');
     const [detentora, setDetentora] = useState('');
 
     const load = useCallback(async () => {
@@ -109,7 +109,7 @@ export function Dashboard({ onNavigateTo }: { onNavigateTo?: (tab: string) => vo
         };
     }, [lista]);
     const valor = (a: Atividade) => a.valor_contrato || 0;
-    const porArea = useMemo(() => ['IMPLANTACAO', 'OPERACAO'].map(t => {
+    const porArea = useMemo(() => ['IMPLANTACAO', 'OPERACAO', 'PROJETO'].map(t => {
         const doTipo = lista.filter(a => a.tipo_demanda === t);
         return { tipo: t, n: doTipo.length, v: doTipo.reduce((s, a) => s + valor(a), 0), abertas: doTipo.filter(a => a.status_operacional !== 'CONCLUIDA').length };
     }), [lista]);
@@ -154,7 +154,7 @@ export function Dashboard({ onNavigateTo }: { onNavigateTo?: (tab: string) => vo
                 acoes={
                     <div className="flex flex-wrap items-center gap-2">
                         <div className={ALTERNADOR} role="group" aria-label="Área">
-                            {(['TODAS', 'IMPLANTACAO', 'OPERACAO'] as const).map(t => (
+                            {(['TODAS', 'IMPLANTACAO', 'OPERACAO', 'PROJETO'] as const).map(t => (
                                 <button key={t} onClick={() => setArea(t)} aria-pressed={area === t}
                                     className={`${SEGMENTO} ${area === t ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'}`}>
                                     {t === 'TODAS' ? 'Todas' : TIPOS_DEMANDA_LABEL[t]}

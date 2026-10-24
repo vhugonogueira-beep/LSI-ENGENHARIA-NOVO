@@ -166,7 +166,7 @@ export async function criarAtividadeDoAcionamento(req: Request, res: Response) {
         }
 
         const codigo = await proximoCodigo(prisma.atividade, 'ATV');
-        const modeloDefault = tipo_demanda === 'IMPLANTACAO' ? 'MEDIANTE_APROVACAO' : 'EXECUCAO_DIRETA';
+        const modeloDefault = tipo_demanda === 'IMPLANTACAO' ? 'MEDIANTE_APROVACAO' : tipo_demanda === 'PROJETO' ? 'EXECUCAO_COM_APROVACAO' : 'EXECUCAO_DIRETA';
 
         const atividade = await prisma.atividade.create({
             data: {

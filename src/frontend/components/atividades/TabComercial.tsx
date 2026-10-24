@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Check, Plus, X } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
-import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento, nomePvSharing } from './constants';
+import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento, nomePvSharing, usaPvHighline } from './constants';
 import HighlineBudgetEditor from './HighlineBudgetEditor';
 import OrcamentoLsEditor from './OrcamentoLsEditor';
 import { PvOmHighlineEditor } from './PvOmHighline';
@@ -312,7 +312,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                 )}
             </Card>
 
-            {orcamentoAtivo && atividade.sharing.toUpperCase() === 'HIGHLINE' && atividade.tipo_demanda === 'IMPLANTACAO' && (() => {
+            {orcamentoAtivo && atividade.sharing.toUpperCase() === 'HIGHLINE' && usaPvHighline(atividade.tipo_demanda) && (() => {
                 // Seguir com a PV Highline ou com o Orçamento LS (08/10/2026). Trocável em rascunho.
                 const modoLs = orcamentoAtivo.tipo_orcamento === 'ORCAMENTO_LS';
                 const editavel = orcamentoAtivo.status === 'RASCUNHO';
