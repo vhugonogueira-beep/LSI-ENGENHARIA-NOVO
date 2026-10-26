@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { ChevronDown, MoreVertical, Paperclip } from 'lucide-react';
+import { ChevronDown, ChevronRight, MoreVertical, Paperclip } from 'lucide-react';
 
 export type FinancialAction = {
   label: string;
@@ -17,6 +17,7 @@ export const COLUNAS_PARCELA = 'lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1.3fr)_19
 
 export function FinancialBeneficiaryCard({
   name, category, total, totalLabel = 'Contratado', status, headerActions, children, progress, meta,
+  aberto, onAlternar, resumo,
 }: {
   name: string;
   category?: string | null;
@@ -29,12 +30,32 @@ export function FinancialBeneficiaryCard({
   progress?: { pago: number; total: number; rotulo?: ReactNode };
   /** Linha extra do cabeçalho (ex.: diretório no servidor). */
   meta?: ReactNode;
+  /** Cortina (26/10/2026): aberto/fechado controlado por quem usa; sem isto, começa aberto e alterna sozinho. */
+  aberto?: boolean;
+  onAlternar?: () => void;
+  /** Mostrado no cabeçalho quando fechado (ex.: "3 parcelas · 2 pagas"). */
+  resumo?: ReactNode;
 }) {
   const pct = progress && progress.total > 0 ? Math.min(100, Math.max(0, (progress.pago / progress.total) * 100)) : 0;
-  return <article className="overflow-visible rounded-xl border border-border bg-card">
-    <header className="grid gap-3 border-b border-border bg-accent px-4 py-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] lg:items-center">
+  const [abertoLocal, setAbertoLocal] = useState(true);
+  const estaAberto = aberto ?? abertoLocal;
+  const alternar = onAlternar ?? (() => setAbertoLocal(v => !v));
+  // Cada favorecido é uma "janela": borda e cabeçalho em azul vivo separam uma
+  // programação da seguinte (26/10/2026). Clicar no cabeçalho abre ou fecha;
+  // botões, menus e seletores do cabeçalho seguem com a própria ação.
+  return <article className="overflow-visible rounded-xl border border-primary/45 bg-card shadow-sm">
+    <header onClick={e => { if (!(e.target as HTMLElement).closest('button,a,select,input,label,[role=menu]')) alternar(); }}
+      className={`grid cursor-pointer gap-3 rounded-t-xl border-l-4 border-l-primary bg-primary/20 px-4 py-3 hover:bg-primary/25 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] lg:items-center ${estaAberto ? 'border-b border-primary/40' : 'rounded-b-xl'}`}>
       <div className="min-w-0">
-        <h3 className="truncate text-sm font-bold text-[hsl(var(--link))]">{name}</h3>
+        <div className="flex min-w-0 items-center gap-2">
+          <button type="button" onClick={alternar} aria-expanded={estaAberto} aria-label={`${estaAberto ? 'Recolher' : 'Expandir'} os pagamentos de ${name}`}
+            title={estaAberto ? 'Recolher os pagamentos' : 'Expandir os pagamentos'}
+            className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/85">
+            {estaAberto ? <ChevronDown size={15} aria-hidden /> : <ChevronRight size={15} aria-hidden />}
+          </button>
+          <h3 className="truncate text-[15px] font-bold text-foreground">{name}</h3>
+          {!estaAberto && resumo && <span className="shrink-0 text-[11px] font-semibold text-[hsl(var(--link))]">{resumo}</span>}
+        </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
           {category && <span className="font-medium">{category}</span>}
           {meta}
@@ -55,7 +76,7 @@ export function FinancialBeneficiaryCard({
     </header>
     {/* Blocos que não são linha de parcela (avisos, arquivos do contrato,
         edição) ganham o recuo da tabela; as linhas se separam por fio. */}
-    <div className="[&>*:not(section)]:mx-4 [&>*:not(section)]:my-2.5">{children}</div>
+    {estaAberto && <div className="[&>*:not(section)]:mx-4 [&>*:not(section)]:my-2.5">{children}</div>}
   </article>;
 }
 

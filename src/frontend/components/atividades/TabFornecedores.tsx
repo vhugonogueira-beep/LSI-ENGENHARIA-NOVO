@@ -101,6 +101,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     // abrir dentro do próprio cartão do favorecido.
     // Filtro da lista por situação da parcela (proposta 1, 15/10/2026).
     const [filtroSituacao, setFiltroSituacao] = useState<SituacaoParcela | 'TODOS'>('TODOS');
+    // Fornecedores em cortina (26/10/2026): começam recolhidos; abrir mostra tudo
+    // o que foi programado e pago. Com filtro de situação, os que aparecem abrem.
+    const [abertosPag, setAbertosPag] = useEstadoDaSessao<string[]>(`ls_pagamentos_abertos_${atividade.id}`, []);
+    const alternarPag = (id: string) => setAbertosPag(v => (v.includes(id) ? v.filter(x => x !== id) : [...v, id]));
     const [editandoContratacao, setEditandoContratacao] = useState<{ id: string; valor: string; observacoes: string; motivo: string; diretorio_url: string } | null>(null);
     // Motivo da alteração de valor da parcela e histórico aberto por contratação.
     const [motivoParcela, setMotivoParcela] = useState('');
@@ -930,6 +934,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 </button>
                             );
                         })}
+                        <span className="ml-2 flex items-center gap-3 text-xs">
+                            <button type="button" onClick={() => setAbertosPag(contratacoes.map((c: any) => c.id))} className="font-semibold text-primary hover:underline">Abrir todos</button>
+                            <button type="button" onClick={() => setAbertosPag([])} className="font-semibold text-primary hover:underline">Recolher todos</button>
+                        </span>
                     </div>
                     </div>
                 );
@@ -968,6 +976,14 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             category={FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ').toLowerCase()}
                             total={fmtMoeda(c.valor_contratado)}
                             progress={{ pago: pagoGrupo, total: c.valor_contratado, rotulo: `${fmtMoeda(pagoGrupo)} pago de ${fmtMoeda(c.valor_contratado)}` }}
+                            aberto={filtroSituacao !== 'TODOS' || abertosPag.includes(c.id) || editandoContratacao?.id === c.id}
+                            onAlternar={() => alternarPag(c.id)}
+                            resumo={(() => {
+                                const ps = c.parcelas || [];
+                                const pagas = ps.filter((p: any) => PAGO_STATUS.includes(p.status)).length;
+                                const aSolicitar = ps.filter((p: any) => situacaoDaParcela(p) === 'A_SOLICITAR').length;
+                                return `${ps.length} parcela(s) · ${pagas} paga(s)${aSolicitar ? ` · ${aSolicitar} a solicitar` : ''}`;
+                            })()}
                             meta={<span>Dir.: {c.diretorio_url
                                 ? <span className="font-mono text-foreground/80">{c.diretorio_url}</span>
                                 : atividade.diretorio_url ? <span className="font-mono">{atividade.diretorio_url} <span className="font-sans">(da atividade)</span></span>
