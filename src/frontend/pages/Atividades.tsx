@@ -646,10 +646,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         </button>
                     )}
                 </div>
-                <div className="bg-card border border-border rounded-xl overflow-x-auto">
+                <div className="overflow-x-auto">
                     {/* Plano de colunas fixo: a largura não depende mais do conteúdo de
-                        cada linha, então as colunas não viram ilhas em monitor largo. */}
-                    <table className="w-full table-fixed min-w-[1040px] text-[13px]">
+                        cada linha, então as colunas não viram ilhas em monitor largo.
+                        Cada atividade (ou projeto) é uma "janela" separada da seguinte,
+                        como os fornecedores em Pagamentos (29/10/2026). */}
+                    <table className="w-full table-fixed border-collapse min-w-[1040px] text-[13px]">
                         <colgroup>
                             <col className="w-11" />
                             <col className="w-[24%]" />
@@ -660,7 +662,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             <col className="w-32" />
                         </colgroup>
                         <thead>
-                            <tr className="text-left text-xs text-muted-foreground bg-secondary/40 border-b border-border whitespace-nowrap">
+                            <tr className="text-left text-xs font-semibold text-primary-foreground bg-primary whitespace-nowrap [&>th]:font-semibold">
                                 <th className="px-3 py-2.5 align-middle w-8">
                                     <input type="checkbox" title="Selecionar todas as visíveis" aria-label="Selecionar todas as atividades visíveis"
                                         checked={filtradas.length > 0 && filtradas.every(a => selecionadas.includes(a.id))}
@@ -688,7 +690,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     // A linha inteira abre a atividade (14/10/2026); caixas, botões e links da linha seguem com a sua ação.
                                     <tr key={a.id} onClick={e => { if (!(e.target as HTMLElement).closest('input,button,a,select,label')) setSelecionadaId(a.id); }}
                                         title="Clique para abrir a atividade"
-                                        className={`group cursor-pointer border-b border-border/60 last:border-b-0 border-l-4 ${aninhada ? 'border-l-primary bg-primary/[0.035]' : FAIXA[tom]} hover:bg-secondary/30 transition-colors`}>
+                                        className={`group cursor-pointer border-l-4 bg-card ${aninhada ? 'border-x border-b border-primary/30 border-l-primary' : `border border-border shadow-sm ${FAIXA[tom]}`} hover:bg-secondary/40 transition-colors`}>
                                         {/* Toda célula abre com uma linha de 28px (h-7): Site ID, cliente,
                                             status, avanço, saldo e ações ficam na mesma altura. */}
                                         <td className="px-3 py-2.5 align-top">
@@ -774,7 +776,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 const marcados = filhos.every(a => selecionadas.includes(a.id));
                                 return (
                                     <Fragment key={`p-${p.id}`}>
-                                        <tr onClick={alternar} className="cursor-pointer border-b border-border/60 border-l-4 border-l-primary bg-primary/[0.06] hover:bg-primary/[0.1] transition-colors">
+                                        <tr onClick={alternar} className="cursor-pointer border border-primary/45 border-l-4 border-l-primary bg-primary/20 hover:bg-primary/25 transition-colors">
                                             <td className="px-3 py-3 align-top" onClick={e => e.stopPropagation()}>
                                                 <div className="flex h-7 items-center">
                                                     <input type="checkbox" checked={marcados} aria-label={`Selecionar as atividades do projeto ${p.codigo}`}
@@ -784,14 +786,14 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                             <td colSpan={2} className="px-3 py-3 align-top">
                                                 <div className="flex h-7 items-center gap-2 min-w-0">
                                                     <button type="button" aria-expanded={aberto} aria-label={`${aberto ? 'Recolher' : 'Abrir'} o projeto ${p.codigo}`}
-                                                        onClick={e => { e.stopPropagation(); alternar(); }} className="rounded p-0.5 text-primary hover:bg-primary/15">
-                                                        {aberto ? <ChevronDown size={16} aria-hidden /> : <ChevronRight size={16} aria-hidden />}
+                                                        onClick={e => { e.stopPropagation(); alternar(); }} className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/85">
+                                                        {aberto ? <ChevronDown size={15} aria-hidden /> : <ChevronRight size={15} aria-hidden />}
                                                     </button>
                                                     <FolderOpen size={16} aria-hidden className="shrink-0 text-primary" />
                                                     <span className="font-id text-xs text-primary">{p.codigo}</span>
-                                                    <strong className="truncate text-sm font-semibold" title={p.titulo}>{p.titulo}</strong>
+                                                    <strong className="truncate text-[15px] font-bold text-foreground" title={p.titulo}>{p.titulo}</strong>
                                                 </div>
-                                                <div className="mt-1 pl-7 text-xs text-muted-foreground">
+                                                <div className="mt-1 pl-8 text-xs font-medium text-[hsl(var(--link))]">
                                                     Projeto · {filhos.length === b.total ? `${b.total} atividade(s)` : `${filhos.length} de ${b.total} atividades atendem aos filtros`}
                                                 </div>
                                             </td>
@@ -824,7 +826,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         </tr>
                                         {aberto && filhos.map(a => linha(a, true))}
                                         {aberto && filhos.length > 0 && (
-                                            <tr className="border-b border-border border-l-4 border-l-primary bg-primary/[0.06]">
+                                            <tr className="border-x border-b border-primary/45 border-l-4 border-l-primary bg-primary/10">
                                                 <td colSpan={7} className="px-3 py-1.5 pl-12 text-[11px] text-muted-foreground">
                                                     Fim do projeto <span className="font-id text-primary">{p.codigo}</span> · {filhos.length} atividade(s)
                                                     <button type="button" onClick={alternar} className="ml-3 font-semibold text-primary hover:underline">Recolher</button>
@@ -834,7 +836,13 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     </Fragment>
                                 );
                             };
-                            return blocos.map(b => (b.tipo === 'projeto' ? projetoLinha(b) : linha(b.a)));
+                            // Uma faixa vazia entre um bloco e o seguinte separa as "janelas".
+                            return blocos.map(b => (
+                                <Fragment key={b.tipo === 'projeto' ? `b-${b.projeto.id}` : `b-${b.a.id}`}>
+                                    <tr aria-hidden className="h-2"><td colSpan={7} className="p-0" /></tr>
+                                    {b.tipo === 'projeto' ? projetoLinha(b) : linha(b.a)}
+                                </Fragment>
+                            ));
                             })()}
                         </tbody>
                     </table>
