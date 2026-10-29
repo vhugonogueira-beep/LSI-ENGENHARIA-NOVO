@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Check, Plus, X } from 'lucide-react';
+import { Check, FileText, Plus, X } from 'lucide-react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, GhostButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
 import { fmtMoeda, fmtData, TIPOS_ORCAMENTO, TIPO_ORCAMENTO_LABEL, exigeEscolhaTipoOrcamento, nomePvSharing, usaPvHighline, ehHighline } from './constants';
@@ -22,6 +22,7 @@ interface Negociacao {
     valor_final?: number | null;
     margem_minima_aceitavel?: number | null;
     contrapropostas: Contraproposta[];
+    budget?: { id: string; versao_atual: number; versions?: { versao: number; motivo_revisao?: string | null }[] };
 }
 interface Contraproposta {
     id: string;
@@ -198,6 +199,29 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
         }
     }
 
+    // Orçamento da rodada (29/10/2026): nova revisão do mesmo orçamento, com os
+    // itens descontados para o total fechar no valor proposto.
+    const [revisaoGerada, setRevisaoGerada] = useState('');
+    async function gerarRevisao(negociacaoId: string, c: Contraproposta) {
+        const atual = negociacoes.find(n => n.id === negociacaoId)?.budget?.versao_atual ?? orcamentoAtivo?.versao_atual ?? 1;
+        if (!confirm(`Gerar a Rev. ${String(atual + 1).padStart(2, '0')} do orçamento com o total de ${fmtMoeda(c.valor_proposto)}?\n\nO valor de cada item cai na mesma proporção para fechar nesse total. A Rev. ${String(atual).padStart(2, '0')} fica guardada no histórico.`)) return;
+        setSalvando(true);
+        setErro('');
+        setRevisaoGerada('');
+        try {
+            const r = await authFetch(`/api/negociacoes/${negociacaoId}/contrapropostas/${c.id}/revisao`, { method: 'POST' });
+            const corpo = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(corpo.error || 'Erro ao gerar o orçamento da rodada');
+            setRevisaoGerada(`Rev. ${String(corpo.versao).padStart(2, '0')} gerada: ${fmtMoeda(corpo.total_anterior)} → ${fmtMoeda(corpo.total)} (${String(corpo.percentual).replace('.', ',')}% de ${corpo.percentual >= 0 ? 'desconto' : 'acréscimo'} nos itens)${corpo.diferenca ? ` · sobrou ${fmtMoeda(corpo.diferenca)} de arredondamento: ajuste um item` : ''}. Gere o PDF para enviar ao cliente.`);
+            await load();
+            onRefresh();
+        } catch (e: any) {
+            setErro(e.message);
+        } finally {
+            setSalvando(false);
+        }
+    }
+
     async function decidir(negociacaoId: string, rodadaId: string, decisao: string) {
         setSalvando(true);
         setErro('');
@@ -346,8 +370,8 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                             {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho ({(STATUS_ORCAMENTO_LABEL[orcamentoAtivo.status] || orcamentoAtivo.status).toLowerCase()}); o modelo não pode mais ser trocado.</p>}
                         </div>
                         {modoLs
-                            ? <OrcamentoLsEditor budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} />
-                            : <HighlineBudgetEditor budgetId={orcamentoAtivo.id} targetValue={targetValue} targetLabel={targetLabel} />}
+                            ? <OrcamentoLsEditor key={`ls-${orcamentoAtivo.versao_atual}`} budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} />
+                            : <HighlineBudgetEditor key={`pv-${orcamentoAtivo.versao_atual}`} budgetId={orcamentoAtivo.id} targetValue={targetValue} targetLabel={targetLabel} />}
                     </>
                 );
             })()}
@@ -373,8 +397,8 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                             </div>
                         </div>
                         {visaoOm === 'LS'
-                            ? <OrcamentoLsEditor key="om-ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} vinculoHighline catalogoLpu />
-                            : <PvOmHighlineEditor key="om-pv" budgetId={orcamentoAtivo.id} />}
+                            ? <OrcamentoLsEditor key={`om-ls-${orcamentoAtivo.versao_atual}`} budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} vinculoHighline catalogoLpu />
+                            : <PvOmHighlineEditor key={`om-pv-${orcamentoAtivo.versao_atual}`} budgetId={orcamentoAtivo.id} />}
                     </>
                 );
             })()}
@@ -415,8 +439,8 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                             {!editavel && <p className="mt-2 text-xs text-muted-foreground">O orçamento já saiu do rascunho; o modelo não pode mais ser trocado.</p>}
                         </div>
                         {modoLs
-                            ? <OrcamentoLsEditor key="ls" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} catalogoLpu={atividade.tipo_demanda === 'OPERACAO'} />
-                            : <OrcamentoLsEditor key="pv" budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade}
+                            ? <OrcamentoLsEditor key={`ls-${orcamentoAtivo.versao_atual}`} budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade} catalogoLpu={atividade.tipo_demanda === 'OPERACAO'} />
+                            : <OrcamentoLsEditor key={`pv-${orcamentoAtivo.versao_atual}`} budgetId={orcamentoAtivo.id} editavel={editavel} onMudou={onRefresh} atividade={atividade}
                                 grupo="PV_CLIENTE" titulo={`${nomePv} — preço ao cliente`} />}
                     </>
                 );
@@ -440,6 +464,7 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                                 )}
                             </div>
 
+                            {revisaoGerada && <div role="status" className="mb-3 rounded-lg border border-ok/40 bg-ok/10 px-3 py-2 text-xs font-medium text-ok">{revisaoGerada}</div>}
                             <div className="flex flex-col gap-2 mb-4">
                                 {negociacaoAberta.contrapropostas.map(c => (
                                     <div key={c.id} className="bg-secondary/40 border border-border rounded-lg p-3">
@@ -450,6 +475,15 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
                                         <div className="text-sm mb-1">{fmtMoeda(c.valor_proposto)} <span className="text-xs text-muted-foreground">({c.diferenca >= 0 ? '+' : ''}{c.percentual_variacao}% vs. anterior)</span></div>
                                         {c.margem_projetada_pos != null && <div className="text-xs text-muted-foreground">Margem projetada se aceita: {c.margem_projetada_pos}%</div>}
                                         {c.observacao && <div className="text-xs text-muted-foreground mt-1">{c.observacao}</div>}
+                                        {(() => {
+                                            const rev = negociacaoAberta.budget?.versions?.find(v => (v.motivo_revisao || '').includes(`rodada:${c.id}`));
+                                            return rev
+                                                ? <div className="mt-1 text-xs font-semibold text-ok">Orçamento gerado com este valor: Rev. {String(rev.versao + 1).padStart(2, '0')}</div>
+                                                : <button type="button" onClick={() => gerarRevisao(negociacaoAberta.id, c)} disabled={salvando}
+                                                    className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                                                    <FileText size={14} aria-hidden /> Gerar orçamento com este valor
+                                                </button>;
+                                        })()}
                                         {c.decisao === 'PENDENTE' && (
                                             <div className="flex gap-1.5 mt-2 flex-wrap">
                                                 <GhostButton onClick={() => decidir(negociacaoAberta.id, c.id, 'ACEITA')} disabled={salvando}><Check size={14} className="inline mr-1" aria-hidden />Aceitar</GhostButton>

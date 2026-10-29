@@ -350,12 +350,30 @@ const MODELO_PADRAO = [
     { titulo: 'RFI', categoria: 'INSTALACAO', duracao_dias: 1, visivel_cliente: true, prioridade: 'ALTA' },
 ];
 
+// Atividade de Projeto (Projeto Executivo, 29/10/2026): o modelo próprio fica
+// guardado sob a chave "PROJETO" no lugar do tipo de obra.
+const CHAVE_MODELO_PROJETO = 'PROJETO';
+const MODELO_PROJETO = [
+    { titulo: 'Vistoria', categoria: 'VISTORIA', duracao_dias: 2, visivel_cliente: true, prioridade: 'ALTA' },
+    { titulo: 'Elaboração de projeto', categoria: 'PROJETO', duracao_dias: 10, visivel_cliente: true, prioridade: 'ALTA' },
+    { titulo: 'Emissão de ART', categoria: 'ART', duracao_dias: 2, visivel_cliente: true, prioridade: 'ALTA' },
+    { titulo: 'Entrega de documentação', categoria: 'ENTREGA_DOCUMENTACAO', duracao_dias: 1, visivel_cliente: true, prioridade: 'ALTA' },
+];
+const chaveModelo = (tipo_obra: string | null | undefined, atividade?: { tipo_demanda?: string | null } | null) =>
+    tipo_obra || (atividade?.tipo_demanda === 'PROJETO' ? CHAVE_MODELO_PROJETO : null);
+
 async function garantirModelo(tenant_id: string, tipo_obra?: string | null) {
     const existentes = await prisma.cronogramaModeloItem.findMany({
         where: { tenant_id, tipo_obra: tipo_obra || null },
         orderBy: { ordem: 'asc' },
     });
     if (existentes.length > 0) return existentes;
+    if (tipo_obra === CHAVE_MODELO_PROJETO) {
+        await prisma.cronogramaModeloItem.createMany({
+            data: MODELO_PROJETO.map((m, i) => ({ ...m, tenant_id, tipo_obra, ordem: i })),
+        });
+        return prisma.cronogramaModeloItem.findMany({ where: { tenant_id, tipo_obra }, orderBy: { ordem: 'asc' } });
+    }
     if (tipo_obra) return [];
 
     await prisma.cronogramaModeloItem.createMany({
@@ -386,7 +404,7 @@ export async function aplicarModeloCronograma(req: Request, res: Response) {
         const atividade = await prisma.atividade.findUnique({ where: { id: atividade_id } });
         if (!atividade) return res.status(404).json({ error: 'Atividade não encontrada' });
 
-        const modelo = await garantirModelo(tenant_id, tipo_obra || null);
+        const modelo = await garantirModelo(tenant_id, chaveModelo(tipo_obra, atividade));
         if (modelo.length === 0) return res.status(400).json({ error: 'Nenhuma etapa cadastrada no modelo' });
 
         const jaExistentes = await prisma.cronogramaItem.findMany({
@@ -443,7 +461,8 @@ export async function salvarComoModelo(req: Request, res: Response) {
     try {
         const tenant_id = await getTenantId(req);
         const { atividade_id } = req.params;
-        const tipo_obra = req.body?.tipo_obra || null;
+        const atividade = await prisma.atividade.findUnique({ where: { id: atividade_id }, select: { tipo_demanda: true } });
+        const tipo_obra = chaveModelo(req.body?.tipo_obra, atividade);
 
         const itens = await prisma.cronogramaItem.findMany({
             where: { atividade_id },

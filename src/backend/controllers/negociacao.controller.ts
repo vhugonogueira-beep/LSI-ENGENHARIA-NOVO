@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { emitirNumeroOrcamento } from '../services/orcamento-numero.service';
 import { prisma } from '../server';
-import { BudgetService } from '../services/budget.service';
+import { BudgetService, ajustarItensAoValor } from '../services/budget.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -81,7 +81,7 @@ export async function listNegociacoes(req: Request, res: Response) {
             where,
             include: {
                 contrapropostas: { orderBy: { rodada: 'desc' }, take: 1 },
-                budget: { select: { id: true, assunto: true } },
+                budget: { select: { id: true, assunto: true, versao_atual: true, versions: { select: { versao: true, motivo_revisao: true, criado_em: true } } } },
             },
             orderBy: { created_at: 'desc' },
         });
@@ -171,6 +171,67 @@ export async function registrarContraproposta(req: Request, res: Response) {
             : null;
 
         res.status(201).json({ ...rodada, alerta });
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
+}
+
+/**
+ * Orçamento da rodada (29/10/2026): gera a revisão seguinte do mesmo orçamento
+ * (mesmo número, Rev. +1) com os itens descontados para fechar no valor da
+ * rodada. A revisão anterior fica guardada em BudgetVersion; motivo_revisao leva
+ * "rodada:<id>" para a tela saber qual rodada já gerou revisão.
+ */
+export async function gerarRevisaoDaRodada(req: Request, res: Response) {
+    try {
+        const { id, rodadaId } = req.params;
+        const negociacao = await prisma.negociacao.findUnique({ where: { id } });
+        const rodada = await prisma.contraproposta.findUnique({ where: { id: rodadaId } });
+        if (!negociacao || !rodada || rodada.negociacao_id !== id) return res.status(404).json({ error: 'Rodada não encontrada' });
+        if (['REPROVADA', 'CANCELADA'].includes(negociacao.status)) {
+            return res.status(400).json({ error: `Negociação ${negociacao.status.toLowerCase()}: não gera orçamento` });
+        }
+        const budget = await BudgetService.getBudgetById(negociacao.budget_id);
+        if (!budget) return res.status(404).json({ error: 'Orçamento não encontrado' });
+        const marca = `rodada:${rodada.id}`;
+        if (budget.versions.some(v => (v.motivo_revisao || '').includes(marca))) {
+            return res.status(400).json({ error: `A rodada ${rodada.rodada} já gerou uma revisão do orçamento` });
+        }
+
+        const itens = BudgetService.itensPrecoCliente(budget);
+        let ajuste: ReturnType<typeof ajustarItensAoValor>;
+        try { ajuste = ajustarItensAoValor(itens, rodada.valor_proposto); } catch (e: any) { return res.status(400).json({ error: e.message }); }
+
+        const novaVersao = budget.versao_atual + 1;
+        const motivo = `Negociação — rodada ${rodada.rodada} (${rodada.origem === 'CLIENTE' ? 'cliente' : 'LS Office'}): `
+            + `${ajuste.totalAnterior.toFixed(2)} → ${ajuste.total.toFixed(2)} (${ajuste.percentual}% de desconto) · ${marca}`;
+        await prisma.$transaction([
+            // Guarda a revisão que está saindo, como estava.
+            prisma.budgetVersion.create({
+                data: {
+                    budget_id: budget.id, versao: budget.versao_atual, snapshot_json: JSON.stringify(budget),
+                    total_geral: ajuste.totalAnterior, criado_por: (req as any).user?.email || null, motivo_revisao: motivo,
+                },
+            }),
+            ...ajuste.itens.map(i => prisma.budgetItem.update({
+                where: { id: i.id }, data: { valor_unitario: i.valor_unitario, total_linha: i.total_linha, versao: novaVersao, user_overridden: true },
+            })),
+            prisma.budget.update({ where: { id: budget.id }, data: { versao_atual: novaVersao } }),
+            prisma.auditLog.create({
+                data: {
+                    tenant_id: budget.tenant_id, entidade: 'Budget', entidade_id: budget.id, acao: 'ORCAMENTO_REVISAO_NEGOCIACAO',
+                    antes_json: JSON.stringify({ versao: budget.versao_atual, total: ajuste.totalAnterior }),
+                    depois_json: JSON.stringify({ versao: novaVersao, total: ajuste.total, rodada: rodada.rodada, percentual: ajuste.percentual }),
+                    user_id: (req as any).user?.userId || null,
+                },
+            }),
+        ]);
+        // Operação Highline: a PV O&M é montada a partir dos itens LS vinculados.
+        if (itens.some(i => i.codigo_vinculo)) {
+            const { montarPvOm } = await import('../services/pv-om-highline.service');
+            await montarPvOm(budget.id);
+        }
+        res.status(201).json({ versao: novaVersao, total_anterior: ajuste.totalAnterior, total: ajuste.total, percentual: ajuste.percentual, diferenca: Math.round((rodada.valor_proposto - ajuste.total) * 100) / 100 });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }

@@ -26,12 +26,14 @@ function diasDeAtraso(dataFim: string | Date): string {
 }
 
 const CATEGORIAS = [
-    'LIBERACAO', 'PRE_OBRA', 'CIVIL', 'ENERGIA', 'ESTRUTURA', 'INSTALACAO',
+    'LIBERACAO', 'PRE_OBRA', 'VISTORIA', 'PROJETO', 'ART', 'CIVIL', 'ENERGIA', 'ESTRUTURA', 'INSTALACAO',
     'COMPRA', 'CONTRATACAO', 'PAGAMENTO', 'LOGISTICA', 'MOBILIZACAO',
-    'EXECUCAO', 'RFI', 'DOCUMENTACAO', 'MEDICAO', 'FATURAMENTO', 'OUTROS',
+    'EXECUCAO', 'RFI', 'DOCUMENTACAO', 'ENTREGA_DOCUMENTACAO', 'MEDICAO', 'FATURAMENTO', 'OUTROS',
 ];
 const CATEGORIA_LABEL: Record<string, string> = {
     LIBERACAO: 'Liberação (APC)', PRE_OBRA: 'Pré-obra', CIVIL: 'Civil', ENERGIA: 'Energia',
+    // Etapas de Projeto Executivo (29/10/2026).
+    VISTORIA: 'Vistoria', PROJETO: 'Elaboração de projeto', ART: 'Emissão de ART', ENTREGA_DOCUMENTACAO: 'Entrega de documentação',
     ESTRUTURA: 'Estrutura', INSTALACAO: 'Instalação (RFI)', COMPRA: 'Compra',
     CONTRATACAO: 'Contratação', PAGAMENTO: 'Pagamento', LOGISTICA: 'Logística',
     MOBILIZACAO: 'Mobilização', EXECUCAO: 'Execução', RFI: 'RFI',
@@ -41,6 +43,7 @@ const CATEGORIA_COR: Record<string, string> = {
     LIBERACAO: '#22C55E', PRE_OBRA: '#8B5CF6', CIVIL: '#0F4EA3', ENERGIA: '#ea580c',
     ESTRUTURA: '#22C55E', INSTALACAO: '#0891b2', RFI: '#0891b2', EXECUCAO: '#0F4EA3',
     LOGISTICA: '#8B5CF6', MOBILIZACAO: '#8B5CF6',
+    VISTORIA: '#0891b2', PROJETO: '#0F4EA3', ART: '#ea580c', ENTREGA_DOCUMENTACAO: '#22C55E',
 };
 const corDaEtapa = (c: string) => CATEGORIA_COR[c] || '#64748b';
 

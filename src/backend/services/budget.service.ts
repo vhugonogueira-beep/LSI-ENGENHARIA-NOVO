@@ -45,6 +45,40 @@ export function calcularTotalLinha(item: BudgetPricingInput): number {
     return roundCurrency(quantidade * calcularValorUnitarioFinal(item));
 }
 
+/**
+ * Negociação (29/10/2026): reescreve o valor unitário de cada item para o total
+ * fechar no valor proposto. O desconto (ou acréscimo) é proporcional — todo item
+ * cai na mesma razão — e os centavos que o arredondamento deixa vão para o item
+ * de quantidade 1 de maior valor. Sem item de quantidade 1, pode sobrar centavo.
+ */
+export function ajustarItensAoValor<T extends BudgetPricingInput & { id: string }>(itens: T[], alvo: number) {
+    const soma = (lista: BudgetPricingInput[]) => roundCurrency(lista.reduce((t, i) => t + calcularTotalLinha(i), 0));
+    const totalAnterior = soma(itens);
+    if (!(alvo > 0)) throw new Error('Informe um valor maior que zero');
+    if (totalAnterior <= 0) throw new Error('O orçamento não tem itens com valor para ajustar');
+    const fator = alvo / totalAnterior;
+    // valor final = unitário × (1 − desconto interno) × (1 + BDI): o ajuste é no final.
+    const k = (i: BudgetPricingInput) => (1 - Number(i.desconto_interno_percent ?? 0) / 100) * (1 + Number(i.bdi_percent) / 100);
+    const unitarioPara = (i: BudgetPricingInput, final: number) => (k(i) > 0 ? Math.round((final / k(i)) * 1e4) / 1e4 : Number(i.valor_unitario));
+    const novos = itens.map(i => ({ ...i, valor_unitario: unitarioPara(i, roundCurrency(calcularValorUnitarioFinal(i) * fator)) }));
+    let total = soma(novos);
+    const resto = roundCurrency(alvo - total);
+    if (resto !== 0) {
+        const absorve = novos.filter(i => Number(i.quantidade) === 1 && calcularTotalLinha(i) > 0)
+            .sort((a, b) => calcularTotalLinha(b) - calcularTotalLinha(a))[0];
+        if (absorve) {
+            absorve.valor_unitario = unitarioPara(absorve, roundCurrency(calcularValorUnitarioFinal(absorve) + resto));
+            total = soma(novos);
+        }
+    }
+    return {
+        itens: novos.map(i => ({ id: i.id, valor_unitario: i.valor_unitario, total_linha: calcularTotalLinha(i) })),
+        totalAnterior,
+        total,
+        percentual: Math.round((1 - total / totalAnterior) * 10000) / 100,
+    };
+}
+
 export interface BudgetCalculationResult {
     totalGeral: number;
     subtotalsPorBloco: Record<string, number>;

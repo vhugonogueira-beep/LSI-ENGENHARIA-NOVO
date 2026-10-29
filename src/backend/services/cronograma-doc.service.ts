@@ -23,6 +23,10 @@ const ETAPA_COR: Record<string, string> = {
     MEDICAO: '#64748b',
     FATURAMENTO: '#64748b',
     OUTROS: '#64748b',
+    VISTORIA: '#0891b2',
+    PROJETO: '#2563eb',
+    ART: '#ea580c',
+    ENTREGA_DOCUMENTACAO: '#16a34a',
 };
 
 const ETAPA_LABEL: Record<string, string> = {
@@ -31,6 +35,7 @@ const ETAPA_LABEL: Record<string, string> = {
     CONTRATACAO: 'CONTRATAÇÃO', PAGAMENTO: 'PAGAMENTO', LOGISTICA: 'LOGÍSTICA',
     MOBILIZACAO: 'MOBILIZAÇÃO', EXECUCAO: 'EXECUÇÃO', DOCUMENTACAO: 'DOCUMENTAÇÃO',
     MEDICAO: 'MEDIÇÃO', FATURAMENTO: 'FATURAMENTO', OUTROS: 'OUTROS',
+    VISTORIA: 'VISTORIA', PROJETO: 'PROJETO', ART: 'ART', ENTREGA_DOCUMENTACAO: 'ENTREGA DE DOCUMENTAÇÃO',
 };
 
 const DIA_SEMANA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];

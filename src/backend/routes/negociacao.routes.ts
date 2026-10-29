@@ -5,6 +5,7 @@ import {
     getNegociacao,
     registrarContraproposta,
     decidirContraproposta,
+    gerarRevisaoDaRodada,
 } from '../controllers/negociacao.controller';
 
 const router = Router();
@@ -14,5 +15,6 @@ router.get('/:id', getNegociacao);
 router.post('/', createNegociacao);
 router.post('/:id/contrapropostas', registrarContraproposta);
 router.put('/:id/contrapropostas/:rodadaId/decisao', decidirContraproposta);
+router.post('/:id/contrapropostas/:rodadaId/revisao', gerarRevisaoDaRodada);
 
 export default router;
