@@ -900,7 +900,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                 const proximoSaldo = saldos.map((p: any) => p.data_prevista).filter(Boolean).sort()[0];
                 const semComprovante = pagas.filter((p: any) => !temComprovante(p));
                 const kpis = [
-                    { rotulo: 'Contratado', valor: comprometido ? fmtMoeda(comprometido) : '—', nota: [orcado > 0 ? `Orçado ${fmtMoeda(orcado)}` : '', receita > 0 ? `Receita ${fmtMoeda(receita)}` : ''].filter(Boolean).join(' · ') || `${contratacoes.length} favorecido(s)`, cor: 'text-foreground' },
+                    { rotulo: 'Contratado', valor: comprometido ? fmtMoeda(comprometido) : '—', nota: [orcado > 0 ? `Orçado ${fmtMoeda(orcado)}` : '', receita > 0 ? `Receita ${fmtMoeda(receita)}` : ''].filter(Boolean).join(' · ') || `${new Set(contratacoes.map((c: any) => c.supplier_id || c.funcionario_id || c.id)).size} favorecido(s)`, cor: 'text-foreground' },
                     { rotulo: 'Pago', valor: fmtMoeda(soma(pagas)), nota: comprometido ? `${Math.round((soma(pagas) / comprometido) * 100)}% do contratado` : '', cor: 'text-ok' },
                     { rotulo: 'A pagar', valor: fmtMoeda(soma(solicitadas)), nota: `${solicitadas.length} parcela(s) solicitada(s)`, cor: 'text-warn' },
                     { rotulo: 'Saldo programado', valor: fmtMoeda(soma(saldos)), nota: proximoSaldo ? `próximo: ${fmtData(proximoSaldo)}` : 'nenhum', cor: 'text-primary' },
@@ -935,7 +935,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             );
                         })}
                         <span className="ml-2 flex items-center gap-3 text-xs">
-                            <button type="button" onClick={() => setAbertosPag(contratacoes.map((c: any) => c.id))} className="font-semibold text-primary hover:underline">Abrir todos</button>
+                            <button type="button" onClick={() => setAbertosPag([...new Set(contratacoes.map((c: any) => (c.supplier_id || c.supplier?.id) ? `s:${c.supplier_id || c.supplier.id}` : (c.funcionario_id || c.funcionario?.id) ? `f:${c.funcionario_id || c.funcionario.id}` : `c:${c.id}`))])} className="font-semibold text-primary hover:underline">Abrir todos</button>
                             <button type="button" onClick={() => setAbertosPag([])} className="font-semibold text-primary hover:underline">Recolher todos</button>
                         </span>
                     </div>
@@ -947,10 +947,21 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                 <EmptyState text="Nenhum pagamento lançado para esta atividade. Use Novo pagamento para começar." />
             ) : (
                 <div className="flex flex-col gap-3">
-                    {contratacoes.map(c => {
+                    {(() => {
+                    // Um cartão por fornecedor/prestador (29/10/2026): numa mesma atividade
+                    // o mesmo favorecido pode ter várias programações (contratações); todas
+                    // ficam dentro do cartão dele, cada uma com o seu contrato e parcelas.
+                    const chaveFav = (c: any) => (c.supplier_id || c.supplier?.id) ? `s:${c.supplier_id || c.supplier.id}`
+                        : (c.funcionario_id || c.funcionario?.id) ? `f:${c.funcionario_id || c.funcionario.id}` : `c:${c.id}`;
+                    const grupos: { chave: string; itens: any[] }[] = [];
+                    for (const c of contratacoes) {
+                        const g = grupos.find(x => x.chave === chaveFav(c));
+                        if (g) g.itens.push(c); else grupos.push({ chave: chaveFav(c), itens: [c] });
+                    }
+                    return grupos.map(g => {
+                    const blocos = g.itens.map((c: any, idx: number) => {
                         const parcelasVisiveis = (c.parcelas || []).filter((p: any) => filtroSituacao === 'TODOS' || situacaoDaParcela(p) === filtroSituacao);
                         if (filtroSituacao !== 'TODOS' && !parcelasVisiveis.length) return null;
-                        const pagoGrupo = (c.parcelas || []).filter((p: any) => PAGO_STATUS.includes(p.status)).reduce((t: number, p: any) => t + Number(p.valor || 0), 0);
                         const arquivos = c.contrato?.arquivos || [];
                         const alocado = (c.parcelas || []).reduce((s: number, p: any) => s + p.valor, 0);
                         const diferenca = Math.round((c.valor_contratado - alocado) * 100) / 100;
@@ -970,27 +981,14 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                             // saiu do caixa; o backend recusa, e aqui nem se oferece.
                             ...(!temPagamento ? [{ label: 'Excluir contratação', onClick: () => excluirContratacao(c), tone: 'danger' as const }] : []),
                         ];
-                        return <FinancialBeneficiaryCard
-                            key={c.id}
-                            name={(c.supplier && (c.supplier.nome_fantasia || c.supplier.nome)) || c.funcionario?.nome || 'Favorecido'}
-                            category={FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ').toLowerCase()}
-                            total={fmtMoeda(c.valor_contratado)}
-                            progress={{ pago: pagoGrupo, total: c.valor_contratado, rotulo: `${fmtMoeda(pagoGrupo)} pago de ${fmtMoeda(c.valor_contratado)}` }}
-                            aberto={filtroSituacao !== 'TODOS' || abertosPag.includes(c.id) || editandoContratacao?.id === c.id}
-                            onAlternar={() => alternarPag(c.id)}
-                            resumo={(() => {
-                                const ps = c.parcelas || [];
-                                const pagas = ps.filter((p: any) => PAGO_STATUS.includes(p.status)).length;
-                                const aSolicitar = ps.filter((p: any) => situacaoDaParcela(p) === 'A_SOLICITAR').length;
-                                return `${ps.length} parcela(s) · ${pagas} paga(s)${aSolicitar ? ` · ${aSolicitar} a solicitar` : ''}`;
-                            })()}
-                            meta={<span>Dir.: {c.diretorio_url
+                        return {
+                            c, idx, contratoActions,
+                            meta: <span>Dir.: {c.diretorio_url
                                 ? <span className="font-mono text-foreground/80">{c.diretorio_url}</span>
                                 : atividade.diretorio_url ? <span className="font-mono">{atividade.diretorio_url} <span className="font-sans">(da atividade)</span></span>
-                                : <span className="font-semibold text-warn">não informado — Mais ações › Editar contratação</span>}</span>}
-                            status={c.contrato && <select aria-label="Status do contrato" value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className={`rounded-md border-0 px-2 py-1 text-[11px] font-semibold ${CONTRATO_STATUS_TOM[c.contrato.status] || CONTRATO_STATUS_TOM.GERADO}`}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>}
-                            headerActions={<FinancialActionMenu actions={contratoActions}/>}
-                        >
+                                : <span className="font-semibold text-warn">não informado — Mais ações › Editar contratação</span>}</span>,
+                            status: c.contrato && <select aria-label="Status do contrato" value={c.contrato.status} onChange={e => mudarStatusContrato(c.contrato.id, e.target.value)} className={`rounded-md border-0 px-2 py-1 text-[11px] font-semibold ${CONTRATO_STATUS_TOM[c.contrato.status] || CONTRATO_STATUS_TOM.GERADO}`}>{CONTRATO_STATUS.map(s => <option key={s} value={s}>{CONTRATO_STATUS_LABEL[s]}</option>)}</select>,
+                            conteudo: <>
                             {edicao && <div className="mb-3 rounded-lg border border-border bg-secondary/30 p-3">
                                 <div className="grid gap-3 md:grid-cols-[180px_1fr]">
                                     <label className="text-xs">
@@ -1092,8 +1090,48 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     </div>}
                                 </FinancialPaymentCard>;
                             })}
-                        </FinancialBeneficiaryCard>;
-                    })}
+                            </>,
+                        };
+                    }).filter(Boolean) as any[];
+                    if (!blocos.length) return null;
+                    const unico = g.itens.length === 1;
+                    const c0 = g.itens[0];
+                    const ativos = g.itens.filter((c: any) => c.status !== 'CANCELADA');
+                    const totalFav = ativos.reduce((t: number, c: any) => t + Number(c.valor_contratado || 0), 0);
+                    const parcelasFav = g.itens.flatMap((c: any) => c.parcelas || []);
+                    const pagoFav = parcelasFav.filter((p: any) => PAGO_STATUS.includes(p.status)).reduce((t: number, p: any) => t + Number(p.valor || 0), 0);
+                    const finalidades = [...new Set(g.itens.map((c: any) => FINALIDADE_LABEL[c.finalidade] || c.finalidade.replace(/_/g, ' ').toLowerCase()))].join(' · ');
+                    return <FinancialBeneficiaryCard
+                        key={g.chave}
+                        name={(c0.supplier && (c0.supplier.nome_fantasia || c0.supplier.nome)) || c0.funcionario?.nome || 'Favorecido'}
+                        category={finalidades}
+                        total={fmtMoeda(totalFav)}
+                        progress={{ pago: pagoFav, total: totalFav, rotulo: `${fmtMoeda(pagoFav)} pago de ${fmtMoeda(totalFav)}` }}
+                        aberto={filtroSituacao !== 'TODOS' || abertosPag.includes(g.chave) || g.itens.some((c: any) => editandoContratacao?.id === c.id)}
+                        onAlternar={() => alternarPag(g.chave)}
+                        resumo={(() => {
+                            const pagas = parcelasFav.filter((p: any) => PAGO_STATUS.includes(p.status)).length;
+                            const aSolicitar = parcelasFav.filter((p: any) => situacaoDaParcela(p) === 'A_SOLICITAR').length;
+                            return `${unico ? '' : `${g.itens.length} programações · `}${parcelasFav.length} parcela(s) · ${pagas} paga(s)${aSolicitar ? ` · ${aSolicitar} a solicitar` : ''}`;
+                        })()}
+                        meta={unico ? blocos[0].meta : <span>{g.itens.length} programações nesta atividade</span>}
+                        status={unico ? blocos[0].status : undefined}
+                        headerActions={unico ? <FinancialActionMenu actions={blocos[0].contratoActions}/> : undefined}
+                    >
+                        {unico ? blocos[0].conteudo : blocos.map((b: any) => (
+                            <section key={b.c.id} className="border-t border-primary/25 first:border-t-0">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-primary/[0.07] px-4 py-2">
+                                    <span className="text-xs font-bold text-foreground">Programação {b.idx + 1}</span>
+                                    <span className="text-[11px] text-muted-foreground">{FINALIDADE_LABEL[b.c.finalidade] || b.c.finalidade.replace(/_/g, ' ').toLowerCase()} · <strong className="text-foreground">{fmtMoeda(b.c.valor_contratado)}</strong>{b.c.created_at ? ` · lançada em ${fmtData(b.c.created_at)}` : ''}</span>
+                                    <span className="min-w-0 truncate text-[11px] text-muted-foreground">{b.meta}</span>
+                                    <span className="ml-auto flex items-center gap-2">{b.status}<FinancialActionMenu actions={b.contratoActions} compacto/></span>
+                                </div>
+                                <div className="[&>*]:mx-4 [&>*]:my-2.5">{b.conteudo}</div>
+                            </section>
+                        ))}
+                    </FinancialBeneficiaryCard>;
+                    });
+                    })()}
                 </div>
             )}
 
