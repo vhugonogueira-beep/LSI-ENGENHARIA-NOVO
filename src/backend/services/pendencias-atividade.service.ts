@@ -172,13 +172,15 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
 
     // ── Orçamento (comercial) e custo (itens do mesmo orçamento)
     const orcamento = orcamentos[0];
+    // Custo planejado só existe em Implantação/obras (04/11/2026).
+    const custoPlanejado = a.tipo_demanda === 'IMPLANTACAO';
     if (!orcamento) {
         p.comercial.push(alerta('Nenhum orçamento incluído na atividade'));
-        p['cotacao-ls'].push(alerta('Sem orçamento — crie o orçamento para lançar os itens de custo'));
+        if (custoPlanejado) p['cotacao-ls'].push(alerta('Sem orçamento — crie o orçamento para lançar os itens de custo'));
     } else {
         if (orcamento.status === 'RASCUNHO') p.comercial.push(aviso('Orçamento ainda em rascunho — não foi enviado ao cliente'));
         if (orcamento.status === 'REPROVADO') p.comercial.push(alerta('Orçamento reprovado — precisa de revisão'));
-        if (!orcamento._count.items) p['cotacao-ls'].push(alerta('Orçamento sem nenhum item de custo lançado'));
+        if (custoPlanejado && !orcamento._count.items) p['cotacao-ls'].push(alerta('Orçamento sem nenhum item de custo lançado'));
     }
 
     // ── Planejamento e documentação (só Implantação completa)

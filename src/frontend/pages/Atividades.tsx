@@ -2,7 +2,7 @@ import TipoObraCampo, { TIPOS_SITE_PV_HIGHLINE, tipoSiteDaEstrutura } from '../c
 import { comAtual, useListasClientes, cadastroDoNome } from '../lib/clientesCadastro';
 import PagamentosDoProjeto from '../components/atividades/PagamentosDoProjeto';
 import { Fragment, useState, useEffect, useCallback } from 'react';
-import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check, CornerDownRight, ArrowUpRight } from 'lucide-react';
+import { Plus, Search, X, LayoutGrid, List as ListIcon, Paperclip, FolderPlus, Trash2, AlertTriangle, HardHat, MapPin, ChevronDown, ChevronRight, FolderOpen, Wallet, Pencil, FolderMinus, Check, CornerDownRight, ArrowUpRight, Copy } from 'lucide-react';
 import {
     STATUS_OPERACIONAL, TIPOS_DEMANDA, TIPOS_DEMANDA_LABEL, SUBTIPOS_OPERACAO, SUBTIPOS_OPERACAO_LABEL,
     UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos,
@@ -83,6 +83,11 @@ function ultimosValores(lista: any[], campo: string, qtd = 5): string[] {
     return saida;
 }
 
+// Cores dos títulos de projeto: tons claros, legíveis sobre a faixa azul da linha.
+const COR_TITULO_PROJETO = ['#fbbf24', '#34d399', '#f472b6', '#38bdf8', '#a78bfa', '#fb923c', '#a3e635', '#2dd4bf', '#f87171', '#e879f9'];
+// Mesma cor sempre para o mesmo id (projeto ou atividade).
+const corDoTitulo = (id: unknown) => COR_TITULO_PROJETO[Math.abs(Number(id) || String(id).split('').reduce((t, c) => t + c.charCodeAt(0), 0)) % COR_TITULO_PROJETO.length];
+
 const KANBAN_ORDEM = ['PLANEJAMENTO', 'AGUARDANDO_LIBERACAO', 'EM_EXECUCAO', 'CONCLUIDA', 'ON_HOLD'];
 
 // Recortes rápidos da carteira. "Em aberto" é tudo que ainda não terminou,
@@ -121,7 +126,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     // Vindo de outra tela (ex.: Orçamentos → Abrir): abre direto a atividade pedida.
     // A atividade aberta e o cadastro pela metade sobrevivem ao recarregamento da
     // aba pelo navegador (23/10/2026).
-    const [selecionadaId, setSelecionadaId] = useEstadoDaSessao<string | null>(CHAVE_ATIVIDADE_ABERTA, () => {
+    // Origem quando a Nova atividade foi aberta por "Duplicar" (ex.: "ATV-2026-048 · PERCF070").
+    const [duplicandoDe, setDuplicandoDe] = useState<string | null>(null);
+    const [selecionadaId, setSelecionadaId] =useEstadoDaSessao<string | null>(CHAVE_ATIVIDADE_ABERTA, () => {
         try { const id = sessionStorage.getItem('ls_abrir_atividade'); sessionStorage.removeItem('ls_abrir_atividade'); return id; } catch { return null; }
     });
     const [view, setView] = useState<'lista' | 'kanban' | 'projetos'>(vistaInicial);
@@ -335,6 +342,39 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
         await load();
     }
 
+    /**
+     * Duplicar (04/11/2026): abre a Nova atividade com os dados do site, do cliente e da
+     * classificação da atividade de origem. O título vem igual; o código é novo. Nada de
+     * PO, orçamento, documentos, pagamentos, status, valores ou datas. O site não é
+     * duplicado: o cadastro reaproveita o site pelo Site ID + sharing.
+     */
+    function duplicar(a: any) {
+        setForm({
+            ...FORM_INIT,
+            titulo: a.titulo || '',
+            tipo_demanda: a.tipo_demanda || FORM_INIT.tipo_demanda,
+            subtipo_demanda: a.subtipo_demanda || '',
+            tipo_obra: a.tipo_obra || '',
+            tipo_atividade: a.tipo_atividade || '',
+            modelo_operacao: a.modelo_operacao || modeloOperacaoPadrao(a.tipo_demanda || 'IMPLANTACAO'),
+            sharing: a.sharing || '',
+            operadora: a.operadora || '',
+            contrato: a.contrato || '',
+            contratante_id: a.contratante_id || '',
+            estado: a.estado || '',
+            municipio: a.municipio || '',
+            id_site_sharing: a.id_site_sharing || '',
+            id_site_operadora: a.id_site_operadora || '',
+            responsavel: a.responsavel || '',
+            acionamento_id: a.acionamento_id || '',
+            ...(a.tipo_site_highline ? { tipo_site_highline: a.tipo_site_highline } : {}),
+            ...(a.gestor ? { gestor: a.gestor } : {}),
+        } as typeof FORM_INIT);
+        setDuplicandoDe(`${a.codigo}${a.id_site_sharing ? ` · ${a.id_site_sharing}` : ''}`);
+        setErro('');
+        setShowForm(true);
+    }
+
     async function handleSave(e: React.FormEvent) {
         e.preventDefault();
         setSaving(true);
@@ -408,6 +448,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
             <AtividadeCockpit
                 atividadeId={selecionadaId}
                 onBack={() => { setSelecionadaId(null); load(); }}
+                onDuplicar={a => { setSelecionadaId(null); duplicar(a); }}
             />
         );
     }
@@ -485,7 +526,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 descricao="Centro operacional de implantação e operação"
                 acoes={
                     <button
-                        onClick={() => { setForm(FORM_INIT); setErro(''); setShowForm(true); }}
+                        onClick={() => { setForm(FORM_INIT); setDuplicandoDe(null); setErro(''); setShowForm(true); }}
                         className="bg-primary text-primary-foreground px-4 py-2.5 rounded-lg hover:bg-primary/90 flex items-center gap-2 font-medium shadow-sm"
                     >
                         <Plus size={16} aria-hidden /> Nova atividade
@@ -530,7 +571,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 return (
                                     <button key={s.id} type="button" aria-pressed={ativo}
                                         onClick={() => setFiltro('situacao', ativo && s.id !== 'TODAS' ? 'TODAS' : s.id)}
-                                        className={`rounded-lg border px-3 py-2 text-left transition-colors ${ativo ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-background/40 hover:border-primary/50'}`}>
+                                        className={`rounded-lg border px-3 py-2 text-center transition-colors ${ativo ? 'border-primary bg-primary/10 ring-1 ring-primary' : 'border-border bg-background/40 hover:border-primary/50'}`}>
                                         <div className="truncate text-[11px] text-muted-foreground" title={s.label}>{s.label}</div>
                                         <div className={`text-xl font-bold tabular-nums leading-tight ${total ? cor : 'text-muted-foreground'}`}>{total}</div>
                                     </button>
@@ -690,7 +731,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     // A linha inteira abre a atividade (14/10/2026); caixas, botões e links da linha seguem com a sua ação.
                                     <tr key={a.id} onClick={e => { if (!(e.target as HTMLElement).closest('input,button,a,select,label')) setSelecionadaId(a.id); }}
                                         title="Clique para abrir a atividade"
-                                        className={`group cursor-pointer border-l-4 bg-card ${aninhada ? 'border-x border-b border-primary/30 border-l-primary' : `border border-border shadow-sm ${FAIXA[tom]}`} hover:bg-secondary/40 transition-colors`}>
+                                        style={{ borderLeftColor: corDoTitulo(a.id) }} className={`group cursor-pointer border-l-[6px] bg-card ${aninhada ? 'border-x border-b border-primary/30 border-l-primary' : `border border-border shadow-sm ${FAIXA[tom]}`} hover:bg-secondary/40 transition-colors`}>
                                         {/* Toda célula abre com uma linha de 28px (h-7): Site ID, cliente,
                                             status, avanço, saldo e ações ficam na mesma altura. */}
                                         <td className="px-3 py-2.5 align-top">
@@ -745,6 +786,11 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                     className="inline-flex h-7 items-center rounded-lg border border-border px-3 text-xs font-semibold text-foreground hover:bg-secondary/60 whitespace-nowrap">
                                                     Abrir
                                                 </button>
+                                                <button type="button" onClick={() => duplicar(a)}
+                                                    aria-label={`Duplicar ${a.codigo}`} title="Duplicar: nova atividade com os dados deste site"
+                                                    className="h-7 w-7 inline-flex items-center justify-center rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10">
+                                                    <Copy size={14} aria-hidden />
+                                                </button>
                                                 {ehAdmin && (
                                                     <button type="button" onClick={() => setExcluindo(a)}
                                                         aria-label="Excluir atividade" title="Excluir atividade"
@@ -776,7 +822,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 const marcados = filhos.every(a => selecionadas.includes(a.id));
                                 return (
                                     <Fragment key={`p-${p.id}`}>
-                                        <tr onClick={alternar} className="cursor-pointer border border-primary/45 border-l-4 border-l-primary bg-primary/20 hover:bg-primary/25 transition-colors">
+                                        <tr onClick={alternar} className="cursor-pointer border border-primary/45 border-l-[6px] bg-primary/20 hover:bg-primary/25 transition-colors" style={{ borderLeftColor: corDoTitulo(p.id) }}>
                                             <td className="px-3 py-3 align-top" onClick={e => e.stopPropagation()}>
                                                 <div className="flex h-7 items-center">
                                                     <input type="checkbox" checked={marcados} aria-label={`Selecionar as atividades do projeto ${p.codigo}`}
@@ -791,6 +837,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                                     </button>
                                                     <FolderOpen size={16} aria-hidden className="shrink-0 text-primary" />
                                                     <span className="font-id text-xs text-primary">{p.codigo}</span>
+                                                    {/* A cor de cada projeto e atividade fica na barra lateral da linha (03/11/2026). */}
                                                     <strong className="truncate text-[15px] font-bold text-foreground" title={p.titulo}>{p.titulo}</strong>
                                                 </div>
                                                 <div className="mt-1 pl-8 text-xs font-medium text-[hsl(var(--link))]">
@@ -1083,6 +1130,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             <h3 className="text-lg font-bold">Nova atividade</h3>
                             <button type="button" onClick={() => setShowForm(false)} aria-label="Fechar" title="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden /></button>
                         </div>
+                        {duplicandoDe && (
+                            <div className="mb-4 flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs">
+                                <Copy size={14} aria-hidden className="shrink-0 text-primary" />
+                                <span>Dados do site e do cliente copiados de <strong className="font-id">{duplicandoDe}</strong>. Revise e salve: a nova atividade ganha código próprio.</span>
+                            </div>
+                        )}
                         {erro && <div className="mb-4 p-3 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive text-sm">{erro}</div>}
                         <form onSubmit={handleSave} className="flex flex-col gap-4">
                             <Field label="Título *">

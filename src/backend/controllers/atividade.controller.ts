@@ -1,3 +1,4 @@
+import { custosDasAtividades } from '../services/custo-real.service';
 import { Request, Response } from 'express';
 import { chaveNome, ehHighline, resolverCliente, TIPOS_OPERADORA, TIPOS_SHARING } from '../utils/sharing';
 import { prisma } from '../server';
@@ -103,7 +104,7 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
         const ids = atividades.map(a => a.id);
         if (ids.length === 0) return res.json([]);
 
-        const [contratacoes, pos, execucoes, parcelasPagas, documentos] = await Promise.all([
+        const [contratacoes, pos, execucoes, documentos] = await Promise.all([
             prisma.contratacaoFornecedor.findMany({
                 where: { atividade_id: { in: ids }, status: 'ATIVA' },
                 include: { supplier: { select: { nome: true } }, funcionario: { select: { nome: true } } },
@@ -114,13 +115,6 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
                 orderBy: { created_at: 'desc' },
             }),
             prisma.registroExecucao.findMany({ where: { atividade_id: { in: ids } } }),
-            prisma.parcelaPagamento.findMany({
-                where: {
-                    status: { in: ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'] },
-                    contratacao: { atividade_id: { in: ids } },
-                },
-                include: { contratacao: { select: { atividade_id: true } } },
-            }),
             prisma.documentoAtividade.findMany({
                 where: {
                     atividade_id: { in: ids },
@@ -143,11 +137,9 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
 
         const execucaoPorAtividade = new Map(execucoes.map(e => [e.atividade_id, e]));
 
-        const custoPagoPorAtividade = new Map<string, number>();
-        for (const p2 of parcelasPagas) {
-            const atvId = p2.contratacao.atividade_id;
-            custoPagoPorAtividade.set(atvId, (custoPagoPorAtividade.get(atvId) || 0) + p2.valor);
-        }
+        // Custo pago pela regra única do Custo real (04/11/2026).
+        const custos = await custosDasAtividades(ids);
+        const custoPagoPorAtividade = new Map([...custos].map(([id, t]) => [id, t.pago]));
 
         const comprovantesPendentes = await contarComprovantesPendentes(ids);
 
@@ -328,6 +320,8 @@ export async function createAtividade(req: Request, res: Response) {
                 municipio: municipio || null,
                 valor_contrato: valor_contrato ? parseFloat(valor_contrato) : null,
                 valor_orcado: valor_orcado ? parseFloat(valor_orcado) : null,
+                // Gestor vem preenchido quando a atividade é duplicada (04/11/2026).
+                gestor: req.body.gestor ? String(req.body.gestor).trim() : null,
                 responsavel: responsavel || null,
                 descricao: descricao || null,
                 data_inicio_planejada: data_inicio_planejada ? new Date(data_inicio_planejada) : null,

@@ -27,6 +27,9 @@ export interface LinhaComSaldo {
     faturamentos: {
         id: string; percentual: number; valor: number; status: string;
         nf_numero: string | null; data_solicitacao: Date;
+        codigo_faturamento: string | null; nbs: string | null;
+        data_faturamento: Date | null; data_roit: Date | null; data_recebimento: Date | null;
+        validacao_oc: string | null; recolhimento_iss: string | null;
         motivo_cancelamento: string | null; cancelado_por: string | null; cancelado_em: Date | null;
     }[];
 }
@@ -68,6 +71,9 @@ export async function linhasDaPOComSaldo(poId: string): Promise<LinhaComSaldo[]>
             faturamentos: l.faturamentos.map(f => ({
                 id: f.id, percentual: f.percentual, valor: f.valor, status: f.status,
                 nf_numero: f.nf_numero, data_solicitacao: f.data_solicitacao,
+                codigo_faturamento: f.codigo_faturamento, nbs: f.nbs,
+                data_faturamento: f.data_faturamento, data_roit: f.data_roit, data_recebimento: f.data_recebimento,
+                validacao_oc: f.validacao_oc, recolhimento_iss: f.recolhimento_iss,
                 motivo_cancelamento: f.motivo_cancelamento, cancelado_por: f.cancelado_por,
                 cancelado_em: f.cancelado_em,
             })),
@@ -110,6 +116,16 @@ export async function solicitarFaturamentoLinhas(
 ) {
     if (!itens?.length) throw new Error('Selecione ao menos uma linha para faturar');
     const autorizacao = validarAutorizacao(autorizacaoCliente, usuario?.nome || usuario?.email || 'usuário não identificado');
+
+    // Uma solicitação vai para um único cliente: não mistura clientes (03/11/2026).
+    const clientesDaSolicitacao = await prisma.purchaseOrderLinha.findMany({
+        where: { id: { in: itens.map(i => i.linha_id) } },
+        select: { po: { select: { atividade: { select: { sharing: true } } } } },
+    });
+    const clientes = new Set(clientesDaSolicitacao.map(l => (l.po.atividade?.sharing || '').trim().toUpperCase()));
+    if (clientes.size > 1) {
+        throw new Error(`Uma solicitação de faturamento não pode misturar clientes (${[...clientes].map(c => c || 'sem cliente').join(', ')}). Gere uma solicitação por cliente.`);
+    }
 
     const criados = [];
     for (const item of itens) {
@@ -204,6 +220,63 @@ export async function atualizarStatusFaturamentoLinha(id: string, status: string
             data_faturamento: status === 'FATURADO' ? new Date() : undefined,
         },
     });
+}
+
+export interface DadosFiscaisRemessa {
+    codigo_faturamento?: string | null;
+    nbs?: string | null;
+    nf_numero?: string | null;
+    data_faturamento?: string | null; // AAAA-MM-DD
+    data_roit?: string | null;
+    data_recebimento?: string | null;
+    validacao_oc?: string | null;     // OK | NOK
+    recolhimento_iss?: string | null; // PRESTADOR | TOMADOR
+}
+
+/**
+ * Grava os dados fiscais de uma remessa (03/11/2026). O status acompanha os dados:
+ * com NF e data de faturamento a remessa passa a FATURADO; com data de recebimento,
+ * a RECEBIDO. Nunca volta status para trás nem mexe em remessa cancelada.
+ */
+export async function atualizarDadosFiscaisFaturamentoLinha(id: string, d: DadosFiscaisRemessa) {
+    const atual = await prisma.faturamentoLinha.findUnique({ where: { id } });
+    if (!atual) throw new Error('Remessa não encontrada');
+    if (atual.status === 'CANCELADO') throw new Error('Remessa cancelada não recebe dados de faturamento');
+
+    const texto = (v: unknown) => v === undefined ? undefined : (String(v ?? '').trim() || null);
+    const data = (v: unknown, rotulo: string) => {
+        if (v === undefined) return undefined;
+        const s = String(v ?? '').trim();
+        if (!s) return null;
+        const dt = new Date(`${s.slice(0, 10)}T12:00:00`);
+        if (Number.isNaN(dt.getTime())) throw new Error(`Data inválida: ${rotulo}`);
+        return dt;
+    };
+    const opcao = (v: unknown, validas: string[], rotulo: string) => {
+        const t = texto(v);
+        if (t === undefined || t === null) return t;
+        const up = t.toUpperCase();
+        if (!validas.includes(up)) throw new Error(`${rotulo}: use ${validas.join(' ou ')}`);
+        return up;
+    };
+    const novo = {
+        codigo_faturamento: texto(d.codigo_faturamento),
+        nbs: texto(d.nbs),
+        nf_numero: texto(d.nf_numero),
+        data_faturamento: data(d.data_faturamento, 'faturamento'),
+        data_roit: data(d.data_roit, 'ROIT'),
+        data_recebimento: data(d.data_recebimento, 'recebimento'),
+        validacao_oc: opcao(d.validacao_oc, ['OK', 'NOK'], 'Validação OC'),
+        recolhimento_iss: opcao(d.recolhimento_iss, ['PRESTADOR', 'TOMADOR'], 'Recolhimento ISS'),
+    };
+
+    const valor = <K extends keyof typeof novo>(k: K) => novo[k] !== undefined ? novo[k] : (atual as any)[k];
+    const ordem = ['SOLICITADO', 'FATURADO', 'RECEBIDO'];
+    let status = atual.status;
+    if (valor('nf_numero') && valor('data_faturamento') && ordem.indexOf(status) < 1) status = 'FATURADO';
+    if (valor('data_recebimento') && ordem.indexOf(status) < 2) status = 'RECEBIDO';
+
+    return prisma.faturamentoLinha.update({ where: { id }, data: { ...novo, status } });
 }
 
 // ── E-mail de solicitação de faturamento ────────────────────────────────────

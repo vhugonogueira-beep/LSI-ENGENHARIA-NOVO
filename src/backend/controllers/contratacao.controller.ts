@@ -1,3 +1,4 @@
+import { custosDasAtividades } from '../services/custo-real.service';
 import { Request, Response } from 'express';
 import { prisma } from '../server';
 import { gerarEmailCorporativo, type DadosEmail } from '../services/email-corporativo.service';
@@ -465,30 +466,16 @@ export async function getFinanceiroAtividade(req: Request, res: Response) {
         const { atividade_id } = req.params;
 
         const contratacoes = await prisma.contratacaoFornecedor.findMany({
-            where: { atividade_id, status: 'ATIVA' },
+            where: { atividade_id, status: { not: 'CANCELADA' } },
             include: { parcelas: true, supplier: { select: { nome: true, nome_fantasia: true, categoria: true } }, funcionario: { select: { nome: true, cargo: true } } },
         });
 
-        let custoComprometido = 0;
-        let custoPago = 0;
-        for (const c of contratacoes) {
-            custoComprometido += c.valor_contratado;
-            for (const p of c.parcelas) {
-                if (['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'].includes(p.status)) {
-                    custoPago += p.valor;
-                }
-            }
-        }
-        // Gastos de prestação de contas destinados a esta atividade (12/10/2026):
-        // é o dinheiro de adiantamento — da própria atividade ou do projeto — que
-        // virou despesa comprovada aqui. Entra como custo já pago.
-        const [prestacao, rateio] = await Promise.all([
-            prisma.prestacaoContasDespesa.aggregate({ where: { atividade_id }, _sum: { valor: true } }),
-            prisma.reembolsoDespesa.aggregate({ where: { atividade_id }, _sum: { valor: true } }),
-        ]);
-        const custoAdiantamentos = round2((prestacao._sum.valor || 0) + (rateio._sum.valor || 0));
-        custoComprometido += custoAdiantamentos;
-        custoPago += custoAdiantamentos;
+        // Mesma regra da aba Custo real (04/11/2026): contratações + despesas de
+        // reembolso/adiantamento da atividade, rateios de projeto e prestação de contas.
+        const totais = (await custosDasAtividades([atividade_id])).get(atividade_id)!;
+        const custoComprometido = totais.comprometido;
+        const custoPago = totais.pago;
+        const custoAdiantamentos = totais.despesas;
         const custoAPagar = round2(custoComprometido - custoPago);
 
         res.json({

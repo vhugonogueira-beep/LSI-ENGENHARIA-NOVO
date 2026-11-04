@@ -354,7 +354,11 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
     const [pos, setPos] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [linhasPorPO, setLinhasPorPO] = useState<Record<string, any[]>>({});
-    const [aberta, setAberta] = useState<string | null>(null);
+    // Várias POs abertas ao mesmo tempo, com Expandir/Recolher todas (03/11/2026).
+    const [abertas, setAbertas] = useState<string[]>([]);
+    const [busca, setBusca] = useState('');
+    const [clienteFiltro, setClienteFiltro] = useState('');
+    const [situacao, setSituacao] = useState<'TODAS' | 'A_FATURAR' | 'SEM_AUTORIZACAO' | 'SEM_NF' | 'SEM_RECEBIMENTO' | 'FATURADAS'>('TODAS');
     // percentual escolhido por linha selecionada: { [linha_id]: '40' }
     const [selecao, setSelecao] = useState<Record<string, string>>({});
     const [erro, setErro] = useState('');
@@ -365,6 +369,7 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
     const mudarVisao = (v: 'PO' | 'LINHAS') => { setVisao(v); try { localStorage.setItem('ls_fat_visao', v); } catch { /* só não lembra */ } };
     const [abrindoEmail, setAbrindoEmail] = useState<string | null>(null);
     const [cancelando, setCancelando] = useState<any | null>(null);
+    const [editandoFiscal, setEditandoFiscal] = useState<{ fat: any; linha: any } | null>(null);
     // Antes de solicitar, o sistema pergunta se o cliente autorizou (08/10/2026).
     const [perguntandoAutorizacao, setPerguntandoAutorizacao] = useState(false);
 
@@ -395,13 +400,68 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
 
     useEffect(() => { load(); }, [load]);
 
+    // Cliente de cada linha (sharing da atividade da PO). Uma solicitação não mistura clientes (03/11/2026).
+    const clienteDaLinha = (linhaId: string) => {
+        const po = pos.find(p => (linhasPorPO[p.id] || []).some((l: any) => l.id === linhaId));
+        return String(po?.atividade?.sharing || '').trim().toUpperCase();
+    };
+    /** Cliente já escolhido na seleção atual, ou null se nada está marcado. */
+    const clienteDaSelecao = (sel: Record<string, string>) => {
+        const id = Object.keys(sel)[0];
+        return id ? clienteDaLinha(id) : null;
+    };
+    const avisarOutroCliente = (atual: string, outro: string) =>
+        setErro(`A seleção já é do cliente ${atual || 'sem cliente'}. Linhas de ${outro || 'sem cliente'} vão numa solicitação separada — gere esta primeiro ou limpe a seleção.`);
+
     function alternarLinha(linha: any) {
+        if (selecao[linha.id] === undefined) {
+            const atual = clienteDaSelecao(selecao), dela = clienteDaLinha(linha.id);
+            if (atual !== null && atual !== dela) { avisarOutroCliente(atual, dela); return; }
+        }
+        setErro('');
         setSelecao(atual => {
             const novo = { ...atual };
             if (novo[linha.id] !== undefined) delete novo[linha.id];
             else novo[linha.id] = String(linha.percentual_pendente);
             return novo;
         });
+    }
+
+    // Linha que pode entrar numa solicitação: autorizada e com saldo.
+    const elegivel = (l: any) => l.autorizado && l.percentual_pendente > 0;
+
+    /** Marca ou desmarca de uma vez várias linhas (uma PO inteira, ou tudo o que está filtrado). */
+    function marcarLinhas(linhas: any[], marcar: boolean) {
+        if (marcar) {
+            const clientes = [...new Set(linhas.filter(elegivel).map((l: any) => clienteDaLinha(l.id)))];
+            const atual = clienteDaSelecao(selecao);
+            const alvo = atual ?? clientes[0];
+            if (clientes.some(c => c !== alvo)) {
+                // Filtro com mais de um cliente: marca só o do cliente já escolhido (ou o primeiro).
+                setErro(`Os itens filtrados têm mais de um cliente (${clientes.map(c => c || 'sem cliente').join(', ')}). Marquei só as linhas de ${alvo || 'sem cliente'} — filtre por cliente para montar outra solicitação.`);
+                linhas = linhas.filter((l: any) => clienteDaLinha(l.id) === alvo);
+                if (linhas.length === 0) return;
+            } else setErro('');
+        }
+        setSelecao(atual => {
+            const novo = { ...atual };
+            linhas.filter(elegivel).forEach(l => {
+                if (marcar) { if (novo[l.id] === undefined) novo[l.id] = String(l.percentual_pendente); }
+                else delete novo[l.id];
+            });
+            return novo;
+        });
+    }
+
+    /** Mesmo percentual para todas as linhas selecionadas, limitado ao saldo de cada uma. */
+    function aplicarPercentual(p: string) {
+        const n = parseFloat(p);
+        if (!(n > 0)) return;
+        const todas = Object.values(linhasPorPO).flat();
+        setSelecao(atual => Object.fromEntries(Object.keys(atual).map(id => {
+            const l: any = todas.find((x: any) => x.id === id);
+            return [id, String(Math.min(n, l?.percentual_pendente ?? n))];
+        })));
     }
 
     // Autorização do cliente por linha ("Liberação Microsiga"): sem isso a linha não
@@ -474,6 +534,17 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
         } catch (e: any) { setErro(e.message); } finally { setAbrindoEmail(null); }
     }
 
+    async function salvarDadosFiscais(dados: Record<string, string>) {
+        if (!editandoFiscal) return;
+        const r = await authFetch(`/api/pos/faturamento-linhas/${editandoFiscal.fat.id}`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dados),
+        });
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao salvar os dados de faturamento');
+        setEditandoFiscal(null);
+        await load(true);
+        onMudou();
+    }
+
     async function confirmarCancelamento(motivo: string) {
         if (!cancelando) return;
         setErro('');
@@ -498,6 +569,34 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
         return acc + (linha ? linha.valor_total * (parseFloat(p) || 0) / 100 : 0);
     }, 0);
 
+    // Filtros da lista: busca (site, PO, título, serviço) e situação do faturamento.
+    const termo = busca.trim().toLocaleLowerCase('pt-BR');
+    const remessasAtivas = (ls: any[]) => ls.flatMap((l: any) => (l.faturamentos || []).filter((f: any) => f.status !== 'CANCELADO'));
+    const posFiltradas = pos.filter(po => {
+        const ls = linhasPorPO[po.id] || [];
+        if (clienteFiltro && String(po.atividade?.sharing || '').trim().toUpperCase() !== clienteFiltro) return false;
+        if (termo) {
+            const alvo = [po.numero, po.atividade?.id_site_sharing, po.atividade?.titulo, po.atividade?.sharing, ...ls.flatMap((l: any) => [l.site, l.descricao, l.numero_linha])]
+                .filter(Boolean).join(' ').toLocaleLowerCase('pt-BR');
+            if (!alvo.includes(termo)) return false;
+        }
+        const rem = remessasAtivas(ls);
+        switch (situacao) {
+            case 'A_FATURAR': return ls.some(elegivel);
+            case 'SEM_AUTORIZACAO': return ls.some((l: any) => !l.autorizado && l.percentual_pendente > 0);
+            case 'SEM_NF': return rem.some((f: any) => !f.nf_numero);
+            case 'SEM_RECEBIMENTO': return rem.some((f: any) => f.nf_numero && !f.data_recebimento);
+            case 'FATURADAS': return ls.length > 0 && ls.every((l: any) => l.percentual_pendente <= 0);
+            default: return true;
+        }
+    });
+    const linhasFiltradas = posFiltradas.flatMap(po => linhasPorPO[po.id] || []);
+    const elegiveisFiltradas = linhasFiltradas.filter(elegivel);
+    const todasFiltradasMarcadas = elegiveisFiltradas.length > 0 && elegiveisFiltradas.every((l: any) => selecao[l.id] !== undefined);
+    // Resumo da seleção por site/PO, para a barra fixa do rodapé.
+    const posSelecionadas = pos.filter(po => (linhasPorPO[po.id] || []).some((l: any) => selecao[l.id] !== undefined));
+    const sitesSelecionados = new Set(posSelecionadas.map(po => po.atividade?.id_site_sharing || po.id));
+
     return (
         <div className="bg-card border border-border rounded-xl p-5 mb-6">
             {/* Contagens presas ao título do bloco, não soltas na ponta direita. */}
@@ -518,6 +617,42 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
 
             {erro && <div role="alert" className="mb-3 p-2.5 rounded-lg border border-warn/40 bg-warn/10 text-warn text-xs">{erro}</div>}
 
+            {/* Filtros, expandir/recolher e seleção em massa (03/11/2026): vários sites na mesma solicitação. */}
+            {pos.length > 0 && (
+                <div className="mb-3 flex flex-wrap items-center gap-2 text-xs">
+                    <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar site, PO, título ou serviço"
+                        aria-label="Buscar no faturamento"
+                        className="h-8 min-w-[240px] flex-1 rounded-lg border border-border bg-background/50 px-3 text-foreground" />
+                    <select value={clienteFiltro} onChange={e => setClienteFiltro(e.target.value)} aria-label="Cliente"
+                        className="h-8 rounded-lg border border-border bg-background/50 px-2 text-foreground">
+                        <option value="">Todos os clientes</option>
+                        {[...new Set(pos.map(po => String(po.atividade?.sharing || '').trim().toUpperCase()).filter(Boolean))].sort().map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <select value={situacao} onChange={e => setSituacao(e.target.value as any)} aria-label="Situação do faturamento"
+                        className="h-8 rounded-lg border border-border bg-background/50 px-2 text-foreground">
+                        <option value="TODAS">Todas as situações</option>
+                        <option value="A_FATURAR">Com saldo a faturar</option>
+                        <option value="SEM_AUTORIZACAO">Aguardando autorização</option>
+                        <option value="SEM_NF">Solicitadas sem NF</option>
+                        <option value="SEM_RECEBIMENTO">Faturadas sem recebimento</option>
+                        <option value="FATURADAS">100% faturadas</option>
+                    </select>
+                    <span className="text-muted-foreground tabular-nums">{posFiltradas.length} de {pos.length}</span>
+                    <span className="mx-1 h-5 w-px bg-border" aria-hidden />
+                    {visao === 'PO' && <>
+                        <button type="button" onClick={() => setAbertas(posFiltradas.map(po => po.id))} className="font-semibold text-primary hover:underline">Expandir todos</button>
+                        <button type="button" onClick={() => setAbertas([])} className="font-semibold text-primary hover:underline">Recolher todos</button>
+                        <span className="mx-1 h-5 w-px bg-border" aria-hidden />
+                    </>}
+                    <button type="button" disabled={elegiveisFiltradas.length === 0}
+                        onClick={() => marcarLinhas(linhasFiltradas, !todasFiltradasMarcadas)}
+                        title="Marca todas as linhas autorizadas e com saldo dos itens filtrados"
+                        className="font-semibold text-primary hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground disabled:no-underline">
+                        {todasFiltradasMarcadas ? 'Desmarcar filtradas' : `Selecionar filtradas (${elegiveisFiltradas.length})`}
+                    </button>
+                </div>
+            )}
+
             {pos.length > 0 && visao === 'LINHAS' ? (
                 <div className="overflow-x-auto rounded-lg border border-border">
                     <table className="w-full table-fixed text-[11px] min-w-[1180px]">
@@ -525,8 +660,8 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                             <col className="w-8" /><col className="w-28" /><col className="w-20" /><col className="w-14" /><col /><col className="w-28" />
                             <col className="w-28" /><col className="w-32" /><col className="w-32" /><col className="w-40" /><col className="w-24" />
                         </colgroup>
-                        <thead className="bg-secondary/30 text-muted-foreground">
-                            <tr className="text-left border-b border-border">
+                        <thead className="bg-primary text-primary-foreground">
+                            <tr className="text-left font-semibold">
                                 <th className="py-2"><span className="sr-only">Selecionar</span></th>
                                 <th className="py-2 px-2">Site</th><th className="py-2 px-2">PO</th><th className="py-2 px-2">Linha</th><th className="py-2 px-2">Serviço</th>
                                 <th className="py-2 px-2 text-right">Valor da linha</th><th className="py-2 px-2 text-center">Autorizado</th>
@@ -535,7 +670,7 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {pos.flatMap(po => (linhasPorPO[po.id] || []).map((l: any) => ({ po, l })))
+                            {posFiltradas.flatMap(po => (linhasPorPO[po.id] || []).map((l: any) => ({ po, l })))
                                 .sort((a, b) => String(a.l.site || a.po.atividade?.id_site_sharing || '').localeCompare(String(b.l.site || b.po.atividade?.id_site_sharing || '')) || String(a.po.numero).localeCompare(String(b.po.numero)) || String(a.l.numero_linha).localeCompare(String(b.l.numero_linha)))
                                 .map(({ po, l }) => {
                                     const sel = selecao[l.id] !== undefined;
@@ -578,14 +713,27 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                 <div className="text-center py-8 text-muted-foreground text-sm">Nenhuma PO anexada ainda — anexe o PDF na aba PO da atividade.</div>
             ) : (
                 <div className="flex flex-col gap-2">
-                    {pos.map(po => {
+                    {posFiltradas.length === 0 && <div className="py-6 text-center text-xs text-muted-foreground">Nenhum item atende aos filtros.</div>}
+                    {posFiltradas.map(po => {
                         const linhas = linhasPorPO[po.id] || [];
                         const pendenteDaPO = linhas.reduce((a: number, l: any) => a + l.valor_pendente, 0);
-                        const expandida = aberta === po.id;
+                        const expandida = abertas.includes(po.id);
+                        const elegiveisDaPO = linhas.filter(elegivel);
+                        const marcadasDaPO = elegiveisDaPO.filter((l: any) => selecao[l.id] !== undefined).length;
                         return (
-                            <div key={po.id} className="bg-secondary/30 border border-border rounded-lg">
-                                {/* Colunas fixas por PO; o título é a única flexível. */}
-                                <button onClick={() => setAberta(expandida ? null : po.id)} aria-expanded={expandida} className="w-full grid grid-cols-[14px_96px_130px_130px_minmax(0,1fr)_72px_120px_160px_72px] items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/40 rounded-lg">
+                            <div key={po.id} className={`bg-secondary/30 border rounded-lg ${marcadasDaPO ? 'border-primary/60' : 'border-border'}`}>
+                                {/* Colunas fixas por PO; o título é a única flexível. A caixa marca a PO inteira. */}
+                                <div className="flex items-center">
+                                <span className="flex w-9 shrink-0 justify-center pl-2">
+                                    <input type="checkbox" className="accent-primary"
+                                        checked={elegiveisDaPO.length > 0 && marcadasDaPO === elegiveisDaPO.length}
+                                        ref={el => { if (el) el.indeterminate = marcadasDaPO > 0 && marcadasDaPO < elegiveisDaPO.length; }}
+                                        disabled={elegiveisDaPO.length === 0}
+                                        title={elegiveisDaPO.length ? `Selecionar as ${elegiveisDaPO.length} linha(s) autorizadas com saldo` : 'Nenhuma linha autorizada com saldo'}
+                                        aria-label={`Selecionar a PO ${po.numero || ''} do site ${po.atividade?.id_site_sharing || ''}`}
+                                        onChange={() => marcarLinhas(linhas, marcadasDaPO < elegiveisDaPO.length)} />
+                                </span>
+                                <button onClick={() => setAbertas(v => expandida ? v.filter(id => id !== po.id) : [...v, po.id])} aria-expanded={expandida} className="min-w-0 flex-1 grid grid-cols-[14px_96px_130px_130px_minmax(0,1fr)_72px_120px_160px_72px] items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/40 rounded-lg">
                                     {expandida ? <ChevronDown size={14} aria-hidden /> : <ChevronRight size={14} aria-hidden />}
                                     <span><span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary">{po.atividade?.sharing}</span></span>
                                     <span className={`truncate font-id text-[11px] ${po.atividade?.id_site_sharing ? 'font-semibold text-foreground' : 'text-muted-foreground'}`} title={po.atividade?.id_site_sharing || undefined}>{po.atividade?.id_site_sharing || '—'}</span>
@@ -600,6 +748,7 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                         <a href={`/api/pos/arquivos/${po.arquivos[0].id}/download`} onClick={e => e.stopPropagation()} className="text-xs text-primary hover:underline">Baixar PDF</a>
                                     )}</span>
                                 </button>
+                                </div>
 
                                 {expandida && (
                                     linhas.length === 0 ? (
@@ -620,8 +769,8 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                     <col className="w-36" />
                                                     <col className="w-44" />
                                                 </colgroup>
-                                                <thead className="text-muted-foreground">
-                                                    <tr className="text-left border-b border-border">
+                                                <thead className="bg-primary text-primary-foreground">
+                                                    <tr className="text-left font-semibold">
                                                         <th className="py-1.5"><span className="sr-only">Selecionar</span></th>
                                                         <th className="py-1.5 px-2">Linha</th>
                                                         <th className="py-1.5 px-2">Serviço</th>
@@ -695,11 +844,34 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                                                                     {f.status === 'CANCELADO' && f.motivo_cancelamento && (
                                                                         <span className="text-crit"> — cancelado por {f.cancelado_por || 'sistema'}: “{f.motivo_cancelamento}”</span>
                                                                     )}
+                                                                    {/* Dados fiscais da remessa, como na planilha do cliente (03/11/2026). */}
+                                                                    {f.status !== 'CANCELADO' && (
+                                                                        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5">
+                                                                            {[
+                                                                                ['Cód. Fat.', f.codigo_faturamento],
+                                                                                ['NBS', f.nbs],
+                                                                                ['Validação OC', f.validacao_oc],
+                                                                                ['ISS', f.recolhimento_iss && emFrase(f.recolhimento_iss)],
+                                                                                ['NF', f.nf_numero],
+                                                                                ['Faturamento', f.data_faturamento && fmtDataRemessa(f.data_faturamento)],
+                                                                                ['ROIT', f.data_roit && fmtDataRemessa(f.data_roit)],
+                                                                                ['Recebimento', f.data_recebimento && fmtDataRemessa(f.data_recebimento)],
+                                                                            ].map(([rotulo, valor]) => (
+                                                                                <span key={rotulo} className="whitespace-nowrap">{rotulo} <span className={valor ? 'font-id font-semibold text-foreground' : ''}>{valor || '—'}</span></span>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
                                                                 </td>
                                                                 <td className="py-1 px-2 text-center">
                                                                     <span className={`font-semibold ${f.status === 'CANCELADO' ? 'text-crit' : 'text-ok'}`}>{emFrase(f.status)}</span>
                                                                 </td>
                                                                 <td className="py-1 px-2 text-right" colSpan={3}>
+                                                                    {f.status !== 'CANCELADO' && (
+                                                                        <button onClick={() => setEditandoFiscal({ fat: f, linha: l })} title="Cód. Fat., NBS, NF e datas desta remessa"
+                                                                            className="mr-4 inline-flex items-center gap-1 font-semibold text-primary hover:underline">
+                                                                            <Receipt size={12} aria-hidden /> Dados de faturamento
+                                                                        </button>
+                                                                    )}
                                                                     {f.status !== 'CANCELADO' && (
                                                                         <button onClick={() => verEmail(f)} disabled={abrindoEmail === f.id} title="Abrir de novo o e-mail desta solicitação"
                                                                             className="mr-4 inline-flex items-center gap-1 font-semibold text-primary hover:underline disabled:opacity-50">
@@ -733,11 +905,28 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                 </div>
             )}
 
+            {/* Barra fixa da seleção: acompanha a rolagem, para montar uma solicitação com vários sites. */}
             {selecionadas.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between gap-4 flex-wrap">
-                    <div className="text-sm">
-                        <strong>{selecionadas.length}</strong> linha(s) selecionada(s),
-                        <strong className="ml-1">{fmtMoeda(valorSelecionado)}</strong> a faturar
+                <div className="sticky bottom-3 z-20 mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/50 bg-card/95 p-3 shadow-lg backdrop-blur">
+                    <div className="min-w-0 text-sm">
+                        <div>
+                            <strong>{sitesSelecionados.size}</strong> site(s) · <strong>{posSelecionadas.length}</strong> PO(s) · <strong>{selecionadas.length}</strong> linha(s) ·
+                            <strong className="ml-1">{fmtMoeda(valorSelecionado)}</strong> a faturar
+                        </div>
+                        <div className="mt-0.5 truncate text-[11px] text-muted-foreground" title={[...sitesSelecionados].join(', ')}>
+                            {[...sitesSelecionados].join(' · ')}
+                        </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <label className="inline-flex items-center gap-1 text-muted-foreground">
+                            Aplicar
+                            <input type="number" min="1" max="100" placeholder="%" aria-label="Percentual para todas as linhas selecionadas"
+                                onKeyDown={e => { if (e.key === 'Enter') aplicarPercentual((e.target as HTMLInputElement).value); }}
+                                onBlur={e => aplicarPercentual(e.target.value)}
+                                className="w-14 rounded border border-border bg-secondary/40 px-1.5 py-1 text-right text-foreground" />
+                            % a todas
+                        </label>
+                        <button type="button" onClick={() => setSelecao({})} className="rounded-lg border border-border px-3 py-2 font-semibold hover:bg-secondary/60">Limpar</button>
                     </div>
                     <button onClick={() => setPerguntandoAutorizacao(true)} disabled={enviando}
                         className="bg-primary text-primary-foreground px-4 py-2 rounded-lg text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center gap-2">
@@ -754,6 +943,13 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                 />
             )}
             {email && <ModalEmail email={email} onFechar={() => setEmail(null)} />}
+            {editandoFiscal && (
+                <ModalDadosFiscais dados={editandoFiscal} cliente={clienteDaLinha(editandoFiscal.linha.id)}
+                    historico={pos.flatMap(po => (linhasPorPO[po.id] || []).flatMap((l: any) => (l.faturamentos || [])
+                        .filter((f: any) => f.status !== 'CANCELADO' && f.id !== editandoFiscal.fat.id)
+                        .map((f: any) => ({ ...f, linha_id: l.id, descricao: l.descricao, cliente: String(po.atividade?.sharing || '').trim().toUpperCase() }))))}
+                    onSalvar={salvarDadosFiscais} onFechar={() => setEditandoFiscal(null)} />
+            )}
             {cancelando && (
                 <ModalCancelamento
                     dados={cancelando}
@@ -761,6 +957,94 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
                     onFechar={() => setCancelando(null)}
                 />
             )}
+        </div>
+    );
+}
+
+// Datas da remessa chegam como ISO (meio-dia local): mostrar sem deslocar o dia.
+const fmtDataRemessa = (v: string) => new Date(v).toLocaleDateString('pt-BR');
+const isoDia = (v?: string | null) => {
+    if (!v) return '';
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? '' : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+/**
+ * Dados fiscais de uma remessa (03/11/2026) — os mesmos campos da planilha
+ * "Solicitação de Faturamento" do cliente. Cód. Fat., NBS e Recolhimento ISS não são
+ * fixos, mas o sistema lembra o que já foi usado: sugere primeiro o da mesma linha,
+ * depois o do mesmo serviço no mesmo cliente, depois o último do cliente; e lista
+ * tudo o que já foi usado com o cliente para escolher.
+ */
+function ModalDadosFiscais({ dados, cliente, historico, onSalvar, onFechar }: {
+    dados: { fat: any; linha: any };
+    cliente: string;
+    historico: any[];
+    onSalvar: (d: Record<string, string>) => Promise<void>;
+    onFechar: () => void;
+}) {
+    const { fat, linha } = dados;
+    const norm = (s: unknown) => String(s || '').trim().toLocaleLowerCase('pt-BR');
+    const recentes = [...historico].sort((a, b) => String(b.data_solicitacao).localeCompare(String(a.data_solicitacao)));
+    const sugerir = (campo: string) => {
+        const com = recentes.filter(f => f[campo]);
+        return (com.find(f => f.linha_id === linha.id)
+            || com.find(f => f.cliente === cliente && norm(f.descricao) === norm(linha.descricao))
+            || com.find(f => f.cliente === cliente))?.[campo] || '';
+    };
+    const usados = (campo: string) => [...new Set(recentes.filter(f => f.cliente === cliente && f[campo]).map(f => String(f[campo])))];
+    const [form, setForm] = useState({
+        codigo_faturamento: fat.codigo_faturamento || sugerir('codigo_faturamento'),
+        nbs: fat.nbs || sugerir('nbs'),
+        validacao_oc: fat.validacao_oc || '',
+        recolhimento_iss: fat.recolhimento_iss || sugerir('recolhimento_iss'),
+        nf_numero: fat.nf_numero || '',
+        data_faturamento: isoDia(fat.data_faturamento),
+        data_roit: isoDia(fat.data_roit),
+        data_recebimento: isoDia(fat.data_recebimento),
+    });
+    const [salvando, setSalvando] = useState(false);
+    const [erro, setErro] = useState('');
+    const campo = 'w-full rounded-lg border border-border bg-secondary/40 px-3 py-2 text-sm text-foreground';
+    const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm(f => ({ ...f, [k]: e.target.value }));
+    async function salvar() {
+        setSalvando(true); setErro('');
+        try { await onSalvar(form); } catch (e: any) { setErro(e.message); } finally { setSalvando(false); }
+    }
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={onFechar}>
+            <div className="w-full max-w-xl rounded-xl border border-border bg-card p-5 shadow-xl" onClick={e => e.stopPropagation()}>
+                <h3 className="text-sm font-bold">Dados de faturamento</h3>
+                <p className="mt-1 text-xs text-muted-foreground">
+                    Linha <span className="font-id">{linha.numero_linha}</span> · {linha.descricao} · remessa de {fat.percentual}% ({fmtMoeda(fat.valor)})
+                </p>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
+                    <label className="flex flex-col gap-1">Cód. Fat.<input className={campo} list="fat-cod-usados" value={form.codigo_faturamento} onChange={set('codigo_faturamento')} placeholder="17.01.01" /></label>
+                    <label className="flex flex-col gap-1">NF<input className={campo} value={form.nf_numero} onChange={set('nf_numero')} placeholder="7111" /></label>
+                    <label className="col-span-2 flex flex-col gap-1">NBS<input className={campo} list="fat-nbs-usados" value={form.nbs} onChange={set('nbs')} placeholder="CCM 17.01.01.063 NBS 1.1410.90.00 IO 10031 CT 00001" /></label>
+                    <datalist id="fat-cod-usados">{usados('codigo_faturamento').map(v => <option key={v} value={v} />)}</datalist>
+                    <datalist id="fat-nbs-usados">{usados('nbs').map(v => <option key={v} value={v} />)}</datalist>
+                    <label className="flex flex-col gap-1">Validação OC
+                        <select className={campo} value={form.validacao_oc} onChange={set('validacao_oc')}>
+                            <option value="">—</option><option value="OK">OK</option><option value="NOK">NOK</option>
+                        </select>
+                    </label>
+                    <label className="flex flex-col gap-1">Recolhimento ISS
+                        <select className={campo} value={form.recolhimento_iss} onChange={set('recolhimento_iss')}>
+                            <option value="">—</option><option value="PRESTADOR">Prestador</option><option value="TOMADOR">Tomador</option>
+                        </select>
+                    </label>
+                    <label className="flex flex-col gap-1">Data do faturamento<input type="date" className={campo} value={form.data_faturamento} onChange={set('data_faturamento')} /></label>
+                    <label className="flex flex-col gap-1">Data do ROIT<input type="date" className={campo} value={form.data_roit} onChange={set('data_roit')} /></label>
+                    <label className="flex flex-col gap-1">Data de recebimento<input type="date" className={campo} value={form.data_recebimento} onChange={set('data_recebimento')} /></label>
+                </div>
+                <p className="mt-3 text-[11px] text-muted-foreground">Com NF e data de faturamento a remessa passa a <strong>Faturado</strong>; com data de recebimento, a <strong>Recebido</strong>.</p>
+                {erro && <p className="mt-2 text-xs text-crit">{erro}</p>}
+                <div className="mt-4 flex justify-end gap-2">
+                    <button onClick={onFechar} className="rounded-lg border border-border px-4 py-2 text-xs font-semibold hover:bg-secondary/60">Cancelar</button>
+                    <button onClick={salvar} disabled={salvando} className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">{salvando ? 'Salvando…' : 'Salvar'}</button>
+                </div>
+            </div>
         </div>
     );
 }

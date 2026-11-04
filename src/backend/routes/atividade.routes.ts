@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { definirMeta, metaDaAtividade } from '../services/meta-faturamento.service';
+import { custoRealDaAtividade, lerAnexoFinanceiro, lerDocumentosDaAtividade } from '../services/custo-real.service';
+import { requireAuth } from '../middleware/auth.middleware';
+import { prisma } from '../server';
 import {
     listAtividades,
     listAtividadesCarteira,
@@ -26,6 +29,21 @@ router.get('/:id/meta', async (req: Request, res: Response) => {
 router.put('/:id/meta', async (req: Request, res: Response) => {
     try { await definirMeta(req.params.id, req.body || {}, (req as any).user); res.json(await metaDaAtividade(req.params.id)); }
     catch (e: any) { res.status(400).json({ error: e.message }); }
+});
+// Custo real consolidado (04/11/2026): tudo o que foi pago na atividade + leitura
+// por IA dos comprovantes e NFs. Dados financeiros: exige login.
+const tenantDe = async (req: Request) => (req as any).user?.tenantId || (await prisma.tenant.findFirst({ select: { id: true } }))?.id || '';
+router.get('/:id/custo-real', requireAuth, async (req: Request, res: Response) => {
+    try { res.json(await custoRealDaAtividade(req.params.id, await tenantDe(req))); }
+    catch (e: any) { res.status(e.status || 400).json({ error: e.message }); }
+});
+router.post('/:id/custo-real/ler', requireAuth, async (req: Request, res: Response) => {
+    try { res.json(await lerDocumentosDaAtividade(req.params.id, await tenantDe(req), Boolean(req.body?.forcar))); }
+    catch (e: any) { res.status(e.status || 400).json({ error: e.message }); }
+});
+router.post('/custo-real/anexos/:anexoId/ler', requireAuth, async (req: Request, res: Response) => {
+    try { res.json(await lerAnexoFinanceiro(await tenantDe(req), req.params.anexoId)); }
+    catch (e: any) { res.status(e.status || 400).json({ error: e.message }); }
 });
 router.get('/:id', getAtividade);
 router.post('/', createAtividade);

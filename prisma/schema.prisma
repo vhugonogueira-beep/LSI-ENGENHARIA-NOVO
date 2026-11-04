@@ -1195,9 +1195,15 @@ model RegistroExecucao {
   atividade_id String
   atividade    Atividade @relation(fields: [atividade_id], references: [id])
 
-  data_inicio             DateTime?
+  data_inicio             DateTime? // início real da execução
   data_prevista_conclusao DateTime?
   data_real_conclusao     DateTime?
+  // Planejamento/Execução de Operação (04/11/2026): etapas Mobilização → Execução →
+  // Conclusão, cada uma com data prevista e realizada. A conclusão usa os campos acima;
+  // com data real de conclusão, a atividade de Operação fica CONCLUIDA.
+  data_mobilizacao_prevista DateTime?
+  data_mobilizacao_real     DateTime?
+  data_execucao_prevista    DateTime?
   avanco_percentual       Float     @default(0)
   equipe                  String?
   prestadores             String?
@@ -1415,6 +1421,16 @@ model FaturamentoLinha {
   data_solicitacao DateTime  @default(now())
   data_faturamento DateTime?
   observacoes String?
+
+  // Dados fiscais da remessa, como na planilha "Solicitação de Faturamento" do cliente
+  // (03/11/2026): CÓD. FAT. (ex.: 17.01.01), NBS (ex.: "CCM 17.01.01.063 NBS
+  // 1.1410.90.00 IO 10031 CT 00001"), data de lançamento no ROIT e data de recebimento.
+  codigo_faturamento String?
+  nbs                String?
+  data_roit          DateTime?
+  data_recebimento   DateTime?
+  validacao_oc       String? // OK | NOK
+  recolhimento_iss   String? // PRESTADOR | TOMADOR
 
   // Cancelar devolve saldo à linha e desfaz um compromisso já comunicado ao cliente,
   // então exige justificativa e fica registrado quem fez e quando.
@@ -1791,9 +1807,36 @@ model PaymentAttachment {
   uploaded_by            String?
   created_at             DateTime            @default(now())
 
+  leitura LeituraDocumentoFinanceiro?
+
   @@index([tenant_id, tipo])
   @@index([parcela_id, created_at])
   @@index([reembolso_pagamento_id, created_at])
+}
+
+// Leitura por IA de comprovante / NF anexado a um pagamento (04/11/2026), para a
+// visão consolidada do custo real da atividade. Guarda só os campos extraídos
+// (valor, data, número, emitente) — nunca o texto ou a imagem do documento.
+model LeituraDocumentoFinanceiro {
+  id            String            @id @default(uuid())
+  tenant_id     String
+  attachment_id String            @unique
+  attachment    PaymentAttachment @relation(fields: [attachment_id], references: [id], onDelete: Cascade)
+
+  status             String // LIDO | ERRO | NAO_SUPORTADO
+  tipo_documento     String? // COMPROVANTE | NOTA_FISCAL | RECIBO | BOLETO | CUPOM | OUTRO
+  valor              Float?
+  data_documento     DateTime?
+  numero             String? // número da NF / autenticação do comprovante
+  emitente           String? // quem emitiu a NF ou recebeu o pagamento
+  emitente_documento String? // CNPJ/CPF do emitente
+  descricao          String?
+  observacao         String? // erro ou ressalva da leitura
+  modelo             String?
+  tokens             Int?
+  lido_em            DateTime          @default(now())
+
+  @@index([tenant_id])
 }
 
 // Arquivos administrativos do processo, separados do comprovante de cada

@@ -370,20 +370,20 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
 
     if (!orcamentoAtivo) {
         return (
-            <Card title="Custo LS">
+            <Card title="Custo planejado">
                 <EmptyState text="Crie o orçamento na aba de orçamento antes de montar o custo LS." />
             </Card>
         );
     }
 
     if (loading) {
-        return <Card title="Custo LS"><div className="py-10 text-center text-muted-foreground">Carregando catálogo...</div></Card>;
+        return <Card title="Custo planejado"><div className="py-10 text-center text-muted-foreground">Carregando catálogo...</div></Card>;
     }
 
     const selecionados = Object.keys(draft).length;
 
     return (
-        <Card title="Custo LS — quanto a obra custa para a LS">
+        <Card title="Custo planejado — quanto a obra deve custar para a LS (previsão, não é o custo real)">
             {erro && <ErrorBanner message={erro} />}
 
             {catalogo.length === 0 ? (

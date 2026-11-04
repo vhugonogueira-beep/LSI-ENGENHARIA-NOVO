@@ -13,9 +13,9 @@
 // Enquanto não houver contratação de fornecedor cadastrada, o custo é zero de
 // verdade — não é estimativa nem número herdado de outra tela.
 
+import { custosDasAtividades } from './custo-real.service';
 import { prisma } from '../server';
 
-const PARCELA_PAGA = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
 const ALIQUOTA_PADRAO = 0.2204;
 
 const cent = (v: number) => Math.round(v * 100) / 100;
@@ -90,39 +90,14 @@ export async function apurarControladoria(mes?: string): Promise<ResumoControlad
     const doMes = mes ? todas.filter(a => chaveMes(a.data_abertura) === mes) : todas;
     const ids = doMes.map(a => a.id);
 
-    // Comprometido: o que foi contratado, tenha sido pago ou não.
-    const contratacoes = ids.length
-        ? await prisma.contratacaoFornecedor.findMany({
-            where: { atividade_id: { in: ids }, status: { not: 'CANCELADA' } },
-            select: { atividade_id: true, valor_contratado: true },
-        })
-        : [];
-
-    // Pago: só as parcelas que efetivamente saíram do caixa.
-    const parcelas = ids.length
-        ? await prisma.parcelaPagamento.findMany({
-            where: {
-                contratacao: { atividade_id: { in: ids }, status: { not: 'CANCELADA' } },
-                status: { in: PARCELA_PAGA },
-            },
-            select: { valor: true, contratacao: { select: { atividade_id: true } } },
-        })
-        : [];
-
-    const comprometidoPorAtiv = new Map<string, number>();
-    for (const c of contratacoes) {
-        comprometidoPorAtiv.set(c.atividade_id, (comprometidoPorAtiv.get(c.atividade_id) || 0) + c.valor_contratado);
-    }
-    const pagoPorAtiv = new Map<string, number>();
-    for (const p of parcelas) {
-        const id = p.contratacao.atividade_id;
-        pagoPorAtiv.set(id, (pagoPorAtiv.get(id) || 0) + p.valor);
-    }
+    // Comprometido e pago pela regra única do Custo real (04/11/2026): contratações
+    // + despesas de reembolso/adiantamento, rateios de projeto e prestação de contas.
+    const custos = await custosDasAtividades(ids);
 
     const atividades = doMes.map(a => {
         const receita = a.valor_contrato ?? a.valor_orcado ?? 0;
-        const comprometido = comprometidoPorAtiv.get(a.id) || 0;
-        const pago = pagoPorAtiv.get(a.id) || 0;
+        const comprometido = custos.get(a.id)?.comprometido || 0;
+        const pago = custos.get(a.id)?.pago || 0;
         const liquida = receita - receita * aliquota;
         const margem = cent(liquida - comprometido);
         return {

@@ -40,7 +40,11 @@ export async function upsertRegistroExecucao(req: Request, res: Response) {
             }
         }
 
+        const dataDe = (v: any, atual: Date | null | undefined) => v !== undefined ? (v ? new Date(v) : null) : (atual ?? null);
         const data: any = {
+            data_mobilizacao_prevista: dataDe(req.body.data_mobilizacao_prevista, registro?.data_mobilizacao_prevista),
+            data_mobilizacao_real: dataDe(req.body.data_mobilizacao_real, registro?.data_mobilizacao_real),
+            data_execucao_prevista: dataDe(req.body.data_execucao_prevista, registro?.data_execucao_prevista),
             data_inicio: data_inicio !== undefined ? (data_inicio ? new Date(data_inicio) : null) : registro?.data_inicio,
             data_prevista_conclusao: data_prevista_conclusao !== undefined ? (data_prevista_conclusao ? new Date(data_prevista_conclusao) : null) : registro?.data_prevista_conclusao,
             data_real_conclusao: data_real_conclusao !== undefined ? (data_real_conclusao ? new Date(data_real_conclusao) : null) : registro?.data_real_conclusao,
@@ -55,12 +59,46 @@ export async function upsertRegistroExecucao(req: Request, res: Response) {
             observacoes: observacoes !== undefined ? observacoes : registro?.observacoes,
         };
 
+        // Operação (04/11/2026): a data real de conclusão finaliza a atividade — o avanço
+        // vai a 100% junto, sem exigir o controle deslizante.
+        const operacao = atividade.modelo_operacao !== 'MEDIANTE_APROVACAO';
+        if (operacao && data.data_real_conclusao) data.avanco_percentual = 100;
+
         if (registro) {
             registro = await prisma.registroExecucao.update({ where: { id: registro.id }, data });
         } else {
             registro = await prisma.registroExecucao.create({
                 data: { tenant_id, atividade_id, ...data, created_by: (req as any).user?.email || null },
             });
+        }
+
+        // Operação: com data de conclusão a atividade está finalizada; apagar a data reabre.
+        if (operacao) {
+            let novo: string | null = null;
+            if (registro.data_real_conclusao) novo = 'CONCLUIDA';
+            else if (atividade.status_operacional === 'CONCLUIDA') {
+                novo = registro.data_mobilizacao_real || registro.data_inicio || registro.avanco_percentual > 0 ? 'EM_EXECUCAO' : 'PLANEJAMENTO';
+            } else if (registro.data_mobilizacao_real || registro.data_inicio || registro.avanco_percentual > 0) {
+                novo = proximoStatusAutomatico(atividade.status_operacional, 'EM_EXECUCAO');
+            }
+            if (novo && novo !== atividade.status_operacional) {
+                await prisma.atividade.update({
+                    where: { id: atividade_id },
+                    data: { status_operacional: novo, data_conclusao: novo === 'CONCLUIDA' ? registro.data_real_conclusao : null },
+                });
+                await prisma.atividadeStatusHistorico.create({
+                    data: {
+                        atividade_id, dimensao: 'OPERACIONAL', status_de: atividade.status_operacional, status_para: novo,
+                        observacao: novo === 'CONCLUIDA' ? 'Data de conclusão informada no Planejamento/Execução'
+                            : atividade.status_operacional === 'CONCLUIDA' ? 'Data de conclusão removida no Planejamento/Execução' : 'Mobilização/execução iniciada',
+                        criado_por: (req as any).user?.email || null,
+                    },
+                }).catch(() => undefined);
+            } else if (novo === 'CONCLUIDA' && atividade.data_conclusao?.getTime() !== registro.data_real_conclusao?.getTime()) {
+                await prisma.atividade.update({ where: { id: atividade_id }, data: { data_conclusao: registro.data_real_conclusao } });
+            }
+            if (registro.data_real_conclusao) await avaliarProntoParaFaturar(atividade_id);
+            return res.json(registro);
         }
 
         // G7: execução concluída — atualiza o status operacional e reavalia a fila de faturamento.

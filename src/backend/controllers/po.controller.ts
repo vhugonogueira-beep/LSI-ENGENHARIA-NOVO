@@ -4,7 +4,7 @@ import { avaliarProntoParaFaturar } from '../services/gates.service';
 import { storePOArquivo, getStoredPOArquivo, deleteStoredPOArquivo, relerPOArquivo, removerArquivoDoDisco } from '../services/po-arquivo.service';
 import {
     linhasDaPOComSaldo, solicitarFaturamentoLinhas, cancelarFaturamentoLinha,
-    atualizarStatusFaturamentoLinha, gerarEmailFaturamento, definirAutorizacaoLinha, gerarPlanilhaFaturamento,
+    atualizarStatusFaturamentoLinha, atualizarDadosFiscaisFaturamentoLinha, gerarEmailFaturamento, definirAutorizacaoLinha, gerarPlanilhaFaturamento,
 } from '../services/faturamento-linha.service';
 import { conferirPOComOrcamento } from '../services/po-conferencia.service';
 
@@ -221,6 +221,11 @@ export async function solicitarFaturamentoDeLinhas(req: Request, res: Response) 
 export async function atualizarFaturamentoLinha(req: Request, res: Response) {
     try {
         const { status, nf_numero } = req.body;
+        // Sem status: é a gravação dos dados fiscais da remessa (Cód. Fat., NBS, NF, datas).
+        if (status === undefined) {
+            res.json(await atualizarDadosFiscaisFaturamentoLinha(req.params.id, req.body || {}));
+            return;
+        }
         res.json(await atualizarStatusFaturamentoLinha(req.params.id, status, nf_numero));
     } catch (e: any) {
         res.status(400).json({ error: e.message });

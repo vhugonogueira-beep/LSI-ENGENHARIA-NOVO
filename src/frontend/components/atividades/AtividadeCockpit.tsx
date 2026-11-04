@@ -1,6 +1,6 @@
 import { rotuloTipoSite } from './TipoObraCampo';
 import { Fragment, useState, useEffect, useCallback, useRef } from 'react';
-import { AlertTriangle, ArrowLeft, Info } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Copy, Info } from 'lucide-react';
 import {
     STATUS_COMERCIAL, STATUS_DOCUMENTAL, STATUS_FINANCEIRO, STATUS_FATURAMENTO,
     StatusPill, nomePvSharing, ehHighline } from './constants';
@@ -14,6 +14,7 @@ import TabPlanejamento from './TabPlanejamento';
 import TabExecucao from './TabExecucao';
 import TabDocumentacao from './TabDocumentacao';
 import TabFornecedores from './TabFornecedores';
+import TabCustoReal from './TabCustoReal';
 import TabFaturamento from './TabFaturamento';
 import TabResultado from './TabResultado';
 import { useEstadoDaSessao } from '../../lib/estadoSessao';
@@ -124,7 +125,18 @@ export interface AtividadeDetalhe {
 //   itens complementares aos do catálogo Highline). Planejamento/APC/Execução & RFI não
 //   são três abas irmãs — viram etapas dentro de uma única aba "Planejamento"
 //   (ver TabPlanejamento.tsx), que é quem decide como somar novas etapas no futuro.
+// Custo planejado (antigo "Custo LS") só em Implantação/obras (04/11/2026): é a
+// previsão de custo da obra, não o custo real — em Operação a aba não aparece.
 function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
+    const abas = buildTabsDoModelo(modelo, sharing, tipoDemanda);
+    // Custo real (04/11/2026): logo depois de Pagamentos, em toda atividade — é o
+    // consolidado do que foi gasto, com a leitura dos comprovantes e NFs.
+    const i = abas.findIndex(t => t.id === 'fornecedores');
+    abas.splice(i + 1, 0, { id: 'custo-real', label: 'Custo real', secondary: abas[i]?.secondary ?? false });
+    return tipoDemanda === 'IMPLANTACAO' ? abas : abas.filter(t => t.id !== 'cotacao-ls');
+}
+
+function buildTabsDoModelo(modelo: string, sharing: string, tipoDemanda?: string) {
     // Operação Highline (14/10/2026): Orçamento LS + PV O&M Highline na mesma aba.
     const omHighline = ehHighline(sharing) && tipoDemanda === 'OPERACAO';
     // Fora da Highline o orçamento ao cliente é a PV da sharing — "PV Sites" (13/10/2026).
@@ -136,8 +148,8 @@ function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
             // Operação também precisa saber o que cobra e o que gasta. Mesmo par
             // da Implantação, com os nomes que a LS usa em operação.
             { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : pvSites ? nomePv : 'Orçamento LS', secondary: false },
-            { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
-            { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
+            { id: 'cotacao-ls', label: 'Custo planejado', secondary: false },
+            { id: 'execucao', label: 'Planejamento/Execução', secondary: false },
             { id: 'resultado', label: 'Resultado', secondary: false },
             { id: 'fornecedores', label: 'Pagamentos', secondary: true },
             { id: 'faturamento', label: 'PO e faturamento', secondary: true },
@@ -147,8 +159,8 @@ function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
         return [
             { id: 'identificacao', label: 'Identificação', secondary: false },
             { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : pvSites ? nomePv : 'Orçamento LS', secondary: false },
-            { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
-            { id: 'execucao', label: 'Execução e relatório fotográfico', secondary: false },
+            { id: 'cotacao-ls', label: 'Custo planejado', secondary: false },
+            { id: 'execucao', label: 'Planejamento/Execução', secondary: false },
             { id: 'fornecedores', label: 'Pagamentos', secondary: false },
             { id: 'faturamento', label: 'PO e faturamento', secondary: false },
             { id: 'resultado', label: 'Resultado', secondary: false },
@@ -159,7 +171,7 @@ function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
     return [
         { id: 'identificacao', label: 'Identificação', secondary: false },
         { id: 'comercial', label: omHighline ? 'Orçamento LS e PV O&M' : daHighline ? 'PV Highline' : nomePv, secondary: false },
-        { id: 'cotacao-ls', label: 'Custo LS', secondary: false },
+        { id: 'cotacao-ls', label: 'Custo planejado', secondary: false },
         { id: 'planejamento', label: 'Planejamento', secondary: false },
         { id: 'documentacao', label: 'Documentação', secondary: false },
         { id: 'fornecedores', label: 'Pagamentos', secondary: false },
@@ -171,7 +183,7 @@ function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
 // Aba ativa: véu e sublinhado na cor do módulo Atividades (azul).
 const TOM_ABA = TOM_MODULO.atividades;
 
-export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId: string; onBack: () => void }) {
+export default function AtividadeCockpit({ atividadeId, onBack, onDuplicar }: { atividadeId: string; onBack: () => void; onDuplicar?: (atividade: any) => void }) {
     const [atividade, setAtividade] = useState<AtividadeDetalhe | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useEstadoDaSessao(`ls_aba_atividade_${atividadeId}`, 'identificacao');
@@ -223,9 +235,18 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
 
     return (
         <div className="p-6 md:p-8 text-foreground">
-            <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4">
-                <ArrowLeft size={16} aria-hidden /> Voltar para atividades
-            </button>
+            <div className="mb-4 flex items-center justify-between gap-3">
+                <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+                    <ArrowLeft size={16} aria-hidden /> Voltar para atividades
+                </button>
+                {/* Nova atividade no mesmo site, com os dados desta (04/11/2026). */}
+                {onDuplicar && (
+                    <button type="button" onClick={() => onDuplicar(atividade)} title="Criar uma nova atividade com os dados do site desta"
+                        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-secondary/60">
+                        <Copy size={14} aria-hidden /> Duplicar atividade
+                    </button>
+                )}
+            </div>
 
             {/* A faixa à esquerda é o status operacional: a mesma cor da linha na carteira. */}
             <div className={`bg-card border border-border border-l-4 ${FAIXA[tomDe(TOM_STATUS, atividade.status_operacional)]} rounded-xl p-5 mb-5`}>
@@ -336,6 +357,7 @@ export default function AtividadeCockpit({ atividadeId, onBack }: { atividadeId:
                 {activeTab === 'execucao' && !isImplantacaoCompleta && <TabExecucao {...tabProps} />}
                 {activeTab === 'documentacao' && isImplantacaoCompleta && <TabDocumentacao {...tabProps} />}
                 {activeTab === 'fornecedores' && <TabFornecedores {...tabProps} />}
+                {activeTab === 'custo-real' && <TabCustoReal atividade={atividade} />}
                 {activeTab === 'faturamento' && <TabFaturamento {...tabProps} />}
                 {activeTab === 'resultado' && <TabResultado {...tabProps} />}
             </div>
