@@ -17,6 +17,7 @@ import { CHIP, TEXTO, SOLIDO, VEU, FAIXA, TOPO, TOM_STATUS, TOM_MODULO, tomDe, t
 import MunicipioInput from '../components/cadastros/MunicipioInput';
 import { useEhAdmin } from '../lib/permissoes';
 import { useEstadoDaSessao, CHAVE_ATIVIDADE_ABERTA } from '../lib/estadoSessao';
+import { authFetch } from '../lib/authFetch';
 
 interface Atividade {
     id: string;
@@ -59,6 +60,8 @@ interface Atividade {
     meta_situacao?: string;
     meta_faturado?: number;
     meta_adiamentos?: number;
+    meta_a_faturar?: number | null; // valor das POs (ou contrato) — 04/11/2026
+    meta_saldo?: number | null;     // a faturar − faturado
 }
 
 const FORM_INIT = {
@@ -275,6 +278,39 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     useEffect(() => { load(); }, [load]);
     // A lista e o kanban também precisam dos projetos (cortina e etiqueta).
     useEffect(() => { carregarProjetos(); }, [view, carregarProjetos]);
+
+    // Meta de faturamento na lista (04/11/2026): por linha ou para as selecionadas. Só o mês.
+    const [metaIds, setMetaIds] = useState<string[] | null>(null);
+    const [metaMes, setMetaMes] = useState('');
+    const [metaMotivo, setMetaMotivo] = useState('');
+    const [salvandoMeta, setSalvandoMeta] = useState(false);
+    const [erroMeta, setErroMeta] = useState('');
+    function abrirMeta(ids: string[]) {
+        const alvo = atividades.filter(a => ids.includes(a.id));
+        const meses = [...new Set(alvo.map(a => a.meta_faturamento_mes || ''))];
+        setMetaMes(meses.length === 1 ? meses[0] : '');
+        setMetaMotivo(''); setErroMeta('');
+        setMetaIds(ids);
+    }
+    async function salvarMeta() {
+        if (!metaIds) return;
+        setSalvandoMeta(true); setErroMeta('');
+        const falhas: string[] = [];
+        for (const id of metaIds) {
+            const r = await authFetch(`/api/atividades/${id}/meta`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mes: metaMes || null, motivo: metaMotivo || null }),
+            });
+            if (!r.ok) {
+                const a = atividades.find(x => x.id === id);
+                falhas.push(`${a?.id_site_sharing || a?.codigo || 'Atividade'}: ${(await r.json().catch(() => ({}))).error || 'erro ao salvar'}`);
+            }
+        }
+        setSalvandoMeta(false);
+        await load();
+        if (falhas.length) { setErroMeta(falhas.join('\n')); return; }
+        setMetaIds(null);
+    }
 
     /** Agrupa as atividades marcadas num projeto — novo ou existente. */
     async function agruparSelecionadas() {
@@ -599,6 +635,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                 <option value="VENCIDA">Meta vencida</option>
                                 <option value="NO_PRAZO">No prazo</option>
                                 <option value="CUMPRIDA">Cumprida</option>
+                                <option value="PARCIAL">Faturada em parte (com saldo)</option>
                                 <option value="REINCIDENTE">Reincidente (2+ adiamentos)</option>
                                 <option value="SEM_META">Sem meta</option>
                                 {mesesDeMeta.length > 0 && <optgroup label="Por mês">{mesesDeMeta.map(m => <option key={m} value={`MES:${m}`}>Meta {rotuloMes(m)}</option>)}</optgroup>}
@@ -665,6 +702,11 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                         <button onClick={agruparSelecionadas} disabled={agrupando}
                             className="h-8 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60">
                             {agrupando ? 'Agrupando...' : 'Agrupar'}
+                        </button>
+                        <span className="mx-1 h-5 w-px bg-border" aria-hidden />
+                        <button onClick={() => abrirMeta(selecionadas)}
+                            className="h-8 rounded-lg border border-primary/50 px-3 text-xs font-semibold text-primary hover:bg-primary/10">
+                            Definir meta de faturamento
                         </button>
                         <button onClick={() => setSelecionadas([])} className="h-8 px-2 text-xs text-muted-foreground">Cancelar</button>
                     </div>
@@ -767,11 +809,20 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                         <td className="px-3 py-2.5 align-top">
                                             <EtapaDaLinha a={a} avanco={avanco} />
                                             <PendenciasDaLinha a={a} onAnexarPO={() => { setPoModalId(a.id); setPoForm({ numero: '', pdf_url: '' }); }} />
-                                            {a.meta_faturamento_mes && (
-                                                <span title={`Meta de faturamento: ${rotuloMes(a.meta_faturamento_mes)}${a.meta_faturamento_valor ? ` · ${fmtMoeda(a.meta_faturamento_valor)}` : ''} — ${(SITUACAO_META[a.meta_situacao || ''] || SITUACAO_META.SEM_META).rotulo}${(a.meta_adiamentos || 0) >= 2 ? ` · adiada ${a.meta_adiamentos}x` : ''}`}
-                                                    className={`mt-1 inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[11px] font-semibold ${(SITUACAO_META[a.meta_situacao || ''] || SITUACAO_META.SEM_META).classe}`}>
+                                            {/* Meta de faturamento definida aqui, na lista (04/11/2026): só o mês. */}
+                                            {a.meta_faturamento_mes ? (
+                                                <button type="button" onClick={() => abrirMeta([a.id])}
+                                                    title={`Meta de faturamento: ${rotuloMes(a.meta_faturamento_mes)} — ${(SITUACAO_META[a.meta_situacao || ''] || SITUACAO_META.SEM_META).rotulo}${(a.meta_adiamentos || 0) >= 2 ? ` · adiada ${a.meta_adiamentos}x` : ''}. Clique para alterar.`}
+                                                    className={`mt-1 inline-flex h-5 items-center gap-1 rounded-md px-1.5 text-[11px] font-semibold hover:ring-1 hover:ring-primary ${(SITUACAO_META[a.meta_situacao || ''] || SITUACAO_META.SEM_META).classe}`}>
                                                     Meta {rotuloMes(a.meta_faturamento_mes)}{(a.meta_adiamentos || 0) >= 2 ? ' · reincidente' : ''}
-                                                </span>
+                                                    {a.meta_situacao === 'PARCIAL' && a.meta_saldo ? ` · saldo ${fmtMoeda(a.meta_saldo)}` : ''}
+                                                    <Pencil size={10} aria-hidden />
+                                                </button>
+                                            ) : (
+                                                <button type="button" onClick={() => abrirMeta([a.id])}
+                                                    className="mt-1 inline-flex h-5 items-center gap-1 rounded-md border border-dashed border-border px-1.5 text-[11px] font-semibold text-muted-foreground hover:border-primary hover:text-primary">
+                                                    <Plus size={11} aria-hidden /> Meta
+                                                </button>
                                             )}
                                         </td>
                                         <td className="px-3 py-2.5 align-top">
@@ -1122,6 +1173,73 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                     </div>
                 </div>
             )}
+
+            {metaIds && (() => {
+                const alvo = atividades.filter(a => metaIds.includes(a.id));
+                // Mudar um mês já definido exige motivo (e permissão de gestor/admin, conferida no servidor).
+                // Faturada em parte não pede motivo: o saldo precisa de um novo mês.
+                const mudaMesDefinido = alvo.some(a => a.meta_faturamento_mes && a.meta_faturamento_mes !== metaMes && a.meta_situacao !== 'PARCIAL');
+                const comSaldo = alvo.filter(a => a.meta_situacao === 'PARCIAL' && (a.meta_saldo || 0) > 0);
+                const somar = (f: (a: Atividade) => number | null | undefined) => alvo.reduce((s, a) => s + (f(a) || 0), 0);
+                const aFaturar = somar(a => a.meta_a_faturar), faturado = somar(a => a.meta_faturado), saldo = somar(a => a.meta_saldo);
+                return (
+                    <div className="fixed inset-0 z-[9000] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm" onClick={() => setMetaIds(null)}>
+                        <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6" onClick={e => e.stopPropagation()}>
+                            <div className="mb-1 flex items-center justify-between">
+                                <h3 className="text-base font-bold">Meta de faturamento</h3>
+                                <button type="button" onClick={() => setMetaIds(null)} aria-label="Fechar" className="text-muted-foreground hover:text-foreground"><X size={16} aria-hidden /></button>
+                            </div>
+                            <p className="mb-4 text-xs text-muted-foreground">
+                                {alvo.length === 1
+                                    ? <>Mês em que <strong className="font-id">{alvo[0].id_site_sharing || alvo[0].codigo}</strong> deve faturar.</>
+                                    : <>Mesmo mês para as <strong>{alvo.length}</strong> atividades selecionadas.</>}
+                            </p>
+                            {/* O valor não é digitado: sai do que há para faturar nas POs e do que já foi faturado. */}
+                            <div className="mb-4 grid grid-cols-3 gap-2 text-xs">
+                                {([['A faturar', aFaturar], ['Faturado', faturado], ['Saldo', saldo]] as const).map(([r, v]) => (
+                                    <div key={r} className="rounded-lg border border-border bg-background/40 px-3 py-2">
+                                        <div className="text-muted-foreground">{r}</div>
+                                        <div className={`font-bold tabular-nums ${r === 'Saldo' && v > 0 && faturado > 0 ? 'text-warn' : ''}`}>{aFaturar ? fmtMoeda(v) : '—'}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            {comSaldo.length > 0 && (
+                                <div className="mb-4 flex items-start gap-2 rounded-lg border border-warn/40 bg-warn/10 p-2.5 text-xs text-warn">
+                                    <AlertTriangle size={14} aria-hidden className="mt-0.5 shrink-0" />
+                                    <span>
+                                        {comSaldo.length === 1 && alvo.length === 1
+                                            ? <>A atividade foi faturada só em parte: ainda há <strong>{fmtMoeda(comSaldo[0].meta_saldo || 0)}</strong> de saldo. Defina o novo mês para faturar o restante.</>
+                                            : <>{comSaldo.length} atividade(s) faturada(s) só em parte, com <strong>{fmtMoeda(comSaldo.reduce((s, a) => s + (a.meta_saldo || 0), 0))}</strong> de saldo. Defina o novo mês para o restante.</>}
+                                    </span>
+                                </div>
+                            )}
+                            {!aFaturar && <p className="mb-3 text-[11px] text-muted-foreground">Sem PO nem valor de contrato: o valor aparece quando a PO for anexada.</p>}
+                            <label className="flex flex-col gap-1 text-xs font-semibold">Mês da meta
+                                <input type="month" value={metaMes} onChange={e => setMetaMes(e.target.value)} className="input" />
+                            </label>
+                            {mudaMesDefinido && (
+                                <label className="mt-3 flex flex-col gap-1 text-xs font-semibold">Motivo da alteração
+                                    <textarea rows={2} value={metaMotivo} onChange={e => setMetaMotivo(e.target.value)} className="input resize-y"
+                                        placeholder="Ex.: cliente adiou a liberação da PO" />
+                                    <span className="font-normal text-muted-foreground">Alterar um mês já definido é de gestor ou administrador e fica no histórico.</span>
+                                </label>
+                            )}
+                            {erroMeta && <div className="mt-3 whitespace-pre-line rounded-lg border border-crit/40 bg-crit/10 p-2.5 text-xs text-crit">{erroMeta}</div>}
+                            <div className="mt-5 flex items-center justify-between gap-2">
+                                <button type="button" onClick={() => setMetaMes('')} disabled={!metaMes}
+                                    className="text-xs font-semibold text-muted-foreground hover:text-crit disabled:opacity-40">Remover meta</button>
+                                <div className="flex gap-2">
+                                    <button type="button" onClick={() => setMetaIds(null)} className="h-9 rounded-lg border border-border px-4 text-xs font-semibold hover:bg-secondary/60">Cancelar</button>
+                                    <button type="button" onClick={salvarMeta} disabled={salvandoMeta || (mudaMesDefinido && metaMotivo.trim().length < 5)}
+                                        className="h-9 rounded-lg bg-primary px-4 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                                        {salvandoMeta ? 'Salvando…' : 'Salvar meta'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {showForm && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[9000] p-4">

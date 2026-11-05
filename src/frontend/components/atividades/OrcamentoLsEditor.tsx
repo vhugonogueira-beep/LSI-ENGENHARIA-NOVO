@@ -169,7 +169,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     const codigosTela = useMemo(() => codigosDosItens(linhas), [linhas]);
     const alterado = JSON.stringify(linhas.map(({ chave, ...r }) => r)) !== salvas;
 
-    async function salvar(lista: Linha[] = linhas) {
+    async function salvar(lista: Linha[] = linhas, inativasSalvar: Linha[] = inativas) {
         setErro('');
         const invalida = lista.find(l => !l.titulo.trim() || !(l.quantidade > 0) || l.valor_unitario < 0);
         if (invalida) { setErro('Todo item precisa de descrição, quantidade maior que zero e valor unitário.'); return false; }
@@ -180,18 +180,18 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                 method: 'PUT', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     versaoAtual: versao.versao_atual, expectedUpdatedAt: versao.updated_at, scope: grupo === 'PV_CLIENTE' ? 'pv_cliente' : 'orcamento_ls',
-                    items: lista.map((l, i) => ({
+                    items: [...lista.map((l, i) => ({
                         codigo_item: codigos[i], titulo: l.titulo.trim(), unidade: l.unidade || 'un',
                         quantidade: l.quantidade, valor_unitario: l.valor_unitario, bdi_percent: l.bdi_percent || 0, desconto_interno_percent: l.desconto_interno_percent || 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS', ordem: i,
                         source_pricebook_item_id: l.source_pricebook_item_id || null, codigo_vinculo: l.codigo_vinculo || null,
                         arquivo_origem: l.arquivo_origem || null,
                     })),
                     // Itens de orçamentos não válidos seguem gravados, inativos.
-                    ...inativas.map((l, k) => ({
+                    ...inativasSalvar.map((l, k) => ({
                         codigo_item: l.codigo_item, titulo: l.titulo.trim(), unidade: l.unidade || 'un', quantidade: l.quantidade, valor_unitario: l.valor_unitario,
                         bdi_percent: l.bdi_percent || 0, desconto_interno_percent: l.desconto_interno_percent || 0, bloco: l.grupo.trim() || 'ORCAMENTO_LS',
                         ordem: lista.length + k, arquivo_origem: l.arquivo_origem || null, codigo_vinculo: l.codigo_vinculo || null, ativo: false,
-                    })),
+                    }))],
                 }),
             });
             const corpo = await r.json();
@@ -218,8 +218,15 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
     }
 
     async function excluirArquivo(a: Importado) {
-        if (!confirm(`Excluir o arquivo "${a.nome_original}"? Os itens já usados no orçamento continuam.`)) return;
+        const doArquivo = linhasSalvas.filter(l => l.arquivo_origem === a.nome).length;
+        if (!confirm(`Excluir o arquivo "${a.nome_original}"?${doArquivo ? ` Os ${doArquivo} item(ns) que vieram dele também saem do orçamento e o total é recalculado.` : ''}`)) return;
         setErro('');
+        // Excluir o orçamento importado tira os itens dele (05/11/2026): antes os
+        // itens ficavam e a conferência da PO seguia comparando com o valor antigo.
+        if (doArquivo || inativas.some(l => l.arquivo_origem === a.nome)) {
+            const ok = await salvar(linhasSalvas.filter(l => l.arquivo_origem !== a.nome), inativas.filter(l => l.arquivo_origem !== a.nome));
+            if (!ok) return;
+        }
         const r = await authFetch(`/api/budgets/${budgetId}/importados/${encodeURIComponent(a.nome)}`, { method: 'DELETE' });
         if (!r.ok) { setErro((await r.json().catch(() => ({}))).error || 'Erro ao excluir o arquivo'); return; }
         setImportados(lista => lista.filter(x => x.nome !== a.nome));

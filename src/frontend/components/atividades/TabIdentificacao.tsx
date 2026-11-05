@@ -9,7 +9,7 @@ import {
     UFS, normalizarUf, MODELO_OPERACAO_LABEL, modeloOperacaoPadrao, modelosPermitidos, fmtData, ehHighline,
 } from './constants';
 import MunicipioInput from '../cadastros/MunicipioInput';
-import MetaFaturamentoCard from './MetaFaturamentoCard';
+
 
 export default function TabIdentificacao({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh: () => void }) {
     const { sharings, operadoras, sharingsCadastro } = useListasClientes();
@@ -132,7 +132,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     </div>
                 )}
             </Card>
-            <MetaFaturamentoCard atividadeId={atividade.id} />
+            {/* Meta de faturamento: definida na lista de Atividades (04/11/2026). */}
             </>
         );
     }

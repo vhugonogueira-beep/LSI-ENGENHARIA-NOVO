@@ -15,6 +15,8 @@ export const SITUACAO_META: Record<string, { rotulo: string; classe: string }> =
     VENCIDA: { rotulo: 'Vencida', classe: 'bg-crit/15 text-crit' },
     CUMPRIDA: { rotulo: 'Cumprida', classe: 'bg-ok/15 text-ok' },
     CUMPRIDA_ATRASO: { rotulo: 'Cumprida com atraso', classe: 'bg-ok/15 text-ok' },
+    // Faturou só uma parte (04/11/2026): ainda há saldo e a meta aceita um novo mês.
+    PARCIAL: { rotulo: 'Faturada em parte', classe: 'bg-warn/15 text-warn' },
 };
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 export const rotuloMes = (mes?: string | null) => {

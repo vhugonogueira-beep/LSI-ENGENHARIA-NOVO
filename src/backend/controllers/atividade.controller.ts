@@ -2,7 +2,7 @@ import { custosDasAtividades } from '../services/custo-real.service';
 import { Request, Response } from 'express';
 import { chaveNome, ehHighline, resolverCliente, TIPOS_OPERADORA, TIPOS_SHARING } from '../utils/sharing';
 import { prisma } from '../server';
-import { adiamentosPorAtividade, faturadoPorAtividade, situacaoMeta } from '../services/meta-faturamento.service';
+import { adiamentosPorAtividade, faturadoPorAtividade, saldoAFaturar, situacaoMeta, totalAFaturarPorAtividade } from '../services/meta-faturamento.service';
 import { proximoCodigo } from '../services/codigo-sequencial.service';
 import { STATUS_ATIVIDADE } from '../services/status-atividade.service';
 import { gerarMatrizDocumental, recalcularStatusDocumental } from '../services/documentacao.service';
@@ -153,6 +153,8 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
 
         // Meta de faturamento: situação calculada com o que já faturou (18/10/2026).
         const faturadoMeta = await faturadoPorAtividade(ids);
+        // Valor da meta = o que há para faturar nas POs (04/11/2026); saldo libera novo mês.
+        const aFaturarMeta = await totalAFaturarPorAtividade(ids);
         const adiamentosMeta = await adiamentosPorAtividade(ids);
         const carteira = atividades.map(a => {
             const custoPago = custoPagoPorAtividade.get(a.id) || 0;
@@ -176,8 +178,10 @@ export async function listAtividadesCarteira(req: Request, res: Response) {
                 documentos_correcao: docsCorrecao,
                 documentos_percentual: docs.length ? Math.round((docsOk / docs.length) * 100) : 0,
                 comprovantes_pendentes: comprovantesPendentes.get(a.id) || 0,
-                meta_situacao: situacaoMeta(a, faturadoMeta.get(a.id)),
+                meta_situacao: situacaoMeta(a, faturadoMeta.get(a.id), new Date(), saldoAFaturar(aFaturarMeta.get(a.id), faturadoMeta.get(a.id)?.valor)),
                 meta_faturado: faturadoMeta.get(a.id)?.valor || 0,
+                meta_a_faturar: aFaturarMeta.get(a.id) ?? null,
+                meta_saldo: saldoAFaturar(aFaturarMeta.get(a.id), faturadoMeta.get(a.id)?.valor),
                 meta_adiamentos: adiamentosMeta.get(a.id) || 0,
             };
         });
