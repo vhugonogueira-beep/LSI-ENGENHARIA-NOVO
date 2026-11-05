@@ -19,12 +19,13 @@ const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIAD
 const CONTRATO_STATUS_TOM: Record<string, string> = { GERADO: 'bg-muted text-muted-foreground', ENVIADO: 'bg-warn/15 text-warn', ASSINADO: 'bg-ok/15 text-ok' };
 const PARCELA_TIPO_LABEL: Record<string, string> = { UNICA: 'Parcela única', ENTRADA: 'Entrada', SALDO: 'Saldo', PARCELA: 'Parcela', ADIANTAMENTO: 'Adiantamento' };
 
-const FINALIDADES = ['CABO', 'METALICO', 'QTM', 'MAO_DE_OBRA', 'LOCACAO', 'MATERIAL_CIVIL', 'MATERIAL_ELETRICO', 'EQUIPAMENTO', 'TRANSPORTE', 'REEMBOLSO', 'ADIANTAMENTO_VIAGEM', 'OUTROS'];
+const FINALIDADES = ['CABO', 'METALICO', 'QTM', 'MAO_DE_OBRA', 'PAGAMENTO_SEMANAL', 'LOCACAO', 'MATERIAL_CIVIL', 'MATERIAL_ELETRICO', 'EQUIPAMENTO', 'TRANSPORTE', 'REEMBOLSO', 'ADIANTAMENTO_VIAGEM', 'OUTROS'];
 const FINALIDADE_LABEL: Record<string, string> = {
     CABO: 'Cabo',
     METALICO: 'Metálico',
     QTM: 'QTM',
     MAO_DE_OBRA: 'Mão de obra',
+    PAGAMENTO_SEMANAL: 'Pagamento semanal',
     LOCACAO: 'Locação',
     MATERIAL_CIVIL: 'Material civil',
     MATERIAL_ELETRICO: 'Material elétrico',
@@ -111,6 +112,27 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [historico, setHistorico] = useState<{ id: string; itens: any[] } | null>(null);
     const [valorParcela, setValorParcela] = useState('');
     const [dividindo, setDividindo] = useState<string | null>(null);
+    // Formalização (05/11/2026): o cadastro já pede o comprovante; a data do
+    // pagamento é lida dele pela IA e o arquivo vai anexado ao pagamento.
+    const [comprovanteForm, setComprovanteForm] = useState<File | null>(null);
+    const [leituraComprovante, setLeituraComprovante] = useState<{ lendo: boolean; msg: string; ok?: boolean }>({ lendo: false, msg: '' });
+    async function escolherComprovante(f: File | null) {
+        setComprovanteForm(f);
+        if (!f) { setLeituraComprovante({ lendo: false, msg: '' }); return; }
+        setLeituraComprovante({ lendo: true, msg: 'Lendo o comprovante…' });
+        try {
+            const dados = new FormData();
+            dados.append('arquivo', f);
+            const r = await authFetch('/api/atividades/custo-real/ler-arquivo', { method: 'POST', body: dados });
+            const d = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(d.error || 'Não foi possível ler o comprovante');
+            if (!d.data_documento) throw new Error('A data do pagamento não está legível no comprovante');
+            setForm(fm => ({ ...fm, data_pagamento_realizado: d.data_documento, valor_contratado: fm.valor_contratado || (d.valor ? String(d.valor) : '') }));
+            setLeituraComprovante({ lendo: false, ok: true, msg: `Lido do comprovante: pago em ${fmtData(d.data_documento)}${d.valor ? ` · ${fmtMoeda(d.valor)}` : ''}${d.emitente ? ` · ${d.emitente}` : ''}` });
+        } catch (e: any) {
+            setLeituraComprovante({ lendo: false, ok: false, msg: `${e.message}. Informe a data à mão.` });
+        }
+    }
     const [copiado, setCopiado] = useState('');
     // Link da pasta vem do cadastro da atividade; o e-mail sai com a linha em
     // branco quando nao houver, para quem envia preencher no Outlook.
@@ -286,7 +308,19 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     fatura_referencia: form.fatura_referencia || null,
                 }),
             });
-            if (!r.ok) throw new Error((await r.json()).error || 'Erro ao contratar fornecedor');
+            const criada = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(criada.error || 'Erro ao contratar fornecedor');
+            if (formalizando && comprovanteForm) {
+                const parcela = [...(criada.parcelas || [])].sort((a: any, b: any) => b.valor - a.valor)[0];
+                if (parcela) {
+                    const dados = new FormData();
+                    dados.append('tipo', 'COMPROVANTE_PAGAMENTO');
+                    dados.append('arquivos', comprovanteForm);
+                    const up = await authFetch(`/api/payment-attachments/PARCELA/${parcela.id}`, { method: 'POST', body: dados });
+                    if (!up.ok) setErro(`Formalização registrada, mas o comprovante não foi anexado: ${(await up.json().catch(() => ({}))).error || up.status}`);
+                }
+            }
+            setComprovanteForm(null); setLeituraComprovante({ lendo: false, msg: '' });
             setForm(FORM_INIT);
             setSaldos([]);
             setShowForm(false);
@@ -721,7 +755,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 // pago agora só vale para solicitação.
                                 percentual_entrada: e.target.value === 'PAYMENT_FORMALIZATION' ? '100' : f.percentual_entrada,
                                 percentual_saldo: e.target.value === 'PAYMENT_FORMALIZATION' ? '0' : f.percentual_saldo,
-                                data_pagamento_realizado: e.target.value === 'PAYMENT_FORMALIZATION' ? (f.data_pagamento_realizado || hojeLocal()) : '',
+                                data_pagamento_realizado: e.target.value === 'PAYMENT_FORMALIZATION' ? f.data_pagamento_realizado : '',
                             }))}>
                                 <option value="PAYMENT_REQUEST">Solicitação de pagamento</option>
                                 <option value="PAYMENT_FORMALIZATION">Formalização de pagamento já realizado</option>
@@ -739,6 +773,13 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         <Field label="Data da despesa"><input type="date" className={inputClass} value={form.data_despesa} onChange={e => setForm(f => ({ ...f, data_despesa: e.target.value }))} /></Field>
                         <Field label="Motivo do reembolso"><input className={inputClass} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Descreva a despesa reembolsada" /></Field>
                         </> : form.processo_tipo === 'PAYMENT_FORMALIZATION' ? <>
+                            <div className="col-span-2 rounded-lg border border-primary/40 bg-primary/5 p-3">
+                                <Field label="Comprovante de pagamento * (PDF ou imagem) — a data do pagamento é lida dele">
+                                    <input type="file" accept=".pdf,image/*" className={`${inputClass} py-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-foreground`}
+                                        onChange={e => escolherComprovante(e.target.files?.[0] || null)} />
+                                </Field>
+                                {leituraComprovante.msg && <p className={`mt-1.5 text-xs ${leituraComprovante.lendo ? 'text-muted-foreground' : leituraComprovante.ok ? 'text-ok' : 'text-warn'}`}>{leituraComprovante.msg}</p>}
+                            </div>
                             <Field label="Data do pagamento realizado"><input type="date" className={inputClass} value={form.data_pagamento_realizado} onChange={e => setForm(f => ({ ...f, data_pagamento_realizado: e.target.value }))}/></Field>
                             <Field label="Referência (opcional)"><input className={inputClass} value={form.fatura_referencia} onChange={e => setForm(f => ({ ...f, fatura_referencia: e.target.value }))} placeholder="Ex.: fatura/cartão/pedido"/></Field>
                             <Field label="Forma utilizada">
@@ -863,7 +904,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     </div>
                     <div className="flex justify-end gap-2 mt-3">
                         <GhostButton onClick={() => setShowForm(false)}>Cancelar</GhostButton>
-                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (form.processo_tipo === 'PAYMENT_FORMALIZATION' && !form.data_pagamento_realizado) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista)) || !form.diretorio_url.trim()}>{form.processo_tipo === 'PAYMENT_FORMALIZATION' ? 'Registrar formalização' : 'Registrar'}</PrimaryButton>
+                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (form.processo_tipo === 'PAYMENT_FORMALIZATION' && (!form.data_pagamento_realizado || !comprovanteForm || leituraComprovante.lendo)) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista)) || !form.diretorio_url.trim()}>{form.processo_tipo === 'PAYMENT_FORMALIZATION' ? 'Registrar formalização' : 'Registrar'}</PrimaryButton>
                     </div>
                 </div>
             )}

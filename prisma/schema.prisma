@@ -935,6 +935,7 @@ model Atividade {
   codigo         String // ATV-2026-001
   acionamento_id String?
   acionamento    Acionamento? @relation(fields: [acionamento_id], references: [id])
+  data_acionamento DateTime? // dia em que o cliente acionou a LS (05/11/2026)
 
   titulo          String
   tipo_demanda    String // IMPLANTACAO | OPERACAO — decide o modelo_operacao padrão e o fluxo do Cockpit

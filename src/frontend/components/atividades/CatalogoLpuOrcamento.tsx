@@ -46,13 +46,15 @@ export default function CatalogoLpuOrcamento<T extends LinhaCatalogo>({ atividad
     const { bases, baseId, setBaseId, base, motivo, itens, carregando } = useBaseLpu(atividadeId);
     const [busca, setBusca] = useState('');
     const [categoria, setCategoria] = useState('');
-    const [soSelecionados, setSoSelecionados] = useState(false);
+    // Catálogo recolhido (05/11/2026): mostra só os itens já no orçamento; a busca,
+    // a categoria ou "Ver catálogo" abrem o restante da LPU.
+    const [verCatalogo, setVerCatalogo] = useState(false);
 
     const porItem = useMemo(() => new Map(linhas.filter(l => l.source_pricebook_item_id).map(l => [l.source_pricebook_item_id!, l])), [linhas]);
     const categorias = useMemo(() => [...new Set(itens.map(i => i.subtipo || '').filter(Boolean))].sort(), [itens]);
     const comPreco = itens.filter(i => (i.valor_venda || 0) > 0).length;
     const termos = busca.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().split(/\s+/).filter(Boolean);
-    const visiveis = itens.filter(i => (!categoria || i.subtipo === categoria) && (!soSelecionados || porItem.has(i.id))
+    const visiveis = itens.filter(i => (!categoria || i.subtipo === categoria) && (verCatalogo || termos.length > 0 || !!categoria || porItem.has(i.id))
         && termos.every(t => `${i.codigo_item} ${i.descricao} ${i.detalhamento || ''} ${i.subtipo || ''}`.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().includes(t)));
     const selecionadas = itens.filter(i => porItem.has(i.id)).map(i => porItem.get(i.id)!);
     const soma = selecionadas.reduce((s, l) => { const t = totais(l); return { semDesconto: s.semDesconto + t.semDesconto, economia: s.economia + t.economia, final: s.final + t.final }; }, { semDesconto: 0, economia: 0, final: 0 });
@@ -76,9 +78,10 @@ export default function CatalogoLpuOrcamento<T extends LinhaCatalogo>({ atividad
                     <option value="">Todas as categorias</option>
                     {categorias.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
-                <label className="flex h-10 cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg border border-border bg-background px-3 text-sm">
-                    <input type="checkbox" checked={soSelecionados} onChange={e => setSoSelecionados(e.target.checked)} /> Selecionados
-                </label>
+                <button type="button" onClick={() => setVerCatalogo(v => !v)}
+                    className="h-10 whitespace-nowrap rounded-lg border border-border bg-background px-3 text-sm font-semibold hover:bg-secondary/60">
+                    {verCatalogo ? 'Mostrar só os do orçamento' : `Ver catálogo da LPU (${itens.length})`}
+                </button>
             </div>
             <div className="mb-3 text-xs text-muted-foreground">Valores padrão: {base.nome}, preço vigente da LPU · {comPreco} de {itens.length} itens com valor padrão</div>
 
@@ -95,9 +98,13 @@ export default function CatalogoLpuOrcamento<T extends LinhaCatalogo>({ atividad
                 </div>
             )}
 
-            <div className="max-h-[520px] overflow-auto border border-border">
+            {visiveis.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                    Nenhum item da LPU no orçamento. Busque acima ou clique em <strong className="text-foreground">Ver catálogo da LPU</strong> para escolher os itens.
+                </div>
+            ) : <div className="max-h-[520px] overflow-auto border border-border">
                 <table className="w-full min-w-[1080px] text-sm">
-                    <thead className="sticky top-0 z-10 bg-secondary text-muted-foreground">
+                    <thead className="sticky top-0 z-10 bg-primary text-primary-foreground">
                         <tr className="text-left text-xs">
                             <th className="w-12 px-3 py-2.5"><span className="sr-only">Selecionar</span></th>
                             <th className="w-28 px-3 py-2.5">Código</th>
@@ -144,7 +151,7 @@ export default function CatalogoLpuOrcamento<T extends LinhaCatalogo>({ atividad
                         {visiveis.length === 0 && <tr><td colSpan={9} className="py-10 text-center text-muted-foreground">Nenhum item encontrado.</td></tr>}
                     </tbody>
                 </table>
-            </div>
+            </div>}
             <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <Resumo rotulo="Valor sem desconto" valor={soma.semDesconto} />
                 <Resumo rotulo="Economia interna" valor={soma.economia} tom="text-ok" />

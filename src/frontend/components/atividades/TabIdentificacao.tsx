@@ -46,6 +46,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
         municipio: atividade.municipio || '',
         responsavel: atividade.responsavel || '',
         gestor: atividade.gestor || '',
+        data_acionamento: (atividade as any).data_acionamento ? String((atividade as any).data_acionamento).substring(0, 10) : '',
         diretorio_url: atividade.diretorio_url || '',
         descricao: atividade.descricao || '',
         data_inicio_planejada: atividade.data_inicio_planejada ? atividade.data_inicio_planejada.substring(0, 10) : '',
@@ -82,9 +83,8 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     municipio: form.municipio || null,
                     responsavel: form.responsavel || null,
                     gestor: form.gestor || null,
+                    data_acionamento: form.data_acionamento || null,
                     descricao: form.descricao || null,
-                    data_inicio_planejada: form.data_inicio_planejada || null,
-                    data_fim_planejada: form.data_fim_planejada || null,
                 }),
             });
             if (!r.ok) throw new Error((await r.json()).error || 'Erro ao salvar');
@@ -119,10 +119,10 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     <div>
                         <Row label="Tipo de site" value={rotuloTipoSite(atividade.tipo_obra)} />
                         <Row label="Modelo de operação" value={MODELO_OPERACAO_LABEL[atividade.modelo_operacao] || atividade.modelo_operacao} />
+                        <Row label="Data de acionamento" value={(atividade as any).data_acionamento ? fmtData((atividade as any).data_acionamento) : null} />
                         <Row label="Responsável" value={atividade.responsavel} />
                         <Row label="Gestor" value={atividade.gestor} />
                         <Row label="Diretório da atividade" value={atividade.diretorio_url} />
-                        <Row label="Prazo" value={atividade.data_inicio_planejada || atividade.data_fim_planejada ? `${fmtData(atividade.data_inicio_planejada)} a ${fmtData(atividade.data_fim_planejada)}` : null} />
                     </div>
                 </div>
                 {atividade.descricao && (
@@ -212,6 +212,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                     <MunicipioInput uf={form.estado} value={form.municipio} className={inputClass}
                         onChange={nome => setForm(f => ({ ...f, municipio: nome }))} />
                 </Field>
+                <Field label="Data de acionamento"><input type="date" className={inputClass} value={form.data_acionamento} onChange={e => setForm(f => ({ ...f, data_acionamento: e.target.value }))} /></Field>
                 <Field label="Responsável"><input className={inputClass} value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} list="nomes-recentes" autoComplete="off" /></Field>
                 <datalist id="nomes-recentes">{nomesRecentes.map(n => <option key={n} value={n} />)}</datalist>
                 <Field label="Gestor">
@@ -227,8 +228,7 @@ export default function TabIdentificacao({ atividade, onRefresh }: { atividade: 
                         />
                     </Field>
                 </div>
-                <Field label="Início planejado"><input type="date" className={inputClass} value={form.data_inicio_planejada} onChange={e => setForm(f => ({ ...f, data_inicio_planejada: e.target.value }))} /></Field>
-                <Field label="Fim planejado"><input type="date" className={inputClass} value={form.data_fim_planejada} onChange={e => setForm(f => ({ ...f, data_fim_planejada: e.target.value }))} /></Field>
+                {/* Prazo previsto: lançado em Planejamento/Execução (05/11/2026). */}
                 <div className="md:col-span-2">
                     <Field label="Descrição e escopo">
                         <textarea rows={3} className={`${inputClass} resize-y`} value={form.descricao} onChange={e => setForm(f => ({ ...f, descricao: e.target.value }))} />

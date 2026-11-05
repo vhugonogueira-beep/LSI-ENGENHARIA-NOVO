@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AtividadeDetalhe } from './AtividadeCockpit';
 import { Card, Field, PrimaryButton, inputClass, ErrorBanner, EmptyState, Row } from './ui';
 import { fmtData } from './constants';
-import { CheckCircle2, FileSpreadsheet, FileText, Paperclip } from 'lucide-react';
+import { CheckCircle2, FileSpreadsheet, FileText, Paperclip, Trash2 } from 'lucide-react';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 
 const ACEITA_RELATORIO = '.pdf,.xlsx,.xls,.xlsm,.csv';
@@ -34,6 +34,15 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
         dados.append('arquivo', arquivo);
         const r = await authFetch(`/api/execucao/rfis/${rfiId}/arquivo`, { method: 'POST', body: dados });
         if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao anexar o arquivo');
+    }
+    async function excluirRelatorio(rfiId: string) {
+        if (!confirm('Excluir este envio e o arquivo anexado?')) return;
+        setErro('');
+        try {
+            const r = await authFetch(`/api/execucao/rfis/${rfiId}`, { method: 'DELETE' });
+            if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao excluir');
+            await load();
+        } catch (e: any) { setErro(e.message); }
     }
     async function anexarEmExistente(rfiId: string, arquivo: File) {
         setErro(''); setAnexando(rfiId);
@@ -243,6 +252,8 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                 ) : (
                     rfis.map(r => (
                         <div key={r.id} className="border-b border-border/60 last:border-0 py-2">
+                            <div className="flex justify-end"><button type="button" onClick={() => excluirRelatorio(r.id)} title="Excluir este envio"
+                                className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[11px] font-semibold text-muted-foreground hover:border-crit/60 hover:text-crit"><Trash2 size={12} aria-hidden /> Excluir</button></div>
                             {!usaRelatorioFotografico && <Row label="Protocolo" value={r.protocolo && <span className="font-id">{r.protocolo}</span>} />}
                             <Row label="Data de envio" value={fmtData(r.data_envio)} />
                             <Row label="Destinatário" value={r.destinatario} />

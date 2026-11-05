@@ -236,7 +236,8 @@ export async function createAtividade(req: Request, res: Response) {
         }
 
         // Projeto escolhido já no cadastro (14/10/2026): precisa existir e ser do tenant.
-        if (acionamento_id && !(await prisma.acionamento.findFirst({ where: { id: acionamento_id, tenant_id }, select: { id: true } }))) {
+        const projeto = acionamento_id ? await prisma.acionamento.findFirst({ where: { id: acionamento_id, tenant_id }, select: { id: true, data_recebimento: true } }) : null;
+        if (acionamento_id && !projeto) {
             return res.status(400).json({ error: 'Projeto não encontrado' });
         }
 
@@ -326,6 +327,8 @@ export async function createAtividade(req: Request, res: Response) {
                 valor_orcado: valor_orcado ? parseFloat(valor_orcado) : null,
                 // Gestor vem preenchido quando a atividade é duplicada (04/11/2026).
                 gestor: req.body.gestor ? String(req.body.gestor).trim() : null,
+                // Sem data informada, vale a do recebimento do acionamento/projeto.
+                data_acionamento: req.body.data_acionamento ? new Date(`${String(req.body.data_acionamento).slice(0, 10)}T12:00:00`) : (projeto?.data_recebimento ?? null),
                 responsavel: responsavel || null,
                 descricao: descricao || null,
                 data_inicio_planejada: data_inicio_planejada ? new Date(data_inicio_planejada) : null,
@@ -471,6 +474,7 @@ export async function updateAtividade(req: Request, res: Response) {
             valor_orcado: body.valor_orcado !== undefined ? parseFloat(body.valor_orcado) : existing.valor_orcado,
             responsavel: body.responsavel !== undefined ? body.responsavel : existing.responsavel,
             gestor: body.gestor !== undefined ? body.gestor : existing.gestor,
+            data_acionamento: body.data_acionamento !== undefined ? (body.data_acionamento ? new Date(`${String(body.data_acionamento).slice(0, 10)}T12:00:00`) : null) : existing.data_acionamento,
             descricao: body.descricao !== undefined ? body.descricao : existing.descricao,
             // Pasta da obra no servidor; sai nos e-mails financeiros.
             diretorio_url: body.diretorio_url !== undefined ? (body.diretorio_url || null) : existing.diretorio_url,

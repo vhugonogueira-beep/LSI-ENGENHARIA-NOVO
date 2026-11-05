@@ -159,8 +159,6 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         [a.contratante_id, 'Cliente / contratante'],
         [a.responsavel, 'Responsável'],
         [a.gestor, 'Gestor (vai na planilha de faturamento)'],
-        [a.data_inicio_planejada, 'Data de início prevista'],
-        [a.data_fim_planejada, 'Data de término prevista'],
         [a.diretorio_url, 'Diretório da atividade no servidor (sai nos e-mails financeiros)'],
     ];
     if (a.tipo_demanda === 'OPERACAO') faltando.push([a.subtipo_demanda, 'Subtipo da operação']);
@@ -200,6 +198,11 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
     const nomeRelatorio = implantacao ? 'RFI' : 'Relatório fotográfico';
     if (andando && !execucao) p[abaExecucao].push(alerta('Execução em andamento sem registro de avanço'));
     if (execucao && andando && !execucao.data_inicio) p[abaExecucao].push(alerta('Data de início da execução não informada'));
+    // Prazo previsto é lançado no Planejamento/Execução (05/11/2026), não na Identificação.
+    if (!concluida) {
+        if (!a.data_inicio_planejada && !execucao?.data_mobilizacao_prevista && !execucao?.data_execucao_prevista) p[abaExecucao].push(alerta('Falta preencher: data prevista de mobilização'));
+        if (!a.data_fim_planejada && !execucao?.data_prevista_conclusao) p[abaExecucao].push(alerta('Falta preencher: data prevista de conclusão'));
+    }
     const executada = concluida || (execucao?.avanco_percentual ?? 0) >= 100;
     if (executada && !execucao?.data_real_conclusao) p[abaExecucao].push(alerta('Data real de conclusão não informada'));
     if (executada && !rfis) p[abaExecucao].push(alerta(`${nomeRelatorio} não enviado`));

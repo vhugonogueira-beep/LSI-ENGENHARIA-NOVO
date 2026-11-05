@@ -362,6 +362,29 @@ const dataOuNula = (v: unknown) => {
 };
 const textoOuNulo = (v: unknown, max = 200) => { const t = String(v ?? '').trim(); return t ? t.slice(0, max) : null; };
 
+/**
+ * Lê um arquivo ainda não salvo (05/11/2026) — usado no cadastro da formalização:
+ * a data do pagamento sai do comprovante anexado. Não grava nada.
+ */
+export async function lerArquivoFinanceiro(buffer: Buffer, mime: string) {
+    const m = String(mime || '').toLowerCase();
+    if (m !== 'application/pdf' && !MIMES_IMAGEM.includes(m)) throw new Error('Leitura automática só de PDF ou imagem (JPG/PNG)');
+    if (buffer.length > 20 * 1024 * 1024) throw new Error('Arquivo grande demais para leitura automática (máx. 20 MB)');
+    const { dados: d } = await lerComIa(buffer, m).catch((e: any) => {
+        throw new Error(e.message === 'IA_NAO_CONFIGURADA' ? 'Leitura por IA indisponível: falta ANTHROPIC_API_KEY no servidor' : e.message);
+    });
+    const valor = Number(d.valor);
+    const data = dataOuNula(d.data_documento);
+    return {
+        tipo_documento: textoOuNulo(d.tipo_documento, 20),
+        valor: Number.isFinite(valor) && valor > 0 ? cent(valor) : null,
+        data_documento: data ? data.toISOString().slice(0, 10) : null,
+        numero: textoOuNulo(d.numero, 60),
+        emitente: textoOuNulo(d.emitente, 120),
+        observacao: textoOuNulo(d.observacao, 200),
+    };
+}
+
 /** Lê um anexo e grava (ou regrava) a leitura. */
 export async function lerAnexoFinanceiro(tenantId: string, attachmentId: string) {
     const { record, buffer } = await loadPaymentAttachment(tenantId, attachmentId);

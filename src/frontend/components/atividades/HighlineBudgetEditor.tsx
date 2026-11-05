@@ -360,7 +360,7 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
 
             <div className="border border-border overflow-auto max-h-[520px]">
                 <table className="w-full min-w-[1080px] text-sm">
-                    <thead className="sticky top-0 z-10 bg-secondary text-muted-foreground">
+                    <thead className="sticky top-0 z-10 bg-primary text-primary-foreground">
                         <tr className="text-left text-xs">
                             <th className="w-12 px-3 py-2.5"><span className="sr-only">Selecionar</span></th>
                             <th className="w-24 px-3 py-2.5">Código</th>

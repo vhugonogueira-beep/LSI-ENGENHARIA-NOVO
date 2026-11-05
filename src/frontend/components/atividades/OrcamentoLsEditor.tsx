@@ -212,6 +212,16 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
         setLinhas(linhasSalvas.map(l => ({ ...l })));
     }
 
+    // Itens de arquivo já excluído (05/11/2026): continuavam somando no orçamento e na
+    // conferência da PO. Ficam destacados com a opção de removê-los.
+    const nomesImportados = new Set(importados.map(i => i.nome));
+    const orfas = carregando || !importados.length ? [] : linhasSalvas.filter(l => l.arquivo_origem && !nomesImportados.has(l.arquivo_origem));
+    async function removerOrfas() {
+        const nomes = new Set(orfas.map(l => l.arquivo_origem));
+        if (!confirm(`Remover ${orfas.length} item(ns) de orçamento(s) já excluído(s)? O total é recalculado.`)) return;
+        await salvar(linhasSalvas.filter(l => !nomes.has(l.arquivo_origem!)), inativas.filter(l => !nomes.has(l.arquivo_origem!)));
+    }
+
     async function excluirTodos() {
         if (!confirm(`Excluir os ${linhasSalvas.length || linhas.length} item(ns) deste orçamento? O total do orçamento volta a zero. Os arquivos importados continuam guardados.`)) return;
         await salvar([]);
@@ -349,6 +359,10 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
             {catalogoLpu && (
                 <p className="mb-2 text-sm font-semibold">Itens fora da LPU <span className="font-normal text-muted-foreground">— importados (Excel ou PDF) ou digitados</span></p>
             )}
+            {orfas.length > 0 && <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-warn/50 bg-warn/10 px-3 py-2 text-xs">
+                <span><strong className="text-warn">{orfas.length} item(ns) — {fmtMoeda(orfas.reduce((t, l) => t + totalLinha(l), 0))}</strong> vieram de orçamento(s) importado(s) que já foram excluídos e ainda somam no total.</span>
+                <button type="button" disabled={salvando} onClick={removerOrfas} className="rounded border border-warn/60 px-2 py-1 font-semibold text-warn hover:bg-warn/20">Remover esses itens</button>
+            </div>}
             {visiveisLista.length === 0 ? (catalogoLpu ? <p className="mb-2 text-xs text-muted-foreground">Nenhum. Use "Importar orçamento" ou "Adicionar item".</p> :
                 <EmptyState text="Nenhum item ainda. Importe um orçamento pronto (Excel ou PDF) ou adicione os itens à mão."
                     action={editavel ? <div className="flex flex-wrap justify-center gap-2">
@@ -361,7 +375,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                     <table className="w-full min-w-[980px] table-fixed text-sm">
                         <colgroup><col className="w-28" /><col className="w-40" /><col /><col className="w-20" /><col className="w-24" /><col className="w-36" /><col className="w-36" /><col className={editavel ? 'w-20' : 'w-10'} /></colgroup>
                         <thead>
-                            <tr className="border-b border-border bg-secondary/30 text-left text-xs font-semibold text-muted-foreground">
+                            <tr className="border-b border-border bg-primary text-left text-xs font-semibold text-primary-foreground">
                                 <th className="px-3 py-2.5">Código</th><th className="px-3 py-2.5" title="Agrupa os itens no resumo do PDF">Grupo</th><th className="px-3 py-2.5">Descrição</th><th className="px-3 py-2.5">Unid.</th>
                                 <th className="px-3 py-2.5 text-right">Qtd</th><th className="px-3 py-2.5 text-right">Valor unitário</th><th className="px-3 py-2.5 text-right">Total</th><th />
                             </tr>
@@ -460,7 +474,7 @@ export default function OrcamentoLsEditor({ budgetId, editavel, onMudou, ativida
                         </div>
                         <div className="overflow-x-auto rounded-lg border border-border">
                             <table className="w-full min-w-[720px] text-sm">
-                                <thead><tr className="border-b border-border bg-secondary/30 text-left text-xs font-semibold text-muted-foreground">
+                                <thead><tr className="border-b border-border bg-primary text-left text-xs font-semibold text-primary-foreground">
                                     <th className="px-3 py-2">Arquivo</th><th className="px-3 py-2">Importado em</th><th className="px-3 py-2 text-right">Itens</th>
                                     <th className="px-3 py-2 text-right">Total</th><th className="px-3 py-2">Situação</th><th className="px-3 py-2" />
                                 </tr></thead>
@@ -822,7 +836,7 @@ function RevisaoLeitura({ leitura, temItens, salvando, onFechar, onConfirmar }: 
                         <table className="mt-2 w-full table-fixed text-sm">
                             <colgroup><col className="w-10" /><col className="w-36" /><col /><col className="w-20" /><col className="w-24" /><col className="w-32" /><col className="w-32" /></colgroup>
                             <thead>
-                                <tr className="border-b border-border text-left text-xs font-semibold text-muted-foreground">
+                                <tr className="border-b border-border bg-primary text-left text-xs font-semibold text-primary-foreground">
                                     <th className="px-2 py-2" aria-label="Incluir" /><th className="px-2 py-2" title="Bloco do orçamento onde o item estava">Grupo</th><th className="px-2 py-2">Serviço — descrição</th><th className="px-2 py-2">Unid.</th>
                                     <th className="px-2 py-2 text-right">Qtd</th><th className="px-2 py-2 text-right">Valor unitário</th><th className="px-2 py-2 text-right">Total</th>
                                 </tr>

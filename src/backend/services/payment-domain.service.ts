@@ -18,6 +18,7 @@ export const PAYMENT_PURPOSES: PaymentPurposeDefinition[] = [
     { value: 'QTM', label: 'QTM', natureza: 'MATERIAL', exige_comprovante: true, exige_documento_fiscal: true },
     { value: 'ETM', label: 'ETM', natureza: 'MATERIAL', exige_comprovante: true, exige_documento_fiscal: true },
     { value: 'MAO_DE_OBRA', label: 'Mão de obra', natureza: 'SERVICO', exige_comprovante: true, exige_documento_fiscal: false },
+    { value: 'PAGAMENTO_SEMANAL', label: 'Pagamento semanal', natureza: 'SERVICO', exige_comprovante: true, exige_documento_fiscal: false },
     { value: 'LOCACAO', label: 'Locação', natureza: 'SERVICO', exige_comprovante: true, exige_documento_fiscal: false },
     { value: 'MATERIAL_CIVIL', label: 'Material civil', natureza: 'MATERIAL', exige_comprovante: true, exige_documento_fiscal: true },
     { value: 'MATERIAL_ELETRICO', label: 'Material elétrico', natureza: 'MATERIAL', exige_comprovante: true, exige_documento_fiscal: true },

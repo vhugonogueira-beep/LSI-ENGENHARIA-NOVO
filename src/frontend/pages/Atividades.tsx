@@ -68,7 +68,7 @@ const FORM_INIT = {
     titulo: '', tipo_demanda: 'IMPLANTACAO', subtipo_demanda: '', tipo_obra: '', tipo_atividade: '',
     modelo_operacao: modeloOperacaoPadrao('IMPLANTACAO'), sharing: '', operadora: '', contrato: '', contratante_id: '',
     estado: '', municipio: '', id_site_sharing: '', id_site_operadora: '', valor_contrato: '', valor_orcado: '',
-    responsavel: '', descricao: '', acionamento_id: '',
+    responsavel: '', descricao: '', acionamento_id: '', data_acionamento: '',
 };
 
 /** Últimos valores distintos já cadastrados (mais recentes primeiro). */
@@ -431,6 +431,7 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                 valor_orcado: form.valor_orcado ? parseFloat(form.valor_orcado) : null,
                 responsavel: form.responsavel || null,
                 descricao: form.descricao || null,
+                data_acionamento: form.data_acionamento || null,
             };
             const r = await fetch('/api/atividades', {
                 method: 'POST',
@@ -1397,6 +1398,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             </p>
                             {/* Valor de contrato e custo orçado não entram na abertura: nascem
                                 do orçamento/negociação e são editados depois, no cockpit. */}
+                            <Field label="Data de acionamento">
+                                <input type="date" value={form.data_acionamento || ''} onChange={e => setForm(f => ({ ...f, data_acionamento: e.target.value }))} className="input" />
+                            </Field>
                             <Field label="Responsável / Gestor">
                                 <input value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} className="input"
                                     list="historico-responsaveis" autoComplete="off" placeholder="Clique para ver os últimos nomes usados" />

@@ -72,6 +72,14 @@ export async function upsertRegistroExecucao(req: Request, res: Response) {
             });
         }
 
+        // Prazo previsto da atividade sai do Planejamento/Execução (05/11/2026): início =
+        // mobilização prevista (ou execução prevista); término = conclusão prevista.
+        const inicioPrev = registro.data_mobilizacao_prevista || registro.data_execucao_prevista || null;
+        const fimPrev = registro.data_prevista_conclusao || null;
+        if (inicioPrev?.getTime() !== atividade.data_inicio_planejada?.getTime() || fimPrev?.getTime() !== atividade.data_fim_planejada?.getTime()) {
+            await prisma.atividade.update({ where: { id: atividade_id }, data: { data_inicio_planejada: inicioPrev, data_fim_planejada: fimPrev } });
+        }
+
         // Operação: com data de conclusão a atividade está finalizada; apagar a data reabre.
         if (operacao) {
             let novo: string | null = null;
@@ -126,7 +134,15 @@ export async function getRegistroExecucao(req: Request, res: Response) {
     try {
         const { atividade_id } = req.params;
         const registro = await prisma.registroExecucao.findFirst({ where: { atividade_id } });
-        res.json(registro || null);
+        // Prazo lançado antes na Identificação aparece aqui até o planejamento ser salvo.
+        const a = await prisma.atividade.findUnique({ where: { id: atividade_id }, select: { data_inicio_planejada: true, data_fim_planejada: true } });
+        if (!registro) return res.json(a?.data_inicio_planejada || a?.data_fim_planejada
+            ? { data_mobilizacao_prevista: a.data_inicio_planejada, data_prevista_conclusao: a.data_fim_planejada, avanco_percentual: 0 } : null);
+        res.json({
+            ...registro,
+            data_mobilizacao_prevista: registro.data_mobilizacao_prevista || (registro.data_execucao_prevista ? null : a?.data_inicio_planejada) || null,
+            data_prevista_conclusao: registro.data_prevista_conclusao || a?.data_fim_planejada || null,
+        });
     } catch (e: any) {
         res.status(500).json({ error: e.message });
     }
@@ -202,6 +218,25 @@ export async function anexarArquivoRFI(req: Request, res: Response) {
         fs.mkdirSync(pasta, { recursive: true });
         fs.writeFileSync(path.join(pasta, nome), arquivo.buffer);
         res.json(await prisma.rFI.update({ where: { id: rfi.id }, data: { relatorio_url: `relatorios/${rfi.id}/${nome}` } }));
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
+    }
+}
+
+/** Exclui um relatório/RFI enviado e o arquivo anexado a ele (05/11/2026). */
+export async function excluirRFI(req: Request, res: Response) {
+    try {
+        const rfi = await prisma.rFI.findUnique({ where: { id: req.params.id } });
+        if (!rfi) return res.status(404).json({ error: 'Relatório não encontrado' });
+        await prisma.rFI.delete({ where: { id: rfi.id } });
+        fs.rmSync(path.join(PASTA_RELATORIOS, rfi.id), { recursive: true, force: true });
+        await prisma.auditLog.create({
+            data: {
+                tenant_id: rfi.tenant_id, entidade: 'RFI', entidade_id: rfi.id, acao: 'RELATORIO_EXCLUIDO',
+                antes_json: JSON.stringify(rfi), user_id: (req as any).user?.userId || null,
+            },
+        }).catch(() => undefined);
+        res.status(204).end();
     } catch (e: any) {
         res.status(400).json({ error: e.message });
     }

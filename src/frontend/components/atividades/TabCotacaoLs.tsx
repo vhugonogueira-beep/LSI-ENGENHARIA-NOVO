@@ -445,7 +445,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                     {/* catálogo */}
                     <div className="border border-border overflow-auto max-h-[520px]">
                         <table className="w-full min-w-[1360px] text-sm">
-                            <thead className="sticky top-0 z-10 bg-secondary text-muted-foreground">
+                            <thead className="sticky top-0 z-10 bg-primary text-primary-foreground">
                                 <tr className="text-left text-xs">
                                     <th className="w-12 px-3 py-2.5"><span className="sr-only">Selecionar</span></th>
                                     <th className="w-28 px-3 py-2.5">Código LS</th>
@@ -531,7 +531,7 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
                 {avulsos.length > 0 && (
                     <div className="border border-border overflow-auto">
                         <table className="w-full min-w-[900px] text-sm">
-                            <thead className="bg-secondary text-muted-foreground">
+                            <thead className="bg-primary text-primary-foreground">
                                 <tr className="text-left text-xs">
                                     <th className="w-28 px-3 py-2.5">Código</th>
                                     <th className="px-3 py-2.5">Descrição</th>

@@ -7,6 +7,7 @@ import {
     listRFIs,
     anexarArquivoRFI,
     baixarArquivoRFI,
+    excluirRFI,
 } from '../controllers/execucao.controller';
 
 const router = Router();
@@ -23,5 +24,6 @@ const uploadRelatorio = (req: Request, res: Response, next: NextFunction) => upl
 });
 router.post('/rfis/:id/arquivo', uploadRelatorio, anexarArquivoRFI);
 router.get('/rfis/:id/arquivo', baixarArquivoRFI);
+router.delete('/rfis/:id', excluirRFI);
 
 export default router;
