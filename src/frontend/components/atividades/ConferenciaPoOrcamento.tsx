@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, AlertTriangle, XCircle, Info } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, Info, MessageSquareWarning } from 'lucide-react';
+import { authFetch } from '../../lib/authFetch';
 import { Card } from './ui';
 import { fmtMoeda } from './constants';
 
@@ -12,6 +13,8 @@ const SITUACAO: Record<string, { rotulo: string; classe: string; Icone: typeof C
     DIVERGE: { rotulo: 'Diverge do orçamento', classe: 'border-crit/40 bg-crit/10 text-crit', Icone: XCircle },
     SEM_ORCAMENTO: { rotulo: 'Sem orçamento para conferir', classe: 'border-border bg-secondary/40 text-muted-foreground', Icone: Info },
     SEM_PO: { rotulo: 'Sem PO', classe: 'border-border bg-secondary/40 text-muted-foreground', Icone: Info },
+    ACEITA: { rotulo: 'Divergência aceita', classe: 'border-ok/40 bg-ok/10 text-ok', Icone: CheckCircle2 },
+    QUESTIONADA: { rotulo: 'Questionada à detentora', classe: 'border-warn/40 bg-warn/10 text-warn', Icone: MessageSquareWarning },
 };
 const LINHA: Record<string, { rotulo: string; classe: string }> = {
     CONFERE: { rotulo: 'Confere', classe: 'text-ok' },
@@ -21,9 +24,27 @@ const LINHA: Record<string, { rotulo: string; classe: string }> = {
 };
 const STATUS_ORC: Record<string, string> = { RASCUNHO: 'rascunho', ENVIADO: 'enviado', APROVADO: 'aprovado', REPROVADO: 'reprovado', REVISAO: 'em revisão' };
 
-export default function ConferenciaPoOrcamento({ atividadeId, versao }: { atividadeId: string; versao: number }) {
+export default function ConferenciaPoOrcamento({ atividadeId, versao, onMudou }: { atividadeId: string; versao: number; onMudou?: () => void }) {
     const [c, setC] = useState<any>(null);
     const [erro, setErro] = useState('');
+    // Decisão sobre a divergência (05/11/2026): aceitar ou questionar a detentora.
+    const [decidindo, setDecidindo] = useState<null | 'ACEITA' | 'QUESTIONADA'>(null);
+    const [motivo, setMotivo] = useState('');
+    const [atualizarContrato, setAtualizarContrato] = useState(true);
+    const [salvando, setSalvando] = useState(false);
+    async function decidir(decisao: 'ACEITA' | 'QUESTIONADA' | null) {
+        setErro(''); setSalvando(true);
+        try {
+            const r = await authFetch('/api/pos/conferencia-orcamento/decisao', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ atividade_id: atividadeId, decisao, motivo, atualizar_valor_contrato: decisao === 'ACEITA' && atualizarContrato }),
+            });
+            const j = await r.json().catch(() => ({}));
+            if (!r.ok) throw new Error(j.error || 'Erro ao registrar a decisão');
+            setC(j); setDecidindo(null); setMotivo('');
+            onMudou?.();
+        } catch (e: any) { setErro(e.message); } finally { setSalvando(false); }
+    }
 
     useEffect(() => {
         let vivo = true;
@@ -34,7 +55,7 @@ export default function ConferenciaPoOrcamento({ atividadeId, versao }: { ativid
         return () => { vivo = false; };
     }, [atividadeId, versao]);
 
-    if (erro) return <Card title="Conferência PO × orçamento"><div className="text-xs text-crit">{erro}</div></Card>;
+    if (erro && !c) return <Card title="Conferência PO × orçamento"><div className="text-xs text-crit">{erro}</div></Card>;
     if (!c || c.situacao === 'SEM_PO') return null;
     const s = SITUACAO[c.situacao] || SITUACAO.ATENCAO;
     const dif = c.diferenca;
@@ -49,6 +70,46 @@ export default function ConferenciaPoOrcamento({ atividadeId, versao }: { ativid
                 </div>
             </div>
 
+            {/* Aceitar ou questionar a diferença de valor (05/11/2026). */}
+            {(c.pode_decidir || c.decisao) && (
+                <div className="mt-3 rounded-lg border border-border bg-secondary/20 p-3 text-xs">
+                    {!decidindo && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="mr-auto text-muted-foreground">
+                                {c.decisao ? 'Decisão registrada. Pode mudar ou desfazer.' : 'O que fazer com a diferença de valor?'}
+                            </span>
+                            {c.decisao?.tipo !== 'ACEITA' && <button type="button" onClick={() => { setDecidindo('ACEITA'); setMotivo(''); }}
+                                className="rounded-md border border-ok/60 px-3 py-1.5 font-semibold text-ok hover:bg-ok/10">Aceitar a diferença</button>}
+                            {c.decisao?.tipo !== 'QUESTIONADA' && <button type="button" onClick={() => { setDecidindo('QUESTIONADA'); setMotivo(''); }}
+                                className="rounded-md border border-warn/60 px-3 py-1.5 font-semibold text-warn hover:bg-warn/10">Questionar a detentora</button>}
+                            {c.decisao && <button type="button" disabled={salvando} onClick={() => confirm('Desfazer a decisão? A divergência volta a aparecer como pendência.') && decidir(null)}
+                                className="rounded-md border border-border px-3 py-1.5 font-semibold text-muted-foreground hover:text-foreground">Desfazer</button>}
+                        </div>
+                    )}
+                    {decidindo && (
+                        <div className="flex flex-col gap-2">
+                            <p className="font-semibold">{decidindo === 'ACEITA'
+                                ? `Aceitar a diferença de ${dif != null ? `${dif > 0 ? '+' : ''}${fmtMoeda(dif)}` : ''}`
+                                : `Questionar a diferença de ${dif != null ? `${dif > 0 ? '+' : ''}${fmtMoeda(dif)}` : ''} à detentora`}</p>
+                            <input autoFocus className="input h-9 text-xs" value={motivo} onChange={e => setMotivo(e.target.value)}
+                                placeholder={decidindo === 'ACEITA' ? 'Motivo (ex.: valor baixo, compensa em outra atividade, flexibilização comercial)' : 'O que foi questionado e com quem (ex.: e-mail para o comprador em 05/11)'} />
+                            {decidindo === 'ACEITA' && (
+                                <label className="flex items-center gap-2 text-muted-foreground">
+                                    <input type="checkbox" checked={atualizarContrato} onChange={e => setAtualizarContrato(e.target.checked)} />
+                                    Usar o total da PO ({fmtMoeda(c.total_po)}) como valor de contrato (receita) da atividade
+                                </label>
+                            )}
+                            {erro && <p className="text-crit">{erro}</p>}
+                            <div className="flex justify-end gap-2">
+                                <button type="button" onClick={() => { setDecidindo(null); setErro(''); }} className="px-3 py-1.5 text-muted-foreground hover:text-foreground">Cancelar</button>
+                                <button type="button" disabled={salvando || motivo.trim().length < 3} onClick={() => decidir(decidindo)}
+                                    className="rounded-md bg-primary px-3 py-1.5 font-semibold text-primary-foreground disabled:opacity-50">{salvando ? 'Salvando…' : 'Registrar decisão'}</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
             {c.referencia && (
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mt-3 text-xs">
                     <Bloco rotulo="Total da(s) PO(s)" valor={fmtMoeda(c.total_po)} />
@@ -56,7 +117,7 @@ export default function ConferenciaPoOrcamento({ atividadeId, versao }: { ativid
                         extra={c.orcamento ? `${c.orcamento.numero || 'orçamento'} · ${STATUS_ORC[c.orcamento.status] || c.orcamento.status}` : undefined} />
                     <Bloco rotulo="Diferença (PO − referência)" valor={dif == null ? '—' : `${dif > 0 ? '+' : ''}${fmtMoeda(dif)}`}
                         extra={c.diferenca_pct != null && dif !== 0 ? `${c.diferenca_pct > 0 ? '+' : ''}${c.diferenca_pct.toLocaleString('pt-BR')}%` : undefined}
-                        classe={c.total_confere ? 'text-ok' : 'text-crit'} />
+                        classe={c.total_confere || c.situacao === 'ACEITA' ? 'text-ok' : c.situacao === 'QUESTIONADA' ? 'text-warn' : 'text-crit'} />
                     <Bloco rotulo="Site" valor={c.sites.confere === null ? '—' : c.sites.confere ? 'Confere' : 'Diferente'}
                         extra={`PO: ${c.sites.po.join(', ') || '—'} · atividade: ${c.sites.atividade.join(', ') || '—'}`}
                         classe={c.sites.confere === false ? 'text-crit' : c.sites.confere ? 'text-ok' : ''} />

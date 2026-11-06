@@ -16,7 +16,6 @@ export function Contratantes() {
     const [novaLogo, setNovaLogo] = useState('');
 
     const loadContratantes = () => {
-        setLoading(true);
         fetch('/api/contratantes')
             .then(res => res.json())
             .then(data => {

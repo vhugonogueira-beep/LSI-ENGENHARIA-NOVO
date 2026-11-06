@@ -213,7 +213,11 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         p.fornecedores.push(alerta(`${comprovantes.length} pagamento(s) solicitado(s) sem comprovante anexado — ${moeda(total)}`));
         for (const c of comprovantes) p.fornecedores.push(aviso(`${c.descricao} — ${moeda(c.valor)} (${c.status.toLowerCase().replace(/_/g, ' ')})`));
     }
-    if (andando && !contratacoes) p.fornecedores.push(aviso('Nenhum fornecedor ou prestador contratado nesta atividade'));
+    // Executada por equipe própria (05/11/2026) não fica como "sem fornecedor".
+    const equipePropria = await prisma.execucaoEquipePropria.count({ where: { atividade_id: a.id } });
+    if (andando && !contratacoes && !equipePropria) p.fornecedores.push(concluida
+        ? alerta('Informe quem executou: contrate o fornecedor/prestador ou registre a execução por equipe própria')
+        : aviso('Nenhum fornecedor ou prestador contratado nesta atividade'));
     const aguardando = aprovacoes.filter(x => x.status === 'PENDENTE');
     if (aguardando.length) {
         const total = aguardando.reduce((s, x) => s + x.valor, 0);
@@ -238,6 +242,7 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         const conf = await conferirPOComOrcamento(a.id).catch(() => null);
         if (conf?.situacao === 'DIVERGE') p.faturamento.push(alerta(`PO diverge do orçamento: ${conf.resumo}`));
         else if (conf?.situacao === 'ATENCAO') p.faturamento.push(aviso(`Conferir PO × orçamento: ${conf.resumo}`));
+        else if (conf?.situacao === 'QUESTIONADA') p.faturamento.push(aviso(`PO em questionamento com a detentora: ${conf.resumo}`));
     }
     if (concluida && a.status_faturamento === 'NAO_INICIADO') p.faturamento.push(alerta('Atividade concluída e faturamento não iniciado'));
 

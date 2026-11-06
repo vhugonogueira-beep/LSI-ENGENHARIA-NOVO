@@ -25,7 +25,6 @@ export default function TabFaturamento({ atividade, onRefresh }: { atividade: At
     const poAlvoRef = useRef<string | null>(null);
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const r = await fetch(`/api/pos?atividade_id=${atividade.id}`);
             const lista = r.ok ? await r.json() : [];
@@ -298,7 +297,7 @@ export default function TabFaturamento({ atividade, onRefresh }: { atividade: At
                 )}
             </Card>
 
-            <ConferenciaPoOrcamento atividadeId={atividade.id} versao={versao} />
+            <ConferenciaPoOrcamento atividadeId={atividade.id} versao={versao} onMudou={onRefresh} />
         </div>
     );
 }

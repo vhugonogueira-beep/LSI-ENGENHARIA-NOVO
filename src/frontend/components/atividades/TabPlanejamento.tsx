@@ -140,7 +140,6 @@ export default function TabPlanejamento({ atividade, onRefresh }: { atividade: A
     const [adiadas, setAdiadas] = useState<string[]>([]);
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const r = await fetch(`/api/cronograma?atividade_id=${atividade.id}`);
             setItens(r.ok ? await r.json() : []);

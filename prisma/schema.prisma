@@ -569,6 +569,7 @@ model ContratacaoFornecedor {
   @@index([tenant_id, atividade_id])
   @@index([supplier_id])
   @@index([funcionario_id])
+  rateiosMaoDeObra RateioMaoDeObra[] // pagamento semanal/mensal rateado entre atividades (05/11/2026)
 }
 
 // Contrato de prestação de serviço gerado a partir de um modelo padrão da LS Office +
@@ -936,6 +937,13 @@ model Atividade {
   acionamento_id String?
   acionamento    Acionamento? @relation(fields: [acionamento_id], references: [id])
   data_acionamento DateTime? // dia em que o cliente acionou a LS (05/11/2026)
+  // Decisão sobre a divergência PO × orçamento (05/11/2026): ACEITA | QUESTIONADA.
+  // Vale só enquanto a diferença for a mesma de quando foi decidida.
+  conferencia_po_decisao      String?
+  conferencia_po_motivo       String?
+  conferencia_po_diferenca    Float?
+  conferencia_po_decidido_por String?
+  conferencia_po_decidido_em  DateTime?
 
   titulo          String
   tipo_demanda    String // IMPLANTACAO | OPERACAO — decide o modelo_operacao padrão e o fluxo do Cockpit
@@ -1020,6 +1028,7 @@ model Atividade {
   prestacoesContasConsolidadas PrestacaoContasConsolidada[]
   // Gastos da prestação de contas destinados a esta atividade (12/10/2026).
   despesasPrestacao PrestacaoContasDespesa[]
+  execucoesEquipePropria ExecucaoEquipePropria[]
 }
 
 model AtividadeStatusHistorico {
@@ -2025,6 +2034,7 @@ model Funcionario {
   contratacoes  ContratacaoFornecedor[]
 
   @@index([tenant_id, ativo])
+  execucoesEquipePropria ExecucaoEquipePropria[]
 }
 
 // Certificado que habilita alguem a entrar em obra: ASO e as NRs de telecom.
@@ -2135,5 +2145,46 @@ model MetaFaturamentoHistorico {
   alterado_por   String?
   created_at     DateTime  @default(now())
 
+  @@index([atividade_id])
+}
+
+// Execução por equipe própria (05/11/2026): funcionário que executou a atividade sem
+// pagamento próprio dela — a mão de obra é paga no semanal/fechamento do mês e chega
+// à atividade pelo rateio (RateioMaoDeObra), proporcional aos dias.
+model ExecucaoEquipePropria {
+  id             String      @id @default(uuid())
+  tenant_id      String
+  atividade_id   String
+  atividade      Atividade   @relation(fields: [atividade_id], references: [id], onDelete: Cascade)
+  funcionario_id String
+  funcionario    Funcionario @relation(fields: [funcionario_id], references: [id])
+  data_inicio    DateTime
+  data_fim       DateTime
+  dias           Float
+  houve_material Boolean     @default(false)
+  observacao     String?
+  created_by     String?
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
+
+  rateios RateioMaoDeObra[]
+
+  @@index([atividade_id])
+  @@index([funcionario_id, data_inicio])
+}
+
+model RateioMaoDeObra {
+  id             String                @id @default(uuid())
+  tenant_id      String
+  contratacao_id String
+  contratacao    ContratacaoFornecedor @relation(fields: [contratacao_id], references: [id], onDelete: Cascade)
+  execucao_id    String
+  execucao       ExecucaoEquipePropria @relation(fields: [execucao_id], references: [id], onDelete: Cascade)
+  atividade_id   String // atividade da execução (desnormalizado para somar custo)
+  dias           Float
+  valor          Float
+  created_at     DateTime              @default(now())
+
+  @@unique([contratacao_id, execucao_id])
   @@index([atividade_id])
 }

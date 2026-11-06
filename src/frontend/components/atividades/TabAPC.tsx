@@ -18,7 +18,6 @@ export default function TabAPC({ atividade, onRefresh }: { atividade: AtividadeD
     const [salvando, setSalvando] = useState(false);
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const r = await fetch(`/api/apcs?atividade_id=${atividade.id}`);
             setApcs(r.ok ? await r.json() : []);

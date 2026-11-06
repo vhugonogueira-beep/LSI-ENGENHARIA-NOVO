@@ -26,7 +26,7 @@ const SEMELHANCA_MINIMA = 0.6;
 const r2 = (v: number) => Math.round(v * 100) / 100;
 const normSite = (s?: string | null) => (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-export type SituacaoConferencia = 'CONFERE' | 'DIVERGE' | 'ATENCAO' | 'SEM_ORCAMENTO' | 'SEM_PO';
+export type SituacaoConferencia = 'CONFERE' | 'DIVERGE' | 'ATENCAO' | 'SEM_ORCAMENTO' | 'SEM_PO' | 'ACEITA' | 'QUESTIONADA';
 
 export interface LinhaReferencia {
     codigo: string;
@@ -66,6 +66,8 @@ export interface ConferenciaPO {
     sem_po: LinhaReferencia[]; // itens do orçamento que nenhuma linha da PO cobre (modo ITENS)
     sites: { po: string[]; atividade: string[]; confere: boolean | null };
     avisos: string[];
+    decisao: null | { tipo: 'ACEITA' | 'QUESTIONADA'; motivo: string | null; diferenca: number | null; por: string | null; em: Date | null };
+    pode_decidir: boolean;
 }
 
 const NOME_ORCAMENTO: Record<string, string> = {
@@ -205,8 +207,32 @@ export async function conferirPOComOrcamento(atividadeId: string): Promise<Confe
         resumo = problemas.length ? capitalizar(problemas.join('; ')) + '.' : `PO confere com ${referencia.nome.toLowerCase()} (${moeda(referencia.valor)}).`;
     }
 
+    // Decisão sobre a divergência de valor (05/11/2026): aceita ou questionada à detentora.
+    // Só vale com o site conferindo e enquanto a diferença for a mesma da decisão.
+    const decisaoGravada = Boolean(at.conferencia_po_decisao && diferenca != null && at.conferencia_po_diferenca != null
+        && Math.abs(diferenca - at.conferencia_po_diferenca) <= 0.01 && siteConfere !== false);
+    const decisao = decisaoGravada ? {
+        tipo: at.conferencia_po_decisao as 'ACEITA' | 'QUESTIONADA', motivo: at.conferencia_po_motivo,
+        diferenca: at.conferencia_po_diferenca, por: at.conferencia_po_decidido_por, em: at.conferencia_po_decidido_em,
+    } : null;
+    if (decisao && (situacao === 'DIVERGE' || situacao === 'ATENCAO')) {
+        const quem = decisao.por ? ` por ${decisao.por}` : '';
+        const quando = decisao.em ? ` em ${decisao.em.toLocaleDateString('pt-BR')}` : '';
+        const motivoTxt = decisao.motivo ? ` — ${decisao.motivo}` : '';
+        if (decisao.tipo === 'ACEITA') {
+            situacao = 'ACEITA';
+            resumo = `Diferença de ${moeda(diferenca!)} aceita${quem}${quando}${motivoTxt}.`;
+        } else {
+            situacao = 'QUESTIONADA';
+            resumo = `Diferença de ${moeda(diferenca!)} questionada à detentora${quem}${quando}${motivoTxt}.`;
+        }
+    } else if (at.conferencia_po_decisao && !decisaoGravada && (situacao === 'DIVERGE' || situacao === 'ATENCAO')) {
+        avisos.push(`Havia uma decisão (${at.conferencia_po_decisao === 'ACEITA' ? 'aceita' : 'questionada'}) para uma diferença de ${moeda(at.conferencia_po_diferenca || 0)}; a diferença mudou e precisa de nova decisão.`);
+    }
+
     return {
-        situacao, resumo,
+        situacao, resumo, decisao,
+        pode_decidir: !!referencia && pos.length > 0 && total_confere === false && siteConfere !== false,
         orcamento: budget ? { id: budget.id, numero: budget.numero, status: budget.status, tipo: budget.tipo_orcamento, nome: nomeOrc } : null,
         referencia, total_orcamento, total_ls, total_po, diferenca, diferenca_pct, total_confere,
         modo_linhas, linhas, sem_po,
@@ -217,3 +243,34 @@ export async function conferirPOComOrcamento(atividadeId: string): Promise<Confe
 
 function moeda(v: number) { return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
 function capitalizar(t: string) { return t.charAt(0).toUpperCase() + t.slice(1); }
+
+/**
+ * Registra a decisão sobre a divergência PO × orçamento (05/11/2026). ACEITA pode
+ * levar o valor de contrato (receita) ao total da PO. decisao null desfaz.
+ */
+export async function decidirDivergenciaPO(atividadeId: string, dados: { decisao: string | null; motivo?: string; atualizar_valor_contrato?: boolean }, usuario?: { email?: string; userId?: string } | null) {
+    const conf = await conferirPOComOrcamento(atividadeId);
+    if (!conf) throw new Error('Atividade não encontrada');
+    const at = await prisma.atividade.findUnique({ where: { id: atividadeId }, select: { tenant_id: true, valor_contrato: true, conferencia_po_decisao: true } });
+    const decisao = dados.decisao ? String(dados.decisao).toUpperCase() : null;
+    if (decisao && !['ACEITA', 'QUESTIONADA'].includes(decisao)) throw new Error('Decisão inválida');
+    if (decisao && !conf.pode_decidir) throw new Error('Não há divergência de valor para decidir (ou o site da PO não confere)');
+    const motivo = String(dados.motivo || '').trim();
+    if (decisao && motivo.length < 3) throw new Error(decisao === 'ACEITA' ? 'Informe por que a diferença foi aceita' : 'Informe o que foi questionado à detentora');
+    const data: any = decisao ? {
+        conferencia_po_decisao: decisao, conferencia_po_motivo: motivo.slice(0, 500), conferencia_po_diferenca: conf.diferenca,
+        conferencia_po_decidido_por: usuario?.email || null, conferencia_po_decidido_em: new Date(),
+    } : { conferencia_po_decisao: null, conferencia_po_motivo: null, conferencia_po_diferenca: null, conferencia_po_decidido_por: null, conferencia_po_decidido_em: null };
+    if (decisao === 'ACEITA' && dados.atualizar_valor_contrato) data.valor_contrato = conf.total_po;
+    await prisma.atividade.update({ where: { id: atividadeId }, data });
+    await prisma.auditLog.create({
+        data: {
+            tenant_id: at!.tenant_id, entidade: 'Atividade', entidade_id: atividadeId,
+            acao: decisao ? `PO_DIVERGENCIA_${decisao}` : 'PO_DIVERGENCIA_DESFEITA',
+            antes_json: JSON.stringify({ decisao: at!.conferencia_po_decisao, valor_contrato: at!.valor_contrato }),
+            depois_json: JSON.stringify({ decisao, motivo, diferenca: conf.diferenca, total_po: conf.total_po, referencia: conf.referencia?.valor, valor_contrato: data.valor_contrato ?? at!.valor_contrato }),
+            user_id: usuario?.userId || null,
+        },
+    }).catch(() => undefined);
+    return conferirPOComOrcamento(atividadeId);
+}

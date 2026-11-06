@@ -133,7 +133,6 @@ export default function TabCotacaoLs({ atividade, onRefresh }: { atividade: Ativ
 
     const load = useCallback(async () => {
         if (!orcamentoAtivo) { setLoading(false); return; }
-        setLoading(true);
         setErro('');
         try {
             // Base e orçamento juntos: o draft só se reconstrói sabendo quais

@@ -16,6 +16,7 @@
 import { prisma } from '../server';
 import { loadPaymentAttachment } from './payment-attachment.service';
 import { MODELO_IA, iaDisponivel } from './ia-orcamento.service';
+import { listarExecucoes, movimentosDeRateio } from './equipe-propria.service';
 
 const PAGOS = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
 const cent = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
@@ -37,7 +38,7 @@ export interface DocumentoLido {
 
 export interface Lancamento {
     id: string;
-    origem: 'FORNECEDOR' | 'REEMBOLSO' | 'RATEIO_PROJETO' | 'PRESTACAO_CONTAS';
+    origem: 'FORNECEDOR' | 'REEMBOLSO' | 'RATEIO_PROJETO' | 'PRESTACAO_CONTAS' | 'MAO_DE_OBRA_PROPRIA';
     referencia: string;        // "Contratação · parcela ENTRADA", "REE-2026-0041"...
     favorecido: string;
     categoria: string;
@@ -84,7 +85,7 @@ export async function custoRealDaAtividade(atividadeId: string, tenantId: string
     });
     if (!atividade) throw Object.assign(new Error('Atividade não encontrada'), { status: 404 });
 
-    const [contratacoes, reembolsos, despesasRateadas, despesasPrestacao] = await Promise.all([
+    const [contratacoes, reembolsos, despesasRateadas, despesasPrestacao, rateiosMO, execucoesProprias] = await Promise.all([
         prisma.contratacaoFornecedor.findMany({
             where: { atividade_id: atividadeId, status: { not: 'CANCELADA' } },
             include: {
@@ -116,6 +117,8 @@ export async function custoRealDaAtividade(atividadeId: string, tenantId: string
             where: { atividade_id: atividadeId },
             include: { prestacao: { select: { id: true } } },
         }),
+        movimentosDeRateio([atividadeId]),
+        listarExecucoes(atividadeId),
     ]);
 
     const lancamentos: Lancamento[] = [];
@@ -202,6 +205,23 @@ export async function custoRealDaAtividade(atividadeId: string, tenantId: string
         });
     }
 
+    // 5. Mão de obra própria (05/11/2026): parte do pagamento semanal/mensal do
+    // funcionário rateada para esta atividade (entra) ou daqui para outras (sai).
+    for (const m of rateiosMO) {
+        const entra = m.destino === atividadeId;
+        const v = entra ? m.valor : -m.valor;
+        contratado += v;
+        if (!m.pago) compromissosAPagar += entra ? m.valor - m.valor_pago : -(m.valor - m.valor_pago);
+        lancamentos.push({
+            id: `rateio-${m.id}`, origem: 'MAO_DE_OBRA_PROPRIA',
+            referencia: entra ? `Rateio do pagamento lançado em ${m.codigo_origem}` : `Rateado para ${m.codigo_destino}`,
+            favorecido: m.funcionario, categoria: m.finalidade,
+            descricao: `${m.dias} dia(s) de mão de obra própria`, valor: cent(entra ? m.valor_pago : -m.valor_pago), pago: true,
+            status: m.pago ? 'RATEADO' : 'RATEADO_PARCIAL', data: m.data, forma_pagamento: null,
+            tem_comprovante: true, tem_nf: true, documentos: [], valor_lido: null, divergencia: null,
+        });
+    }
+
     // O realizado é o que já virou gasto: parcela paga + toda despesa comprovada.
     const realizados = lancamentos.filter(l => l.origem !== 'FORNECEDOR' || l.pago);
     const realizado = cent(realizados.reduce((s, l) => s + l.valor, 0));
@@ -246,6 +266,11 @@ export async function custoRealDaAtividade(atividadeId: string, tenantId: string
             documentos_nao_lidos: documentos.filter(d => !d.leitura).length,
             documentos_com_erro: documentos.filter(d => d.leitura && d.leitura.status !== 'LIDO').length,
         },
+        equipe_propria: execucoesProprias.map(e => ({
+            id: e.id, funcionario: e.funcionario.nome, data_inicio: e.data_inicio, data_fim: e.data_fim, dias: e.dias,
+            houve_material: e.houve_material, observacao: e.observacao,
+            rateado: cent(e.rateios.reduce((t, x) => t + x.valor, 0)),
+        })),
         lancamentos: lancamentos.sort((a, b) => String(b.data || '').localeCompare(String(a.data || ''))),
     };
 }
@@ -292,6 +317,11 @@ export async function custosDasAtividades(ids: string[]): Promise<Map<string, Cu
         if (t) t[campo] = cent(t[campo] + v);
     };
     contratacoes.forEach(c => somar(c.atividade_id, 'comprometido', c.valor_contratado));
+    // Rateio de mão de obra própria: sai de onde o pagamento foi lançado, entra na execução.
+    for (const m of await movimentosDeRateio(ids)) {
+        somar(m.destino, 'comprometido', m.valor); somar(m.destino, 'pago', m.valor_pago);
+        somar(m.origem, 'comprometido', -m.valor); somar(m.origem, 'pago', -m.valor_pago);
+    }
     parcelas.forEach(p => somar(p.contratacao.atividade_id, 'pago', p.valor));
     [...despesasReembolso.map(d => ({ id: d.atividade_id ?? d.reembolso.atividade_id, valor: d.valor })),
         ...despesasPrestacao.map(d => ({ id: d.atividade_id, valor: d.valor }))]

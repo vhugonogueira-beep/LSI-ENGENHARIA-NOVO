@@ -223,6 +223,18 @@ export async function anexarArquivoRFI(req: Request, res: Response) {
     }
 }
 
+/** Remove só o arquivo anexado ao envio, mantendo o registro (05/11/2026). */
+export async function removerArquivoRFI(req: Request, res: Response) {
+    try {
+        const rfi = await prisma.rFI.findUnique({ where: { id: req.params.id } });
+        if (!rfi) return res.status(404).json({ error: 'Relatório não encontrado' });
+        fs.rmSync(path.join(PASTA_RELATORIOS, rfi.id), { recursive: true, force: true });
+        res.json(await prisma.rFI.update({ where: { id: rfi.id }, data: { relatorio_url: null } }));
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
+    }
+}
+
 /** Exclui um relatório/RFI enviado e o arquivo anexado a ele (05/11/2026). */
 export async function excluirRFI(req: Request, res: Response) {
     try {

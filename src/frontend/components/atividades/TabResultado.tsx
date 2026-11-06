@@ -7,12 +7,16 @@ import { fmtMoeda } from './constants';
 export default function TabResultado({ atividade }: { atividade: AtividadeDetalhe }) {
     const [financeiro, setFinanceiro] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [equipe, setEquipe] = useState<any[]>([]);
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
-            const r = await fetch(`/api/contratacoes/financeiro/${atividade.id}`);
+            const [r, e] = await Promise.all([
+                fetch(`/api/contratacoes/financeiro/${atividade.id}`),
+                fetch(`/api/equipe-propria?atividade_id=${atividade.id}`),
+            ]);
             setFinanceiro(r.ok ? await r.json() : null);
+            setEquipe(e.ok ? await e.json() : []);
         } finally {
             setLoading(false);
         }
@@ -45,6 +49,12 @@ export default function TabResultado({ atividade }: { atividade: AtividadeDetalh
                     <Row label="Dos quais: gastos de adiantamento destinados a este site" value={<Dinheiro v={financeiro?.custo_adiantamentos} />} />
                 )}
                 <Row label="Custo a pagar" value={<Dinheiro v={custoAPagar} />} />
+                {/* Equipe própria (05/11/2026): explica custo zero ou só mão de obra. */}
+                {equipe.map(e => {
+                    const rateado = (e.rateios || []).reduce((s: number, x: any) => s + x.valor, 0);
+                    return <Row key={e.id} label={`Executada por equipe própria — ${e.funcionario?.nome} · ${e.dias} dia(s)`}
+                        value={<span className="text-xs">{e.houve_material ? 'mão de obra + material lançado à parte' : 'só mão de obra, sem material'} · {rateado > 0 ? `mão de obra rateada ${fmtMoeda(rateado)}` : 'paga no semanal/mensal (sem rateio ainda)'}</span>} />;
+                })}
             </Card>
 
             <Card title="Margem">

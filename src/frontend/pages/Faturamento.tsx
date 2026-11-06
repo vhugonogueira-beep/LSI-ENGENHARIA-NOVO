@@ -66,7 +66,9 @@ export default function Faturamento() {
     // `silencioso` evita trocar a tela inteira por "Carregando..." num refresh disparado
     // de dentro de um painel — isso desmontaria o painel e derrubaria o modal do e-mail.
     const load = useCallback(async (silencioso = false) => {
-        if (!silencioso) setLoading(true);
+        // Só a primeira carga mostra "Carregando..." (05/11/2026): recarregar após um clique
+        // não pode esvaziar a tela e jogar a rolagem para o topo.
+        void silencioso;
         try {
             const [atvR, fatR, posR] = await Promise.all([
                 fetch('/api/atividades'), fetch('/api/faturamento'), fetch('/api/pos/geral'),
@@ -381,7 +383,9 @@ function PainelPOs({ onMudou }: { onMudou: () => void }) {
     const ehAdmin = usuario?.role === 'ADMIN';
 
     const load = useCallback(async (silencioso = false) => {
-        if (!silencioso) setLoading(true);
+        // Só a primeira carga mostra "Carregando..." (05/11/2026): recarregar após um clique
+        // não pode esvaziar a tela e jogar a rolagem para o topo.
+        void silencioso;
         try {
             const r = await fetch('/api/pos/geral');
             const lista = r.ok ? await r.json() : [];

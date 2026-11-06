@@ -108,7 +108,6 @@ export default function HighlineBudgetEditor({ budgetId, targetValue, targetLabe
     const [error, setError] = useState('');
 
     const load = useCallback(async () => {
-        setLoading(true);
         setError('');
         try {
             const [catalogResponse, budgetResponse] = await Promise.all([

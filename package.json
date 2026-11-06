@@ -16,7 +16,8 @@
     "build:backend": "tsc --project tsconfig.backend.json",
     "build": "npm run build:frontend && npm run build:backend",
     "typecheck": "tsc --noEmit --project tsconfig.backend.json",
-    "test": "tsx src/backend/scripts/rodar-validacoes.ts"
+    "test": "tsx src/backend/scripts/rodar-validacoes.ts",
+    "auditar:anexos": "tsx src/backend/scripts/auditar-anexos.ts"
   },
   "ts-node": {
     "compilerOptions": {

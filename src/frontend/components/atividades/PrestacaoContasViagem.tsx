@@ -180,12 +180,25 @@ O depósito continua no processo e volta para PENDENTE.`)) return;
   const excluirProcesso = async (processo: any) => {
     const rotulo = processo.natureza === 'ADIANTAMENTO' ? 'adiantamento' : 'reembolso';
     const quantos = (processo.pagamentos || []).length;
-    if (!confirm(`Excluir o ${rotulo} ${processo.codigo || ''} de ${processo.favorecido_nome}?
+    const pagos = (processo.pagamentos || []).filter((pg: any) => PAGOS.includes(pg.status));
+    let url = `/api/reembolsos/${processo.id}`;
+    if (pagos.length) {
+      // Com depósito pago (05/11/2026): só administrador, com motivo — o registro fica na auditoria.
+      const total = pagos.reduce((s: number, pg: any) => s + Number(pg.valor || 0), 0);
+      const motivo = prompt(`O ${rotulo} ${processo.codigo || ''} de ${processo.favorecido_nome} tem ${pagos.length} depósito(s) PAGO(S), somando ${fmtMoeda(total)}.
+
+Excluir tira esse valor do custo da atividade. Saem junto todos os depósitos e arquivos. Uma cópia fica no log de auditoria.
+
+Informe o motivo da exclusão:`);
+      if (motivo === null) return;
+      if (motivo.trim().length < 5) { setErro('Informe o motivo da exclusão (mínimo 5 caracteres)'); return; }
+      url += `?forcar=1&motivo=${encodeURIComponent(motivo.trim())}`;
+    } else if (!confirm(`Excluir o ${rotulo} ${processo.codigo || ''} de ${processo.favorecido_nome}?
 
 ${quantos ? `Saem junto os ${quantos} depósito(s) e os arquivos anexados.` : 'O registro ainda não tem depósitos.'}
 Esta ação não pode ser desfeita.`)) return;
     setErro('');
-    const r = await fetch(`/api/reembolsos/${processo.id}`, { method: 'DELETE' });
+    const r = await authFetch(url, { method: 'DELETE' });
     if (!r.ok) { setErro((await r.json()).error || 'Erro ao excluir'); return; }
     await carregar();
   };
@@ -253,11 +266,8 @@ Esta ação não pode ser desfeita.`)) return;
         <FinancialActionMenu actions={[
           ...(processo.acionamento ? [{ label: 'Ratear entre as atividades', onClick: () => abrirRateio(processo) }] : []),
           { label: `Editar ${adiantamento ? 'adiantamento' : 'reembolso'}`, onClick: () => setEditandoProcesso({ id: processo.id, favorecido_nome: processo.favorecido_nome || '', motivo: processo.motivo || '' }) },
-          // Com depósito pago a exclusão esconderia dinheiro que saiu do caixa;
-          // o backend recusa, e aqui nem se oferece.
-          ...((processo.pagamentos || []).some((pg: any) => PAGOS.includes(pg.status))
-            ? []
-            : [{ label: `Excluir ${adiantamento ? 'adiantamento' : 'reembolso'}`, onClick: () => excluirProcesso(processo), tone: 'danger' as const }]),
+          // Com depósito pago, só administrador e com motivo (o backend confere).
+          { label: `Excluir ${adiantamento ? 'adiantamento' : 'reembolso'}`, onClick: () => excluirProcesso(processo), tone: 'danger' as const },
         ]}/>
       </div>}>
         {rateio && rateio.processoId === processo.id && (() => {

@@ -96,7 +96,6 @@ export default function ControlePagamentos() {
   const notify = (m: string) => { setToast(m); setTimeout(() => setToast(null), 3500); };
 
   const carregar = useCallback(async () => {
-    setCarregando(true);
     try {
       const r = await fetch("/api/pagamentos");
       if (!r.ok) throw new Error((await r.json()).error || "Erro ao carregar");

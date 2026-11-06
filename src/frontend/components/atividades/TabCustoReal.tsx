@@ -13,6 +13,7 @@ const ORIGEM: Record<string, string> = {
     FORNECEDOR: 'Pagamento a fornecedor',
     REEMBOLSO: 'Reembolso / adiantamento',
     RATEIO_PROJETO: 'Rateio de projeto',
+    MAO_DE_OBRA_PROPRIA: 'Mão de obra própria (rateio)',
     PRESTACAO_CONTAS: 'Prestação de contas',
 };
 const emFrase = (v: string) => { const t = String(v || '').replace(/_/g, ' ').toLocaleLowerCase('pt-BR'); return t.charAt(0).toLocaleUpperCase('pt-BR') + t.slice(1); };

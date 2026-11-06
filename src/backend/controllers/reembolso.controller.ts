@@ -715,13 +715,21 @@ export async function deleteReembolso(req: Request, res: Response) {
 
         const rotulo = atual.natureza === 'ADIANTAMENTO' ? 'adiantamento' : 'reembolso';
         const pagos = atual.pagamentos.filter(p => PAGAMENTO_CONCLUIDO.includes(p.status));
-        if (pagos.length > 0) {
+        // Exclusão de processo já pago (05/11/2026): só administrador, com motivo; o
+        // registro inteiro fica no log de auditoria antes de sair.
+        const usuario = (req as any).user;
+        const motivoForcado = String(req.query.motivo || req.body?.motivo || '').trim();
+        const forcar = String(req.query.forcar || '') === '1';
+        if (forcar && (pagos.length > 0 || PAGAMENTO_CONCLUIDO.includes(atual.status))) {
+            if (usuario?.role !== 'ADMIN') return res.status(403).json({ error: `Só administrador pode excluir ${rotulo} com depósito pago` });
+            if (motivoForcado.length < 5) return res.status(400).json({ error: 'Informe o motivo da exclusão' });
+        } else if (pagos.length > 0) {
             const total = pagos.reduce((soma, p) => soma + Number(p.valor || 0), 0);
             return res.status(400).json({
                 error: `Este ${rotulo} já tem ${pagos.length} depósito(s) efetuados, somando ${moedaBR(total)}. Cancele em vez de excluir — apagar esconderia dinheiro que saiu do caixa.`,
             });
         }
-        if (PAGAMENTO_CONCLUIDO.includes(atual.status)) {
+        if (!forcar && PAGAMENTO_CONCLUIDO.includes(atual.status)) {
             return res.status(400).json({ error: `Este ${rotulo} já está ${atual.status} e não pode ser excluído; cancele com justificativa` });
         }
         const emPrestacao = atual.pagamentos.filter(p => p.prestacoes.length > 0);
@@ -733,6 +741,16 @@ export async function deleteReembolso(req: Request, res: Response) {
 
         // Despesas, depósitos e arquivos saem por cascata do schema; as despesas
         // continuam explícitas porque o registro é antigo e pode ter linha órfã.
+        if (forcar) {
+            const completo = await prisma.reembolso.findUnique({ where: { id: atual.id }, include: { despesas: true, pagamentos: true } });
+            await prisma.auditLog.create({
+                data: {
+                    tenant_id: atual.tenant_id, entidade: 'Reembolso', entidade_id: atual.id, acao: 'REEMBOLSO_PAGO_EXCLUIDO',
+                    antes_json: JSON.stringify({ motivo: motivoForcado, excluido_por: usuario?.email || null, registro: completo }),
+                    user_id: usuario?.userId || null,
+                },
+            });
+        }
         await prisma.reembolsoDespesa.deleteMany({ where: { reembolso_id: atual.id } });
         await prisma.reembolso.delete({ where: { id: atual.id } });
         res.json({ ok: true });

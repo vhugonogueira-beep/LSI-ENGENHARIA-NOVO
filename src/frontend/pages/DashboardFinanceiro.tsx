@@ -49,7 +49,7 @@ export default function DashboardFinanceiro() {
   const [erro, setErro] = useState("");
 
   const carregar = useCallback(async () => {
-    setCarregando(true); setErro("");
+    setErro("");
     try {
       const r = await fetch(`/api/controladoria?mes=${encodeURIComponent(mes)}`);
       if (!r.ok) throw new Error((await r.json()).error || "Erro ao apurar");

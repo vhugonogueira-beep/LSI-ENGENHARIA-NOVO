@@ -249,7 +249,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
     const [poForm, setPoForm] = useState({ numero: '', pdf_url: '' });
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const r = await fetch('/api/atividades/carteira');
             setAtividades(await r.json());

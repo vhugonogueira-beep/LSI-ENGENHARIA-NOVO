@@ -6,7 +6,7 @@ import {
     linhasDaPOComSaldo, solicitarFaturamentoLinhas, cancelarFaturamentoLinha,
     atualizarStatusFaturamentoLinha, atualizarDadosFiscaisFaturamentoLinha, gerarEmailFaturamento, definirAutorizacaoLinha, gerarPlanilhaFaturamento,
 } from '../services/faturamento-linha.service';
-import { conferirPOComOrcamento } from '../services/po-conferencia.service';
+import { conferirPOComOrcamento, decidirDivergenciaPO } from '../services/po-conferencia.service';
 
 async function getTenantId(req: Request): Promise<string> {
     const fromQuery = (req.query.tenantId as string) || ((req as any).tenantId as string);
@@ -197,6 +197,16 @@ export async function conferenciaOrcamento(req: Request, res: Response) {
         res.json(r);
     } catch (e: any) {
         res.status(500).json({ error: e.message });
+    }
+}
+
+export async function decidirConferenciaOrcamento(req: Request, res: Response) {
+    try {
+        const { atividade_id, ...dados } = req.body || {};
+        if (!atividade_id) return res.status(400).json({ error: 'Informe atividade_id' });
+        res.json(await decidirDivergenciaPO(atividade_id, dados, (req as any).user));
+    } catch (e: any) {
+        res.status(400).json({ error: e.message });
     }
 }
 

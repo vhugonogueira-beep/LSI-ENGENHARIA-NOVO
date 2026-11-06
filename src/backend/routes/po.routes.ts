@@ -9,6 +9,7 @@ import {
     deletePO, listLinhasDaPO, solicitarFaturamentoDeLinhas, atualizarFaturamentoLinha,
     cancelarLinhaFaturamento, gerarEmailDeFaturamento, autorizarLinha, baixarPlanilhaFaturamento,
     conferenciaOrcamento,
+    decidirConferenciaOrcamento,
 } from '../controllers/po.controller';
 import { requireAuth } from '../middleware/auth.middleware';
 
@@ -31,6 +32,7 @@ const uploadPOFile = (req: Request, res: Response, next: NextFunction) => {
 
 router.get('/geral', listPOsGeral);
 router.get('/conferencia-orcamento', conferenciaOrcamento);
+router.put('/conferencia-orcamento/decisao', decidirConferenciaOrcamento);
 router.post('/upload', uploadPOFile, criarPODoPdf);
 router.get('/', listPOs);
 router.post('/', createPO);

@@ -66,7 +66,6 @@ export default function TabComercial({ atividade, onRefresh }: { atividade: Ativ
     const faltaContratante = !atividade.contratante_id;
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const [negR, budR, lpuR] = await Promise.all([
                 fetch(`/api/negociacoes?atividade_id=${atividade.id}`),

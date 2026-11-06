@@ -30,10 +30,32 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
     const [anexando, setAnexando] = useState<string | null>(null);
 
     async function subirArquivo(rfiId: string, arquivo: File) {
+        // Envio com prazo (05/11/2026): antes, uma falha de rede/proxy deixava o botão
+        // em "Enviando…" para sempre, sem dizer o motivo.
+        if (arquivo.size > 25 * 1024 * 1024) throw new Error(`O arquivo tem ${(arquivo.size / 1024 / 1024).toFixed(1)} MB; o limite é 25 MB`);
         const dados = new FormData();
         dados.append('arquivo', arquivo);
-        const r = await authFetch(`/api/execucao/rfis/${rfiId}/arquivo`, { method: 'POST', body: dados });
-        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao anexar o arquivo');
+        const controle = new AbortController();
+        const prazo = setTimeout(() => controle.abort(), 120000);
+        let r: Response;
+        try {
+            r = await authFetch(`/api/execucao/rfis/${rfiId}/arquivo`, { method: 'POST', body: dados, signal: controle.signal });
+        } catch (e: any) {
+            throw new Error(e?.name === 'AbortError' ? 'O envio passou de 2 minutos sem resposta do servidor — verifique a conexão e tente de novo' : `Falha de conexão ao enviar o arquivo (${e?.message || 'rede'})`);
+        } finally { clearTimeout(prazo); }
+        if (!r.ok) {
+            const corpo = await r.json().catch(() => null);
+            throw new Error(corpo?.error || (r.status === 413 ? 'O servidor recusou o arquivo por tamanho (HTTP 413) — o limite do proxy precisa ser aumentado' : `Erro ao anexar o arquivo (HTTP ${r.status})`));
+        }
+    }
+    async function removerArquivo(rfiId: string) {
+        if (!confirm('Remover o arquivo anexado a este envio? O registro do envio continua.')) return;
+        setErro('');
+        try {
+            const r = await authFetch(`/api/execucao/rfis/${rfiId}/arquivo`, { method: 'DELETE' });
+            if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao remover o arquivo');
+            await load();
+        } catch (e: any) { setErro(e.message); }
     }
     async function excluirRelatorio(rfiId: string) {
         if (!confirm('Excluir este envio e o arquivo anexado?')) return;
@@ -50,7 +72,6 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
     }
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const [regR, rfiR] = await Promise.all([
                 fetch(`/api/execucao/atividades/${atividade.id}`),
@@ -266,6 +287,10 @@ export default function TabExecucao({ atividade, onRefresh, usaRelatorioFotograf
                                             {nomeDoArquivo(r.relatorio_url)}
                                         </button>
                                     ) : <span className="text-warn">Nenhum arquivo anexado</span>}
+                                    {r.relatorio_url && r.relatorio_url.startsWith('relatorios/') && (
+                                        <button type="button" onClick={() => removerArquivo(r.id)} title="Remover o arquivo"
+                                            className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[11px] font-semibold text-muted-foreground hover:border-crit/60 hover:text-crit"><Trash2 size={12} aria-hidden /> Remover arquivo</button>
+                                    )}
                                     <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[11px] font-semibold hover:bg-secondary/60">
                                         <Paperclip size={12} aria-hidden /> {anexando === r.id ? 'Enviando…' : r.relatorio_url ? 'Trocar' : 'Anexar'}
                                         <input type="file" hidden accept={ACEITA_RELATORIO} disabled={anexando === r.id}

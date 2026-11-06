@@ -8,6 +8,7 @@ import PagamentoStatusSelect from './PagamentoStatusSelect';
 import { FinancialActionMenu, FinancialAttachments, FinancialBeneficiaryCard, FinancialPaymentCard, type FinancialAction } from '../financeiro/FinancialCards';
 import { authFetch, downloadAuthenticatedFile } from '../../lib/authFetch';
 import PaymentAttachments from '../financeiro/PaymentAttachments';
+import { EquipePropriaForm, EquipePropriaLista, RateioMaoDeObraModal } from './EquipePropria';
 import FuncionarioFormModal from '../cadastros/FuncionarioFormModal';
 import FornecedorFormModal from '../cadastros/FornecedorFormModal';
 import AvisoSemAssinatura from '../perfil/AvisoSemAssinatura';
@@ -19,21 +20,21 @@ const CONTRATO_STATUS_LABEL: Record<string, string> = { GERADO: 'Gerado', ENVIAD
 const CONTRATO_STATUS_TOM: Record<string, string> = { GERADO: 'bg-muted text-muted-foreground', ENVIADO: 'bg-warn/15 text-warn', ASSINADO: 'bg-ok/15 text-ok' };
 const PARCELA_TIPO_LABEL: Record<string, string> = { UNICA: 'Parcela única', ENTRADA: 'Entrada', SALDO: 'Saldo', PARCELA: 'Parcela', ADIANTAMENTO: 'Adiantamento' };
 
-const FINALIDADES = ['CABO', 'METALICO', 'QTM', 'MAO_DE_OBRA', 'PAGAMENTO_SEMANAL', 'LOCACAO', 'MATERIAL_CIVIL', 'MATERIAL_ELETRICO', 'EQUIPAMENTO', 'TRANSPORTE', 'REEMBOLSO', 'ADIANTAMENTO_VIAGEM', 'OUTROS'];
+// Finalidades em grupos (06/11/2026): materiais, mão de obra/serviços, despesas de
+// campo e pessoal. As despesas de campo são as do cartão corporativo e as de reembolso.
+const GRUPOS_FINALIDADE: { grupo: string; itens: [string, string][] }[] = [
+    { grupo: 'Materiais', itens: [['CABO', 'Cabo'], ['METALICO', 'Metálico'], ['QTM', 'QTM'], ['MATERIAL_CIVIL', 'Material civil'], ['MATERIAL_ELETRICO', 'Material elétrico'], ['EQUIPAMENTO', 'Equipamento'], ['FERRAMENTAS', 'Ferramentas'], ['EPI', 'EPI / uniforme']] },
+    { grupo: 'Mão de obra e serviços', itens: [['MAO_DE_OBRA', 'Mão de obra'], ['PAGAMENTO_SEMANAL', 'Pagamento semanal'], ['LOCACAO', 'Locação de equipamento'], ['ALUGUEL_VEICULO', 'Aluguel de veículo'], ['TRANSPORTE', 'Transporte / frete']] },
+    { grupo: 'Despesas de campo', itens: [['ALIMENTACAO', 'Alimentação (almoço, refeição)'], ['COMBUSTIVEL', 'Combustível'], ['ESTACIONAMENTO', 'Estacionamento'], ['PEDAGIO', 'Pedágio'], ['HOSPEDAGEM', 'Hospedagem'], ['PASSAGEM', 'Passagem (aérea, ônibus)'], ['DESLOCAMENTO_URBANO', 'Uber / táxi'], ['MATERIAL_CONSUMO', 'Material de consumo']] },
+    { grupo: 'Pessoal', itens: [['REEMBOLSO', 'Reembolso'], ['ADIANTAMENTO_VIAGEM', 'Adiantamento de viagem']] },
+    { grupo: 'Outros', itens: [['OUTROS', 'Outros']] },
+];
+// Despesa direta no cartão corporativo (05/11/2026): sem pagamento a ninguém, só custo da atividade.
+const FINALIDADES_DESPESA = [...GRUPOS_FINALIDADE.find(g => g.grupo === 'Despesas de campo')!.itens.map(([v]) => v), 'TRANSPORTE', 'FERRAMENTAS', 'EPI', 'OUTROS'];
+const ehFormal = (t: string) => t === 'PAYMENT_FORMALIZATION' || t === 'DESPESA_CARTAO';
 const FINALIDADE_LABEL: Record<string, string> = {
-    CABO: 'Cabo',
-    METALICO: 'Metálico',
-    QTM: 'QTM',
-    MAO_DE_OBRA: 'Mão de obra',
-    PAGAMENTO_SEMANAL: 'Pagamento semanal',
-    LOCACAO: 'Locação',
-    MATERIAL_CIVIL: 'Material civil',
-    MATERIAL_ELETRICO: 'Material elétrico',
-    EQUIPAMENTO: 'Equipamento',
-    TRANSPORTE: 'Transporte',
-    REEMBOLSO: 'Reembolso',
-    ADIANTAMENTO_VIAGEM: 'Adiantamento de viagem',
-    OUTROS: 'Outros',
+    ...Object.fromEntries(GRUPOS_FINALIDADE.flatMap(g => g.itens)),
+    ETM: 'ETM', PEDAGIO_ESTACIONAMENTO: 'Pedágio / estacionamento',
 };
 const FORM_INIT = {
     favorecido: '', finalidade: 'MAO_DE_OBRA', valor_contratado: '', percentual_entrada: '100', percentual_saldo: '0',
@@ -75,7 +76,7 @@ function nomeFornecedor(s: { nome: string; nome_fantasia?: string | null }): str
     return fantasia && fantasia.toLowerCase() !== razao.toLowerCase() ? `${fantasia} (${razao})` : razao;
 }
 
-export default function TabFornecedores({ atividade }: { atividade: AtividadeDetalhe }) {
+export default function TabFornecedores({ atividade, onRefresh }: { atividade: AtividadeDetalhe; onRefresh?: () => void }) {
     const [contratacoes, setContratacoes] = useState<any[]>([]);
     const [suppliers, setSuppliers] = useState<any[]>([]);
     const [funcionarios, setFuncionarios] = useState<any[]>([]);
@@ -112,6 +113,9 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     const [historico, setHistorico] = useState<{ id: string; itens: any[] } | null>(null);
     const [valorParcela, setValorParcela] = useState('');
     const [dividindo, setDividindo] = useState<string | null>(null);
+    // Equipe própria e rateio de mão de obra (05/11/2026).
+    const [equipeVersao, setEquipeVersao] = useState(0);
+    const [rateando, setRateando] = useState<any>(null);
     // Formalização (05/11/2026): o cadastro já pede o comprovante; a data do
     // pagamento é lida dele pela IA e o arquivo vai anexado ao pagamento.
     const [comprovanteForm, setComprovanteForm] = useState<File | null>(null);
@@ -127,7 +131,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             const d = await r.json().catch(() => ({}));
             if (!r.ok) throw new Error(d.error || 'Não foi possível ler o comprovante');
             if (!d.data_documento) throw new Error('A data do pagamento não está legível no comprovante');
-            setForm(fm => ({ ...fm, data_pagamento_realizado: d.data_documento, valor_contratado: fm.valor_contratado || (d.valor ? String(d.valor) : '') }));
+            setForm(fm => ({ ...fm, data_pagamento_realizado: d.data_documento, valor_contratado: fm.valor_contratado || (d.valor ? String(d.valor) : ''), fatura_referencia: fm.fatura_referencia || (fm.processo_tipo === 'DESPESA_CARTAO' && d.emitente ? d.emitente : '') }));
             setLeituraComprovante({ lendo: false, ok: true, msg: `Lido do comprovante: pago em ${fmtData(d.data_documento)}${d.valor ? ` · ${fmtMoeda(d.valor)}` : ''}${d.emitente ? ` · ${d.emitente}` : ''}` });
         } catch (e: any) {
             setLeituraComprovante({ lendo: false, ok: false, msg: `${e.message}. Informe a data à mão.` });
@@ -207,7 +211,6 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
     }, [form.favorecido]);
 
     const load = useCallback(async () => {
-        setLoading(true);
         try {
             const [cR, sR, fR, eR] = await Promise.all([
                 authFetch(`/api/contratacoes?atividade_id=${atividade.id}`),
@@ -275,7 +278,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
             } catch (e: any) { setErro(e.message); } finally { setSalvando(false); }
             return;
         }
-        const formalizando = form.processo_tipo === 'PAYMENT_FORMALIZATION';
+        const formalizando = ehFormal(form.processo_tipo);
         if (!formalizando && !(pagoAgora > 0)) { setErro('Informe quanto está sendo pago agora (maior que 0%)'); return; }
         if (!formalizando && saldoPct > 0) {
             if (Math.abs(somaSaldos - saldoPct) > 0.01) { setErro(`As parcelas do saldo somam ${somaSaldos}%, mas o saldo é ${saldoPct}%`); return; }
@@ -301,10 +304,10 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     diretorio_url: form.diretorio_url.trim() || null,
                     forma_pagamento: form.forma_pagamento,
                     cartao_id: form.forma_pagamento === 'CARTAO_CREDITO' ? form.cartao_id : null,
-                    processo_tipo: form.processo_tipo,
-                    formalizacao_posterior: form.processo_tipo === 'PAYMENT_FORMALIZATION',
-                    data_pagamento: form.processo_tipo === 'PAYMENT_FORMALIZATION' ? form.data_pagamento_realizado : null,
-                    data_compra_cartao: form.processo_tipo === 'PAYMENT_FORMALIZATION' && form.forma_pagamento === 'CARTAO_CREDITO' ? form.data_pagamento_realizado : null,
+                    processo_tipo: formalizando ? 'PAYMENT_FORMALIZATION' : form.processo_tipo,
+                    formalizacao_posterior: formalizando,
+                    data_pagamento: formalizando ? form.data_pagamento_realizado : null,
+                    data_compra_cartao: formalizando && form.forma_pagamento === 'CARTAO_CREDITO' ? form.data_pagamento_realizado : null,
                     fatura_referencia: form.fatura_referencia || null,
                 }),
             });
@@ -691,10 +694,15 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     setCadastro(null);
                 }} />
             )}
-            {showForm && (
+            {showForm && form.processo_tipo === 'EQUIPE_PROPRIA' && (
+                <EquipePropriaForm atividadeId={atividade.id} funcionarios={funcionarios}
+                    onCancelar={() => setForm(f => ({ ...f, processo_tipo: 'PAYMENT_REQUEST' }))}
+                    onSalvo={() => { setForm(FORM_INIT); setShowForm(false); setEquipeVersao(v => v + 1); onRefresh?.(); }} />
+            )}
+            {showForm && form.processo_tipo !== 'EQUIPE_PROPRIA' && (
                 <div className="border border-border rounded-lg p-4 mb-4">
                     <div className="grid grid-cols-2 gap-3">
-                        <Field label="Favorecido">
+                        <Field label={form.processo_tipo === 'DESPESA_CARTAO' ? 'Quem fez a despesa' : 'Favorecido'}>
                             <div className="flex gap-2">
                             <select className={`${inputClass} min-w-0 flex-1`} value={form.favorecido} onChange={e => {
                                 const valor = e.target.value;
@@ -743,22 +751,26 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 forma_pagamento: ['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(e.target.value) && f.forma_pagamento === 'CARTAO_CREDITO' ? 'PIX' : f.forma_pagamento,
                                 formalizacao_posterior: ['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(e.target.value) ? false : f.formalizacao_posterior,
                             }))}>
-                                {FINALIDADES.map(f => <option key={f} value={f}>{FINALIDADE_LABEL[f]}</option>)}
+                                {GRUPOS_FINALIDADE.map(g => { const itens = g.itens.filter(([v]) => form.processo_tipo !== 'DESPESA_CARTAO' || FINALIDADES_DESPESA.includes(v)); return itens.length ? <optgroup key={g.grupo} label={g.grupo}>{itens.map(([v, r]) => <option key={v} value={v}>{r}</option>)}</optgroup> : null; })}
                             </select>
                         </Field>
                         {!['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && <Field label="Processo financeiro">
                             <select className={inputClass} value={form.processo_tipo} onChange={e => setForm(f => ({
                                 ...f,
                                 processo_tipo: e.target.value,
-                                formalizacao_posterior: e.target.value === 'PAYMENT_FORMALIZATION',
+                                formalizacao_posterior: ehFormal(e.target.value),
+                                // Despesa no cartão: forma fixa = cartão corporativo; categoria de despesa.
+                                ...(e.target.value === 'DESPESA_CARTAO' ? { forma_pagamento: 'CARTAO_CREDITO', cartao_id: f.cartao_id || cartoes[0]?.id || '', finalidade: FINALIDADES_DESPESA.includes(f.finalidade) ? f.finalidade : 'ALIMENTACAO' } : {}),
                                 // Formalização é sempre pagamento único; o percentual
                                 // pago agora só vale para solicitação.
-                                percentual_entrada: e.target.value === 'PAYMENT_FORMALIZATION' ? '100' : f.percentual_entrada,
-                                percentual_saldo: e.target.value === 'PAYMENT_FORMALIZATION' ? '0' : f.percentual_saldo,
-                                data_pagamento_realizado: e.target.value === 'PAYMENT_FORMALIZATION' ? f.data_pagamento_realizado : '',
+                                percentual_entrada: ehFormal(e.target.value) ? '100' : f.percentual_entrada,
+                                percentual_saldo: ehFormal(e.target.value) ? '0' : f.percentual_saldo,
+                                data_pagamento_realizado: ehFormal(e.target.value) ? f.data_pagamento_realizado : '',
                             }))}>
                                 <option value="PAYMENT_REQUEST">Solicitação de pagamento</option>
                                 <option value="PAYMENT_FORMALIZATION">Formalização de pagamento já realizado</option>
+                                <option value="EQUIPE_PROPRIA">Execução por equipe própria (sem desembolso)</option>
+                                <option value="DESPESA_CARTAO">Despesa no cartão corporativo (almoço, hotel, combustível…)</option>
                             </select>
                         </Field>}
                         <Field label={form.finalidade === 'ADIANTAMENTO_VIAGEM' ? 'Valor do adiantamento (R$)' : form.finalidade === 'REEMBOLSO' ? 'Valor do reembolso (R$)' : 'Valor contratado (R$)'}>
@@ -772,21 +784,22 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                         </> : form.finalidade === 'REEMBOLSO' ? <>
                         <Field label="Data da despesa"><input type="date" className={inputClass} value={form.data_despesa} onChange={e => setForm(f => ({ ...f, data_despesa: e.target.value }))} /></Field>
                         <Field label="Motivo do reembolso"><input className={inputClass} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Descreva a despesa reembolsada" /></Field>
-                        </> : form.processo_tipo === 'PAYMENT_FORMALIZATION' ? <>
+                        </> : ehFormal(form.processo_tipo) ? <>
                             <div className="col-span-2 rounded-lg border border-primary/40 bg-primary/5 p-3">
-                                <Field label="Comprovante de pagamento * (PDF ou imagem) — a data do pagamento é lida dele">
+                                <Field label={`${form.processo_tipo === 'DESPESA_CARTAO' ? 'Cupom / nota da despesa' : 'Comprovante de pagamento'} * (PDF ou imagem) — a data do pagamento é lida dele`}>
                                     <input type="file" accept=".pdf,image/*" className={`${inputClass} py-1.5 file:mr-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-xs file:font-semibold file:text-foreground`}
                                         onChange={e => escolherComprovante(e.target.files?.[0] || null)} />
                                 </Field>
                                 {leituraComprovante.msg && <p className={`mt-1.5 text-xs ${leituraComprovante.lendo ? 'text-muted-foreground' : leituraComprovante.ok ? 'text-ok' : 'text-warn'}`}>{leituraComprovante.msg}</p>}
                             </div>
                             <Field label="Data do pagamento realizado"><input type="date" className={inputClass} value={form.data_pagamento_realizado} onChange={e => setForm(f => ({ ...f, data_pagamento_realizado: e.target.value }))}/></Field>
-                            <Field label="Referência (opcional)"><input className={inputClass} value={form.fatura_referencia} onChange={e => setForm(f => ({ ...f, fatura_referencia: e.target.value }))} placeholder="Ex.: fatura/cartão/pedido"/></Field>
-                            <Field label="Forma utilizada">
+                            <Field label={form.processo_tipo === 'DESPESA_CARTAO' ? 'Estabelecimento' : 'Referência (opcional)'}><input className={inputClass} value={form.fatura_referencia} onChange={e => setForm(f => ({ ...f, fatura_referencia: e.target.value }))} placeholder={form.processo_tipo === 'DESPESA_CARTAO' ? 'Ex.: Restaurante X (lido do cupom)' : 'Ex.: fatura/cartão/pedido'}/></Field>
+                            {form.processo_tipo === 'DESPESA_CARTAO' && <Field label="Descrição da despesa"><input className={inputClass} value={form.observacoes} onChange={e => setForm(f => ({ ...f, observacoes: e.target.value }))} placeholder="Ex.: Almoço da equipe na vistoria"/></Field>}
+                            {form.processo_tipo !== 'DESPESA_CARTAO' && <Field label="Forma utilizada">
                                 <select className={inputClass} value={form.forma_pagamento} onChange={e => setForm(f => ({ ...f, forma_pagamento: e.target.value, cartao_id: e.target.value === 'CARTAO_CREDITO' ? (f.cartao_id || cartoes[0]?.id || '') : '' }))}>
                                     <option value="">Selecione...</option><option value="PIX">PIX</option><option value="TED">Transferência bancária</option><option value="CARTAO_CREDITO">Cartão de crédito corporativo</option><option value="BOLETO">Boleto</option><option value="DINHEIRO">Dinheiro</option>
                                 </select>
-                            </Field>
+                            </Field>}
                             {form.forma_pagamento === 'CARTAO_CREDITO' && <Field label="Cartão corporativo"><select className={inputClass} value={form.cartao_id} onChange={e => setForm(f=>({...f,cartao_id:e.target.value}))}><option value="">Selecione...</option>{cartoes.map(c=><option key={c.id} value={c.id}>{c.bandeira} •••• {c.final}{c.apelido?` (${c.apelido})`:''}</option>)}</select></Field>}
                         </> : <>{supplierFavorecido && (
                             <div className="col-span-2 rounded-lg border border-border bg-secondary/20 p-3">
@@ -904,7 +917,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                     </div>
                     <div className="flex justify-end gap-2 mt-3">
                         <GhostButton onClick={() => setShowForm(false)}>Cancelar</GhostButton>
-                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (form.processo_tipo === 'PAYMENT_FORMALIZATION' && (!form.data_pagamento_realizado || !comprovanteForm || leituraComprovante.lendo)) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista)) || !form.diretorio_url.trim()}>{form.processo_tipo === 'PAYMENT_FORMALIZATION' ? 'Registrar formalização' : 'Registrar'}</PrimaryButton>
+                        <PrimaryButton onClick={criar} disabled={salvando || !form.favorecido || !form.valor_contratado || !form.forma_pagamento || (form.forma_pagamento === 'CARTAO_CREDITO' && !form.cartao_id) || (ehFormal(form.processo_tipo) && (!form.data_pagamento_realizado || !comprovanteForm || leituraComprovante.lendo)) || (form.finalidade === 'ADIANTAMENTO_VIAGEM' && !form.destino) || (['ADIANTAMENTO_VIAGEM', 'REEMBOLSO'].includes(form.finalidade) && (!form.data_solicitacao || !form.data_prevista)) || !form.diretorio_url.trim()}>{form.processo_tipo === 'DESPESA_CARTAO' ? 'Registrar despesa' : form.processo_tipo === 'PAYMENT_FORMALIZATION' ? 'Registrar formalização' : 'Registrar'}</PrimaryButton>
                     </div>
                 </div>
             )}
@@ -984,6 +997,8 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                 );
             })()}
 
+            <EquipePropriaLista atividadeId={atividade.id} versao={equipeVersao} />
+            {rateando && <RateioMaoDeObraModal contratacao={rateando} onFechar={() => setRateando(null)} onSalvo={() => { setRateando(null); setEquipeVersao(v => v + 1); load(); onRefresh?.(); }} />}
             {contratacoes.length === 0 ? (
                 <EmptyState text="Nenhum pagamento lançado para esta atividade. Use Novo pagamento para começar." />
             ) : (
@@ -1017,6 +1032,7 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                     { label: anexandoContrato === c.contrato.id ? 'Enviando assinado...' : 'Anexar contrato assinado', onClick: () => clicarAnexarContrato(c.contrato.id), disabled: anexandoContrato === c.contrato.id },
                                 ]),
                             { label: historico?.id === c.id ? 'Ocultar histórico' : 'Histórico de alterações', onClick: () => verHistorico(c.id) },
+                            ...(c.funcionario_id ? [{ label: 'Ratear entre atividades (mão de obra própria)', onClick: () => setRateando(c) }] : []),
                             { label: 'Editar contratação', onClick: () => setEditandoContratacao({ id: c.id, valor: String(c.valor_contratado), observacoes: c.observacoes || '', motivo: '', diretorio_url: c.diretorio_url || atividade.diretorio_url || '' }) },
                             // Com pagamento efetuado a exclusão esconderia dinheiro que
                             // saiu do caixa; o backend recusa, e aqui nem se oferece.
@@ -1119,8 +1135,8 @@ export default function TabFornecedores({ atividade }: { atividade: AtividadeDet
                                 const primaryAction = formalizacao ? null : p.status === 'PENDENTE'
                                     ? <GhostButton onClick={() => abrirProgramacao(p)}>Solicitar pagamento</GhostButton>
                                     : null;
-                                return <FinancialPaymentCard key={p.id} title={formalizacao ? 'Formalização' : (PARCELA_TIPO_LABEL[p.tipo] || p.tipo)} percentage={`${p.percentual}%`} amount={fmtMoeda(p.valor)} method={<>{FORMA_LABEL[forma] || forma}{p.cartao_bandeira && p.cartao_final ? <span className="ml-2">{p.cartao_bandeira} •••• {p.cartao_final}</span> : null}</>} context={formalizacao ? `Pagamento já realizado, pendente de documentos${p.fatura_referencia ? ` (${p.fatura_referencia})` : ''}` : undefined} requestedAt={p.data_solicitacao ? fmtData(p.data_solicitacao) : undefined} expectedAt={p.data_prevista ? fmtData(p.data_prevista) : undefined} paidAt={p.data_pagamento ? fmtData(p.data_pagamento) : undefined} status={<PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)}/>} primaryAction={primaryAction} actions={actions}>
-                                    <PaymentAttachments ownerType="PARCELA" ownerId={p.id} comprovanteLegado={p.comprovante_url} requiresFiscal={['CABO','METALICO','QTM','ETM','MATERIAL_CIVIL','MATERIAL_ELETRICO','EQUIPAMENTO'].includes(c.finalidade)} onChange={load}/>
+                                return <FinancialPaymentCard key={p.id} title={formalizacao ? (FINALIDADES_DESPESA.includes(c.finalidade) && c.finalidade !== 'OUTROS' && c.finalidade !== 'TRANSPORTE' ? `Despesa · ${FINALIDADE_LABEL[c.finalidade]}` : 'Formalização') : (PARCELA_TIPO_LABEL[p.tipo] || p.tipo)} percentage={`${p.percentual}%`} amount={fmtMoeda(p.valor)} method={<>{FORMA_LABEL[forma] || forma}{p.cartao_bandeira && p.cartao_final ? <span className="ml-2">{p.cartao_bandeira} •••• {p.cartao_final}</span> : null}</>} context={formalizacao ? `Pagamento já realizado, pendente de documentos${p.fatura_referencia ? ` (${p.fatura_referencia})` : ''}` : undefined} requestedAt={p.data_solicitacao ? fmtData(p.data_solicitacao) : undefined} expectedAt={p.data_prevista ? fmtData(p.data_prevista) : undefined} paidAt={p.data_pagamento ? fmtData(p.data_pagamento) : undefined} status={<PagamentoStatusSelect value={p.status} onChange={status => mudarStatusParcela(p, status)}/>} primaryAction={primaryAction} actions={actions}>
+                                    <PaymentAttachments ownerType="PARCELA" ownerId={p.id} comprovanteLegado={p.comprovante_url} requiresFiscal={['CABO','METALICO','QTM','ETM','MATERIAL_CIVIL','MATERIAL_ELETRICO','EQUIPAMENTO','FERRAMENTAS','EPI'].includes(c.finalidade)} onChange={load}/>
                                     {dividindo === p.id && <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary/30 p-2 text-xs"><span>Adiantar</span><input autoFocus aria-label="Percentual a adiantar" type="number" step="1" min="0" max="100" className={`${inputClass} h-8 w-20 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setDividindo(null); if (e.key === 'Enter') dividirParcela(p.id, p.valor); }}/><span>% de {fmtMoeda(p.valor)} = <strong className="text-foreground">{fmtMoeda(Math.round((p.valor * (Number(String(valorParcela).replace(',', '.')) || 0) / 100) * 100) / 100)}</strong></span>{[10,20,30,40,50].map(v => <button type="button" key={v} onClick={() => setValorParcela(String(v))} className="rounded border border-border px-2 py-1 text-[11px]">{v}%</button>)}<button type="button" onClick={() => dividirParcela(p.id, p.valor)} className="font-semibold text-primary">Aplicar</button><button type="button" onClick={() => setDividindo(null)} className="text-muted-foreground">Cancelar</button></div>}
                                     {editandoParcela === p.id && <div className="mt-3 rounded-lg border border-border bg-secondary/30 p-2 text-xs">
                                         <div className="flex flex-wrap items-center gap-2"><span>R$</span><input autoFocus aria-label="Valor do pagamento" type="number" step="0.01" min="0" className={`${inputClass} h-8 w-32 text-right text-xs`} value={valorParcela} onChange={e => setValorParcela(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setEditandoParcela(null); if (e.key === 'Enter') salvarValorParcela(p.id); }}/><button type="button" onClick={() => salvarValorParcela(p.id)} className="font-semibold text-primary">Salvar</button><button type="button" onClick={() => setEditandoParcela(null)} className="text-muted-foreground">Cancelar</button></div>

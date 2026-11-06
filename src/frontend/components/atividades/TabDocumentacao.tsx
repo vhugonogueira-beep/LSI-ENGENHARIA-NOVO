@@ -88,7 +88,6 @@ export default function TabDocumentacao({ atividade, onRefresh }: { atividade: A
     const [view, setView] = useState('TODOS');
 
     const load = useCallback(async () => {
-        setLoading(true);
         setError('');
         try {
             const response = await fetch(`/api/documentacao/atividades/${atividade.id}`);

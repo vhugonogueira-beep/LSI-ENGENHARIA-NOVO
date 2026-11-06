@@ -216,7 +216,6 @@ export default function Configuracoes() {
   const notify = (m: string) => { setToast(m); setTimeout(() => setToast(null), 3500); };
 
   const carregar = useCallback(async () => {
-    setCarregando(true);
     try {
       const re = await authFetch("/api/empresa");
       const e = re.ok ? await re.json() : null;

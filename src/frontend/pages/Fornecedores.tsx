@@ -28,7 +28,6 @@ export function Fornecedores() {
     const carregarSst = () => fetch('/api/sst/resumo').then(r => (r.ok ? r.json() : {})).then(setSst).catch(() => setSst({}));
 
     const loadSuppliers = async () => {
-        setLoading(true);
         try {
             const resp = await fetch('/api/suppliers?limit=200');
             const data = await resp.json();
