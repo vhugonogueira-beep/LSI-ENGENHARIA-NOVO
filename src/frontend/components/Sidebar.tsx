@@ -2,7 +2,7 @@ import React from 'react';
 import { LOGO_MARCA_B64 } from '../assets/logoMarca';
 import {
     BarChart3, Building2, ClipboardList, CreditCard, Download, Folder, Handshake, LayoutDashboard,
-    Library, LogOut, MapPin, Pin, PinOff, Receipt, Settings, Target, TrendingUp, Upload, User,
+    Library, LogOut, MapPin, Percent, Pin, PinOff, Receipt, Settings, Target, TrendingUp, Upload, User,
     type LucideIcon,
 } from 'lucide-react';
 import { TOM_MODULO, hexTom, tomDe, type Tom } from '../lib/cores';
@@ -229,6 +229,7 @@ export default function Sidebar(props: SidebarProps) {
                     <Grupo texto="Comercial" />
                     <NavItem id="clientes" icon={Handshake} label="Clientes" />
                     <NavItem id="lpus" icon={Library} label="LPUs" />
+                    <NavItem id="comissoes" icon={Percent} label="Comissões" />
 
                     <Grupo texto="Financeiro" />
                     <NavItem id="pagamentos" icon={CreditCard} label="Controle de pagamentos" />

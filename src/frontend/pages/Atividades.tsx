@@ -311,6 +311,33 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
         setMetaIds(null);
     }
 
+    /** Tira as atividades marcadas do projeto em que estão (06/11/2026): agrupar errado acontece. */
+    async function desagruparSelecionadas() {
+        const marcadas = atividades.filter(a => selecionadas.includes(a.id) && a.acionamento_id);
+        if (!marcadas.length) return;
+        const porProjeto = new Map<string, string[]>();
+        marcadas.forEach(a => porProjeto.set(a.acionamento_id!, [...(porProjeto.get(a.acionamento_id!) || []), a.id]));
+        const nomes = [...porProjeto.keys()].map(id => projetos.find(p => p.id === id)?.codigo || 'projeto').join(', ');
+        if (!confirm(`Tirar ${marcadas.length} atividade(s) do projeto ${nomes}? A atividade continua existindo, só sai do agrupamento.`)) return;
+        setErro(''); setAgrupando(true);
+        try {
+            for (const [projetoId, sair] of porProjeto) {
+                // O endpoint recebe a lista FINAL do projeto: quem fica.
+                // Lista completa do projeto (não a filtrada da tela): senão os filtros tirariam outras junto.
+                const doProjeto: string[] = (projetos.find(p => p.id === projetoId)?.atividades || []).map((x: any) => x.id);
+                const ficam = doProjeto.filter(id => !sair.includes(id));
+                const r = await fetch(`/api/acionamentos/${projetoId}/atividades`, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ atividade_ids: ficam }),
+                });
+                if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Erro ao tirar do projeto');
+            }
+            setAvisoProjeto(`${marcadas.length} atividade(s) retirada(s) de ${nomes}.`);
+            setSelecionadas([]);
+            await Promise.all([load(), carregarProjetos()]);
+        } catch (e: any) { setErro(e.message); } finally { setAgrupando(false); }
+    }
+
     /** Agrupa as atividades marcadas num projeto — novo ou existente. */
     async function agruparSelecionadas() {
         if (!selecionadas.length) return;
@@ -703,6 +730,12 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             className="h-8 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground disabled:opacity-60">
                             {agrupando ? 'Agrupando...' : 'Agrupar'}
                         </button>
+                        {atividades.some(a => selecionadas.includes(a.id) && a.acionamento_id) && (
+                            <button onClick={desagruparSelecionadas} disabled={agrupando}
+                                className="h-8 rounded-lg border border-crit/50 px-3 text-xs font-semibold text-crit hover:bg-crit/10 disabled:opacity-60">
+                                Tirar do projeto
+                            </button>
+                        )}
                         <span className="mx-1 h-5 w-px bg-border" aria-hidden />
                         <button onClick={() => abrirMeta(selecionadas)}
                             className="h-8 rounded-lg border border-primary/50 px-3 text-xs font-semibold text-primary hover:bg-primary/10">

@@ -103,7 +103,7 @@ export const TOM_MODULO: Record<string, Tom> = {
     overview: 'indigo', demandas: 'indigo', dashboard: 'violet',
     historico: 'amber', lpus: 'amber', orcv2: 'amber',
     atividades: 'blue', fornecedores: 'teal', relatorios: 'cyan', faturamento: 'green',
-    pagamentos: 'orange', clientes: 'rose', sites: 'cyan', perfil: 'slate', configuracoes: 'slate',
+    pagamentos: 'orange', clientes: 'rose', comissoes: 'rose', sites: 'cyan', perfil: 'slate', configuracoes: 'slate',
 };
 
 /** Tom de uma chave num mapa, tolerando caixa; sem correspondência, `padrao`. */

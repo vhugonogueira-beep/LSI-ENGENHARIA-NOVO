@@ -148,6 +148,19 @@ export async function sincronizarLinhasDaPO(poId: string, leitura: LeituraPO) {
             await prisma.purchaseOrderLinha.create({ data: { po_id: poId, numero_linha: numero, ...dados } });
         }
     }
+
+    // Linhas que a leitura nova não traz mais (06/11/2026: leitura antiga errada tinha
+    // criado "Sub-total" e pedaços de descrição como linhas). Sai só a que não tem
+    // faturamento ativo; a com faturamento fica, para não apagar histórico.
+    const lidas = new Set(leitura.itens.map((item, i) => item.item || String(i + 1).padStart(4, '0')));
+    const sobrando = await prisma.purchaseOrderLinha.findMany({
+        where: { po_id: poId, numero_linha: { notIn: [...lidas] } },
+        include: { faturamentos: { where: { status: { not: 'CANCELADO' } }, select: { id: true } } },
+    });
+    for (const l of sobrando) {
+        if (l.faturamentos.length) continue;
+        await prisma.purchaseOrderLinha.delete({ where: { id: l.id } });
+    }
 }
 
 export async function getStoredPOArquivo(attachmentId: string) {

@@ -76,10 +76,10 @@ export default function ConferenciaPoOrcamento({ atividadeId, versao, onMudou }:
                     {!decidindo && (
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="mr-auto text-muted-foreground">
-                                {c.decisao ? 'Decisão registrada. Pode mudar ou desfazer.' : 'O que fazer com a diferença de valor?'}
+                                {c.decisao ? 'Decisão registrada. Pode mudar ou desfazer.' : c.divergencia_de_itens ? 'O total confere, mas há itens diferentes do orçamento. O que fazer?' : 'O que fazer com a diferença de valor?'}
                             </span>
                             {c.decisao?.tipo !== 'ACEITA' && <button type="button" onClick={() => { setDecidindo('ACEITA'); setMotivo(''); }}
-                                className="rounded-md border border-ok/60 px-3 py-1.5 font-semibold text-ok hover:bg-ok/10">Aceitar a diferença</button>}
+                                className="rounded-md border border-ok/60 px-3 py-1.5 font-semibold text-ok hover:bg-ok/10">{c.divergencia_de_itens ? 'Aceitar os itens' : 'Aceitar a diferença'}</button>}
                             {c.decisao?.tipo !== 'QUESTIONADA' && <button type="button" onClick={() => { setDecidindo('QUESTIONADA'); setMotivo(''); }}
                                 className="rounded-md border border-warn/60 px-3 py-1.5 font-semibold text-warn hover:bg-warn/10">Questionar a detentora</button>}
                             {c.decisao && <button type="button" disabled={salvando} onClick={() => confirm('Desfazer a decisão? A divergência volta a aparecer como pendência.') && decidir(null)}
@@ -88,12 +88,14 @@ export default function ConferenciaPoOrcamento({ atividadeId, versao, onMudou }:
                     )}
                     {decidindo && (
                         <div className="flex flex-col gap-2">
-                            <p className="font-semibold">{decidindo === 'ACEITA'
-                                ? `Aceitar a diferença de ${dif != null ? `${dif > 0 ? '+' : ''}${fmtMoeda(dif)}` : ''}`
-                                : `Questionar a diferença de ${dif != null ? `${dif > 0 ? '+' : ''}${fmtMoeda(dif)}` : ''} à detentora`}</p>
+                            <p className="font-semibold">{c.divergencia_de_itens
+                                ? (decidindo === 'ACEITA' ? 'Aceitar a divergência de itens' : 'Questionar a divergência de itens à detentora')
+                                : decidindo === 'ACEITA'
+                                    ? `Aceitar a diferença de ${dif != null ? `${dif > 0 ? '+' : ''}${fmtMoeda(dif)}` : ''}`
+                                    : `Questionar a diferença de ${dif != null ? `${dif > 0 ? '+' : ''}${fmtMoeda(dif)}` : ''} à detentora`}</p>
                             <input autoFocus className="input h-9 text-xs" value={motivo} onChange={e => setMotivo(e.target.value)}
                                 placeholder={decidindo === 'ACEITA' ? 'Motivo (ex.: valor baixo, compensa em outra atividade, flexibilização comercial)' : 'O que foi questionado e com quem (ex.: e-mail para o comprador em 05/11)'} />
-                            {decidindo === 'ACEITA' && (
+                            {decidindo === 'ACEITA' && !c.divergencia_de_itens && (
                                 <label className="flex items-center gap-2 text-muted-foreground">
                                     <input type="checkbox" checked={atualizarContrato} onChange={e => setAtualizarContrato(e.target.checked)} />
                                     Usar o total da PO ({fmtMoeda(c.total_po)}) como valor de contrato (receita) da atividade

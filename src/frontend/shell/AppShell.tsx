@@ -4,6 +4,7 @@ import Atividades from '../pages/Atividades';
 import Configuracoes from '../pages/Configuracoes';
 import MeuPerfil from '../pages/MeuPerfil';
 import Clientes from '../pages/Clientes';
+import Comissoes from '../pages/Comissoes';
 import Sites from '../pages/Sites';
 import Orcamentos from '../pages/Orcamentos';
 import Relatorios from '../pages/Relatorios';
@@ -119,6 +120,7 @@ export default function AppShell(props: AppShellProps) {
                 {tab === "funcionarios" && <PessoasPrestadores initialTab="funcionarios" />}
                 {tab === "relatorios" && <Relatorios onAbrir={setTab} />}
                 {tab === "clientes" && <Clientes />}
+                {tab === "comissoes" && <Comissoes onAbrirAtividade={id => { try { sessionStorage.setItem('ls_abrir_atividade', id); } catch { /* sem storage: abre a lista */ } setTab("atividades"); }} />}
                 {tab === "sites" && <Sites />}
                 {tab === "faturamento" && <FaturamentoReal />}
                 {tab === "pvhighline" && abasLegadas.pvhighline()}

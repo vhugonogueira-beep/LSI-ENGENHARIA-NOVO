@@ -68,6 +68,7 @@ export interface ConferenciaPO {
     avisos: string[];
     decisao: null | { tipo: 'ACEITA' | 'QUESTIONADA'; motivo: string | null; diferenca: number | null; por: string | null; em: Date | null };
     pode_decidir: boolean;
+    divergencia_de_itens: boolean;
 }
 
 const NOME_ORCAMENTO: Record<string, string> = {
@@ -99,6 +100,17 @@ function casarLinhas(poLinhas: Omit<LinhaConferida, 'referencia' | 'semelhanca' 
         usadoPo.set(p.i, { j: p.j, s: p.s });
         usadoRef.add(p.j);
     }
+    // Segunda passada (06/11/2026): a PO da detentora descreve o serviço com o texto do
+    // catálogo dela, e o Orçamento LS com o nosso. Sem descrição parecida, casa pelo
+    // mesmo valor total e quantidade (cada linha uma vez).
+    poLinhas.forEach((l, i) => {
+        if (usadoPo.has(i)) return;
+        const j = ref.findIndex((rf, k) => !usadoRef.has(k) && Math.abs(rf.total - l.valor_total) <= TOLERANCIA_VALOR
+            && (l.quantidade == null || Math.abs(l.quantidade - rf.quantidade) < 1e-6));
+        if (j < 0) return;
+        usadoPo.set(i, { j, s: 0 });
+        usadoRef.add(j);
+    });
     return poLinhas.map((l, i) => {
         const par = usadoPo.get(i);
         if (!par) return { ...l, referencia: null, semelhanca: 0, situacao: 'SEM_CORRESPONDENTE' as const, diferenca: null };
@@ -207,6 +219,8 @@ export async function conferirPOComOrcamento(atividadeId: string): Promise<Confe
         resumo = problemas.length ? capitalizar(problemas.join('; ')) + '.' : `PO confere com ${referencia.nome.toLowerCase()} (${moeda(referencia.valor)}).`;
     }
 
+    const divergenciaBase = situacao === 'DIVERGE' || situacao === 'ATENCAO';
+    const deItens = situacao === 'ATENCAO';
     // Decisão sobre a divergência de valor (05/11/2026): aceita ou questionada à detentora.
     // Só vale com o site conferindo e enquanto a diferença for a mesma da decisão.
     const decisaoGravada = Boolean(at.conferencia_po_decisao && diferenca != null && at.conferencia_po_diferenca != null
@@ -221,10 +235,10 @@ export async function conferirPOComOrcamento(atividadeId: string): Promise<Confe
         const motivoTxt = decisao.motivo ? ` — ${decisao.motivo}` : '';
         if (decisao.tipo === 'ACEITA') {
             situacao = 'ACEITA';
-            resumo = `Diferença de ${moeda(diferenca!)} aceita${quem}${quando}${motivoTxt}.`;
+            resumo = deItens ? `Divergência de itens aceita${quem}${quando}${motivoTxt}. ${resumo}` : `Diferença de ${moeda(diferenca!)} aceita${quem}${quando}${motivoTxt}.`;
         } else {
             situacao = 'QUESTIONADA';
-            resumo = `Diferença de ${moeda(diferenca!)} questionada à detentora${quem}${quando}${motivoTxt}.`;
+            resumo = deItens ? `Divergência de itens questionada à detentora${quem}${quando}${motivoTxt}. ${resumo}` : `Diferença de ${moeda(diferenca!)} questionada à detentora${quem}${quando}${motivoTxt}.`;
         }
     } else if (at.conferencia_po_decisao && !decisaoGravada && (situacao === 'DIVERGE' || situacao === 'ATENCAO')) {
         avisos.push(`Havia uma decisão (${at.conferencia_po_decisao === 'ACEITA' ? 'aceita' : 'questionada'}) para uma diferença de ${moeda(at.conferencia_po_diferenca || 0)}; a diferença mudou e precisa de nova decisão.`);
@@ -232,7 +246,8 @@ export async function conferirPOComOrcamento(atividadeId: string): Promise<Confe
 
     return {
         situacao, resumo, decisao,
-        pode_decidir: !!referencia && pos.length > 0 && total_confere === false && siteConfere !== false,
+        pode_decidir: !!referencia && pos.length > 0 && divergenciaBase && siteConfere !== false,
+        divergencia_de_itens: deItens,
         orcamento: budget ? { id: budget.id, numero: budget.numero, status: budget.status, tipo: budget.tipo_orcamento, nome: nomeOrc } : null,
         referencia, total_orcamento, total_ls, total_po, diferenca, diferenca_pct, total_confere,
         modo_linhas, linhas, sem_po,
@@ -254,7 +269,7 @@ export async function decidirDivergenciaPO(atividadeId: string, dados: { decisao
     const at = await prisma.atividade.findUnique({ where: { id: atividadeId }, select: { tenant_id: true, valor_contrato: true, conferencia_po_decisao: true } });
     const decisao = dados.decisao ? String(dados.decisao).toUpperCase() : null;
     if (decisao && !['ACEITA', 'QUESTIONADA'].includes(decisao)) throw new Error('Decisão inválida');
-    if (decisao && !conf.pode_decidir) throw new Error('Não há divergência de valor para decidir (ou o site da PO não confere)');
+    if (decisao && !conf.pode_decidir && !conf.decisao) throw new Error('Não há divergência para decidir (ou o site da PO não confere)');
     const motivo = String(dados.motivo || '').trim();
     if (decisao && motivo.length < 3) throw new Error(decisao === 'ACEITA' ? 'Informe por que a diferença foi aceita' : 'Informe o que foi questionado à detentora');
     const data: any = decisao ? {

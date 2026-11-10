@@ -123,14 +123,22 @@ function valorDoRotulo(linhas: string[], rotulo: RegExp): string | null {
 // linha de baixo):
 //   CONSTRUCAO DE SITE COLLO GF - MATERI0001 UN 1,00 PACCH004 CACHOEIRA DO PIRIA SKYCOVERAGE 66.712,99 66.713,00
 //   AL
-const RE_ITEM_HIGHLINE = /^(.+?)\s*(\d{4})\s+([A-Z]{2,4})\s+([\d.,]+)\s+([A-Z]{2}[A-Z0-9]{3,10})\s+(.+?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s*$/;
+// Site pode ter hífen (06/11/2026: "PABELSV005-K2" fazia a linha cair no leitor genérico).
+const RE_ITEM_HIGHLINE = /^(.+?)\s*(\d{4})\s+([A-Z]{2,4})\s+([\d.,]+)\s+([A-Z]{2}[A-Z0-9][A-Z0-9-]{2,16})\s+(.+?)\s+([\d.]+,\d{2})\s+([\d.]+,\d{2})\s*$/;
 
-// Sobra da descrição que caiu na linha seguinte: pedaço curto, sem números nem rótulos.
+// Continuação da descrição nas linhas de baixo (06/11/2026): a coluna Descrição quebra
+// em largura fixa, no meio da palavra ("CORRE" / "TIVA/EMERGENCIAL - ATE 100KM DA CAPI" /
+// "TAL DO E - 1.920,00"). A linha é continuação enquanto não for outro item nem o rodapé
+// da tabela — pode ter números (o preço repetido no fim da descrição, "100KM").
+const RE_FIM_TABELA = /^(sub-?total|desconto|total\b|observa[çc]|descri[çc][ãa]o\s+item|condi[çc][õo]es|p[áa]gina|pelo presente)/i;
 function ehSobraDeDescricao(linha: string): boolean {
-    return !!linha
-        && linha.length <= 20
-        && !/\d/.test(linha)
-        && /^[A-ZÀ-Ú][A-ZÀ-Ú\s-]*$/.test(linha.trim());
+    const t = (linha || '').trim();
+    return !!t
+        && t.length <= 60
+        && !RE_ITEM_HIGHLINE.test(t)
+        && !RE_FIM_TABELA.test(t)
+        && /^[A-ZÀ-Ú0-9]/.test(t)
+        && !/[a-zà-ú]{3,}/.test(t); // texto corrido em minúsculas é cláusula, não descrição
 }
 
 // "CACHOEIRA DO PIRIA SKYCOVERAGE" → cidade + projeto: o projeto é o último token em
@@ -142,7 +150,8 @@ function separarCidadeProjeto(bloco: string): { cidade: string | null; projeto: 
     const partes = bloco.trim().split(/\s+/);
     if (partes.length < 2) return { cidade: bloco.trim() || null, projeto: null };
     const ultimo = partes[partes.length - 1];
-    const pareceProjeto = ultimo.length >= 4 && ultimo.length <= 14 && /^[A-ZÀ-Ú0-9]+$/.test(ultimo);
+    // Projeto curto com número também vale (06/11/2026: "K2").
+    const pareceProjeto = (ultimo.length >= 4 && ultimo.length <= 14 && /^[A-ZÀ-Ú0-9]+$/.test(ultimo)) || /^[A-Z]{1,3}\d{1,3}$/.test(ultimo);
     if (!pareceProjeto) return { cidade: bloco.trim(), projeto: null };
     return { cidade: partes.slice(0, -1).join(' '), projeto: ultimo };
 }
@@ -155,12 +164,15 @@ function lerItensHighline(linhas: string[]): ItemPO[] {
 
         const [, descBruta, item, unidade, quant, site, cidadeProjeto, unit, total] = m;
 
-        // Completa a descrição com a sobra da linha seguinte ("MATERI" + "AL").
+        // Completa a descrição com as sobras das linhas seguintes ("MATERI" + "AL"); a
+        // quebra é no meio da palavra, então junta sem espaço. Até 4 linhas.
         let descricao = descBruta.replace(/\s+/g, ' ').trim();
-        if (i + 1 < linhas.length && ehSobraDeDescricao(linhas[i + 1])) {
+        for (let k = 0; k < 4 && i + 1 < linhas.length && ehSobraDeDescricao(linhas[i + 1]); k += 1) {
             descricao += linhas[i + 1].trim();
             i += 1;
         }
+        // A mesma PO às vezes repete a tabela na página 2: item já lido não entra de novo.
+        if (itens.some(x => x.item === item && x.valor === parseValorBR(total))) continue;
 
         const { cidade, projeto } = separarCidadeProjeto(cidadeProjeto);
         itens.push({
@@ -205,7 +217,7 @@ function lerItensGenerico(linhas: string[]): ItemPO[] {
         const m = linha.match(/^(.{6,90}?)\s+(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+,\d{2}|\d+,\d{2})\s*$/);
         if (!m) continue;
         const desc = m[1].replace(/[.\s|_-]+$/, '').trim();
-        if (/^(valor\s*total|total|subtotal|impostos?|desconto|frete)/i.test(desc) || desc.length < 6) continue;
+        if (/^(valor\s*total|total|sub-?total|impostos?|desconto|frete)/i.test(desc) || desc.length < 6) continue;
         itens.push({
             item: null, descricao: desc, unidade: null, quantidade: null,
             site: null, cidade: null, projeto: null, valor_unitario: null,

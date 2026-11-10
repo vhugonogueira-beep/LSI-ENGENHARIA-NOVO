@@ -1,5 +1,5 @@
 import {
-    BarChart3, Bell, Building2, ClipboardList, CreditCard, Folder, Handshake, LayoutDashboard, LayoutGrid, Library,
+    BarChart3, Bell, Building2, ClipboardList, CreditCard, Folder, Handshake, Percent, LayoutDashboard, LayoutGrid, Library,
     MapPin, Moon, Receipt, RefreshCw, Search, Settings, Sun, Target, TrendingUp, User, type LucideIcon,
 } from 'lucide-react';
 import { T, tema, aplicarTema } from '../theme';
@@ -10,7 +10,7 @@ const ICONE_MODULO: Record<string, LucideIcon> = {
     overview: LayoutDashboard, demandas: ClipboardList, dashboard: TrendingUp, historico: Folder, orcv2: Folder,
     lpus: Library, atividades: Target, projetos: Target, controle: Target, fornecedores: Building2,
     funcionarios: Building2, relatorios: BarChart3, faturamento: Receipt, pagamentos: CreditCard,
-    clientes: Handshake, sites: MapPin, perfil: User, configuracoes: Settings,
+    clientes: Handshake, comissoes: Percent, sites: MapPin, perfil: User, configuracoes: Settings,
 };
 
 // Movido de SimuladorLPU.tsx (Fase 4 — extração do shell). Mesmo layout de antes;
@@ -35,6 +35,7 @@ export const TAB_LABELS: Record<string, string> = {
     relatorios: "Relatórios",
     faturamento: "Faturamento",
     clientes: "Clientes",
+    comissoes: "Comissões",
     sites: "Sites",
     secretaria: "Secretária",
     resumo: "Resumo",

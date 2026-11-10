@@ -2188,3 +2188,47 @@ model RateioMaoDeObra {
   @@unique([contratacao_id, execucao_id])
   @@index([atividade_id])
 }
+
+// Comissionamento (06/11/2026) — Comercial › Comissões. Por mês: bruto faturado −
+// impostos − custo = líquido; a faixa do líquido dá o % de cada agente; o saldo
+// depois das comissões é a base da participação do gestor.
+model ComissaoConfig {
+  id                 String   @id @default(uuid())
+  tenant_id          String   @unique
+  aliquota_imposto   Float    @default(22.04)
+  faixas_json        String // [{ "ate": 75000, "percentual": 0 }, …] — a última sem "ate"
+  gestor_nome        String?
+  gestor_percentual  Float    @default(10)
+  updated_by         String?
+  updated_at         DateTime @updatedAt
+}
+
+model ComissaoAgente {
+  id             String   @id @default(uuid())
+  tenant_id      String
+  funcionario_id String?
+  nome           String
+  cargo          String?
+  inicio_mes     String // AAAA-MM
+  fim_mes        String?
+  ativo          Boolean  @default(true)
+  created_at     DateTime @default(now())
+
+  @@index([tenant_id])
+}
+
+model ComissaoFechamento {
+  id            String   @id @default(uuid())
+  tenant_id     String
+  mes           String // AAAA-MM
+  dados_json    String // retrato do cálculo no fechamento (atividades, agentes, totais)
+  liquido       Float
+  comissoes     Float
+  saldo         Float
+  gestor_valor  Float
+  meta_atingida Boolean?
+  fechado_por   String?
+  fechado_em    DateTime @default(now())
+
+  @@unique([tenant_id, mes])
+}

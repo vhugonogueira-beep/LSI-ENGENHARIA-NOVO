@@ -133,11 +133,25 @@ export default function TabCustoReal({ atividade }: { atividade: AtividadeDetalh
                     <Kpi rotulo="Ainda a pagar" valor={fmtMoeda(resumo.compromissos_a_pagar + resumo.a_reembolsar)} tom={resumo.compromissos_a_pagar + resumo.a_reembolsar > 0 ? 'text-warn' : undefined}
                         sub={`Parcelas ${fmtMoeda(resumo.compromissos_a_pagar)} · reembolsos ${fmtMoeda(resumo.a_reembolsar)}`} />
                     <Kpi rotulo="Adiantado a comprovar" valor={fmtMoeda(resumo.adiantado_a_comprovar)} tom={resumo.adiantado_a_comprovar > 0 ? 'text-warn' : undefined} sub="adiantamento sem despesa lançada" />
-                    <Kpi rotulo="Receita da atividade" valor={resumo.receita != null ? fmtMoeda(resumo.receita) : '—'} sub="valor do contrato ou orçado" />
+                    <Kpi rotulo="Receita da atividade" valor={resumo.receita != null ? fmtMoeda(resumo.receita) : '—'}
+                        sub={resumo.receita_origem === 'PO' ? 'total das POs (sem valor de contrato)' : resumo.receita_origem === 'CONTRATO' ? 'valor de contrato' : 'sem contrato nem PO'} />
                     <Kpi rotulo="Margem sobre o gasto" valor={resumo.margem_realizada != null ? fmtMoeda(resumo.margem_realizada) : '—'}
                         tom={resumo.margem_realizada == null ? undefined : resumo.margem_realizada >= 0 ? 'text-ok' : 'text-crit'}
-                        sub={resumo.receita ? `${((resumo.margem_realizada / resumo.receita) * 100).toFixed(1)}% da receita` : 'sem receita informada'} />
+                        sub={resumo.receita ? `${((resumo.margem_realizada / resumo.receita) * 100).toFixed(1)}% da receita${resumo.margem_projetada != null ? ` · projetada ${((resumo.margem_projetada / resumo.receita) * 100).toFixed(1)}%` : ''}` : 'sem receita informada'} />
                 </div>
+
+                {/* Equipe própria (06/11/2026): veio do antigo Resultado — explica custo zero ou só mão de obra. */}
+                {(dados.equipe_propria || []).length > 0 && (
+                    <div className="mt-3 rounded-lg border border-border bg-secondary/20 px-3 py-2 text-xs">
+                        {dados.equipe_propria.map((e: any) => (
+                            <div key={e.id} className="flex flex-wrap gap-x-3 py-0.5">
+                                <span className="font-semibold">Executada por equipe própria — {e.funcionario}</span>
+                                <span className="text-muted-foreground">{e.dias} dia(s) · {e.houve_material ? 'material lançado à parte' : 'só mão de obra, sem material'}</span>
+                                <span className={e.rateado > 0 ? 'text-ok' : 'text-warn'}>{e.rateado > 0 ? `mão de obra rateada ${fmtMoeda(e.rateado)}` : 'paga no semanal/mensal — ainda sem rateio'}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
 
                 <div className="mt-4 grid gap-3 lg:grid-cols-3">
                     <Barras titulo="Por categoria" itens={dados.por_categoria} total={resumo.realizado} rotulo={emFrase} />

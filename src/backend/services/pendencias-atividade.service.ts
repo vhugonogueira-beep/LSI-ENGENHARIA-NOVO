@@ -145,7 +145,7 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
     const concluida = a.status_operacional === 'CONCLUIDA';
     const p: PendenciasPorAba = {
         identificacao: [], comercial: [], 'cotacao-ls': [], planejamento: [], documentacao: [],
-        execucao: [], fornecedores: [], faturamento: [], resultado: [],
+        execucao: [], fornecedores: [], faturamento: [], 'custo-real': [],
     };
 
     // ── Identificação: campos que outras telas e e-mails consomem
@@ -247,8 +247,8 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
     if (concluida && a.status_faturamento === 'NAO_INICIADO') p.faturamento.push(alerta('Atividade concluída e faturamento não iniciado'));
 
     // ── Resultado: sem receita e custo previsto a margem não fecha
-    if (!a.valor_contrato) p.resultado.push(alerta('Sem valor de contrato (receita) — a margem não pode ser calculada'));
-    if (!a.valor_orcado) p.resultado.push(alerta('Sem custo orçado — a margem projetada fica incompleta'));
+    // Margem fica no Custo real (06/11/2026). Sem valor de contrato, a receita sai das POs.
+    if (!a.valor_contrato && !pos.length) p['custo-real'].push(alerta('Sem valor de contrato nem PO — a margem não pode ser calculada'));
 
     // ── SST dos prestadores contratados: só aviso, nunca bloqueia (09/10/2026).
     const contratados = await prisma.contratacaoFornecedor.findMany({

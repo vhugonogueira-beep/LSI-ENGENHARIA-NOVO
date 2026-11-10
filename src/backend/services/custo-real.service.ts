@@ -17,6 +17,7 @@ import { prisma } from '../server';
 import { loadPaymentAttachment } from './payment-attachment.service';
 import { MODELO_IA, iaDisponivel } from './ia-orcamento.service';
 import { listarExecucoes, movimentosDeRateio } from './equipe-propria.service';
+import { totalAFaturarPorAtividade } from './meta-faturamento.service';
 
 const PAGOS = ['PAGO', 'COMPROVANTE_RECEBIDO', 'CONFERIDO'];
 const cent = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100;
@@ -238,7 +239,10 @@ export async function custoRealDaAtividade(atividadeId: string, tenantId: string
 
     const documentos = lancamentos.flatMap(l => l.documentos);
     const pagosFornecedor = lancamentos.filter(l => l.origem === 'FORNECEDOR' && l.pago);
-    const receita = atividade.valor_contrato ?? atividade.valor_orcado ?? null;
+    // Receita (06/11/2026): valor de contrato; sem ele, o total das POs. Antes caía no
+    // valor orçado, que é CUSTO previsto — a margem saía errada.
+    const receita = atividade.valor_contrato ?? (await totalAFaturarPorAtividade([atividade.id])).get(atividade.id) ?? null;
+    const receitaOrigem = atividade.valor_contrato != null ? 'CONTRATO' : receita != null ? 'PO' : null;
 
     return {
         atividade,
@@ -253,6 +257,9 @@ export async function custoRealDaAtividade(atividadeId: string, tenantId: string
             adiantado_a_comprovar: cent(adiantadoAComprovar),
             receita,
             margem_realizada: receita != null ? cent(receita - realizado) : null,
+            receita_origem: receitaOrigem,
+            custo_orcado: atividade.valor_orcado ?? null,
+            margem_projetada: receita != null && atividade.valor_orcado != null ? cent(receita - atividade.valor_orcado) : null,
         },
         por_categoria: agrupar(l => l.categoria || 'OUTROS'),
         por_favorecido: agrupar(l => l.favorecido),

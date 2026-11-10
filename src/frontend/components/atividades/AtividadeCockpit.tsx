@@ -16,7 +16,6 @@ import TabDocumentacao from './TabDocumentacao';
 import TabFornecedores from './TabFornecedores';
 import TabCustoReal from './TabCustoReal';
 import TabFaturamento from './TabFaturamento';
-import TabResultado from './TabResultado';
 import { useEstadoDaSessao } from '../../lib/estadoSessao';
 
 interface Pendencia { nivel: 'ALERTA' | 'AVISO'; mensagem: string }
@@ -133,7 +132,10 @@ function buildTabs(modelo: string, sharing: string, tipoDemanda?: string) {
     // consolidado do que foi gasto, com a leitura dos comprovantes e NFs.
     const i = abas.findIndex(t => t.id === 'fornecedores');
     abas.splice(i + 1, 0, { id: 'custo-real', label: 'Custo real', secondary: abas[i]?.secondary ?? false });
-    return tipoDemanda === 'IMPLANTACAO' ? abas : abas.filter(t => t.id !== 'cotacao-ls');
+    // Resultado saiu (06/11/2026): repetia o Custo real com outra conta e ficava
+    // dessincronizado. Receita, custo e margem ficam só no Custo real.
+    const semResultado = abas.filter(t => t.id !== 'resultado');
+    return tipoDemanda === 'IMPLANTACAO' ? semResultado : semResultado.filter(t => t.id !== 'cotacao-ls');
 }
 
 function buildTabsDoModelo(modelo: string, sharing: string, tipoDemanda?: string) {
@@ -359,7 +361,6 @@ export default function AtividadeCockpit({ atividadeId, onBack, onDuplicar }: { 
                 {activeTab === 'fornecedores' && <TabFornecedores {...tabProps} />}
                 {activeTab === 'custo-real' && <TabCustoReal atividade={atividade} />}
                 {activeTab === 'faturamento' && <TabFaturamento {...tabProps} />}
-                {activeTab === 'resultado' && <TabResultado {...tabProps} />}
             </div>
         </div>
     );
