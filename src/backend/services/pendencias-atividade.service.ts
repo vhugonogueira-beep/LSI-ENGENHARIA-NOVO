@@ -157,6 +157,7 @@ export async function calcularPendenciasAtividade(atividadeId: string): Promise<
         [uf, 'UF'],
         [a.municipio, 'Município'],
         [a.contratante_id, 'Cliente / contratante'],
+        [(a as any).data_acionamento, 'Data de acionamento'],
         [a.responsavel, 'Responsável'],
         [a.gestor, 'Gestor (vai na planilha de faturamento)'],
         [a.diretorio_url, 'Diretório da atividade no servidor (sai nos e-mails financeiros)'],

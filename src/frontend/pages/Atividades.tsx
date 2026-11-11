@@ -1302,6 +1302,9 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                                     {projetos.map(p => <option key={p.id} value={p.id}>{p.codigo} — {p.titulo}</option>)}
                                 </select>
                             </Field>
+                            <Field label="Data de acionamento *">
+                                <input type="date" required value={form.data_acionamento || ''} onChange={e => setForm(f => ({ ...f, data_acionamento: e.target.value }))} className="input" />
+                            </Field>
                             <div className="grid grid-cols-2 gap-3">
                                 <Field label="Tipo de demanda *">
                                     <select
@@ -1430,9 +1433,6 @@ export default function Atividades({ vistaInicial = 'lista' }: { vistaInicial?: 
                             </p>
                             {/* Valor de contrato e custo orçado não entram na abertura: nascem
                                 do orçamento/negociação e são editados depois, no cockpit. */}
-                            <Field label="Data de acionamento">
-                                <input type="date" value={form.data_acionamento || ''} onChange={e => setForm(f => ({ ...f, data_acionamento: e.target.value }))} className="input" />
-                            </Field>
                             <Field label="Responsável / Gestor">
                                 <input value={form.responsavel} onChange={e => setForm(f => ({ ...f, responsavel: e.target.value }))} className="input"
                                     list="historico-responsaveis" autoComplete="off" placeholder="Clique para ver os últimos nomes usados" />
